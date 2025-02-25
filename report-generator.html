@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerador de Relatório PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: auto;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Gerar Relatório PDF</h2>
+        <form id="pdfForm">
+            <textarea id="jsonInput" placeholder="Cole seu JSON aqui..."></textarea>
+            <button type="submit">Gerar PDF</button>
+        </form>
+        <p class="error" id="errorMsg"></p>
+    </div>
+
+    <script>
+        document.getElementById('pdfForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const jsonData = document.getElementById('jsonInput').value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            
+            try {
+                const parsedJson = JSON.parse(jsonData); // Verifica se o JSON é válido
+                errorMsg.textContent = ''; // Remove mensagens de erro anteriores
+
+                const response = await fetch('http://api.petertecnet.com.br/api/report/generate', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ json_data: parsedJson })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao gerar o PDF. Verifique o JSON e tente novamente.');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'relatorio.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+            } catch (error) {
+                errorMsg.textContent = error.message;
+            }
+        });
+    </script>
+
+</body>
+</html>
