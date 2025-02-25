@@ -126,7 +126,7 @@
                 const parsedJson = JSON.parse(jsonData);
                 errorMsg.textContent = '';
 
-                const response = await fetch('http://api.petertecnet.com.br/api/report/generate', { 
+                const response = await fetch('https://api.petertecnet.com.br/api/report/generate', { 
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
