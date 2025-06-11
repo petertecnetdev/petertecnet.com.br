@@ -1,0 +1,96 @@
+  html {
+      scroll-behavior: smooth;
+    }
+    body {
+      background: url('video.mp4') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      margin-top: 80px; /* Espaço para o nav fixo */
+    }
+    .navbar-custom {
+      background-color: rgba(0, 0, 0, 0.7);
+      padding-top: 0.3rem;
+      padding-bottom: 0.3rem;
+    }
+    .navbar-brand img {
+      max-width: 50px; /* Logo com resolução menor */
+      height: auto;
+    }
+    section {
+      padding: 60px 0;
+    }
+    /* Adiciona um espaçamento extra na primeira section para não ficar sob o nav */
+    #sobre {
+      padding-top: 80px;
+    }
+    .bg-overlay {
+      background-color: rgba(0, 0, 0, 0.6);
+      border-radius: 8px;
+    }
+    /* Estilo avançado para os títulos das seções */
+    .section-title {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      position: relative;
+      padding-bottom: 10px;
+      margin-bottom: 30px;
+      display: inline-block;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    .section-title::after {
+      content: "";
+      position: absolute;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 4px;
+      background: linear-gradient(90deg, #007BFF, #00c6ff);
+      border-radius: 2px;
+    }
+    /* WhatsApp Button */
+    .whatsapp-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #25d366;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+      z-index: 1000;
+      text-decoration: none;
+    }
+    .whatsapp-button:hover {
+      background-color: #1ebe57;
+    }
+    /* Estilo para ícones de contato */
+    .contact-icon {
+      font-size: 1.5rem;
+      vertical-align: middle;
+      margin-right: 8px;
+      color: #00c6ff;
+    }
+    /* Footer aprimorado */
+    footer {
+      background-color: rgba(0, 0, 0, 0.85);
+      padding: 40px 0;
+    }
+    footer a {
+      color: #fff;
+      text-decoration: none;
+    }
+    footer a:hover {
+      color: #00c6ff;
+      text-decoration: underline;
+    }
+    .footer-links li {
+      list-style: none;
+      margin-bottom: 8px;
+    }
