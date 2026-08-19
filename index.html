@@ -2,83 +2,2935 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Peter Tecnet - Soluções em tecnologia</title>
 
-  <!-- Meta tags essenciais para SEO -->
-  <meta name="description" content="Peter Tecnet é uma desenvolvedora de soluções tecnológicas, criando aplicativos móveis, web e sistemas sob medida para gerar valor e rentabilidade." />
-  <meta name="keywords" content="desenvolvimento de software, aplicativos móveis, soluções tecnológicas, Peter Tecnet, software sob medida, sistemas web" />
+  <title>Peter Tecnet — Tecnologia que transforma ideias em produtos</title>
+
+  <meta
+    name="description"
+    content="Peter Tecnet desenvolve aplicativos, plataformas web, APIs e sistemas sob medida para empresas que querem transformar ideias em tecnologia."
+  />
+  <meta
+    name="keywords"
+    content="Peter Tecnet, desenvolvimento de software, aplicativos, sistemas web, API Laravel, Flutter, React, software sob medida, tecnologia"
+  />
   <meta name="author" content="Peter Tecnet" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="index, follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  
-  <!-- Open Graph (Facebook e outras redes sociais) -->
-  <meta property="og:title" content="Peter Tecnet - Soluções em tecnologia" />
-  <meta property="og:description" content="Desenvolvedora de aplicativos móveis, web e sistemas personalizados para agregar valor e rentabilidade." />
+
+  <meta name="theme-color" content="#030303" />
+
+  <meta property="og:title" content="Peter Tecnet — Tecnologia que transforma ideias em produtos" />
+  <meta
+    property="og:description"
+    content="Aplicativos, plataformas web, APIs e sistemas sob medida desenvolvidos pela Peter Tecnet."
+  />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://petertecnet.com.br/" />
   <meta property="og:image" content="https://petertecnet.com.br/thumbnail.jpg" />
+  <meta property="og:locale" content="pt_BR" />
 
-  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Peter Tecnet - Soluções em tecnologia" />
-  <meta name="twitter:description" content="Desenvolvedora de soluções tecnológicas inovadoras para aplicativos móveis, web e sistemas." />
+  <meta name="twitter:title" content="Peter Tecnet — Tecnologia que transforma ideias em produtos" />
+  <meta
+    name="twitter:description"
+    content="Desenvolvimento de aplicativos, sistemas web, APIs e soluções tecnológicas sob medida."
+  />
   <meta name="twitter:image" content="https://petertecnet.com.br/thumbnail.jpg" />
 
-  <!-- Robots -->
-  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://petertecnet.com.br/" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
 
   <style>
-    html, body {
-      margin: 0; padding: 0; height: 100%; width: 100%; background: black;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
-    body {
-      padding: 20px; /* margem ao redor do vídeo */
-      box-sizing: border-box;
-    }
-    video {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain; /* mantém o vídeo inteiro sem cortar */
-      background: black;
-      display: block;
-      border-radius: 8px; /* opcional, para arredondar as bordas */
-      border:solid  1px white;
-    }
-    #debug {
-      position: fixed;
-      top: 10px; left: 10px; background: rgba(255,255,255,0.8); color: black; padding: 5px;
-      font-family: monospace;
-      z-index: 1000;
-      border-radius: 4px;
-    }
-  </style>
-</head>
-<body>
+/* =========================================================
+   PETER TECNET — FUTURISTIC SYSTEM
+   Paleta baseada na identidade visual enviada:
+   • Cyan principal: #00A8C1
+   • Cyan elétrico: #19D8F2
+   • Azul profundo: #011E2E
+   • Azul petróleo: #052C3B
+   • Branco tecnológico: #F4FBFF
+   ========================================================= */
 
-  <video id="video" muted autoplay loop playsinline preload="auto">
-    <source src="video.mp4" type="video/mp4" />
-    Seu navegador não suporta vídeo.
-  </video>
+:root {
+  --bg: #01070b;
+  --bg-2: #021018;
+  --bg-3: #031923;
+  --surface: rgba(4, 25, 35, .68);
+  --surface-strong: rgba(5, 31, 43, .86);
+  --surface-soft: rgba(0, 168, 193, .055);
+
+  --white: #f4fbff;
+  --text: #e9f8fc;
+  --muted: #7f9ba5;
+  --muted-light: #a9c4cc;
+
+  --cyan: #00a8c1;
+  --cyan-bright: #19d8f2;
+  --cyan-soft: #70efff;
+  --cyan-dark: #007b94;
+
+  --navy: #011e2e;
+  --navy-2: #052c3b;
+
+  --success: #35f0a0;
+  --warning: #ffd166;
+
+  --line: rgba(90, 220, 240, .13);
+  --line-strong: rgba(25, 216, 242, .34);
+  --line-white: rgba(230, 250, 255, .12);
+
+  --glow: 0 0 34px rgba(0, 168, 193, .18);
+  --glow-strong: 0 0 65px rgba(25, 216, 242, .28);
+  --shadow: 0 24px 80px rgba(0, 0, 0, .42);
+
+  --max-width: 1380px;
+  --nav-height: 82px;
+  --radius: 24px;
+  --radius-sm: 16px;
+  --transition: .38s cubic-bezier(.22, 1, .36, 1);
+}
+
+/* =========================
+   BASE / RESET
+   ========================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--bg);
+  scrollbar-color: var(--cyan-dark) var(--bg);
+}
+
+body {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 8% 8%, rgba(0,168,193,.12), transparent 25%),
+    radial-gradient(circle at 92% 12%, rgba(25,216,242,.065), transparent 23%),
+    radial-gradient(circle at 50% 100%, rgba(1,30,46,.9), transparent 42%),
+    linear-gradient(135deg, #01070b 0%, #021018 48%, #01070b 100%);
+  font-family: "Inter", "Segoe UI", sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  opacity: .55;
+  background-image:
+    linear-gradient(rgba(25,216,242,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(25,216,242,.022) 1px, transparent 1px);
+  background-size: 70px 70px;
+  mask-image: linear-gradient(to bottom, black 0%, black 50%, transparent 100%);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  opacity: .032;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.75'/%3E%3C/svg%3E");
+}
+
+body.menu-open {
+  overflow: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  border: 0;
+}
+
+img,
+video,
+svg {
+  max-width: 100%;
+}
+
+::selection {
+  color: #001018;
+  background: var(--cyan-bright);
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: #01070b;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid #01070b;
+  border-radius: 999px;
+  background: linear-gradient(var(--cyan-dark), var(--cyan));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cyan-bright);
+}
+
+/* =========================
+   AMBIENT UI
+   ========================= */
+
+.cursor-glow {
+  position: fixed;
+  width: 420px;
+  height: 420px;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(25,216,242,.12) 0%,
+    rgba(0,168,193,.045) 30%,
+    transparent 70%
+  );
+  filter: blur(8px);
+  transition: opacity .3s ease;
+}
+
+.noise {
+  display: none;
+}
+
+.grid-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .7;
+  background-image:
+    linear-gradient(rgba(25,216,242,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(25,216,242,.04) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: linear-gradient(to bottom, black, transparent 88%);
+}
+
+.container {
+  position: relative;
+  z-index: 2;
+  width: min(calc(100% - 48px), var(--max-width));
+  margin: 0 auto;
+}
+
+.section {
+  position: relative;
+  padding: 145px 0;
+  overflow: hidden;
+}
+
+.section::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: min(1000px, 80%);
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, var(--line-strong), transparent);
+  opacity: .55;
+}
+
+.section-header {
+  position: relative;
+  max-width: 820px;
+  margin-bottom: 68px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 21px;
+  color: var(--cyan-bright);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 34px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan-bright));
+  box-shadow: 0 0 15px rgba(25,216,242,.8);
+}
+
+.eyebrow::after {
+  content: "◈";
+  color: rgba(25,216,242,.45);
+  font-size: 9px;
+}
+
+.section-title {
+  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-size: clamp(44px, 6vw, 84px);
+  font-weight: 600;
+  line-height: .95;
+  letter-spacing: -.06em;
+  margin-bottom: 27px;
+  text-wrap: balance;
+}
+
+.section-description {
+  max-width: 680px;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.gradient-text {
+  background: linear-gradient(
+    110deg,
+    #f7fdff 0%,
+    #f7fdff 28%,
+    #70efff 58%,
+    #00a8c1 82%,
+    #007b94 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 18px rgba(25,216,242,.12));
+}
+
+/* =========================
+   BUTTON SYSTEM
+   ========================= */
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 54px;
+  padding: 0 24px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  color: var(--white);
+  background: rgba(3, 25, 35, .52);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: .02em;
+  cursor: pointer;
+  isolation: isolate;
+  transition: var(--transition);
+  backdrop-filter: blur(16px);
+}
+
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    110deg,
+    transparent 15%,
+    rgba(112,239,255,.28) 50%,
+    transparent 85%
+  );
+  transform: translateX(-130%);
+  transition: transform .8s ease;
+}
+
+.btn::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 5px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan-bright), transparent);
+  transform: scaleX(0);
+  transition: transform var(--transition);
+}
+
+.btn:hover {
+  transform: translateY(-3px);
+  border-color: rgba(25,216,242,.65);
+  box-shadow: 0 16px 42px rgba(0,168,193,.16), inset 0 0 25px rgba(25,216,242,.06);
+}
+
+.btn:hover::before {
+  transform: translateX(130%);
+}
+
+.btn:hover::after {
+  transform: scaleX(1);
+}
+
+.btn-primary {
+  color: #001017;
+  border-color: var(--cyan-bright);
+  background: linear-gradient(135deg, #70efff 0%, #00c0da 48%, #00a8c1 100%);
+  box-shadow:
+    0 0 0 1px rgba(112,239,255,.1),
+    0 0 32px rgba(0,168,193,.22);
+}
+
+.btn-primary:hover {
+  color: #001017;
+  border-color: #a3f6ff;
+  box-shadow:
+    0 18px 50px rgba(0,168,193,.24),
+    0 0 50px rgba(25,216,242,.25);
+}
+
+.btn-outline {
+  color: var(--white);
+  background: rgba(0,168,193,.035);
+}
+
+.btn-outline:hover {
+  color: var(--cyan-bright);
+  background: rgba(0,168,193,.09);
+}
+
+.btn-arrow {
+  transition: transform var(--transition);
+}
+
+.btn:hover .btn-arrow {
+  transform: translateX(5px);
+}
+
+/* =========================
+   NAVIGATION
+   ========================= */
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 500;
+  height: var(--nav-height);
+  display: flex;
+  align-items: center;
+  transition: var(--transition);
+}
+
+.navbar::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: min(100% - 48px, var(--max-width));
+  height: 1px;
+  transform: translateX(-50%) scaleX(0);
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  transition: transform .5s ease;
+}
+
+.navbar.scrolled {
+  background: rgba(1, 7, 11, .76);
+  border-bottom: 1px solid rgba(25,216,242,.08);
+  backdrop-filter: blur(26px) saturate(135%);
+  -webkit-backdrop-filter: blur(26px) saturate(135%);
+}
+
+.navbar.scrolled::after {
+  transform: translateX(-50%) scaleX(1);
+}
+
+.nav-inner {
+  width: min(calc(100% - 48px), var(--max-width));
+  height: 100%;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-size: 21px;
+  font-weight: 750;
+  letter-spacing: -.045em;
+}
+
+.logo-mark {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(25,216,242,.48);
+  border-radius: 12px;
+  color: var(--cyan-bright);
+  background:
+    radial-gradient(circle, rgba(25,216,242,.16), transparent 65%),
+    rgba(0,168,193,.06);
+  box-shadow: inset 0 0 18px rgba(25,216,242,.08), 0 0 22px rgba(0,168,193,.08);
+}
+
+.logo-mark::before {
+  content: "P";
+  position: relative;
+  z-index: 2;
+  font-size: 19px;
+  font-weight: 900;
+  color: var(--white);
+  text-shadow: 0 0 14px rgba(25,216,242,.45);
+}
+
+.logo-mark::after {
+  content: "";
+  position: absolute;
+  width: 70px;
+  height: 1px;
+  background: var(--cyan-bright);
+  box-shadow: 0 0 12px var(--cyan-bright);
+  transform: rotate(-45deg);
+  opacity: .8;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav-link {
+  position: relative;
+  color: #8eaab3;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  transition: color var(--transition);
+}
+
+.nav-link::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -14px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--cyan-bright);
+  box-shadow: 0 0 10px var(--cyan-bright);
+  opacity: 0;
+  transform: translateX(-50%) scale(.5);
+  transition: var(--transition);
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan-bright));
+  box-shadow: 0 0 10px rgba(25,216,242,.7);
+  transition: width var(--transition);
+}
+
+.nav-link:hover {
+  color: var(--white);
+}
+
+.nav-link:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.nav-cta {
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.menu-button {
+  display: none;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0,168,193,.05);
+  color: var(--white);
+  cursor: pointer;
+}
+
+.menu-button span,
+.menu-button span::before,
+.menu-button span::after {
+  display: block;
+  width: 18px;
+  height: 1px;
+  margin: auto;
+  background: currentColor;
+  transition: var(--transition);
+}
+
+.menu-button span {
+  position: relative;
+}
+
+.menu-button span::before,
+.menu-button span::after {
+  content: "";
+  position: absolute;
+  left: 0;
+}
+
+.menu-button span::before { top: -6px; }
+.menu-button span::after { top: 6px; }
+
+/* =========================
+   HERO / FUTURISTIC HUD
+   ========================= */
+
+.hero {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding-top: 80px;
+  background:
+    radial-gradient(circle at 70% 45%, rgba(0,168,193,.12), transparent 30%),
+    linear-gradient(120deg, #01070b 0%, #011923 55%, #01070b 100%);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  width: 900px;
+  height: 900px;
+  right: -420px;
+  top: -180px;
+  border: 1px solid rgba(25,216,242,.09);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 70px rgba(25,216,242,.018),
+    0 0 0 140px rgba(25,216,242,.012),
+    0 0 0 210px rgba(25,216,242,.008);
+  animation: heroOrbit 18s linear infinite;
+  pointer-events: none;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  right: 8%;
+  top: 22%;
+  width: 2px;
+  height: 56%;
+  background: linear-gradient(transparent, var(--cyan), transparent);
+  opacity: .15;
+  box-shadow: 0 0 24px var(--cyan);
+  pointer-events: none;
+}
+
+.hero-video {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: .12;
+  filter: saturate(.55) hue-rotate(145deg) contrast(1.2);
+}
+
+.hero-video-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(1,7,11,.98) 0%, rgba(1,12,18,.86) 38%, rgba(1,12,18,.58) 68%, rgba(1,7,11,.93) 100%),
+    linear-gradient(0deg, #01070b 0%, transparent 22%, transparent 78%, #01070b 100%);
+}
+
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(1px);
+}
+
+.hero-orb-one {
+  width: 620px;
+  height: 620px;
+  right: -170px;
+  top: 4%;
+  background: radial-gradient(
+    circle,
+    rgba(0,168,193,.23),
+    rgba(25,216,242,.05) 42%,
+    transparent 70%
+  );
+  animation: orbFloat 9s ease-in-out infinite;
+}
+
+.hero-orb-two {
+  width: 500px;
+  height: 500px;
+  left: -280px;
+  bottom: -270px;
+  background: radial-gradient(
+    circle,
+    rgba(0,123,148,.22),
+    transparent 68%
+  );
+}
+
+.hero-content {
+  position: relative;
+  z-index: 3;
+  width: min(calc(100% - 48px), var(--max-width));
+  margin: auto;
+  padding: 85px 0 110px;
+}
+
+.hero-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  margin-bottom: 30px;
+  overflow: hidden;
+  border: 1px solid rgba(25,216,242,.25);
+  border-radius: 10px;
+  color: #9debf4;
+  background: rgba(0,168,193,.045);
+  box-shadow: inset 0 0 20px rgba(25,216,242,.025);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  backdrop-filter: blur(15px);
+}
+
+.hero-badge::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -50%;
+  width: 25%;
+  background: linear-gradient(90deg, transparent, rgba(112,239,255,.35), transparent);
+  transform: skewX(-18deg);
+  animation: badgeScan 4s ease-in-out infinite;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 12px rgba(53,240,160,.8);
+  animation: pulse 2s infinite;
+}
+
+.hero-title {
+  position: relative;
+  max-width: 1100px;
+  margin-bottom: 34px;
+  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-size: clamp(58px, 8vw, 126px);
+  line-height: .87;
+  letter-spacing: -.075em;
+  font-weight: 600;
+}
+
+.hero-title::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  bottom: -18px;
+  width: 125px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--cyan-bright), transparent);
+  box-shadow: 0 0 15px rgba(25,216,242,.7);
+}
+
+.hero-title .line {
+  display: block;
+}
+
+.hero-title .accent {
+  color: var(--cyan-bright);
+  text-shadow: 0 0 32px rgba(25,216,242,.17);
+}
+
+.hero-description {
+  max-width: 670px;
+  margin-bottom: 38px;
+  color: #9bb3bb;
+  font-size: clamp(16px, 1.5vw, 20px);
+  line-height: 1.75;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 13px;
+}
+
+.hero-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 34px;
+  z-index: 3;
+}
+
+.hero-bottom-inner {
+  width: min(calc(100% - 48px), var(--max-width));
+  margin: auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.hero-scroll {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  color: #56737c;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .22em;
+}
+
+.scroll-line {
+  position: relative;
+  width: 52px;
+  height: 1px;
+  overflow: hidden;
+  background: #18333d;
+}
+
+.scroll-line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--cyan-bright);
+  box-shadow: 0 0 10px var(--cyan-bright);
+  animation: scan 2s infinite;
+}
+
+.hero-index {
+  color: #3f5a63;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+}
+
+/* =========================
+   METRICS
+   ========================= */
+
+.metrics {
+  position: relative;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: rgba(1, 12, 18, .72);
+  backdrop-filter: blur(14px);
+}
+
+.metrics::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(25,216,242,.035), transparent);
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.metric {
+  position: relative;
+  min-height: 175px;
+  padding: 38px 35px;
+  border-right: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.metric:first-child {
+  border-left: 1px solid var(--line);
+}
+
+.metric::after {
+  content: "";
+  position: absolute;
+  right: -30px;
+  bottom: -50px;
+  width: 120px;
+  height: 120px;
+  border: 1px solid rgba(25,216,242,.08);
+  border-radius: 50%;
+}
+
+.metric-number {
+  margin-bottom: 4px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 43px;
+  font-weight: 600;
+  letter-spacing: -.06em;
+  color: var(--white);
+}
+
+.metric-label {
+  color: #66828b;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+}
+
+.metric-line {
+  position: absolute;
+  left: 35px;
+  bottom: 25px;
+  width: 36px;
+  height: 1px;
+  background: var(--cyan);
+  box-shadow: 0 0 12px rgba(0,168,193,.75);
+}
+
+/* =========================
+   SERVICES
+   ========================= */
+
+.services {
+  background:
+    radial-gradient(circle at 90% 20%, rgba(0,168,193,.08), transparent 30%),
+    linear-gradient(#01070b, #021018);
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.service-card {
+  position: relative;
+  min-height: 420px;
+  padding: 34px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(145deg, rgba(25,216,242,.045), rgba(255,255,255,.008)),
+    var(--surface);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+  backdrop-filter: blur(18px);
+  transition: var(--transition);
+}
+
+.service-card::before {
+  content: "";
+  position: absolute;
+  top: -120px;
+  right: -120px;
+  width: 240px;
+  height: 240px;
+  border: 1px solid rgba(25,216,242,.1);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 25px rgba(25,216,242,.018),
+    0 0 0 55px rgba(25,216,242,.012);
+  transition: transform .8s ease;
+}
+
+.service-card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan-bright), transparent);
+  box-shadow: 0 0 16px rgba(25,216,242,.35);
+  transform: scaleX(0);
+  transition: transform var(--transition);
+}
+
+.service-card:hover {
+  transform: translateY(-9px);
+  border-color: rgba(25,216,242,.38);
+  background:
+    linear-gradient(145deg, rgba(0,168,193,.08), rgba(255,255,255,.008)),
+    var(--surface-strong);
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.35),
+    0 0 40px rgba(0,168,193,.08),
+    inset 0 1px 0 rgba(112,239,255,.08);
+}
+
+.service-card:hover::before {
+  transform: scale(1.22) rotate(25deg);
+}
+
+.service-card:hover::after {
+  transform: scaleX(1);
+}
+
+.service-number {
+  margin-bottom: 70px;
+  color: #42616b;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  letter-spacing: .12em;
+}
+
+.service-icon {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 25px;
+  border: 1px solid rgba(25,216,242,.32);
+  border-radius: 15px;
+  color: var(--cyan-bright);
+  background: rgba(0,168,193,.055);
+  box-shadow: inset 0 0 22px rgba(25,216,242,.035), 0 0 22px rgba(0,168,193,.05);
+}
+
+.service-icon::before,
+.service-icon::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-color: var(--cyan-bright);
+  border-style: solid;
+}
+
+.service-icon::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1px 0 0 1px;
+}
+
+.service-icon::after {
+  right: -1px;
+  bottom: -1px;
+  border-width: 0 1px 1px 0;
+}
+
+.service-icon svg {
+  width: 23px;
+  height: 23px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.service-title {
+  margin-bottom: 13px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 25px;
+  letter-spacing: -.035em;
+}
+
+.service-description {
+  color: #718b94;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+/* =========================
+   PROCESS
+   ========================= */
+
+.process {
+  background:
+    radial-gradient(circle at 20% 50%, rgba(0,168,193,.045), transparent 25%),
+    #020d14;
+}
+
+.process-layout {
+  display: grid;
+  grid-template-columns: .85fr 1.15fr;
+  gap: 100px;
+  align-items: start;
+}
+
+.process-intro {
+  position: sticky;
+  top: 140px;
+}
+
+.process-list {
+  border-top: 1px solid var(--line);
+}
+
+.process-item {
+  display: grid;
+  grid-template-columns: 70px 1fr 30px;
+  gap: 24px;
+  padding: 32px 0;
+  border-bottom: 1px solid var(--line);
+  transition: var(--transition);
+}
+
+.process-item:hover {
+  padding-left: 16px;
+  border-color: rgba(25,216,242,.32);
+}
+
+.process-number {
+  padding-top: 5px;
+  color: var(--cyan);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  text-shadow: 0 0 12px rgba(0,168,193,.5);
+}
+
+.process-title {
+  margin-bottom: 8px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 25px;
+  font-weight: 500;
+  letter-spacing: -.03em;
+}
+
+.process-description {
+  max-width: 550px;
+  color: #718991;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.process-arrow {
+  color: #36515b;
+  font-size: 20px;
+  transition: var(--transition);
+}
+
+.process-item:hover .process-arrow {
+  color: var(--cyan-bright);
+  transform: translateX(5px);
+  text-shadow: 0 0 14px rgba(25,216,242,.6);
+}
+
+/* =========================
+   TECHNOLOGY
+   ========================= */
+
+.technology {
+  overflow: hidden;
+  background: #010a10;
+}
+
+.technology::before {
+  content: "";
+  position: absolute;
+  width: 760px;
+  height: 760px;
+  right: -350px;
+  top: -80px;
+  border: 1px solid rgba(25,216,242,.06);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 80px rgba(25,216,242,.012),
+    0 0 0 160px rgba(25,216,242,.008);
+}
+
+.tech-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 100px;
+  align-items: center;
+}
+
+.tech-copy h3 {
+  margin-bottom: 25px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(35px, 4vw, 58px);
+  line-height: 1;
+  letter-spacing: -.055em;
+}
+
+.tech-copy p {
+  max-width: 570px;
+  margin-bottom: 32px;
+  color: #718991;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.tech-stack {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.tech-item {
+  position: relative;
+  min-height: 105px;
+  padding: 22px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: rgba(0,168,193,.025);
+  transition: var(--transition);
+}
+
+.tech-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 0;
+  background: var(--cyan-bright);
+  box-shadow: 0 0 14px rgba(25,216,242,.7);
+  transition: height var(--transition);
+}
+
+.tech-item:hover {
+  transform: translateY(-5px);
+  border-color: rgba(25,216,242,.3);
+  background: rgba(0,168,193,.06);
+  box-shadow: 0 14px 40px rgba(0,0,0,.25);
+}
+
+.tech-item:hover::before {
+  height: 100%;
+}
+
+.tech-name {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.tech-type {
+  color: #49656e;
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+/* =========================
+   PROJECTS
+   ========================= */
+
+.projects {
+  background:
+    radial-gradient(circle at 75% 20%, rgba(0,168,193,.065), transparent 28%),
+    #01070b;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: 1.35fr .65fr;
+  grid-template-rows: 330px 330px;
+  gap: 14px;
+}
+
+.project-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #031018;
+  transition: var(--transition);
+}
+
+.project-card:first-child {
+  grid-row: span 2;
+}
+
+.project-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border: 1px solid transparent;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(112,239,255,.16), transparent 35%, transparent 65%, rgba(0,168,193,.12)) border-box;
+  mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.project-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(25,216,242,.3);
+  box-shadow: 0 26px 70px rgba(0,0,0,.36), 0 0 35px rgba(0,168,193,.07);
+}
+
+.project-card:hover::before {
+  opacity: 1;
+}
+
+.project-background {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 70% 30%, rgba(25,216,242,.19), transparent 35%),
+    linear-gradient(140deg, #082331 0%, #02090e 72%);
+  transition: transform .9s ease;
+}
+
+.project-card:hover .project-background {
+  transform: scale(1.08);
+}
+
+.project-grid-lines {
+  position: absolute;
+  inset: 0;
+  opacity: .36;
+  background-image:
+    linear-gradient(rgba(112,239,255,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(112,239,255,.045) 1px, transparent 1px);
+  background-size: 45px 45px;
+  mask-image: linear-gradient(135deg, black, transparent);
+}
+
+.project-content {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 32px;
+  background: linear-gradient(0deg, rgba(0,5,8,.94) 0%, rgba(0,5,8,.3) 58%, transparent 100%);
+}
+
+.project-tag {
+  width: fit-content;
+  padding: 6px 10px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(25,216,242,.18);
+  border-radius: 8px;
+  color: #7ec8d4;
+  background: rgba(0,18,25,.42);
+  backdrop-filter: blur(10px);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.project-title {
+  margin-bottom: 8px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 32px;
+  letter-spacing: -.05em;
+}
+
+.project-description {
+  max-width: 600px;
+  color: #78929b;
+  font-size: 13px;
+}
+
+.project-link {
+  position: absolute;
+  right: 28px;
+  top: 28px;
+  width: 42px;
+  height: 42px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: #75929b;
+  background: rgba(0,168,193,.04);
+  transition: var(--transition);
+}
+
+.project-card:hover .project-link {
+  color: #001018;
+  background: var(--cyan-bright);
+  border-color: var(--cyan-bright);
+  transform: rotate(45deg);
+  box-shadow: 0 0 25px rgba(25,216,242,.35);
+}
+
+/* =========================
+   ARCHITECTURE / SYSTEM MAP
+   ========================= */
+
+.architecture {
+  padding-bottom: 120px;
+  background: #01080d;
+}
+
+.architecture-box {
+  position: relative;
+  min-height: 560px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0,168,193,.10), transparent 28%),
+    linear-gradient(145deg, rgba(25,216,242,.025), transparent),
+    #020d14;
+  box-shadow:
+    inset 0 0 80px rgba(0,168,193,.025),
+    0 30px 90px rgba(0,0,0,.35);
+}
+
+.architecture-box::before,
+.architecture-box::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.architecture-box::before {
+  inset: 18px;
+  border: 1px solid rgba(25,216,242,.08);
+  border-radius: 22px;
+}
+
+.architecture-box::after {
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(transparent, rgba(25,216,242,.14), transparent);
+}
+
+.architecture-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(25,216,242,.032) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(25,216,242,.032) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(circle, black 20%, transparent 80%);
+}
+
+.architecture-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 190px;
+  height: 190px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(25,216,242,.52);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,168,193,.18), rgba(0,8,13,.9) 68%);
+  box-shadow:
+    0 0 60px rgba(0,168,193,.14),
+    inset 0 0 50px rgba(25,216,242,.08);
+  animation: corePulse 4s ease-in-out infinite;
+}
+
+.architecture-center::before,
+.architecture-center::after {
+  content: "";
+  position: absolute;
+  border: 1px solid rgba(25,216,242,.17);
+  border-radius: 50%;
+  animation: rotate 18s linear infinite;
+}
+
+.architecture-center::before { inset: -35px; }
+.architecture-center::after {
+  inset: -70px;
+  border-style: dashed;
+  animation-duration: 28s;
+  animation-direction: reverse;
+}
+
+.architecture-logo {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 30px;
+  font-weight: 750;
+  color: var(--cyan-bright);
+  letter-spacing: -.06em;
+  text-shadow: 0 0 25px rgba(25,216,242,.4);
+}
+
+.architecture-node {
+  position: absolute;
+  z-index: 3;
+  width: 170px;
+  min-height: 100px;
+  padding: 17px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: rgba(2, 15, 21, .8);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 15px 35px rgba(0,0,0,.2);
+  backdrop-filter: blur(16px);
+}
+
+.architecture-node::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  width: 16px;
+  height: 16px;
+  border-left: 1px solid var(--cyan);
+  border-top: 1px solid var(--cyan);
+}
+
+.architecture-node:nth-child(2) { left: 8%; top: 16%; }
+.architecture-node:nth-child(3) { right: 8%; top: 16%; }
+.architecture-node:nth-child(4) { left: 8%; bottom: 16%; }
+.architecture-node:nth-child(5) { right: 8%; bottom: 16%; }
+
+.node-label {
+  margin-bottom: 8px;
+  color: var(--cyan-bright);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+
+.node-title {
+  margin-bottom: 4px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 17px;
+}
+
+.node-description {
+  color: #59737c;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.connection {
+  position: absolute;
+  z-index: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(25,216,242,.55), transparent);
+  box-shadow: 0 0 10px rgba(25,216,242,.25);
+  transform-origin: center;
+}
+
+.connection.one {
+  width: 300px;
+  left: 24%;
+  top: 31%;
+  transform: rotate(20deg);
+}
+
+.connection.two {
+  width: 300px;
+  right: 24%;
+  top: 31%;
+  transform: rotate(-20deg);
+}
+
+.connection.three {
+  width: 300px;
+  left: 24%;
+  bottom: 31%;
+  transform: rotate(-20deg);
+}
+
+.connection.four {
+  width: 300px;
+  right: 24%;
+  bottom: 31%;
+  transform: rotate(20deg);
+}
+
+/* =========================
+   CTA
+   ========================= */
+
+.cta-section {
+  position: relative;
+  padding: 180px 0;
+  overflow: hidden;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0,168,193,.13), transparent 32%),
+    #01070b;
+}
+
+.cta-section::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 850px;
+  height: 850px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(25,216,242,.07);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 70px rgba(25,216,242,.012),
+    0 0 0 140px rgba(25,216,242,.008);
+  pointer-events: none;
+}
+
+.cta-content {
+  position: relative;
+  z-index: 2;
+}
+
+.cta-title {
+  max-width: 930px;
+  margin: 0 auto 28px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(48px, 7vw, 96px);
+  line-height: .9;
+  letter-spacing: -.07em;
+}
+
+.cta-description {
+  max-width: 620px;
+  margin: 0 auto 38px;
+  color: #718991;
+  font-size: 16px;
+}
+
+.cta-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* =========================
+   FOOTER
+   ========================= */
+
+footer {
+  position: relative;
+  padding: 70px 0 30px;
+  border-top: 1px solid var(--line);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(0,168,193,.06), transparent 30%),
+    #01060a;
+}
+
+footer::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: .5;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 50px;
+  padding-bottom: 70px;
+}
+
+.footer-brand {
+  max-width: 360px;
+}
+
+.footer-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 18px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.footer-description {
+  color: #526d76;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.footer-title {
+  margin-bottom: 20px;
+  color: #8aa5ad;
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.footer-links {
+  list-style: none;
+  display: grid;
+  gap: 11px;
+}
+
+.footer-links a {
+  position: relative;
+  color: #526d76;
+  font-size: 13px;
+  transition: color var(--transition);
+}
+
+.footer-links a::before {
+  content: "›";
+  margin-right: 6px;
+  color: var(--cyan);
+  opacity: 0;
+  transform: translateX(-5px);
+  display: inline-block;
+  transition: var(--transition);
+}
+
+.footer-links a:hover {
+  color: var(--cyan-bright);
+}
+
+.footer-links a:hover::before {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 25px;
+  border-top: 1px solid var(--line);
+  color: #39515a;
+  font-size: 10px;
+}
+
+.footer-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-status .status-dot {
+  width: 5px;
+  height: 5px;
+  flex-basis: 5px;
+}
+
+/* =========================
+   REVEAL / MOTION
+   ========================= */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(35px);
+  transition:
+    opacity .9s ease,
+    transform .9s cubic-bezier(.22,1,.36,1);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.delay-1 { transition-delay: .1s; }
+.delay-2 { transition-delay: .2s; }
+.delay-3 { transition-delay: .3s; }
+
+/* =========================
+   KEYFRAMES
+   ========================= */
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: .45;
+    transform: scale(.75);
+  }
+}
+
+@keyframes scan {
+  0% { transform: translateX(-100%); }
+  50%, 100% { transform: translateX(100%); }
+}
+
+@keyframes badgeScan {
+  0%, 55% { left: -50%; }
+  75%, 100% { left: 125%; }
+}
+
+@keyframes rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes heroOrbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translate3d(0,0,0) scale(1); }
+  50% { transform: translate3d(-18px, 18px, 0) scale(1.04); }
+}
+
+@keyframes corePulse {
+  0%, 100% {
+    box-shadow:
+      0 0 60px rgba(0,168,193,.14),
+      inset 0 0 50px rgba(25,216,242,.08);
+  }
+  50% {
+    box-shadow:
+      0 0 95px rgba(0,168,193,.24),
+      inset 0 0 65px rgba(25,216,242,.13);
+  }
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 1100px) {
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .process-layout,
+  .tech-layout {
+    grid-template-columns: 1fr;
+    gap: 60px;
+  }
+
+  .process-intro {
+    position: static;
+  }
+
+  .tech-stack {
+    max-width: 800px;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1.5fr 1fr 1fr;
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 800px) {
+  :root {
+    --nav-height: 70px;
+  }
+
+  .container,
+  .nav-inner,
+  .hero-content,
+  .hero-bottom-inner {
+    width: min(calc(100% - 32px), var(--max-width));
+  }
+
+  .section {
+    padding: 100px 0;
+  }
+
+  .nav-links {
+    position: fixed;
+    top: var(--nav-height);
+    left: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 22px;
+    border: 1px solid var(--line-strong);
+    border-radius: 18px;
+    background: rgba(1, 13, 19, .96);
+    box-shadow: 0 30px 80px rgba(0,0,0,.45), 0 0 35px rgba(0,168,193,.06);
+    backdrop-filter: blur(25px);
+    transform: translateY(-20px);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+  }
+
+  .nav-links.active {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .nav-link {
+    padding: 16px 8px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .nav-link::after,
+  .nav-link::before {
+    display: none;
+  }
+
+  .nav-cta {
+    margin-top: 14px;
+  }
+
+  .menu-button {
+    display: block;
+  }
+
+  .hero {
+    min-height: 800px;
+  }
+
+  .hero-title {
+    font-size: clamp(50px, 14vw, 85px);
+  }
+
+  .hero-description {
+    font-size: 15px;
+  }
+
+  .hero-bottom {
+    display: none;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metric {
+    min-height: 140px;
+    padding: 28px 22px;
+  }
+
+  .metric:nth-child(2) {
+    border-right: 0;
+  }
+
+  .metric:nth-child(3),
+  .metric:nth-child(4) {
+    border-top: 1px solid var(--line);
+  }
+
+  .metric-number {
+    font-size: 34px;
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .service-card {
+    min-height: 350px;
+  }
+
+  .projects-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(3, 330px);
+  }
+
+  .project-card:first-child {
+    grid-row: auto;
+  }
+
+  .architecture-box {
+    min-height: 650px;
+  }
+
+  .architecture-center {
+    width: 140px;
+    height: 140px;
+  }
+
+  .architecture-node {
+    width: 145px;
+  }
+
+  .architecture-node:nth-child(2) { left: 4%; top: 12%; }
+  .architecture-node:nth-child(3) { right: 4%; top: 12%; }
+  .architecture-node:nth-child(4) { left: 4%; bottom: 12%; }
+  .architecture-node:nth-child(5) { right: 4%; bottom: 12%; }
+
+  .connection {
+    display: none;
+  }
+
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 520px) {
+  .hero-actions,
+  .cta-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .section-title {
+    font-size: 45px;
+  }
+
+  .process-item {
+    grid-template-columns: 45px 1fr 20px;
+    gap: 12px;
+  }
+
+  .process-title {
+    font-size: 21px;
+  }
+
+  .tech-stack {
+    grid-template-columns: 1fr;
+  }
+
+  .architecture-box {
+    min-height: 700px;
+  }
+
+  .architecture-node {
+    width: 135px;
+  }
+
+  .architecture-node:nth-child(2) { left: 12px; top: 80px; }
+  .architecture-node:nth-child(3) { right: 12px; top: 80px; }
+  .architecture-node:nth-child(4) { left: 12px; bottom: 80px; }
+  .architecture-node:nth-child(5) { right: 12px; bottom: 80px; }
+
+  .architecture-center {
+    width: 120px;
+    height: 120px;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (hover: none) {
+  .cursor-glow {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+</style>
+</head>
+
+<body>
+  <div class="noise"></div>
+  <div class="cursor-glow" id="cursorGlow"></div>
+
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="#inicio" class="logo" aria-label="Peter Tecnet">
+        <span class="logo-mark"></span>
+        <span>Peter Tecnet</span>
+      </a>
+
+      <div class="nav-links" id="navLinks">
+        <a href="#solucoes" class="nav-link">Soluções</a>
+        <a href="#processo" class="nav-link">Processo</a>
+        <a href="#tecnologia" class="nav-link">Tecnologia</a>
+        <a href="#projetos" class="nav-link">Projetos</a>
+        <a href="#contato" class="btn btn-primary nav-cta">Falar com a Peter Tecnet <span class="btn-arrow">↗</span></a>
+      </div>
+
+      <button class="menu-button" id="menuButton" aria-label="Abrir menu" aria-expanded="false">
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero" id="inicio">
+      <video
+        class="hero-video"
+        id="heroVideo"
+        muted
+        autoplay
+        loop
+        playsinline
+        preload="auto"
+        aria-hidden="true"
+      >
+        <source src="video.mp4" type="video/mp4" />
+      </video>
+
+      <div class="hero-video-overlay"></div>
+      <div class="grid-background"></div>
+
+      <div class="hero-orb hero-orb-one"></div>
+      <div class="hero-orb hero-orb-two"></div>
+
+      <div class="hero-content">
+        <div class="hero-badge reveal">
+          <span class="status-dot"></span>
+          Tecnologia em movimento
+        </div>
+
+        <h1 class="hero-title reveal delay-1">
+          <span class="line">Ideias.</span>
+          <span class="line">Código.</span>
+          <span class="line gradient-text">Impacto.</span>
+        </h1>
+
+        <p class="hero-description reveal delay-2">
+          Transformamos ideias em produtos digitais escaláveis.
+          Desenvolvemos aplicativos, plataformas web, APIs e sistemas
+          pensados para resolver problemas reais e gerar negócios.
+        </p>
+
+        <div class="hero-actions reveal delay-3">
+          <a href="#contato" class="btn btn-primary">
+            Começar um projeto
+            <span class="btn-arrow">↗</span>
+          </a>
+
+          <a href="#projetos" class="btn btn-outline">
+            Explorar projetos
+            <span class="btn-arrow">↓</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="hero-bottom">
+        <div class="hero-bottom-inner">
+          <div class="hero-scroll">
+            <span class="scroll-line"></span>
+            Explore a experiência
+          </div>
+
+          <div class="hero-index">PT / 01 — 06</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="metrics">
+      <div class="container">
+        <div class="metrics-grid">
+          <div class="metric reveal">
+            <div class="metric-number">360°</div>
+            <div class="metric-label">Ciclo de desenvolvimento</div>
+            <div class="metric-line"></div>
+          </div>
+
+          <div class="metric reveal delay-1">
+            <div class="metric-number">01</div>
+            <div class="metric-label">API centralizada</div>
+            <div class="metric-line"></div>
+          </div>
+
+          <div class="metric reveal delay-2">
+            <div class="metric-number">∞</div>
+            <div class="metric-label">Possibilidades digitais</div>
+            <div class="metric-line"></div>
+          </div>
+
+          <div class="metric reveal delay-3">
+            <div class="metric-number">24/7</div>
+            <div class="metric-label">Tecnologia em operação</div>
+            <div class="metric-line"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section services" id="solucoes">
+      <div class="container">
+        <div class="section-header reveal">
+          <div class="eyebrow">O que fazemos</div>
+
+          <h2 class="section-title">
+            Construímos o <span class="gradient-text">digital.</span>
+          </h2>
+
+          <p class="section-description">
+            Do conceito ao produto em produção, criamos soluções tecnológicas
+            completas para empresas, empreendedores e projetos próprios.
+          </p>
+        </div>
+
+        <div class="services-grid">
+          <article class="service-card reveal">
+            <div class="service-number">01 / MOBILE</div>
+
+            <div class="service-icon">
+              <svg viewBox="0 0 24 24">
+                <rect x="6" y="2" width="12" height="20" rx="2"></rect>
+                <path d="M10 18h4"></path>
+              </svg>
+            </div>
+
+            <h3 class="service-title">Aplicativos</h3>
+
+            <p class="service-description">
+              Aplicativos modernos e multiplataforma para Android, iOS e
+              experiências digitais conectadas ao seu negócio.
+            </p>
+          </article>
+
+          <article class="service-card reveal delay-1">
+            <div class="service-number">02 / WEB</div>
+
+            <div class="service-icon">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                <path d="M3 9h18"></path>
+                <path d="M7 14l2 2 4-4"></path>
+              </svg>
+            </div>
+
+            <h3 class="service-title">Plataformas Web</h3>
+
+            <p class="service-description">
+              Sistemas web rápidos, responsivos e preparados para crescer
+              junto com a operação da sua empresa.
+            </p>
+          </article>
+
+          <article class="service-card reveal delay-2">
+            <div class="service-number">03 / BACKEND</div>
+
+            <div class="service-icon">
+              <svg viewBox="0 0 24 24">
+                <ellipse cx="12" cy="5" rx="8" ry="3"></ellipse>
+                <path d="M4 5v7c0 1.7 3.6 3 8 3s8-1.3 8-3V5"></path>
+                <path d="M4 12v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7"></path>
+              </svg>
+            </div>
+
+            <h3 class="service-title">APIs & Backend</h3>
+
+            <p class="service-description">
+              APIs robustas e arquiteturas centralizadas para conectar
+              aplicações, dados, usuários e operações.
+            </p>
+          </article>
+
+          <article class="service-card reveal">
+            <div class="service-number">04 / CUSTOM</div>
+
+            <div class="service-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M8 3h8"></path>
+                <path d="M9 3v5l-5 9a3 3 0 0 0 2.6 4.5h10.8A3 3 0 0 0 20 17l-5-9V3"></path>
+                <path d="M7 15h10"></path>
+              </svg>
+            </div>
+
+            <h3 class="service-title">Software Sob Medida</h3>
+
+            <p class="service-description">
+              Sistemas desenhados para processos específicos, eliminando
+              limitações de ferramentas genéricas.
+            </p>
+          </article>
+
+          <article class="service-card reveal delay-1">
+            <div class="service-number">05 / PRODUCT</div>
+
+            <div class="service-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 19V5"></path>
+                <path d="M4 19h16"></path>
+                <path d="M7 15l3-4 3 2 5-7"></path>
+              </svg>
+            </div>
+
+            <h3 class="service-title">Produtos Digitais</h3>
+
+            <p class="service-description">
+              Criamos produtos próprios com foco em experiência, automação,
+              escalabilidade e geração de receita.
+            </p>
+          </article>
+
+          <article class="service-card reveal delay-2">
+            <div class="service-number">06 / EVOLUTION</div>
+
+            <div class="service-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3v18"></path>
+                <path d="M3 12h18"></path>
+                <path d="M5.5 5.5l13 13"></path>
+                <path d="M18.5 5.5l-13 13"></path>
+              </svg>
+            </div>
+
+            <h3 class="service-title">Evolução Contínua</h3>
+
+            <p class="service-description">
+              Manutenção, melhorias, novas funcionalidades e evolução
+              constante para manter o produto competitivo.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section process" id="processo">
+      <div class="container">
+        <div class="process-layout">
+          <div class="process-intro reveal">
+            <div class="eyebrow">Como trabalhamos</div>
+
+            <h2 class="section-title">
+              Do problema ao <span class="gradient-text">produto.</span>
+            </h2>
+
+            <p class="section-description">
+              Tecnologia sem estratégia vira complexidade. Nosso processo
+              conecta negócio, produto, design e engenharia desde o primeiro
+              momento.
+            </p>
+          </div>
+
+          <div class="process-list">
+            <article class="process-item reveal">
+              <div class="process-number">01</div>
+
+              <div>
+                <h3 class="process-title">Descoberta</h3>
+                <p class="process-description">
+                  Entendemos o problema, o público, os objetivos e o contexto
+                  do negócio antes de definir qualquer solução.
+                </p>
+              </div>
+
+              <div class="process-arrow">↗</div>
+            </article>
+
+            <article class="process-item reveal delay-1">
+              <div class="process-number">02</div>
+
+              <div>
+                <h3 class="process-title">Arquitetura</h3>
+                <p class="process-description">
+                  Definimos a estrutura técnica, integrações, dados, segurança
+                  e tecnologias que sustentam o produto.
+                </p>
+              </div>
+
+              <div class="process-arrow">↗</div>
+            </article>
+
+            <article class="process-item reveal delay-2">
+              <div class="process-number">03</div>
+
+              <div>
+                <h3 class="process-title">Design & Experiência</h3>
+                <p class="process-description">
+                  Transformamos fluxos complexos em experiências claras,
+                  rápidas e intuitivas para quem realmente utiliza o produto.
+                </p>
+              </div>
+
+              <div class="process-arrow">↗</div>
+            </article>
+
+            <article class="process-item reveal delay-1">
+              <div class="process-number">04</div>
+
+              <div>
+                <h3 class="process-title">Desenvolvimento</h3>
+                <p class="process-description">
+                  Implementamos o produto com código organizado, arquitetura
+                  escalável, integrações e testes.
+                </p>
+              </div>
+
+              <div class="process-arrow">↗</div>
+            </article>
+
+            <article class="process-item reveal delay-2">
+              <div class="process-number">05</div>
+
+              <div>
+                <h3 class="process-title">Deploy</h3>
+                <p class="process-description">
+                  Colocamos a solução em produção e estruturamos o ambiente
+                  necessário para sua operação.
+                </p>
+              </div>
+
+              <div class="process-arrow">↗</div>
+            </article>
+
+            <article class="process-item reveal delay-3">
+              <div class="process-number">06</div>
+
+              <div>
+                <h3 class="process-title">Evolução</h3>
+                <p class="process-description">
+                  O lançamento é apenas o começo. Monitoramos, corrigimos,
+                  aprimoramos e adicionamos novas capacidades ao produto.
+                </p>
+              </div>
+
+              <div class="process-arrow">↗</div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section technology" id="tecnologia">
+      <div class="container">
+        <div class="tech-layout">
+          <div class="tech-copy reveal">
+            <div class="eyebrow">Stack tecnológico</div>
+
+            <h3>
+              Tecnologia não é o produto.
+              <span class="gradient-text">É o que permite construí-lo.</span>
+            </h3>
+
+            <p>
+              Utilizamos tecnologias modernas para construir produtos
+              multiplataforma, APIs robustas e experiências web rápidas.
+              A arquitetura é pensada para permitir evolução sem transformar
+              o projeto em uma dependência técnica impossível de manter.
+            </p>
+
+            <a href="#contato" class="btn btn-outline">
+              Fale com nosso time
+              <span class="btn-arrow">↗</span>
+            </a>
+          </div>
+
+          <div class="tech-stack">
+            <div class="tech-item reveal">
+              <div class="tech-name">Laravel</div>
+              <div class="tech-type">Backend / API</div>
+            </div>
+
+            <div class="tech-item reveal delay-1">
+              <div class="tech-name">PHP</div>
+              <div class="tech-type">Backend</div>
+            </div>
+
+            <div class="tech-item reveal delay-2">
+              <div class="tech-name">Flutter</div>
+              <div class="tech-type">Mobile / Multiplatform</div>
+            </div>
+
+            <div class="tech-item reveal delay-3">
+              <div class="tech-name">React</div>
+              <div class="tech-type">Web / Frontend</div>
+            </div>
+
+            <div class="tech-item reveal">
+              <div class="tech-name">MySQL</div>
+              <div class="tech-type">Database</div>
+            </div>
+
+            <div class="tech-item reveal delay-1">
+              <div class="tech-name">REST API</div>
+              <div class="tech-type">Architecture</div>
+            </div>
+
+            <div class="tech-item reveal delay-2">
+              <div class="tech-name">Git</div>
+              <div class="tech-type">Version Control</div>
+            </div>
+
+            <div class="tech-item reveal delay-3">
+              <div class="tech-name">Cloud</div>
+              <div class="tech-type">Infrastructure</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section projects" id="projetos">
+      <div class="container">
+        <div class="section-header reveal">
+          <div class="eyebrow">Produtos & projetos</div>
+
+          <h2 class="section-title">
+            Ideias que já <span class="gradient-text">viraram produto.</span>
+          </h2>
+
+          <p class="section-description">
+            A Peter Tecnet também desenvolve produtos próprios, aplicando nossa
+            experiência em tecnologia para resolver problemas específicos de
+            diferentes mercados.
+          </p>
+        </div>
+
+        <div class="projects-grid">
+          <article class="project-card reveal">
+            <div class="project-background"></div>
+            <div class="project-grid-lines"></div>
+
+            <div class="project-link">↗</div>
+
+            <div class="project-content">
+              <div class="project-tag">Gestão para barbearias</div>
+
+              <h3 class="project-title">Rasoio</h3>
+
+              <p class="project-description">
+                Plataforma para gestão de barbearias, agendamentos, clientes,
+                serviços, profissionais e operação.
+              </p>
+            </div>
+          </article>
+
+          <article class="project-card reveal delay-1">
+            <div
+              class="project-background"
+              style="
+                background:
+                  radial-gradient(circle at 30% 25%, rgba(180, 127, 65, 0.15), transparent 40%),
+                  linear-gradient(140deg, #101010 0%, #050505 70%);
+              "
+            ></div>
+
+            <div class="project-grid-lines"></div>
+
+            <div class="project-link">↗</div>
+
+            <div class="project-content">
+              <div class="project-tag">Tattoo management</div>
+
+              <h3 class="project-title">Inkap</h3>
+
+              <p class="project-description">
+                Gestão de estúdios, artistas, clientes, portfólios,
+                agendamentos e serviços.
+              </p>
+            </div>
+          </article>
+
+          <article class="project-card reveal delay-2">
+            <div
+              class="project-background"
+              style="
+                background:
+                  radial-gradient(circle at 75% 65%, rgba(255, 255, 255, 0.08), transparent 38%),
+                  linear-gradient(140deg, #0e0e0e 0%, #040404 70%);
+              "
+            ></div>
+
+            <div class="project-grid-lines"></div>
+
+            <div class="project-link">↗</div>
+
+            <div class="project-content">
+              <div class="project-tag">Soluções digitais</div>
+
+              <h3 class="project-title">Novos produtos</h3>
+
+              <p class="project-description">
+                Uma arquitetura preparada para transformar novas ideias em
+                produtos digitais.
+              </p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section architecture">
+      <div class="container">
+        <div class="section-header reveal">
+          <div class="eyebrow">Arquitetura</div>
+
+          <h2 class="section-title">
+            Um ecossistema. <span class="gradient-text">Vários produtos.</span>
+          </h2>
+
+          <p class="section-description">
+            Nossa arquitetura permite centralizar autenticação, dados e regras
+            de negócio em uma API, enquanto diferentes aplicações consomem a
+            mesma base tecnológica.
+          </p>
+        </div>
+
+        <div class="architecture-box reveal">
+          <div class="architecture-grid"></div>
+
+          <div class="connection one"></div>
+          <div class="connection two"></div>
+          <div class="connection three"></div>
+          <div class="connection four"></div>
+
+          <div class="architecture-center">
+            <div class="architecture-logo">PT</div>
+          </div>
+
+          <div class="architecture-node">
+            <div class="node-label">01 / Interface</div>
+            <div class="node-title">Web</div>
+            <div class="node-description">
+              Aplicações rápidas e responsivas.
+            </div>
+          </div>
+
+          <div class="architecture-node">
+            <div class="node-label">02 / Interface</div>
+            <div class="node-title">Mobile</div>
+            <div class="node-description">
+              Experiências multiplataforma.
+            </div>
+          </div>
+
+          <div class="architecture-node">
+            <div class="node-label">03 / Core</div>
+            <div class="node-title">API</div>
+            <div class="node-description">
+              Regras e dados centralizados.
+            </div>
+          </div>
+
+          <div class="architecture-node">
+            <div class="node-label">04 / Data</div>
+            <div class="node-title">Database</div>
+            <div class="node-description">
+              Dados estruturados e integrados.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-section" id="contato">
+      <div class="container">
+        <div class="cta-content reveal">
+          <div class="eyebrow">Vamos construir</div>
+
+          <h2 class="cta-title">
+            Seu próximo produto pode começar <span class="gradient-text">agora.</span>
+          </h2>
+
+          <p class="cta-description">
+            Tem uma ideia, um problema para resolver ou um sistema que precisa
+            evoluir? Vamos transformar isso em tecnologia.
+          </p>
+
+          <div class="cta-actions">
+            <a
+              href="mailto:contato@petertecnet.com.br"
+              class="btn btn-primary"
+            >
+              contato@petertecnet.com.br
+              <span class="btn-arrow">↗</span>
+            </a>
+
+            <a
+              href="https://wa.me/5562999999999"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-outline"
+            >
+              Conversar pelo WhatsApp
+              <span class="btn-arrow">↗</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#inicio" class="footer-logo">
+            <span class="logo-mark"></span>
+            <span>Peter Tecnet</span>
+          </a>
+
+          <p class="footer-description">
+            Desenvolvimento de software, aplicativos, plataformas web e
+            soluções tecnológicas sob medida.
+          </p>
+        </div>
+
+        <div>
+          <div class="footer-title">Navegação</div>
+
+          <ul class="footer-links">
+            <li><a href="#inicio">Início</a></li>
+            <li><a href="#solucoes">Soluções</a></li>
+            <li><a href="#processo">Processo</a></li>
+            <li><a href="#tecnologia">Tecnologia</a></li>
+            <li><a href="#projetos">Projetos</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="footer-title">Produtos</div>
+
+          <ul class="footer-links">
+            <li><a href="https://rasoio.petertecnet.com.br/" target="_blank" rel="noopener noreferrer">Rasoio</a></li>
+            <li><a href="#projetos">Inkap</a></li>
+            <li><a href="#projetos">Novos produtos</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="footer-title">Contato</div>
+
+          <ul class="footer-links">
+            <li>
+              <a href="mailto:contato@petertecnet.com.br">
+                E-mail
+              </a>
+            </li>
+
+            <li>
+              <a
+                href="https://wa.me/5562999999999"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                WhatsApp
+              </a>
+            </li>
+
+            <li>
+              <a
+                href="https://github.com/petertecnetdev"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GitHub
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>
+          © <span id="currentYear"></span> Peter Tecnet. Todos os direitos reservados.
+        </span>
+
+        <div class="footer-status">
+          <span class="status-dot"></span>
+          Sistemas operacionais
+        </div>
+      </div>
+    </div>
+  </footer>
 
   <script>
-    const video = document.getElementById('video');
-    const debug = document.getElementById('debug');
+    (() => {
+      const navbar = document.getElementById("navbar");
+      const navLinks = document.getElementById("navLinks");
+      const menuButton = document.getElementById("menuButton");
+      const heroVideo = document.getElementById("heroVideo");
+      const cursorGlow = document.getElementById("cursorGlow");
+      const currentYear = document.getElementById("currentYear");
 
-    video.addEventListener('loadeddata', () => {
-      debug.textContent = 'Status: Vídeo carregado com sucesso!';
-      video.play().catch(e => {
-        debug.textContent = 'Status: Erro ao tentar reproduzir o vídeo: ' + e.message;
+      currentYear.textContent = new Date().getFullYear();
+
+      const handleScroll = () => {
+        if (window.scrollY > 30) {
+          navbar.classList.add("scrolled");
+        } else {
+          navbar.classList.remove("scrolled");
+        }
+      };
+
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      handleScroll();
+
+      menuButton.addEventListener("click", () => {
+        const isOpen = navLinks.classList.toggle("active");
+
+        document.body.classList.toggle("menu-open", isOpen);
+
+        menuButton.setAttribute("aria-expanded", String(isOpen));
+        menuButton.setAttribute(
+          "aria-label",
+          isOpen ? "Fechar menu" : "Abrir menu"
+        );
       });
-    });
 
-    video.addEventListener('error', (e) => {
-      debug.textContent = 'Status: Erro ao carregar vídeo. Verifique o caminho e o arquivo.';
-      console.error('Erro no vídeo:', e);
-    });
+      document.querySelectorAll(".nav-link").forEach((link) => {
+        link.addEventListener("click", () => {
+          navLinks.classList.remove("active");
+          document.body.classList.remove("menu-open");
+          menuButton.setAttribute("aria-expanded", "false");
+          menuButton.setAttribute("aria-label", "Abrir menu");
+        });
+      });
+
+      if (heroVideo) {
+        heroVideo.muted = true;
+
+        const playVideo = () => {
+          heroVideo.play().catch(() => {});
+        };
+
+        heroVideo.addEventListener("loadeddata", playVideo);
+        heroVideo.addEventListener("canplay", playVideo);
+
+        document.addEventListener("visibilitychange", () => {
+          if (!document.hidden) {
+            playVideo();
+          }
+        });
+      }
+
+      const revealElements = document.querySelectorAll(".reveal");
+
+      if ("IntersectionObserver" in window) {
+        const observer = new IntersectionObserver(
+          (entries, observerInstance) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+                observerInstance.unobserve(entry.target);
+              }
+            });
+          },
+          {
+            threshold: 0.12,
+            rootMargin: "0px 0px -50px 0px",
+          }
+        );
+
+        revealElements.forEach((element) => {
+          observer.observe(element);
+        });
+      } else {
+        revealElements.forEach((element) => {
+          element.classList.add("visible");
+        });
+      }
+
+      if (window.matchMedia("(pointer: fine)").matches) {
+        window.addEventListener(
+          "mousemove",
+          (event) => {
+            cursorGlow.style.left = `${event.clientX}px`;
+            cursorGlow.style.top = `${event.clientY}px`;
+          },
+          { passive: true }
+        );
+      } else {
+        cursorGlow.style.display = "none";
+      }
+
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", (event) => {
+          const targetId = anchor.getAttribute("href");
+
+          if (!targetId || targetId === "#") {
+            return;
+          }
+
+          const target = document.querySelector(targetId);
+
+          if (!target) {
+            return;
+          }
+
+          event.preventDefault();
+
+          const offset = window.innerWidth <= 800 ? 75 : 95;
+
+          const targetPosition =
+            target.getBoundingClientRect().top +
+            window.scrollY -
+            offset;
+
+          window.scrollTo({
+            top: targetPosition,
+            behavior: "smooth",
+          });
+        });
+      });
+    })();
   </script>
 </body>
 </html>
