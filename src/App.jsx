@@ -126,12 +126,17 @@ function App() {
             <p className="kicker">Vamos construir algo relevante</p>
             <h2>Sua ideia pode ser o<br /><span>próximo grande produto.</span></h2>
             <p>Conte o que você quer transformar. Nós ajudamos a encontrar o melhor caminho tecnológico.</p>
-            <a className="button button--primary" href="mailto:contato@petertecnet.com.br">contato@petertecnet.com.br <span>↗</span></a>
+            <div className="contact-actions">
+              <a className="button button--primary" href="mailto:contato@petertecnet.com.br">contato@petertecnet.com.br <span>↗</span></a>
+              <a className="button button--ghost" href="https://www.instagram.com/petertecnet/" target="_blank" rel="noreferrer" aria-label="Instagram da Peter Tecnet">
+                Instagram @petertecnet <span>↗</span>
+              </a>
+            </div>
           </div>
         </section>
       </main>
 
-      <footer><div className="container footer-inner"><div className="brand"><img src="/petertecnetlogo.png" alt="" /><span>Peter Tecnet</span></div><p>© {new Date().getFullYear()} Peter Tecnet. Tecnologia em movimento.</p><a href="#inicio">Voltar ao topo ↑</a></div></footer>
+      <footer><div className="container footer-inner"><div className="brand"><img src="/petertecnetlogo.png" alt="" /><span>Peter Tecnet</span></div><p>© {new Date().getFullYear()} Peter Tecnet. Tecnologia em movimento.</p><div className="footer-links"><a href="https://www.instagram.com/petertecnet/" target="_blank" rel="noreferrer">Instagram ↗</a><a href="#inicio">Voltar ao topo ↑</a></div></div></footer>
     </div>
   )
 }
