@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import './Admin.css'
+import './Login.css'
 
 const API = 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'token'
@@ -14,8 +15,8 @@ async function request(path, options = {}) {
     headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...options.headers },
   })
   const data = response.status === 204 ? null : await response.json().catch(() => ({}))
-  if (response.status === 401) { localStorage.removeItem(TOKEN_KEY); window.location.href = '/login' }
-  if (!response.ok) throw new Error(data?.message || Object.values(data?.errors || {})?.flat()?.[0] || 'Não foi possível concluir a operação.')
+  if (response.status === 401 && path !== '/auth/login') { localStorage.removeItem(TOKEN_KEY); window.location.href = '/login' }
+  if (!response.ok) throw new Error(data?.error || data?.message || Object.values(data?.errors || {})?.flat()?.[0] || 'Não foi possível concluir a operação.')
   return data
 }
 
@@ -27,7 +28,7 @@ export function LoginPage() {
   async function submit(event) {
     event.preventDefault(); setLoading(true); setError('')
     try {
-      const data = await request('/auth/login', { method: 'POST', body: JSON.stringify(form) })
+      const data = await request('/auth/login', { method: 'POST', body: JSON.stringify({ username: form.username.trim(), password: form.password }) })
       const token = tokenFrom(data)
       if (!token) throw new Error('A API não retornou um token de acesso.')
       localStorage.setItem(TOKEN_KEY, token)
@@ -35,15 +36,14 @@ export function LoginPage() {
     } catch (err) { setError(err.message) } finally { setLoading(false) }
   }
 
-  return <main className="admin-auth"><form className="admin-card login-card" onSubmit={submit}>
-    <a className="admin-brand" href="/"><img src="/petertecnetlogo.png" alt="" /><span>Peter Tecnet</span></a>
-    <p className="admin-kicker">Área administrativa</p><h1>Entrar no painel</h1>
-    <label>Usuário ou e-mail<input autoFocus value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} required /></label>
-    <label>Senha<input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required /></label>
-    {error && <p className="admin-error">{error}</p>}
-    <button className="admin-primary" disabled={loading}>{loading ? 'Entrando…' : 'Entrar'}</button>
-    <a className="admin-back" href="/">← Voltar para o site</a>
-  </form></main>
+  return <main className="login-page"><div className="login-effects"><i /><i /><span /></div><div className="login-layout">
+    <aside className="login-hero"><div><a className="admin-brand" href="/"><img src="/petertecnetlogo.png" alt="" /><span>Peter Tecnet</span></a><p className="admin-kicker">Tecnologia em movimento</p><h1>Gerencie nosso<br /><em>ecossistema digital.</em></h1><p>Controle as aplicações apresentadas na landing page em um ambiente integrado à API Peter Tecnet.</p></div>
+      <ul><li><b>✓</b><span><strong>Catálogo centralizado</strong>Cadastre e atualize todos os projetos.</span></li><li><b>✓</b><span><strong>Acesso protegido</strong>Autenticação JWT e controle por permissões.</span></li><li><b>✓</b><span><strong>Publicação imediata</strong>As alterações alimentam diretamente a landing page.</span></li></ul><small>🔐 Seu acesso e os dados do sistema são protegidos.</small></aside>
+    <section className="login-panel"><form className="login-card" onSubmit={submit}><div className="login-logo"><img src="/petertecnetlogo.png" alt="Peter Tecnet" /></div><h2>Bem-vindo de volta</h2><p>Entre para gerenciar as aplicações da Peter Tecnet.</p>
+      <label>Usuário ou e-mail<div className="login-input"><span>✉</span><input autoFocus autoComplete="username" placeholder="Digite seu usuário ou e-mail" value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} disabled={loading} required /></div></label>
+      <label>Senha<div className="login-input"><span>🔒</span><input type="password" autoComplete="current-password" placeholder="Digite sua senha" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} disabled={loading} required /></div></label>
+      {error && <p className="admin-error" role="alert">{error}</p>}<button className="admin-primary" disabled={loading}>{loading ? <><i className="login-spinner" /> Entrando...</> : 'Entrar'}</button><a className="admin-back" href="/">← Voltar para o site</a>
+    </form></section></div></main>
 }
 
 export function AdminPage() {
