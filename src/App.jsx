@@ -9,16 +9,47 @@ const services = [
 ]
 
 const stack = ['React', 'Laravel', 'Flutter', 'JavaScript', 'PHP', 'MySQL', 'APIs REST', 'Cloud']
+const API_ORIGIN = 'https://api.petertecnet.com.br'
+
+const resolveAssetUrl = (path) => {
+  if (!path) return '/petertecnetlogo.png'
+  if (/^https?:\/\//i.test(path)) return path
+  return `${API_ORIGIN}/${path.replace(/^\/+/, '')}`
+}
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [applications, setApplications] = useState([])
+  const [projectsStatus, setProjectsStatus] = useState('loading')
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    fetch(`${API_ORIGIN}/api/applications`, {
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error(`API respondeu com status ${response.status}`)
+        return response.json()
+      })
+      .then((data) => {
+        setApplications(Array.isArray(data.applications) ? data.applications : [])
+        setProjectsStatus('success')
+      })
+      .catch((error) => {
+        if (error.name !== 'AbortError') setProjectsStatus('error')
+      })
+
+    return () => controller.abort()
   }, [])
 
   const closeMenu = () => setMenuOpen(false)
@@ -39,6 +70,7 @@ function App() {
           <a href="#solucoes" onClick={closeMenu}>Soluções</a>
           <a href="#processo" onClick={closeMenu}>Processo</a>
           <a href="#tecnologia" onClick={closeMenu}>Tecnologia</a>
+          <a href="#projetos" onClick={closeMenu}>Projetos</a>
           <a className="nav-contact" href="#contato" onClick={closeMenu}>Iniciar projeto <span>↗</span></a>
         </nav>
       </header>
@@ -117,6 +149,41 @@ function App() {
               <p>Escolhemos ferramentas maduras e modernas para entregar produtos rápidos, seguros e sustentáveis.</p>
               <div className="stack-list">{stack.map(item => <span key={item}>{item}</span>)}</div>
             </div>
+          </div>
+        </section>
+
+        <section className="section projects" id="projetos">
+          <div className="container">
+            <div className="section-head">
+              <p className="kicker">Produtos Peter Tecnet</p>
+              <h2>Ferramentas que já estão<br /><span>em movimento.</span></h2>
+              <p>Conheça produtos digitais desenvolvidos para simplificar operações e criar novas possibilidades.</p>
+            </div>
+
+            {projectsStatus === 'loading' && (
+              <div className="projects-grid" aria-label="Carregando projetos">
+                {[1, 2, 3].map((item) => <div className="project-card project-card--loading" key={item} />)}
+              </div>
+            )}
+
+            {projectsStatus === 'success' && applications.length > 0 && (
+              <div className="projects-grid">
+                {applications.map((application) => (
+                  <article className="project-card" key={application.id || application.slug}>
+                    <div className="project-logo"><img src={resolveAssetUrl(application.logo)} alt={`Logo ${application.name}`} loading="lazy" /></div>
+                    <div className="project-body">
+                      <div className="project-meta"><span>Peter Tecnet</span>{application.version && <span>v{application.version}</span>}</div>
+                      <h3>{application.name}</h3>
+                      <p>{application.description || 'Produto digital desenvolvido pela Peter Tecnet.'}</p>
+                      {application.url && <a href={application.url} target="_blank" rel="noreferrer">Conhecer projeto <span>↗</span></a>}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+
+            {projectsStatus === 'success' && applications.length === 0 && <p className="projects-message">Novos produtos serão apresentados em breve.</p>}
+            {projectsStatus === 'error' && <p className="projects-message">Nossos projetos estão temporariamente indisponíveis. Tente novamente mais tarde.</p>}
           </div>
         </section>
 
