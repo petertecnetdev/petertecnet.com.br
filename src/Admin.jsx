@@ -10,14 +10,24 @@ const tokenFrom = (data) => data?.token?.access_token || data?.token?.original?.
 
 async function request(path, options = {}) {
   const token = localStorage.getItem(TOKEN_KEY)
-  const response = await fetch(`${API}${path}`, {
-    ...options,
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...options.headers },
-  })
-  const data = response.status === 204 ? null : await response.json().catch(() => ({}))
-  if (response.status === 401 && path !== '/auth/login') { localStorage.removeItem(TOKEN_KEY); window.location.href = '/login' }
-  if (!response.ok) throw new Error(data?.error || data?.message || Object.values(data?.errors || {})?.flat()?.[0] || 'Não foi possível concluir a operação.')
-  return data
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), 15000)
+  try {
+    const response = await fetch(`${API}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...options.headers },
+    })
+    const data = response.status === 204 ? null : await response.json().catch(() => ({}))
+    if (response.status === 401 && path !== '/auth/login') { localStorage.removeItem(TOKEN_KEY); window.location.href = '/login' }
+    if (!response.ok) throw new Error(data?.error || data?.message || Object.values(data?.errors || {})?.flat()?.[0] || 'Não foi possível concluir a operação.')
+    return data
+  } catch (error) {
+    if (error.name === 'AbortError') throw new Error('A API demorou para responder. Tente novamente.')
+    throw error
+  } finally {
+    window.clearTimeout(timeout)
+  }
 }
 
 export function LoginPage() {
