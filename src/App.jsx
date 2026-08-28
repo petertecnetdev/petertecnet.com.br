@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import { AdminPage, LoginPage } from './Admin'
 
 const services = [
   ['01', 'Aplicativos', 'Experiências mobile rápidas, intuitivas e conectadas ao seu negócio.'],
@@ -17,7 +18,7 @@ const resolveAssetUrl = (path) => {
   return `${API_ORIGIN}/${path.replace(/^\/+/, '')}`
 }
 
-function App() {
+function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [applications, setApplications] = useState([])
@@ -203,9 +204,15 @@ function App() {
         </section>
       </main>
 
-      <footer><div className="container footer-inner"><div className="brand"><img src="/petertecnetlogo.png" alt="" /><span>Peter Tecnet</span></div><p>© {new Date().getFullYear()} Peter Tecnet. Tecnologia em movimento.</p><div className="footer-links"><a href="https://www.instagram.com/petertecnet/" target="_blank" rel="noreferrer">Instagram ↗</a><a href="#inicio">Voltar ao topo ↑</a></div></div></footer>
+      <footer><div className="container footer-inner"><div className="brand"><img src="/petertecnetlogo.png" alt="" /><span>Peter Tecnet</span></div><p>© {new Date().getFullYear()} Peter Tecnet. Tecnologia em movimento.</p><div className="footer-links"><a href="/login">Administrar</a><a href="https://www.instagram.com/petertecnet/" target="_blank" rel="noreferrer">Instagram ↗</a><a href="#inicio">Voltar ao topo ↑</a></div></div></footer>
     </div>
   )
+}
+
+function App() {
+  if (window.location.pathname === '/login') return <LoginPage />
+  if (window.location.pathname.startsWith('/admin')) return <AdminPage />
+  return <LandingPage />
 }
 
 export default App
