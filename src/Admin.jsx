@@ -8,6 +8,10 @@ const emptyForm = { name: '', description: '', slug: '', url: '', logo: '', vers
 
 const tokenFrom = (data) => data?.token?.access_token || data?.token?.original?.access_token || data?.access_token || data?.token
 
+function ProcessingIndicator({ message = 'Carregando...' }) {
+  return <div className="peter-processing" role="status" aria-live="polite"><div className="peter-processing__visual"><i /><i /><img src="/petertecnetlogo.png" alt="" /></div><strong>{message}</strong></div>
+}
+
 async function request(path, options = {}) {
   const token = localStorage.getItem(TOKEN_KEY)
   const controller = new AbortController()
@@ -46,14 +50,14 @@ export function LoginPage() {
     } catch (err) { setError(err.message) } finally { setLoading(false) }
   }
 
-  return <main className="login-page"><div className="login-effects"><i /><i /><span /></div><div className="login-layout">
+  return <>{loading && <ProcessingIndicator message="Autenticando acesso..." />}<main className="login-page"><div className="login-effects"><i /><i /><span /></div><div className="login-layout">
     <aside className="login-hero"><div><a className="admin-brand" href="/"><img src="/petertecnetlogo.png" alt="" /><span>Peter Tecnet</span></a><p className="admin-kicker">Tecnologia em movimento</p><h1>Gerencie nosso<br /><em>ecossistema digital.</em></h1><p>Controle as aplicações apresentadas na landing page em um ambiente integrado à API Peter Tecnet.</p></div>
       <ul><li><b>✓</b><span><strong>Catálogo centralizado</strong>Cadastre e atualize todos os projetos.</span></li><li><b>✓</b><span><strong>Acesso protegido</strong>Autenticação JWT e controle por permissões.</span></li><li><b>✓</b><span><strong>Publicação imediata</strong>As alterações alimentam diretamente a landing page.</span></li></ul><small>🔐 Seu acesso e os dados do sistema são protegidos.</small></aside>
     <section className="login-panel"><form className="login-card" onSubmit={submit}><div className="login-logo"><img src="/petertecnetlogo.png" alt="Peter Tecnet" /></div><h2>Bem-vindo de volta</h2><p>Entre para gerenciar as aplicações da Peter Tecnet.</p>
       <label>Usuário ou e-mail<div className="login-input"><span>✉</span><input autoFocus autoComplete="username" placeholder="Digite seu usuário ou e-mail" value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} disabled={loading} required /></div></label>
       <label>Senha<div className="login-input"><span>🔒</span><input type="password" autoComplete="current-password" placeholder="Digite sua senha" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} disabled={loading} required /></div></label>
       {error && <p className="admin-error" role="alert">{error}</p>}<button className="admin-primary" disabled={loading}>{loading ? <><i className="login-spinner" /> Entrando...</> : 'Entrar'}</button><a className="admin-back" href="/">← Voltar para o site</a>
-    </form></section></div></main>
+    </form></section></div></main></>
 }
 
 export function AdminPage() {
@@ -62,10 +66,13 @@ export function AdminPage() {
   const [editing, setEditing] = useState(null)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [processing, setProcessing] = useState(true)
 
   async function load() {
+    setProcessing(true)
     try { const data = await request('/admin/applications'); setApps(data.applications || []) }
     catch (err) { setError(err.message) }
+    finally { setProcessing(false) }
   }
   useEffect(() => { if (!localStorage.getItem(TOKEN_KEY)) window.location.href = '/login'; else load() }, [])
 
@@ -74,19 +81,20 @@ export function AdminPage() {
   }
   function reset() { setEditing(null); setForm(emptyForm) }
   async function submit(event) {
-    event.preventDefault(); setError(''); setMessage('')
+    event.preventDefault(); setError(''); setMessage(''); setProcessing(true)
     try {
       await request(`/admin/applications${editing ? `/${editing}` : ''}`, { method: editing ? 'PUT' : 'POST', body: JSON.stringify(form) })
       setMessage(editing ? 'Aplicação atualizada.' : 'Aplicação cadastrada.'); reset(); await load()
-    } catch (err) { setError(err.message) }
+    } catch (err) { setError(err.message); setProcessing(false) }
   }
   async function remove(app) {
     if (!window.confirm(`Excluir ${app.name}?`)) return
-    try { await request(`/admin/applications/${app.id}`, { method: 'DELETE' }); await load() } catch (err) { setError(err.message) }
+    setProcessing(true)
+    try { await request(`/admin/applications/${app.id}`, { method: 'DELETE' }); await load() } catch (err) { setError(err.message); setProcessing(false) }
   }
   function logout() { localStorage.removeItem(TOKEN_KEY); window.location.href = '/login' }
 
-  return <main className="admin-shell"><header className="admin-header"><a className="admin-brand" href="/"><img src="/petertecnetlogo.png" alt="" /><span>Peter Tecnet</span></a><div><a href="/" target="_blank">Ver site ↗</a><button onClick={logout}>Sair</button></div></header>
+  return <>{processing && <ProcessingIndicator message="Carregando painel..." />}<main className="admin-shell"><header className="admin-header"><a className="admin-brand" href="/"><img src="/petertecnetlogo.png" alt="" /><span>Peter Tecnet</span></a><div><a href="/" target="_blank">Ver site ↗</a><button onClick={logout}>Sair</button></div></header>
     <div className="admin-layout"><section className="admin-card admin-form"><p className="admin-kicker">Aplicações</p><h1>{editing ? 'Editar aplicação' : 'Nova aplicação'}</h1>
       <form onSubmit={submit}><div className="admin-fields"><label>Nome<input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required /></label><label>Slug<input value={form.slug} onChange={e => setForm({ ...form, slug: e.target.value })} placeholder="Gerado pelo nome" /></label>
       <label className="wide">Endereço da aplicação<input type="url" value={form.url} onChange={e => setForm({ ...form, url: e.target.value })} placeholder="https://app.petertecnet.com.br" required /></label>
@@ -97,5 +105,5 @@ export function AdminPage() {
       {error && <p className="admin-error">{error}</p>}{message && <p className="admin-success">{message}</p>}<div className="admin-actions"><button className="admin-primary">{editing ? 'Salvar alterações' : 'Cadastrar aplicação'}</button>{editing && <button type="button" onClick={reset}>Cancelar</button>}</div></form>
     </section>
     <section className="admin-card admin-list"><div><p className="admin-kicker">Catálogo</p><h2>Aplicações cadastradas</h2></div>{apps.length === 0 ? <p className="admin-empty">Nenhuma aplicação cadastrada.</p> : apps.map(app => <article key={app.id}><img src={app.logo || `${app.url.replace(/\/$/, '')}/logo`} alt="" /><div><strong>{app.name}</strong><span>{app.is_active ? 'Visível' : 'Oculta'} · {app.url}</span></div><button onClick={() => edit(app)}>Editar</button><button className="danger" onClick={() => remove(app)}>Excluir</button></article>)}</section></div>
-  </main>
+  </main></>
 }
