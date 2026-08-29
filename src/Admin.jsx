@@ -31,7 +31,7 @@ export function AdminPage() {
   const [tab, setTab] = useState('dashboard'); const [data, setData] = useState({}); const [processing, setProcessing] = useState(true); const [error, setError] = useState(''); const [message, setMessage] = useState(''); const [userDetail, setUserDetail] = useState(null)
   const tabRef = useRef(tab); tabRef.current = tab
   const paths = { dashboard: '/admin/ecosystem/dashboard', activity: '/admin/ecosystem/activity', applications: '/admin/applications', users: '/admin/ecosystem/users', profiles: '/admin/ecosystem/profiles', establishments: '/admin/ecosystem/establishments', site: '/admin/ecosystem/settings', audit: '/admin/ecosystem/audit' }
-  async function load(target = tab, customPath) { setProcessing(true); setError(''); try { const result = await apiRequest(customPath || paths[target]); setData(prev => ({ ...prev, [target]: result })); return result } catch (err) { setError(err.message) } finally { setProcessing(false) } }
+  async function load(target = tab, customPath, options = {}) { const silent = options.silent === true; if (!silent) { setProcessing(true); setError('') } try { const result = await apiRequest(customPath || paths[target]); setData(prev => ({ ...prev, [target]: result })); return result } catch (err) { if (!silent) setError(err.message) } finally { if (!silent) setProcessing(false) } }
   async function openUser(user) { setProcessing(true); setError(''); try { setUserDetail(await apiRequest(`/admin/ecosystem/users/${user.id}`)) } catch (err) { setError(err.message) } finally { setProcessing(false) } }
   useEffect(() => { if (!getToken()) window.location.href = '/login'; else load('dashboard') }, [])
   useEffect(() => { if (getToken() && !data[tab]) load(tab) }, [tab])
@@ -39,7 +39,7 @@ export function AdminPage() {
     const modules = Array.isArray(event?.modules) ? event.modules : []
     const current = tabRef.current
     setData(previous => Object.fromEntries(Object.entries(previous).filter(([key]) => !modules.includes(key) || key === current)))
-    if (!modules.length || modules.includes(current)) load(current)
+    if (!modules.length || modules.includes(current)) load(current, undefined, { silent: true })
   }), [])
   async function mutate(path, options, success, reload = tab) { setProcessing(true); setError(''); setMessage(''); try { await apiRequest(path, options); setMessage(success); await load(reload); if (reload !== 'dashboard') setData(prev => ({ ...prev, dashboard: undefined })); if (userDetail?.user?.id) setUserDetail(await apiRequest(`/admin/ecosystem/users/${userDetail.user.id}`)) } catch (err) { setError(err.message); setProcessing(false) } }
   function logout() { clearToken(); window.location.href = '/login' }
