@@ -133,8 +133,12 @@ function Activity({ payload, applications, users, load, setData, activityBase = 
   return <div className="admin-stack"><div className="metric-grid three"><Metric label="Interações" value={payload?.summary?.total} sub="em todo o histórico filtrado" /><Metric label="Usuários" value={payload?.summary?.users} sub="usuários únicos" /><Metric label="Aplicações" value={payload?.summary?.applications} sub="com atividade" /></div><Panel title="Filtros de atividade"><form className="filter-grid" onSubmit={apply}><Field label="Busca" value={filters.search} onChange={value => setFilters({ ...filters, search: value })} /><label>Aplicação<select value={filters.app_id} onChange={event => setFilters({ ...filters, app_id: event.target.value })}><option value="">Todas</option>{applications?.applications?.map(application => <option key={application.id} value={application.id}>{application.name}</option>)}</select></label><label>Usuário<select value={filters.user_id} onChange={event => setFilters({ ...filters, user_id: event.target.value })}><option value="">Todos</option>{users?.users?.map(user => <option key={user.id} value={user.id}>{fullName(user)} · {user.email}</option>)}</select></label><label>Ação<select value={filters.type} onChange={event => setFilters({ ...filters, type: event.target.value })}><option value="">Todas</option>{payload?.types?.map(type => <option key={type} value={type}>{humanType(type)}</option>)}</select></label><Field label="De" type="date" value={filters.from} onChange={value => setFilters({ ...filters, from: value })} /><Field label="Até" type="date" value={filters.to} onChange={value => setFilters({ ...filters, to: value })} /><button className="primary">Aplicar filtros</button></form></Panel><Panel title="Todas as interações"><Timeline rows={payload?.activity || []} /><div className="infinite-scroll-status" ref={loadMoreRef}>{loadingMore ? <><i />Carregando mais interações...</> : payload?.pagination?.has_more ? 'Continue rolando para carregar mais' : `Fim do histórico · ${payload?.activity?.length || 0} de ${payload?.pagination?.total || 0}`}</div></Panel></div>
 }
 
-function Users({ payload, profiles, applications, load, mutate, openUser, access }) {
-  if (access?.mode === 'marketing') return <MarketingUsers payload={payload} applications={applications} load={load} mutate={mutate} openUser={openUser} />
+function Users(props) {
+  if (props.access?.mode === 'marketing') return <MarketingUsers {...props} />
+  return <AdministratorUsers {...props} />
+}
+
+function AdministratorUsers({ payload, profiles, applications, load, mutate, openUser }) {
   const [form, setForm] = useState(emptyUser); const [editing, setEditing] = useState(null); const [search, setSearch] = useState('')
   const users = payload?.users || []
   useEffect(() => { if (!profiles) load('profiles'); if (!applications) load('applications') }, [])
