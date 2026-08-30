@@ -49,6 +49,9 @@ export async function apiRequest(path, options = {}) {
       signal: controller.signal,
       headers: {
         Accept: 'application/json',
+        'X-Peter-App': 'peter-tecnet',
+        'X-App-ID': '3',
+        'X-Frontend-Page': window.location.href,
         ...(options.body ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
