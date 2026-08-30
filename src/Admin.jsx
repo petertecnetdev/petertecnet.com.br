@@ -5,12 +5,13 @@ import { apiRequest, clearToken, getToken, saveToken, tokenFrom } from './admin/
 import { connectEcosystemRealtime } from './admin/realtime'
 
 const TABS = [
-  ['dashboard', 'Visão geral'], ['activity', 'Atividade'], ['applications', 'Aplicações'], ['users', 'Usuários'],
+  ['dashboard', 'Visão geral'], ['activity', 'Atividade'], ['applications', 'Aplicações'], ['users', 'Usuários'], ['items', 'Itens'],
   ['profiles', 'Perfis e permissões'], ['establishments', 'Estabelecimentos'], ['site', 'Site institucional'], ['audit', 'Auditoria'],
 ]
 const MARKETING_TABS = [['dashboard', 'Visão geral'], ['activity', 'Atividade'], ['users', 'Clientes e convites']]
 const emptyApp = { name: '', description: '', slug: '', url: '', logo: '', version: '', author: 'Peter Tecnet', release_date: '', is_active: true }
 const emptyUser = { first_name: '', last_name: '', user_name: '', email: '', password: '', profile_id: '' }
+const emptyItem = { name: '', entity_id: '', app_id: '', type: 'product', price: '', description: '', sku: '', category: '', duration: '', stock: '', discount: '', image: '', status: true, is_featured: false }
 const emptyEstablishment = { name: '', fantasy: '', slug: '', cnpj: '', type: '', category: '', phone: '', email: '', description: '', city: '', uf: '', cep: '', address: '', website_url: '', instagram_url: '', user_id: '', app_id: '', app_ids: [], is_published: false, is_approved: false, is_featured: false, is_cancelled: false }
 const fmt = value => value ? new Date(value).toLocaleString('pt-BR') : '—'
 const fullName = user => [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.user_name || 'Usuário'
@@ -42,7 +43,7 @@ export function AdminPage() {
   const visibleTabs = marketing ? MARKETING_TABS : TABS
   const paths = marketing
     ? { dashboard: '/admin/marketing/dashboard', activity: '/admin/marketing/activity', users: '/admin/marketing/users' }
-    : { dashboard: '/admin/ecosystem/dashboard', activity: '/admin/ecosystem/activity', applications: '/admin/applications', users: '/admin/ecosystem/users', profiles: '/admin/ecosystem/profiles', establishments: '/admin/ecosystem/establishments', site: '/admin/ecosystem/settings', audit: '/admin/ecosystem/audit' }
+    : { dashboard: '/admin/ecosystem/dashboard', activity: '/admin/ecosystem/activity', applications: '/admin/applications', users: '/admin/ecosystem/users', items: '/admin/ecosystem/items', profiles: '/admin/ecosystem/profiles', establishments: '/admin/ecosystem/establishments', site: '/admin/ecosystem/settings', audit: '/admin/ecosystem/audit' }
   async function load(target = tab, customPath, options = {}) { const silent = options.silent === true; if (!silent) { setProcessing(true); setError('') } try { const result = await apiRequest(customPath || paths[target]); setData(prev => ({ ...prev, [target]: result })); return result } catch (err) { if (!silent) setError(err.message) } finally { if (!silent) setProcessing(false) } }
   async function openUser(user) { setProcessing(true); setError(''); try { setUserDetail(await apiRequest(`${marketing ? '/admin/marketing/users' : '/admin/ecosystem/users'}/${user.id}`)) } catch (err) { setError(err.message) } finally { setProcessing(false) } }
   useEffect(() => {
@@ -69,7 +70,7 @@ export function AdminPage() {
   async function mutate(path, options, success, reload = tab) { setProcessing(true); setError(''); setMessage(''); try { await apiRequest(path, options); setMessage(success); await load(reload); if (reload !== 'dashboard') setData(prev => ({ ...prev, dashboard: undefined })); if (userDetail?.user?.id) setUserDetail(await apiRequest(`${marketing ? '/admin/marketing/users' : '/admin/ecosystem/users'}/${userDetail.user.id}`)); return true } catch (err) { setError(err.message); setProcessing(false); return false } }
   function logout() { clearToken(); window.location.href = '/login' }
   const counts = data.dashboard?.summary || {}
-  return <>{processing && <ProcessingIndicator message="Atualizando ecossistema..." />}<main className="ecosystem-shell"><aside className="ecosystem-sidebar"><a className="admin-brand ecosystem-brand" href="/"><img src="/petertecnetlogo.png" alt="" /><span><b>Peter Tecnet</b><small>Governança</small></span></a><nav>{visibleTabs.map(([key, label]) => <button key={key} className={tab === key ? 'active' : ''} onClick={() => { setTab(key); setUserDetail(null); setMessage(''); setError('') }}>{label}</button>)}</nav><div className="sidebar-foot"><a href="/" target="_blank">Abrir site ↗</a><button onClick={logout}>Sair</button></div></aside><section className="ecosystem-main"><header className="ecosystem-top"><div><p className="admin-kicker">Peter Tecnet Control Center</p><h1>{userDetail ? 'Detalhes do usuário' : visibleTabs.find(x => x[0] === tab)?.[1]}</h1></div><div className="top-actions">{userDetail && <button onClick={() => setUserDetail(null)}>← Voltar</button>}<button onClick={() => userDetail ? openUser(userDetail.user) : load(tab)}>Atualizar</button></div></header>{error && <div className="notice error">{error}</div>}{message && <div className="notice success">{message}</div>}{userDetail ? <UserDetail payload={userDetail} mutate={mutate} /> : <>{tab === 'dashboard' && <Dashboard summary={counts} payload={data.dashboard} onUser={openUser} />}{tab === 'activity' && <Activity payload={data.activity} applications={data.applications} users={data.users} load={load} setData={setData} activityBase={marketing ? '/admin/marketing/activity' : '/admin/ecosystem/activity'} />}{tab === 'applications' && <Applications payload={data.applications} mutate={mutate} />}{tab === 'users' && <Users payload={data.users} profiles={data.profiles} applications={data.applications} load={load} mutate={mutate} openUser={openUser} access={access} />}{tab === 'profiles' && <Profiles payload={data.profiles} mutate={mutate} />}{tab === 'establishments' && <Establishments payload={data.establishments} applications={data.applications} users={data.users} load={load} mutate={mutate} />}{tab === 'site' && <SiteSettings payload={data.site} mutate={mutate} />}{tab === 'audit' && <Audit payload={data.audit} />}</>}</section></main></>
+  return <>{processing && <ProcessingIndicator message="Atualizando ecossistema..." />}<main className="ecosystem-shell"><aside className="ecosystem-sidebar"><a className="admin-brand ecosystem-brand" href="/"><img src="/petertecnetlogo.png" alt="" /><span><b>Peter Tecnet</b><small>Governança</small></span></a><nav>{visibleTabs.map(([key, label]) => <button key={key} className={tab === key ? 'active' : ''} onClick={() => { setTab(key); setUserDetail(null); setMessage(''); setError('') }}>{label}</button>)}</nav><div className="sidebar-foot"><a href="/" target="_blank">Abrir site ↗</a><button onClick={logout}>Sair</button></div></aside><section className="ecosystem-main"><header className="ecosystem-top"><div><p className="admin-kicker">Peter Tecnet Control Center</p><h1>{userDetail ? 'Detalhes do usuário' : visibleTabs.find(x => x[0] === tab)?.[1]}</h1></div><div className="top-actions">{userDetail && <button onClick={() => setUserDetail(null)}>← Voltar</button>}<button onClick={() => userDetail ? openUser(userDetail.user) : load(tab)}>Atualizar</button></div></header>{error && <div className="notice error">{error}</div>}{message && <div className="notice success">{message}</div>}{userDetail ? <UserDetail payload={userDetail} mutate={mutate} /> : <>{tab === 'dashboard' && <Dashboard summary={counts} payload={data.dashboard} onUser={openUser} />}{tab === 'activity' && <Activity payload={data.activity} applications={data.applications} users={data.users} load={load} setData={setData} activityBase={marketing ? '/admin/marketing/activity' : '/admin/ecosystem/activity'} />}{tab === 'applications' && <Applications payload={data.applications} mutate={mutate} />}{tab === 'users' && <Users payload={data.users} profiles={data.profiles} applications={data.applications} load={load} mutate={mutate} openUser={openUser} access={access} />}{tab === 'items' && <Items payload={data.items} establishments={data.establishments} applications={data.applications} load={load} mutate={mutate} />}{tab === 'profiles' && <Profiles payload={data.profiles} mutate={mutate} />}{tab === 'establishments' && <Establishments payload={data.establishments} applications={data.applications} users={data.users} load={load} mutate={mutate} />}{tab === 'site' && <SiteSettings payload={data.site} mutate={mutate} />}{tab === 'audit' && <Audit payload={data.audit} />}</>}</section></main></>
 }
 
 function Dashboard({ summary, payload, onUser }) {
@@ -362,6 +363,123 @@ function Establishments({ payload, applications, users, load, mutate }) {
           return <tr key={item.id}><td><div className="establishment-identity"><IdentityImage src={item.files?.[0]?.public_url} label={item.fantasy || item.name} kind="establishment" /><div><b>{item.fantasy || item.name}</b><small>{item.cnpj || 'Sem CNPJ'} · {item.city || 'Cidade não informada'}{item.uf ? `/${item.uf}` : ''}</small></div></div></td><td><div className="application-tags">{linked.map(application => <span key={application.id}>{application.name}{Number(application.id) === Number(item.app_id) ? ' · principal' : ''}</span>)}</div></td><td>{item.user ? `${fullName(item.user)} · ${item.user.email}` : 'Sem responsável'}</td><td><span className={item.is_approved ? 'status on' : 'status'}>{item.is_approved ? 'Aprovada' : 'Pendente'}</span><small>{item.is_published ? 'Publicada' : 'Oculta'}</small></td><td className="row-actions"><button className="primary" onClick={() => edit(item)}>Editar vínculos</button><button onClick={() => mutate(`/admin/ecosystem/establishments/${item.id}`, { method: 'PUT', body: JSON.stringify({ is_approved: !item.is_approved }) }, 'Aprovação atualizada.', 'establishments')}>{item.is_approved ? 'Retirar aprovação' : 'Aprovar'}</button><button className="danger" onClick={() => window.confirm(`Excluir “${item.fantasy || item.name}”? A empresa sairá das plataformas, mas o histórico será preservado.`) && mutate(`/admin/ecosystem/establishments/${item.id}`, { method: 'DELETE' }, 'Estabelecimento excluído com segurança.', 'establishments')}>Excluir</button></td></tr>
         })}
       </tbody></table></div>
+    </Panel>
+  </div>
+}
+
+function Items({ payload, establishments, applications, load, mutate }) {
+  const [form, setForm] = useState(emptyItem)
+  const [editing, setEditing] = useState(null)
+  const [filters, setFilters] = useState({ search: '', app_id: '', establishment_id: '' })
+  const rows = payload?.items || []
+  const companies = establishments?.establishments || []
+  const apps = applications?.applications || []
+
+  useEffect(() => {
+    if (!establishments) load('establishments')
+    if (!applications) load('applications')
+  }, [])
+
+  function linkedApplications(company) {
+    if (!company) return []
+    const ids = [...new Set([company.app_id, ...(company.applications || []).map(app => app.id)].filter(Boolean).map(Number))]
+    return apps.filter(app => ids.includes(Number(app.id)))
+  }
+
+  function changeCompany(value) {
+    const company = companies.find(item => Number(item.id) === Number(value))
+    const linked = linkedApplications(company)
+    setForm({ ...form, entity_id: value, app_id: linked.some(app => Number(app.id) === Number(form.app_id)) ? form.app_id : (linked[0]?.id || '') })
+  }
+
+  function edit(item) {
+    setEditing(item.id)
+    setForm({
+      ...emptyItem,
+      ...item,
+      entity_id: item.entity_id || '',
+      app_id: item.app_id || '',
+      price: item.price ?? '',
+      duration: item.duration ?? '',
+      stock: item.stock ?? '',
+      discount: item.discount ?? '',
+      image: item.image || item.image_url || '',
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function reset() {
+    setEditing(null)
+    setForm(emptyItem)
+  }
+
+  async function submit(event) {
+    event.preventDefault()
+    const body = {
+      name: form.name?.trim(),
+      entity_id: Number(form.entity_id),
+      app_id: Number(form.app_id),
+      type: form.type,
+      price: Number(form.price),
+      description: form.description?.trim() || null,
+      sku: form.sku?.trim() || null,
+      category: form.category?.trim() || null,
+      duration: form.duration === '' ? null : Number(form.duration),
+      stock: form.stock === '' ? null : Number(form.stock),
+      discount: form.discount === '' ? null : Number(form.discount),
+      image: form.image?.trim() || null,
+      status: Boolean(form.status),
+      is_featured: Boolean(form.is_featured),
+    }
+    const saved = await mutate(
+      `/admin/ecosystem/items${editing ? `/${editing}` : ''}`,
+      { method: editing ? 'PUT' : 'POST', body: JSON.stringify(body) },
+      editing ? 'Item atualizado.' : 'Item cadastrado.',
+      'items'
+    )
+    if (saved) reset()
+  }
+
+  async function apply(event) {
+    event.preventDefault()
+    const query = new URLSearchParams(Object.entries(filters).filter(([, value]) => value))
+    await load('items', `/admin/ecosystem/items?${query}`)
+  }
+
+  const selectedCompany = companies.find(item => Number(item.id) === Number(form.entity_id))
+  const formApps = linkedApplications(selectedCompany)
+
+  return <div className="admin-stack">
+    <div className="admin-grid">
+      <Panel title={editing ? `Editar item #${editing}` : 'Cadastrar item'}>
+        <form className="form-grid" onSubmit={submit}>
+          <Field label="Nome" value={form.name} onChange={value => setForm({ ...form, name: value })} required />
+          <label>Empresa<select value={form.entity_id} onChange={event => changeCompany(event.target.value)} required><option value="">Selecione a empresa</option>{companies.map(company => <option key={company.id} value={company.id}>{company.fantasy || company.name}</option>)}</select></label>
+          <label>Aplicação<select value={form.app_id} onChange={event => setForm({ ...form, app_id: event.target.value })} required disabled={!form.entity_id}><option value="">Selecione a aplicação</option>{formApps.map(app => <option key={app.id} value={app.id}>{app.name}</option>)}</select></label>
+          <label>Tipo<select value={form.type} onChange={event => setForm({ ...form, type: event.target.value })}><option value="product">Produto</option><option value="service">Serviço</option><option value="item">Item</option><option value="ticket">Ingresso</option></select></label>
+          <Field label="Preço" type="number" value={form.price} onChange={value => setForm({ ...form, price: value })} required />
+          <Field label="SKU / código" value={form.sku} onChange={value => setForm({ ...form, sku: value })} />
+          <Field label="Categoria" value={form.category} onChange={value => setForm({ ...form, category: value })} />
+          <Field label="Duração (minutos)" type="number" value={form.duration} onChange={value => setForm({ ...form, duration: value })} />
+          <Field label="Estoque" type="number" value={form.stock} onChange={value => setForm({ ...form, stock: value })} />
+          <Field label="Desconto" type="number" value={form.discount} onChange={value => setForm({ ...form, discount: value })} />
+          <Field label="URL da imagem" type="url" value={form.image} onChange={value => setForm({ ...form, image: value })} wide />
+          <label className="wide">Descrição<textarea rows="4" value={form.description || ''} onChange={event => setForm({ ...form, description: event.target.value })} /></label>
+          <div className="company-statuses wide"><label className="check"><input type="checkbox" checked={!!form.status} onChange={event => setForm({ ...form, status: event.target.checked })} />Ativo</label><label className="check"><input type="checkbox" checked={!!form.is_featured} onChange={event => setForm({ ...form, is_featured: event.target.checked })} />Destaque</label></div>
+          <div className="form-actions wide"><button className="primary">{editing ? 'Salvar item' : 'Cadastrar item'}</button>{editing && <button type="button" onClick={reset}>Cancelar</button>}</div>
+        </form>
+      </Panel>
+      <Panel title="Filtrar itens">
+        <form className="form-grid" onSubmit={apply}>
+          <Field label="Busca" value={filters.search} onChange={value => setFilters({ ...filters, search: value })} wide />
+          <label>Aplicação<select value={filters.app_id} onChange={event => setFilters({ ...filters, app_id: event.target.value })}><option value="">Todas</option>{apps.map(app => <option key={app.id} value={app.id}>{app.name}</option>)}</select></label>
+          <label>Empresa<select value={filters.establishment_id} onChange={event => setFilters({ ...filters, establishment_id: event.target.value })}><option value="">Todas</option>{companies.map(company => <option key={company.id} value={company.id}>{company.fantasy || company.name}</option>)}</select></label>
+          <button className="primary wide">Aplicar filtros</button>
+        </form>
+      </Panel>
+    </div>
+    <Panel title={`Itens (${rows.length})`}>
+      <div className="table-wrap"><table><thead><tr><th>Item</th><th>Empresa</th><th>Aplicação</th><th>Tipo</th><th>Preço</th><th>Status</th><th>Ações</th></tr></thead><tbody>{rows.map(item => <tr key={item.id}><td><div className="establishment-identity"><IdentityImage src={item.image_url || item.image} label={item.name} kind="establishment" /><div><b>{item.name}</b><small>{item.sku || item.category || `#${item.id}`}</small></div></div></td><td>{item.establishment?.fantasy || item.establishment?.name || 'Empresa não encontrada'}</td><td>{apps.find(app => Number(app.id) === Number(item.app_id))?.name || `Aplicação #${item.app_id}`}</td><td>{item.type}</td><td>R$ {Number(item.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td><td><span className={item.status ? 'status on' : 'status'}>{item.status ? 'Ativo' : 'Arquivado'}</span></td><td className="row-actions"><button className="primary" onClick={() => edit(item)}>Editar</button><button onClick={() => mutate(`/admin/ecosystem/items/${item.id}`, { method: 'PUT', body: JSON.stringify({ status: !item.status }) }, item.status ? 'Item arquivado.' : 'Item reativado.', 'items')}>{item.status ? 'Arquivar' : 'Reativar'}</button><button className="danger" onClick={() => window.confirm(`Excluir “${item.name}”? Itens usados em pedidos serão apenas arquivados.`) && mutate(`/admin/ecosystem/items/${item.id}`, { method: 'DELETE' }, 'Item removido ou arquivado com segurança.', 'items')}>Excluir</button></td></tr>)}</tbody></table></div>
     </Panel>
   </div>
 }
