@@ -60,7 +60,7 @@ export function AdminPage() {
     setData(previous => Object.fromEntries(Object.entries(previous).filter(([key]) => !modules.includes(key) || key === current)))
     if (!modules.length || modules.includes(current)) load(current, undefined, { silent: true })
   }), [])
-  async function mutate(path, options, success, reload = tab) { setProcessing(true); setError(''); setMessage(''); try { await apiRequest(path, options); setMessage(success); await load(reload); if (reload !== 'dashboard') setData(prev => ({ ...prev, dashboard: undefined })); if (userDetail?.user?.id) setUserDetail(await apiRequest(`/admin/ecosystem/users/${userDetail.user.id}`)) } catch (err) { setError(err.message); setProcessing(false) } }
+  async function mutate(path, options, success, reload = tab) { setProcessing(true); setError(''); setMessage(''); try { await apiRequest(path, options); setMessage(success); await load(reload); if (reload !== 'dashboard') setData(prev => ({ ...prev, dashboard: undefined })); if (userDetail?.user?.id) setUserDetail(await apiRequest(`${marketing ? '/admin/marketing/users' : '/admin/ecosystem/users'}/${userDetail.user.id}`)); return true } catch (err) { setError(err.message); setProcessing(false); return false } }
   function logout() { clearToken(); window.location.href = '/login' }
   const counts = data.dashboard?.summary || {}
   return <>{processing && <ProcessingIndicator message="Atualizando ecossistema..." />}<main className="ecosystem-shell"><aside className="ecosystem-sidebar"><a className="admin-brand ecosystem-brand" href="/"><img src="/petertecnetlogo.png" alt="" /><span><b>Peter Tecnet</b><small>Governança</small></span></a><nav>{visibleTabs.map(([key, label]) => <button key={key} className={tab === key ? 'active' : ''} onClick={() => { setTab(key); setUserDetail(null); setMessage(''); setError('') }}>{label}</button>)}</nav><div className="sidebar-foot"><a href="/" target="_blank">Abrir site ↗</a><button onClick={logout}>Sair</button></div></aside><section className="ecosystem-main"><header className="ecosystem-top"><div><p className="admin-kicker">Peter Tecnet Control Center</p><h1>{userDetail ? 'Detalhes do usuário' : visibleTabs.find(x => x[0] === tab)?.[1]}</h1></div><div className="top-actions">{userDetail && <button onClick={() => setUserDetail(null)}>← Voltar</button>}<button onClick={() => userDetail ? openUser(userDetail.user) : load(tab)}>Atualizar</button></div></header>{error && <div className="notice error">{error}</div>}{message && <div className="notice success">{message}</div>}{userDetail ? <UserDetail payload={userDetail} mutate={mutate} /> : <>{tab === 'dashboard' && <Dashboard summary={counts} payload={data.dashboard} onUser={openUser} />}{tab === 'activity' && <Activity payload={data.activity} applications={data.applications} users={data.users} load={load} setData={setData} activityBase={marketing ? '/admin/marketing/activity' : '/admin/ecosystem/activity'} />}{tab === 'applications' && <Applications payload={data.applications} mutate={mutate} />}{tab === 'users' && <Users payload={data.users} profiles={data.profiles} applications={data.applications} load={load} mutate={mutate} openUser={openUser} access={access} />}{tab === 'profiles' && <Profiles payload={data.profiles} mutate={mutate} />}{tab === 'establishments' && <Establishments payload={data.establishments} applications={data.applications} users={data.users} load={load} mutate={mutate} />}{tab === 'site' && <SiteSettings payload={data.site} mutate={mutate} />}{tab === 'audit' && <Audit payload={data.audit} />}</>}</section></main></>
@@ -161,13 +161,13 @@ function MarketingUsers({ payload, applications, load, mutate, openUser }) {
     await load('users', `/admin/marketing/users${search ? `?search=${encodeURIComponent(search)}` : ''}`)
   }
 
-  function invite(event) {
+  async function invite(event) {
     event.preventDefault()
-    mutate('/invite', {
+    const sent = await mutate('/invite', {
       method: 'POST',
       body: JSON.stringify({ first_name: form.first_name, email: form.email, app_id: Number(form.app_id) }),
     }, 'Conta criada e convite enviado por e-mail.', 'users')
-    setForm({ first_name: '', email: '', app_id: '' })
+    if (sent) setForm({ first_name: '', email: '', app_id: '' })
   }
 
   return <div className="admin-stack">
