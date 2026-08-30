@@ -5,7 +5,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
-startTelemetry({ apiBaseUrl: 'https://api.petertecnet.com.br/api', appSlug: 'petertecnet', getToken })
+startTelemetry({ apiBaseUrl: 'https://api.petertecnet.com.br/api', appSlug: 'peter-tecnet', appId: 3, getToken })
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
