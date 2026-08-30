@@ -65,9 +65,53 @@ function RealtimeInteractionChart({ rows }) {
 
 function Activity({ payload, applications, users, load, setData }) {
   const [filters, setFilters] = useState({ user_id: '', app_id: '', type: '', from: '', to: '', search: '' })
+  const [loadingMore, setLoadingMore] = useState(false)
+  const loadMoreRef = useRef(null)
   useEffect(() => { if (!applications) load('applications'); if (!users) load('users') }, [])
-  async function apply(e) { e?.preventDefault(); const qs = new URLSearchParams(Object.entries(filters).filter(([, v]) => v)); const result = await load('activity', `/admin/ecosystem/activity?${qs}`); if (result) setData(prev => ({ ...prev, activity: result })) }
-  return <div className="admin-stack"><div className="metric-grid three"><Metric label="Interações" value={payload?.summary?.total} sub="no filtro atual" /><Metric label="Usuários" value={payload?.summary?.users} sub="usuários únicos" /><Metric label="Aplicações" value={payload?.summary?.applications} sub="com atividade" /></div><Panel title="Filtros de atividade"><form className="filter-grid" onSubmit={apply}><Field label="Busca" value={filters.search} onChange={v => setFilters({ ...filters, search: v })} /><label>Aplicação<select value={filters.app_id} onChange={e => setFilters({ ...filters, app_id: e.target.value })}><option value="">Todas</option>{applications?.applications?.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label><label>Usuário<select value={filters.user_id} onChange={e => setFilters({ ...filters, user_id: e.target.value })}><option value="">Todos</option>{users?.users?.map(u => <option key={u.id} value={u.id}>{fullName(u)} · {u.email}</option>)}</select></label><label>Ação<select value={filters.type} onChange={e => setFilters({ ...filters, type: e.target.value })}><option value="">Todas</option>{payload?.types?.map(t => <option key={t} value={t}>{humanType(t)}</option>)}</select></label><Field label="De" type="date" value={filters.from} onChange={v => setFilters({ ...filters, from: v })} /><Field label="Até" type="date" value={filters.to} onChange={v => setFilters({ ...filters, to: v })} /><button className="primary">Aplicar filtros</button></form></Panel><Panel title="Linha do tempo do ecossistema"><Timeline rows={payload?.activity || []} /></Panel></div>
+
+  function activityPath(page = 1) {
+    const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value))
+    params.set('page', String(page)); params.set('per_page', '40')
+    return `/admin/ecosystem/activity?${params}`
+  }
+
+  async function fetchPage(page, append = false) {
+    if (loadingMore) return
+    if (append) setLoadingMore(true)
+    try {
+      const result = await apiRequest(activityPath(page))
+      setData(previous => {
+        if (!append) return { ...previous, activity: result }
+        const currentRows = previous.activity?.activity || []
+        const incomingRows = result.activity || []
+        const seen = new Set()
+        const activity = [...currentRows, ...incomingRows].filter(row => !seen.has(row.id) && seen.add(row.id))
+        return { ...previous, activity: { ...result, activity } }
+      })
+    } catch (err) {
+      if (!append) await load('activity', activityPath(page))
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
+  async function apply(event) {
+    event?.preventDefault()
+    await fetchPage(1, false)
+  }
+
+  useEffect(() => {
+    const target = loadMoreRef.current
+    const nextPage = payload?.pagination?.next_page
+    if (!target || !nextPage || loadingMore) return undefined
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0]?.isIntersecting) fetchPage(nextPage, true)
+    }, { rootMargin: '500px 0px' })
+    observer.observe(target)
+    return () => observer.disconnect()
+  }, [payload?.pagination?.next_page, loadingMore, filters])
+
+  return <div className="admin-stack"><div className="metric-grid three"><Metric label="Interações" value={payload?.summary?.total} sub="em todo o histórico filtrado" /><Metric label="Usuários" value={payload?.summary?.users} sub="usuários únicos" /><Metric label="Aplicações" value={payload?.summary?.applications} sub="com atividade" /></div><Panel title="Filtros de atividade"><form className="filter-grid" onSubmit={apply}><Field label="Busca" value={filters.search} onChange={value => setFilters({ ...filters, search: value })} /><label>Aplicação<select value={filters.app_id} onChange={event => setFilters({ ...filters, app_id: event.target.value })}><option value="">Todas</option>{applications?.applications?.map(application => <option key={application.id} value={application.id}>{application.name}</option>)}</select></label><label>Usuário<select value={filters.user_id} onChange={event => setFilters({ ...filters, user_id: event.target.value })}><option value="">Todos</option>{users?.users?.map(user => <option key={user.id} value={user.id}>{fullName(user)} · {user.email}</option>)}</select></label><label>Ação<select value={filters.type} onChange={event => setFilters({ ...filters, type: event.target.value })}><option value="">Todas</option>{payload?.types?.map(type => <option key={type} value={type}>{humanType(type)}</option>)}</select></label><Field label="De" type="date" value={filters.from} onChange={value => setFilters({ ...filters, from: value })} /><Field label="Até" type="date" value={filters.to} onChange={value => setFilters({ ...filters, to: value })} /><button className="primary">Aplicar filtros</button></form></Panel><Panel title="Todas as interações"><Timeline rows={payload?.activity || []} /><div className="infinite-scroll-status" ref={loadMoreRef}>{loadingMore ? <><i />Carregando mais interações...</> : payload?.pagination?.has_more ? 'Continue rolando para carregar mais' : `Fim do histórico · ${payload?.activity?.length || 0} de ${payload?.pagination?.total || 0}`}</div></Panel></div>
 }
 
 function Users({ payload, profiles, applications, load, mutate, openUser }) {
