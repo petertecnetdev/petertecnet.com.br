@@ -19,6 +19,6 @@
 .identity-image img{width:100%;height:100%;display:block;object-fit:cover}
 .identity-image.establishment img{object-fit:contain;background:#04131a}
 .identity-image b{font:700 15px 'Space Grotesk',sans-serif;letter-spacing:.03em}
-.user-identity,.establishment-identity{min-width:0;display:flex;align-items:center;gap:12px}
+.user-head>.user-identity,.establishment-identity{min-width:0;display:flex;flex-direction:row;align-items:center;gap:12px}
 .user-identity>div,.establishment-identity>div{min-width:0;display:flex;flex-direction:column;gap:4px}
 @media(max-width:760px){.identity-image{width:42px;height:42px;flex-basis:42px}.identity-image.establishment{width:46px;height:46px;flex-basis:46px}}
