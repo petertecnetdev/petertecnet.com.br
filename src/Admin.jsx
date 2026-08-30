@@ -260,23 +260,40 @@ function Establishments({ payload, applications, users, load, mutate }) {
     })
   }
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault()
     if (!form.app_ids.length) return
     const body = {
-      ...form,
+      name: form.name?.trim(),
+      fantasy: form.fantasy?.trim() || null,
+      slug: form.slug?.trim() || null,
+      cnpj: form.cnpj?.trim() || null,
+      type: form.type?.trim() || null,
+      category: form.category?.trim() || null,
+      phone: form.phone?.trim() || null,
+      email: form.email?.trim() || null,
+      description: form.description?.trim() || null,
+      city: form.city?.trim() || null,
+      uf: form.uf?.trim().toUpperCase() || null,
+      cep: form.cep?.trim() || null,
+      address: form.address?.trim() || null,
+      website_url: form.website_url?.trim() || null,
+      instagram_url: form.instagram_url?.trim() || null,
       user_id: Number(form.user_id),
       app_id: Number(form.app_id || form.app_ids[0]),
       app_ids: form.app_ids.map(Number),
-      uf: form.uf?.toUpperCase(),
+      is_published: Boolean(form.is_published),
+      is_approved: Boolean(form.is_approved),
+      is_featured: Boolean(form.is_featured),
+      is_cancelled: Boolean(form.is_cancelled),
     }
-    mutate(
+    const saved = await mutate(
       `/admin/ecosystem/establishments${editing ? `/${editing}` : ''}`,
       { method: editing ? 'PUT' : 'POST', body: JSON.stringify(body) },
       editing ? 'Empresa atualizada e vínculos sincronizados.' : 'Empresa cadastrada e vinculada ao usuário.',
       'establishments'
     )
-    reset()
+    if (saved) reset()
   }
 
   async function doSearch(event) {
@@ -336,7 +353,7 @@ function Establishments({ payload, applications, users, load, mutate }) {
       <div className="table-wrap"><table><thead><tr><th>Empresa</th><th>Aplicações</th><th>Responsável</th><th>Status</th><th>Ações</th></tr></thead><tbody>
         {rows.map(item => {
           const linked = item.applications?.length ? item.applications : (item.app ? [item.app] : [])
-          return <tr key={item.id}><td><b>{item.fantasy || item.name}</b><small>{item.cnpj || 'Sem CNPJ'} · {item.city || 'Cidade não informada'}{item.uf ? `/${item.uf}` : ''}</small></td><td><div className="application-tags">{linked.map(application => <span key={application.id}>{application.name}{Number(application.id) === Number(item.app_id) ? ' · principal' : ''}</span>)}</div></td><td>{item.user ? `${fullName(item.user)} · ${item.user.email}` : 'Sem responsável'}</td><td><span className={item.is_approved ? 'status on' : 'status'}>{item.is_approved ? 'Aprovada' : 'Pendente'}</span><small>{item.is_published ? 'Publicada' : 'Oculta'}</small></td><td className="row-actions"><button className="primary" onClick={() => edit(item)}>Editar</button><button onClick={() => mutate(`/admin/ecosystem/establishments/${item.id}`, { method: 'PUT', body: JSON.stringify({ is_approved: !item.is_approved }) }, 'Aprovação atualizada.', 'establishments')}>{item.is_approved ? 'Retirar aprovação' : 'Aprovar'}</button></td></tr>
+          return <tr key={item.id}><td><b>{item.fantasy || item.name}</b><small>{item.cnpj || 'Sem CNPJ'} · {item.city || 'Cidade não informada'}{item.uf ? `/${item.uf}` : ''}</small></td><td><div className="application-tags">{linked.map(application => <span key={application.id}>{application.name}{Number(application.id) === Number(item.app_id) ? ' · principal' : ''}</span>)}</div></td><td>{item.user ? `${fullName(item.user)} · ${item.user.email}` : 'Sem responsável'}</td><td><span className={item.is_approved ? 'status on' : 'status'}>{item.is_approved ? 'Aprovada' : 'Pendente'}</span><small>{item.is_published ? 'Publicada' : 'Oculta'}</small></td><td className="row-actions"><button className="primary" onClick={() => edit(item)}>Editar vínculos</button><button onClick={() => mutate(`/admin/ecosystem/establishments/${item.id}`, { method: 'PUT', body: JSON.stringify({ is_approved: !item.is_approved }) }, 'Aprovação atualizada.', 'establishments')}>{item.is_approved ? 'Retirar aprovação' : 'Aprovar'}</button><button className="danger" onClick={() => window.confirm(`Excluir “${item.fantasy || item.name}”? A empresa sairá das plataformas, mas o histórico será preservado.`) && mutate(`/admin/ecosystem/establishments/${item.id}`, { method: 'DELETE' }, 'Estabelecimento excluído com segurança.', 'establishments')}>Excluir</button></td></tr>
         })}
       </tbody></table></div>
     </Panel>
