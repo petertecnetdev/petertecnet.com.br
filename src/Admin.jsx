@@ -8,6 +8,7 @@ const TABS = [
   ['dashboard', 'Visão geral'], ['activity', 'Atividade'], ['applications', 'Aplicações'], ['users', 'Usuários'],
   ['profiles', 'Perfis e permissões'], ['establishments', 'Estabelecimentos'], ['site', 'Site institucional'], ['audit', 'Auditoria'],
 ]
+const MARKETING_TABS = [['dashboard', 'Visão geral'], ['activity', 'Atividade'], ['users', 'Clientes e convites']]
 const emptyApp = { name: '', description: '', slug: '', url: '', logo: '', version: '', author: 'Peter Tecnet', release_date: '', is_active: true }
 const emptyUser = { first_name: '', last_name: '', user_name: '', email: '', password: '', profile_id: '' }
 const emptyEstablishment = { name: '', fantasy: '', slug: '', cnpj: '', type: '', category: '', phone: '', email: '', description: '', city: '', uf: '', cep: '', address: '', website_url: '', instagram_url: '', user_id: '', app_id: '', app_ids: [], is_published: false, is_approved: false, is_featured: false, is_cancelled: false }
@@ -29,13 +30,30 @@ export function LoginPage() {
 }
 
 export function AdminPage() {
-  const [tab, setTab] = useState('dashboard'); const [data, setData] = useState({}); const [processing, setProcessing] = useState(true); const [error, setError] = useState(''); const [message, setMessage] = useState(''); const [userDetail, setUserDetail] = useState(null)
+  const [tab, setTab] = useState('dashboard'); const [data, setData] = useState({}); const [processing, setProcessing] = useState(true); const [error, setError] = useState(''); const [message, setMessage] = useState(''); const [userDetail, setUserDetail] = useState(null); const [access, setAccess] = useState(null)
   const tabRef = useRef(tab); tabRef.current = tab
-  const paths = { dashboard: '/admin/ecosystem/dashboard', activity: '/admin/ecosystem/activity', applications: '/admin/applications', users: '/admin/ecosystem/users', profiles: '/admin/ecosystem/profiles', establishments: '/admin/ecosystem/establishments', site: '/admin/ecosystem/settings', audit: '/admin/ecosystem/audit' }
+  const marketing = access?.mode === 'marketing'
+  const visibleTabs = marketing ? MARKETING_TABS : TABS
+  const paths = marketing
+    ? { dashboard: '/admin/marketing/dashboard', activity: '/admin/marketing/activity', users: '/admin/marketing/users' }
+    : { dashboard: '/admin/ecosystem/dashboard', activity: '/admin/ecosystem/activity', applications: '/admin/applications', users: '/admin/ecosystem/users', profiles: '/admin/ecosystem/profiles', establishments: '/admin/ecosystem/establishments', site: '/admin/ecosystem/settings', audit: '/admin/ecosystem/audit' }
   async function load(target = tab, customPath, options = {}) { const silent = options.silent === true; if (!silent) { setProcessing(true); setError('') } try { const result = await apiRequest(customPath || paths[target]); setData(prev => ({ ...prev, [target]: result })); return result } catch (err) { if (!silent) setError(err.message) } finally { if (!silent) setProcessing(false) } }
-  async function openUser(user) { setProcessing(true); setError(''); try { setUserDetail(await apiRequest(`/admin/ecosystem/users/${user.id}`)) } catch (err) { setError(err.message) } finally { setProcessing(false) } }
-  useEffect(() => { if (!getToken()) window.location.href = '/login'; else load('dashboard') }, [])
-  useEffect(() => { if (getToken() && !data[tab]) load(tab) }, [tab])
+  async function openUser(user) { setProcessing(true); setError(''); try { setUserDetail(await apiRequest(`${marketing ? '/admin/marketing/users' : '/admin/ecosystem/users'}/${user.id}`)) } catch (err) { setError(err.message) } finally { setProcessing(false) } }
+  useEffect(() => {
+    if (!getToken()) { window.location.href = '/login'; return }
+    async function bootstrap() {
+      setProcessing(true); setError('')
+      try {
+        const context = await apiRequest('/admin/marketing/context')
+        setAccess(context)
+        const dashboardPath = context.mode === 'marketing' ? '/admin/marketing/dashboard' : '/admin/ecosystem/dashboard'
+        const dashboard = await apiRequest(dashboardPath)
+        setData({ dashboard, applications: { applications: context.applications || [] } })
+      } catch (err) { setError(err.message) } finally { setProcessing(false) }
+    }
+    bootstrap()
+  }, [])
+  useEffect(() => { if (getToken() && access && !data[tab]) load(tab) }, [tab, access])
   useEffect(() => connectEcosystemRealtime(event => {
     const modules = Array.isArray(event?.modules) ? event.modules : []
     const current = tabRef.current
@@ -45,7 +63,7 @@ export function AdminPage() {
   async function mutate(path, options, success, reload = tab) { setProcessing(true); setError(''); setMessage(''); try { await apiRequest(path, options); setMessage(success); await load(reload); if (reload !== 'dashboard') setData(prev => ({ ...prev, dashboard: undefined })); if (userDetail?.user?.id) setUserDetail(await apiRequest(`/admin/ecosystem/users/${userDetail.user.id}`)) } catch (err) { setError(err.message); setProcessing(false) } }
   function logout() { clearToken(); window.location.href = '/login' }
   const counts = data.dashboard?.summary || {}
-  return <>{processing && <ProcessingIndicator message="Atualizando ecossistema..." />}<main className="ecosystem-shell"><aside className="ecosystem-sidebar"><a className="admin-brand ecosystem-brand" href="/"><img src="/petertecnetlogo.png" alt="" /><span><b>Peter Tecnet</b><small>Governança</small></span></a><nav>{TABS.map(([key, label]) => <button key={key} className={tab === key ? 'active' : ''} onClick={() => { setTab(key); setUserDetail(null); setMessage(''); setError('') }}>{label}</button>)}</nav><div className="sidebar-foot"><a href="/" target="_blank">Abrir site ↗</a><button onClick={logout}>Sair</button></div></aside><section className="ecosystem-main"><header className="ecosystem-top"><div><p className="admin-kicker">Peter Tecnet Control Center</p><h1>{userDetail ? 'Detalhes do usuário' : TABS.find(x => x[0] === tab)?.[1]}</h1></div><div className="top-actions">{userDetail && <button onClick={() => setUserDetail(null)}>← Voltar</button>}<button onClick={() => userDetail ? openUser(userDetail.user) : load(tab)}>Atualizar</button></div></header>{error && <div className="notice error">{error}</div>}{message && <div className="notice success">{message}</div>}{userDetail ? <UserDetail payload={userDetail} mutate={mutate} /> : <>{tab === 'dashboard' && <Dashboard summary={counts} payload={data.dashboard} onUser={openUser} />}{tab === 'activity' && <Activity payload={data.activity} applications={data.applications} users={data.users} load={load} setData={setData} />}{tab === 'applications' && <Applications payload={data.applications} mutate={mutate} />}{tab === 'users' && <Users payload={data.users} profiles={data.profiles} applications={data.applications} load={load} mutate={mutate} openUser={openUser} />}{tab === 'profiles' && <Profiles payload={data.profiles} mutate={mutate} />}{tab === 'establishments' && <Establishments payload={data.establishments} applications={data.applications} users={data.users} load={load} mutate={mutate} />}{tab === 'site' && <SiteSettings payload={data.site} mutate={mutate} />}{tab === 'audit' && <Audit payload={data.audit} />}</>}</section></main></>
+  return <>{processing && <ProcessingIndicator message="Atualizando ecossistema..." />}<main className="ecosystem-shell"><aside className="ecosystem-sidebar"><a className="admin-brand ecosystem-brand" href="/"><img src="/petertecnetlogo.png" alt="" /><span><b>Peter Tecnet</b><small>Governança</small></span></a><nav>{visibleTabs.map(([key, label]) => <button key={key} className={tab === key ? 'active' : ''} onClick={() => { setTab(key); setUserDetail(null); setMessage(''); setError('') }}>{label}</button>)}</nav><div className="sidebar-foot"><a href="/" target="_blank">Abrir site ↗</a><button onClick={logout}>Sair</button></div></aside><section className="ecosystem-main"><header className="ecosystem-top"><div><p className="admin-kicker">Peter Tecnet Control Center</p><h1>{userDetail ? 'Detalhes do usuário' : visibleTabs.find(x => x[0] === tab)?.[1]}</h1></div><div className="top-actions">{userDetail && <button onClick={() => setUserDetail(null)}>← Voltar</button>}<button onClick={() => userDetail ? openUser(userDetail.user) : load(tab)}>Atualizar</button></div></header>{error && <div className="notice error">{error}</div>}{message && <div className="notice success">{message}</div>}{userDetail ? <UserDetail payload={userDetail} mutate={mutate} /> : <>{tab === 'dashboard' && <Dashboard summary={counts} payload={data.dashboard} onUser={openUser} />}{tab === 'activity' && <Activity payload={data.activity} applications={data.applications} users={data.users} load={load} setData={setData} activityBase={marketing ? '/admin/marketing/activity' : '/admin/ecosystem/activity'} />}{tab === 'applications' && <Applications payload={data.applications} mutate={mutate} />}{tab === 'users' && <Users payload={data.users} profiles={data.profiles} applications={data.applications} load={load} mutate={mutate} openUser={openUser} access={access} />}{tab === 'profiles' && <Profiles payload={data.profiles} mutate={mutate} />}{tab === 'establishments' && <Establishments payload={data.establishments} applications={data.applications} users={data.users} load={load} mutate={mutate} />}{tab === 'site' && <SiteSettings payload={data.site} mutate={mutate} />}{tab === 'audit' && <Audit payload={data.audit} />}</>}</section></main></>
 }
 
 function Dashboard({ summary, payload, onUser }) {
@@ -64,7 +82,7 @@ function RealtimeInteractionChart({ rows }) {
   return <div className="realtime-chart"><div className="chart-head"><div className="chart-legend"><span className="total">Interações</span><span className="errors">Erros</span></div><div className="live-indicator"><i />Ao vivo · {latest.total || 0} nesta hora</div></div><svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Interações e erros nas últimas 24 horas">{[0, .25, .5, .75, 1].map(ratio => { const y = top + chartHeight - ratio * chartHeight; return <g key={ratio}><line x1={left} y1={y} x2={width - right} y2={y} className="chart-grid" /><text x={left - 8} y={y + 4} textAnchor="end">{Math.round(maximum * ratio)}</text></g> })}<polyline points={path('total')} className="chart-line chart-line-total" /><polyline points={path('errors')} className="chart-line chart-line-errors" />{rows.map((row, index) => index % 4 === 0 || index === rows.length - 1 ? <text key={row.timestamp} x={point(row, index, 'total')[0]} y={height - 10} textAnchor="middle">{row.label}</text> : null)}</svg></div>
 }
 
-function Activity({ payload, applications, users, load, setData }) {
+function Activity({ payload, applications, users, load, setData, activityBase = '/admin/ecosystem/activity' }) {
   const [filters, setFilters] = useState({ user_id: '', app_id: '', type: '', from: '', to: '', search: '' })
   const [loadingMore, setLoadingMore] = useState(false)
   const loadMoreRef = useRef(null)
@@ -73,7 +91,7 @@ function Activity({ payload, applications, users, load, setData }) {
   function activityPath(page = 1) {
     const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value))
     params.set('page', String(page)); params.set('per_page', '40')
-    return `/admin/ecosystem/activity?${params}`
+    return `${activityBase}?${params}`
   }
 
   async function fetchPage(page, append = false) {
@@ -115,7 +133,8 @@ function Activity({ payload, applications, users, load, setData }) {
   return <div className="admin-stack"><div className="metric-grid three"><Metric label="Interações" value={payload?.summary?.total} sub="em todo o histórico filtrado" /><Metric label="Usuários" value={payload?.summary?.users} sub="usuários únicos" /><Metric label="Aplicações" value={payload?.summary?.applications} sub="com atividade" /></div><Panel title="Filtros de atividade"><form className="filter-grid" onSubmit={apply}><Field label="Busca" value={filters.search} onChange={value => setFilters({ ...filters, search: value })} /><label>Aplicação<select value={filters.app_id} onChange={event => setFilters({ ...filters, app_id: event.target.value })}><option value="">Todas</option>{applications?.applications?.map(application => <option key={application.id} value={application.id}>{application.name}</option>)}</select></label><label>Usuário<select value={filters.user_id} onChange={event => setFilters({ ...filters, user_id: event.target.value })}><option value="">Todos</option>{users?.users?.map(user => <option key={user.id} value={user.id}>{fullName(user)} · {user.email}</option>)}</select></label><label>Ação<select value={filters.type} onChange={event => setFilters({ ...filters, type: event.target.value })}><option value="">Todas</option>{payload?.types?.map(type => <option key={type} value={type}>{humanType(type)}</option>)}</select></label><Field label="De" type="date" value={filters.from} onChange={value => setFilters({ ...filters, from: value })} /><Field label="Até" type="date" value={filters.to} onChange={value => setFilters({ ...filters, to: value })} /><button className="primary">Aplicar filtros</button></form></Panel><Panel title="Todas as interações"><Timeline rows={payload?.activity || []} /><div className="infinite-scroll-status" ref={loadMoreRef}>{loadingMore ? <><i />Carregando mais interações...</> : payload?.pagination?.has_more ? 'Continue rolando para carregar mais' : `Fim do histórico · ${payload?.activity?.length || 0} de ${payload?.pagination?.total || 0}`}</div></Panel></div>
 }
 
-function Users({ payload, profiles, applications, load, mutate, openUser }) {
+function Users({ payload, profiles, applications, load, mutate, openUser, access }) {
+  if (access?.mode === 'marketing') return <MarketingUsers payload={payload} applications={applications} load={load} mutate={mutate} openUser={openUser} />
   const [form, setForm] = useState(emptyUser); const [editing, setEditing] = useState(null); const [search, setSearch] = useState('')
   const users = payload?.users || []
   useEffect(() => { if (!profiles) load('profiles'); if (!applications) load('applications') }, [])
@@ -124,6 +143,54 @@ function Users({ payload, profiles, applications, load, mutate, openUser }) {
   function edit(user) { setEditing(user.id); setForm({ first_name: user.first_name || '', last_name: user.last_name || '', user_name: user.user_name || '', email: user.email || '', password: '', profile_id: user.profile_id || '' }) }
   function access(user, app) { const current = user.applications?.find(a => a.id === app.id); const status = current?.pivot?.status === 'active' ? 'blocked' : 'active'; mutate(`/admin/ecosystem/users/${user.id}/applications/${app.id}`, { method: 'PUT', body: JSON.stringify({ status, role: current?.pivot?.role || 'member' }) }, `${app.name}: acesso ${status === 'active' ? 'liberado' : 'bloqueado'}.`, 'users') }
   return <div className="admin-stack"><div className="admin-grid"><Panel title={editing ? 'Editar usuário' : 'Novo usuário'}><form onSubmit={submit} className="form-grid"><Field label="Nome" value={form.first_name} onChange={v => setForm({ ...form, first_name: v })} required /><Field label="Sobrenome" value={form.last_name} onChange={v => setForm({ ...form, last_name: v })} /><Field label="Usuário" value={form.user_name} onChange={v => setForm({ ...form, user_name: v })} required /><Field label="E-mail" value={form.email} onChange={v => setForm({ ...form, email: v })} required /><label className="wide">Perfil<select value={form.profile_id} onChange={e => setForm({ ...form, profile_id: e.target.value })}><option value="">Sem perfil</option>{profiles?.profiles?.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>{!editing && <Field label="Senha inicial" type="password" value={form.password} onChange={v => setForm({ ...form, password: v })} wide required />}<div className="form-actions wide"><button className="primary">Salvar usuário</button>{editing && <button type="button" onClick={() => { setEditing(null); setForm(emptyUser) }}>Cancelar</button>}</div></form></Panel><Panel title="Pesquisar usuários"><form className="search-form" onSubmit={doSearch}><input placeholder="Nome, e-mail ou usuário" value={search} onChange={e => setSearch(e.target.value)} /><button className="primary">Buscar</button></form><p className="helper">Clique em “Detalhes” para abrir atividade, segurança, acessos e recursos do usuário.</p></Panel></div><Panel title={`Usuários (${users.length})`}><div className="user-list">{users.map(user => <article className="user-card" key={user.id}><div className="user-head"><div><b>{fullName(user)}</b><span>{user.email} · {user.profile?.name || 'Sem perfil'}</span><small>Última atividade: {fmt(user.last_activity_at)} · {user.interactions_count || 0} interações · {user.establishments_count || 0} estabelecimentos</small></div><div><button className="primary" onClick={() => openUser(user)}>Detalhes</button><button onClick={() => edit(user)}>Editar</button><button className="danger" onClick={() => window.confirm(`Excluir ${user.email}?`) && mutate(`/admin/ecosystem/users/${user.id}`, { method: 'DELETE' }, 'Usuário excluído.', 'users')}>Excluir</button></div></div><div className="access-grid">{applications?.applications?.map(app => { const link = user.applications?.find(a => a.id === app.id); const active = link?.pivot?.status === 'active'; return <button key={app.id} className={active ? 'access active' : 'access'} onClick={() => access(user, app)}><b>{app.name}</b><small>{link ? (active ? 'Permitido' : link.pivot.status) : 'Sem vínculo'}</small></button> })}</div></article>)}</div></Panel></div>
+}
+
+
+function MarketingUsers({ payload, applications, load, mutate, openUser }) {
+  const [form, setForm] = useState({ first_name: '', email: '', app_id: '' })
+  const [search, setSearch] = useState('')
+  const users = payload?.users || []
+  const apps = applications?.applications || []
+
+  async function doSearch(event) {
+    event.preventDefault()
+    await load('users', `/admin/marketing/users${search ? `?search=${encodeURIComponent(search)}` : ''}`)
+  }
+
+  function invite(event) {
+    event.preventDefault()
+    mutate('/invite', {
+      method: 'POST',
+      body: JSON.stringify({ first_name: form.first_name, email: form.email, app_id: Number(form.app_id) }),
+    }, 'Conta criada e convite enviado por e-mail.', 'users')
+    setForm({ first_name: '', email: '', app_id: '' })
+  }
+
+  return <div className="admin-stack">
+    <div className="admin-grid">
+      <Panel title="Convidar novo cliente">
+        <form className="form-grid" onSubmit={invite}>
+          <Field label="Nome" value={form.first_name} onChange={value => setForm({ ...form, first_name: value })} required />
+          <Field label="E-mail" type="email" value={form.email} onChange={value => setForm({ ...form, email: value })} required />
+          <label className="wide">Aplicação
+            <select value={form.app_id} onChange={event => setForm({ ...form, app_id: event.target.value })} required>
+              <option value="">Selecione a aplicação</option>
+              {apps.map(app => <option key={app.id} value={app.id}>{app.name}</option>)}
+            </select>
+          </label>
+          <p className="helper wide">O cliente receberá o endereço oficial da aplicação, um código temporário e um botão para criar a própria senha.</p>
+          <button className="primary wide">Criar conta e enviar convite</button>
+        </form>
+      </Panel>
+      <Panel title="Pesquisar clientes">
+        <form className="search-form" onSubmit={doSearch}><input placeholder="Nome, e-mail ou usuário" value={search} onChange={event => setSearch(event.target.value)} /><button className="primary">Buscar</button></form>
+        <p className="helper">Você visualiza somente clientes das aplicações atribuídas ao seu perfil.</p>
+      </Panel>
+    </div>
+    <Panel title={`Clientes (${users.length})`}>
+      <div className="user-list">{users.map(user => <article className="user-card" key={user.id}><div className="user-head"><div><b>{fullName(user)}</b><span>{user.email}</span><small>Última atividade: {fmt(user.last_activity_at)} · {user.interactions_count || 0} interações</small></div><div><button className="primary" onClick={() => openUser(user)}>Acompanhar</button></div></div><div className="application-tags">{user.applications?.map(app => <span key={app.id}>{app.name} · {app.pivot?.status || 'sem status'}</span>)}</div></article>)}</div>
+    </Panel>
+  </div>
 }
 
 function UserDetail({ payload, mutate }) {
