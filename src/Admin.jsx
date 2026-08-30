@@ -10,6 +10,7 @@ const TABS = [
 ]
 const emptyApp = { name: '', description: '', slug: '', url: '', logo: '', version: '', author: 'Peter Tecnet', release_date: '', is_active: true }
 const emptyUser = { first_name: '', last_name: '', user_name: '', email: '', password: '', profile_id: '' }
+const emptyEstablishment = { name: '', fantasy: '', slug: '', cnpj: '', type: '', category: '', phone: '', email: '', description: '', city: '', uf: '', cep: '', address: '', website_url: '', instagram_url: '', user_id: '', app_id: '', app_ids: [], is_published: false, is_approved: false, is_featured: false, is_cancelled: false }
 const fmt = value => value ? new Date(value).toLocaleString('pt-BR') : '—'
 const fullName = user => [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.user_name || 'Usuário'
 
@@ -44,7 +45,7 @@ export function AdminPage() {
   async function mutate(path, options, success, reload = tab) { setProcessing(true); setError(''); setMessage(''); try { await apiRequest(path, options); setMessage(success); await load(reload); if (reload !== 'dashboard') setData(prev => ({ ...prev, dashboard: undefined })); if (userDetail?.user?.id) setUserDetail(await apiRequest(`/admin/ecosystem/users/${userDetail.user.id}`)) } catch (err) { setError(err.message); setProcessing(false) } }
   function logout() { clearToken(); window.location.href = '/login' }
   const counts = data.dashboard?.summary || {}
-  return <>{processing && <ProcessingIndicator message="Atualizando ecossistema..." />}<main className="ecosystem-shell"><aside className="ecosystem-sidebar"><a className="admin-brand ecosystem-brand" href="/"><img src="/petertecnetlogo.png" alt="" /><span><b>Peter Tecnet</b><small>Governança</small></span></a><nav>{TABS.map(([key, label]) => <button key={key} className={tab === key ? 'active' : ''} onClick={() => { setTab(key); setUserDetail(null); setMessage(''); setError('') }}>{label}</button>)}</nav><div className="sidebar-foot"><a href="/" target="_blank">Abrir site ↗</a><button onClick={logout}>Sair</button></div></aside><section className="ecosystem-main"><header className="ecosystem-top"><div><p className="admin-kicker">Peter Tecnet Control Center</p><h1>{userDetail ? 'Detalhes do usuário' : TABS.find(x => x[0] === tab)?.[1]}</h1></div><div className="top-actions">{userDetail && <button onClick={() => setUserDetail(null)}>← Voltar</button>}<button onClick={() => userDetail ? openUser(userDetail.user) : load(tab)}>Atualizar</button></div></header>{error && <div className="notice error">{error}</div>}{message && <div className="notice success">{message}</div>}{userDetail ? <UserDetail payload={userDetail} mutate={mutate} /> : <>{tab === 'dashboard' && <Dashboard summary={counts} payload={data.dashboard} onUser={openUser} />}{tab === 'activity' && <Activity payload={data.activity} applications={data.applications} users={data.users} load={load} setData={setData} />}{tab === 'applications' && <Applications payload={data.applications} mutate={mutate} />}{tab === 'users' && <Users payload={data.users} profiles={data.profiles} applications={data.applications} load={load} mutate={mutate} openUser={openUser} />}{tab === 'profiles' && <Profiles payload={data.profiles} mutate={mutate} />}{tab === 'establishments' && <Establishments payload={data.establishments} applications={data.applications} load={load} mutate={mutate} />}{tab === 'site' && <SiteSettings payload={data.site} mutate={mutate} />}{tab === 'audit' && <Audit payload={data.audit} />}</>}</section></main></>
+  return <>{processing && <ProcessingIndicator message="Atualizando ecossistema..." />}<main className="ecosystem-shell"><aside className="ecosystem-sidebar"><a className="admin-brand ecosystem-brand" href="/"><img src="/petertecnetlogo.png" alt="" /><span><b>Peter Tecnet</b><small>Governança</small></span></a><nav>{TABS.map(([key, label]) => <button key={key} className={tab === key ? 'active' : ''} onClick={() => { setTab(key); setUserDetail(null); setMessage(''); setError('') }}>{label}</button>)}</nav><div className="sidebar-foot"><a href="/" target="_blank">Abrir site ↗</a><button onClick={logout}>Sair</button></div></aside><section className="ecosystem-main"><header className="ecosystem-top"><div><p className="admin-kicker">Peter Tecnet Control Center</p><h1>{userDetail ? 'Detalhes do usuário' : TABS.find(x => x[0] === tab)?.[1]}</h1></div><div className="top-actions">{userDetail && <button onClick={() => setUserDetail(null)}>← Voltar</button>}<button onClick={() => userDetail ? openUser(userDetail.user) : load(tab)}>Atualizar</button></div></header>{error && <div className="notice error">{error}</div>}{message && <div className="notice success">{message}</div>}{userDetail ? <UserDetail payload={userDetail} mutate={mutate} /> : <>{tab === 'dashboard' && <Dashboard summary={counts} payload={data.dashboard} onUser={openUser} />}{tab === 'activity' && <Activity payload={data.activity} applications={data.applications} users={data.users} load={load} setData={setData} />}{tab === 'applications' && <Applications payload={data.applications} mutate={mutate} />}{tab === 'users' && <Users payload={data.users} profiles={data.profiles} applications={data.applications} load={load} mutate={mutate} openUser={openUser} />}{tab === 'profiles' && <Profiles payload={data.profiles} mutate={mutate} />}{tab === 'establishments' && <Establishments payload={data.establishments} applications={data.applications} users={data.users} load={load} mutate={mutate} />}{tab === 'site' && <SiteSettings payload={data.site} mutate={mutate} />}{tab === 'audit' && <Audit payload={data.audit} />}</>}</section></main></>
 }
 
 function Dashboard({ summary, payload, onUser }) {
@@ -144,10 +145,131 @@ function Profiles({ payload, mutate }) {
   return <div className="admin-grid"><Panel title="Perfis"><button className="primary compact" onClick={create}>+ Novo perfil</button>{profiles.map(p => <button className={`profile-row ${selected === p.id ? 'active' : ''}`} key={p.id} onClick={() => choose(p)}><span><b>{p.name}</b><small>{p.users_count} usuários</small></span><i>{p.permissions?.length || 0} permissões</i></button>)}</Panel><Panel title="Permissões do perfil">{selected ? <form onSubmit={save}><Field label="Nome do perfil" value={name} onChange={setName} required /><div className="permission-list">{available.map(p => <label key={p.key}><input type="checkbox" checked={permissions.includes(p.key)} onChange={e => setPermissions(e.target.checked ? [...permissions, p.key] : permissions.filter(x => x !== p.key))} /><span><b>{p.name}</b><small>{p.category} · {p.description}</small></span></label>)}</div><button className="primary">Salvar perfil e permissões</button></form> : <Empty text="Selecione ou crie um perfil." />}</Panel></div>
 }
 
-function Establishments({ payload, applications, load, mutate }) {
-  const rows = payload?.establishments || []; useEffect(() => { if (!applications) load('applications') }, [])
-  function patch(item, changes) { mutate(`/admin/ecosystem/establishments/${item.id}`, { method: 'PUT', body: JSON.stringify(changes) }, 'Estabelecimento atualizado.', 'establishments') }
-  return <Panel title={`Estabelecimentos (${rows.length})`}><div className="table-wrap"><table><thead><tr><th>Estabelecimento</th><th>Aplicação</th><th>Responsável</th><th>Status</th><th>Ações</th></tr></thead><tbody>{rows.map(item => <tr key={item.id}><td><b>{item.fantasy || item.name}</b><small>{item.city}{item.uf ? `/${item.uf}` : ''}</small></td><td><select value={item.app_id || ''} onChange={e => patch(item, { app_id: e.target.value ? Number(e.target.value) : null })}><option value="">Sem aplicação</option>{applications?.applications?.map(a => <option value={a.id} key={a.id}>{a.name}</option>)}</select></td><td>{item.user?.email || '—'}</td><td><span className={item.is_approved ? 'status on' : 'status'}>{item.is_approved ? 'Aprovado' : 'Pendente'}</span></td><td className="row-actions"><button onClick={() => patch(item, { is_approved: !item.is_approved })}>{item.is_approved ? 'Retirar aprovação' : 'Aprovar'}</button><button onClick={() => patch(item, { is_published: !item.is_published })}>{item.is_published ? 'Ocultar' : 'Publicar'}</button></td></tr>)}</tbody></table></div></Panel>
+function Establishments({ payload, applications, users, load, mutate }) {
+  const [form, setForm] = useState(emptyEstablishment)
+  const [editing, setEditing] = useState(null)
+  const [search, setSearch] = useState('')
+  const rows = payload?.establishments || []
+  const appRows = applications?.applications || []
+  const userRows = users?.users || []
+
+  useEffect(() => {
+    if (!applications) load('applications')
+    if (!users) load('users')
+  }, [])
+
+  function reset() {
+    setEditing(null)
+    setForm(emptyEstablishment)
+  }
+
+  function edit(item) {
+    const linkedIds = item.applications?.map(application => Number(application.id)) || []
+    const appIds = [...new Set([...(item.app_id ? [Number(item.app_id)] : []), ...linkedIds])]
+    setEditing(item.id)
+    setForm({
+      ...emptyEstablishment,
+      ...item,
+      user_id: item.user_id || '',
+      app_id: item.app_id || appIds[0] || '',
+      app_ids: appIds,
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function toggleApplication(applicationId) {
+    const id = Number(applicationId)
+    const selected = form.app_ids.includes(id)
+      ? form.app_ids.filter(current => current !== id)
+      : [...form.app_ids, id]
+    setForm({
+      ...form,
+      app_ids: selected,
+      app_id: selected.includes(Number(form.app_id)) ? form.app_id : (selected[0] || ''),
+    })
+  }
+
+  function submit(event) {
+    event.preventDefault()
+    if (!form.app_ids.length) return
+    const body = {
+      ...form,
+      user_id: Number(form.user_id),
+      app_id: Number(form.app_id || form.app_ids[0]),
+      app_ids: form.app_ids.map(Number),
+      uf: form.uf?.toUpperCase(),
+    }
+    mutate(
+      `/admin/ecosystem/establishments${editing ? `/${editing}` : ''}`,
+      { method: editing ? 'PUT' : 'POST', body: JSON.stringify(body) },
+      editing ? 'Empresa atualizada e vínculos sincronizados.' : 'Empresa cadastrada e vinculada ao usuário.',
+      'establishments'
+    )
+    reset()
+  }
+
+  async function doSearch(event) {
+    event.preventDefault()
+    await load('establishments', `/admin/ecosystem/establishments${search ? `?search=${encodeURIComponent(search)}` : ''}`)
+  }
+
+  return <div className="admin-stack">
+    <div className="admin-grid">
+      <Panel title={editing ? `Editar empresa #${editing}` : 'Cadastrar empresa'}>
+        <form onSubmit={submit} className="form-grid">
+          <Field label="Razão social / nome" value={form.name} onChange={value => setForm({ ...form, name: value })} required />
+          <Field label="Nome fantasia" value={form.fantasy} onChange={value => setForm({ ...form, fantasy: value })} />
+          <Field label="CNPJ" value={form.cnpj} onChange={value => setForm({ ...form, cnpj: value })} />
+          <Field label="Slug" value={form.slug} onChange={value => setForm({ ...form, slug: value })} />
+          <Field label="Tipo" value={form.type} onChange={value => setForm({ ...form, type: value })} />
+          <Field label="Categoria" value={form.category} onChange={value => setForm({ ...form, category: value })} />
+          <Field label="Telefone" value={form.phone} onChange={value => setForm({ ...form, phone: value })} />
+          <Field label="E-mail" type="email" value={form.email} onChange={value => setForm({ ...form, email: value })} />
+          <Field label="Cidade" value={form.city} onChange={value => setForm({ ...form, city: value })} />
+          <Field label="UF" value={form.uf} onChange={value => setForm({ ...form, uf: value.slice(0, 2) })} />
+          <Field label="CEP" value={form.cep} onChange={value => setForm({ ...form, cep: value })} />
+          <Field label="Endereço" value={form.address} onChange={value => setForm({ ...form, address: value })} />
+          <label className="wide">Usuário responsável
+            <select value={form.user_id} onChange={event => setForm({ ...form, user_id: event.target.value })} required>
+              <option value="">Selecione o proprietário</option>
+              {userRows.map(user => <option key={user.id} value={user.id}>{fullName(user)} · {user.email}</option>)}
+            </select>
+          </label>
+          <fieldset className="application-picker wide">
+            <legend>Aplicações vinculadas</legend>
+            <p>Uma mesma empresa pode participar de várias plataformas. Cada aplicativo continuará exibindo apenas as empresas vinculadas a ele.</p>
+            <div>{appRows.map(application => <label className="check" key={application.id}><input type="checkbox" checked={form.app_ids.includes(Number(application.id))} onChange={() => toggleApplication(application.id)} />{application.name}</label>)}</div>
+          </fieldset>
+          {form.app_ids.length > 1 && <label className="wide">Aplicação principal
+            <select value={form.app_id} onChange={event => setForm({ ...form, app_id: event.target.value })} required>
+              {appRows.filter(application => form.app_ids.includes(Number(application.id))).map(application => <option key={application.id} value={application.id}>{application.name}</option>)}
+            </select>
+          </label>}
+          <label className="wide">Descrição<textarea rows="4" value={form.description || ''} onChange={event => setForm({ ...form, description: event.target.value })} /></label>
+          <Field label="Website" type="url" value={form.website_url} onChange={value => setForm({ ...form, website_url: value })} />
+          <Field label="Instagram" type="url" value={form.instagram_url} onChange={value => setForm({ ...form, instagram_url: value })} />
+          <div className="company-statuses wide">
+            <label className="check"><input type="checkbox" checked={!!form.is_approved} onChange={event => setForm({ ...form, is_approved: event.target.checked })} />Aprovada</label>
+            <label className="check"><input type="checkbox" checked={!!form.is_published} onChange={event => setForm({ ...form, is_published: event.target.checked })} />Publicada</label>
+            <label className="check"><input type="checkbox" checked={!!form.is_featured} onChange={event => setForm({ ...form, is_featured: event.target.checked })} />Destaque</label>
+          </div>
+          <div className="form-actions wide"><button className="primary" disabled={!form.app_ids.length}>{editing ? 'Salvar alterações' : 'Cadastrar e vincular'}</button>{editing && <button type="button" onClick={reset}>Cancelar</button>}</div>
+        </form>
+      </Panel>
+      <Panel title="Pesquisar empresas">
+        <form className="search-form" onSubmit={doSearch}><input placeholder="Nome, fantasia ou CNPJ" value={search} onChange={event => setSearch(event.target.value)} /><button className="primary">Buscar</button></form>
+        <p className="helper">O vínculo define em quais plataformas a empresa aparece. O usuário selecionado será o proprietário e receberá acesso ativo a essas aplicações.</p>
+      </Panel>
+    </div>
+    <Panel title={`Empresas (${rows.length})`}>
+      <div className="table-wrap"><table><thead><tr><th>Empresa</th><th>Aplicações</th><th>Responsável</th><th>Status</th><th>Ações</th></tr></thead><tbody>
+        {rows.map(item => {
+          const linked = item.applications?.length ? item.applications : (item.app ? [item.app] : [])
+          return <tr key={item.id}><td><b>{item.fantasy || item.name}</b><small>{item.cnpj || 'Sem CNPJ'} · {item.city || 'Cidade não informada'}{item.uf ? `/${item.uf}` : ''}</small></td><td><div className="application-tags">{linked.map(application => <span key={application.id}>{application.name}{Number(application.id) === Number(item.app_id) ? ' · principal' : ''}</span>)}</div></td><td>{item.user ? `${fullName(item.user)} · ${item.user.email}` : 'Sem responsável'}</td><td><span className={item.is_approved ? 'status on' : 'status'}>{item.is_approved ? 'Aprovada' : 'Pendente'}</span><small>{item.is_published ? 'Publicada' : 'Oculta'}</small></td><td className="row-actions"><button className="primary" onClick={() => edit(item)}>Editar</button><button onClick={() => mutate(`/admin/ecosystem/establishments/${item.id}`, { method: 'PUT', body: JSON.stringify({ is_approved: !item.is_approved }) }, 'Aprovação atualizada.', 'establishments')}>{item.is_approved ? 'Retirar aprovação' : 'Aprovar'}</button></td></tr>
+        })}
+      </tbody></table></div>
+    </Panel>
+  </div>
 }
 
 function SiteSettings({ payload, mutate }) {
