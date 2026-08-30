@@ -35,7 +35,7 @@ export function tokenFrom(data) {
 }
 
 export function errorMessage(data) {
-  return data?.error || data?.message || Object.values(data?.errors || {}).flat()[0] || 'Não foi possível concluir a operação.'
+  return Object.values(data?.errors || {}).flat()[0] || data?.error || data?.message || 'Não foi possível concluir a operação.'
 }
 
 export async function apiRequest(path, options = {}) {
