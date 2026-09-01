@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './PeterAccountGateway.css'
 
-const TOKEN_KEYS = ['token', 'access_token', 'auth_token']
+const TOKEN_KEYS = ['petertecnet_admin_token', 'token', 'access_token', 'auth_token']
 const getToken = () => TOKEN_KEYS.map((key) => localStorage.getItem(key)).find(Boolean) || null
 const messageOf = (payload, fallback) => payload?.message || payload?.error || fallback
 const isPeterUrl = (value) => { try { const url = new URL(value); const host = url.hostname.toLowerCase(); return url.protocol === 'https:' && (host === 'petertecnet.com.br' || host.endsWith('.petertecnet.com.br')) } catch { return false } }
@@ -24,7 +24,18 @@ export default function PeterAccountGateway({ apiBaseUrl, appSlug, children }) {
     setTransfer('loading')
     fetch(`${api}/account/sso/exchange`, { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Peter-App': slug }, body: JSON.stringify({ handoff_code: handoff, application: slug }) })
       .then(async (response) => { const payload = await response.json().catch(() => ({})); if (!response.ok || !payload?.data?.access_token) throw new Error(messageOf(payload, 'Não foi possível concluir o acesso entre aplicativos.')); return payload.data })
-      .then((data) => { if (!alive) return; localStorage.setItem('token', data.access_token); if (data.user) localStorage.setItem('user', JSON.stringify(data.user)); const url = new URL(window.location.href); url.searchParams.delete('peter_sso'); url.searchParams.delete('peter_from'); window.history.replaceState({}, document.title, `${url.pathname}${url.search}${url.hash}`); window.dispatchEvent(new Event('authChanged')); setTransfer('success') })
+      .then((data) => {
+        if (!alive) return
+        localStorage.setItem('token', data.access_token)
+        if (slug === 'peter-tecnet') localStorage.setItem('petertecnet_admin_token', data.access_token)
+        if (data.user) localStorage.setItem('user', JSON.stringify(data.user))
+        const url = new URL(window.location.href)
+        url.searchParams.delete('peter_sso')
+        url.searchParams.delete('peter_from')
+        window.history.replaceState({}, document.title, `${url.pathname}${url.search}${url.hash}`)
+        window.dispatchEvent(new Event('authChanged'))
+        setTransfer('success')
+      })
       .catch((error) => { if (alive) { setTransferError(error?.message || 'Código de acesso inválido ou expirado.'); setTransfer('error') } })
     return () => { alive = false }
   }, [api, handoff, slug])
