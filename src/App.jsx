@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import { AdminPage, LoginPage } from './Admin'
+import FinanceCenter from './admin/FinanceCenter'
 
 const services = [
   ['01', 'Aplicativos', 'Experiências mobile rápidas, intuitivas e conectadas ao seu negócio.'],
@@ -107,9 +108,15 @@ function LandingPage() {
   </div>
 }
 
+function FinanceLauncher() {
+  return <a href="/admin/finance" aria-label="Abrir financeiro do ecossistema" style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 80, padding: '12px 18px', borderRadius: 999, textDecoration: 'none', fontWeight: 800, color: '#06101d', background: '#fff', boxShadow: '0 12px 34px rgba(0,0,0,.28)' }}>Financeiro ↗</a>
+}
+
 function App() {
-  if (window.location.pathname === '/login') return <LoginPage />
-  if (window.location.pathname.startsWith('/admin')) return <AdminPage />
+  const path = window.location.pathname
+  if (path === '/login') return <LoginPage />
+  if (path === '/admin/finance') return <FinanceCenter />
+  if (path.startsWith('/admin')) return <><AdminPage /><FinanceLauncher /></>
   return <LandingPage />
 }
 
