@@ -1,0 +1,106 @@
+name: Emergency Restore Live Builds
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/emergency-restore-live-builds.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  restore:
+    name: Restore missing frontend builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Configure SSH
+        shell: bash
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          : > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Restore missing live build from latest valid backup
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          port="${VPS_PORT:-22}"
+
+          cat > "$RUNNER_TEMP/restore-live-builds.sh" <<'REMOTE'
+          set -u
+          shopt -s nullglob
+
+          restored=0
+          checked=0
+
+          for app in /var/www/*.petertecnet.com.br; do
+            [[ -d "$app" ]] || continue
+            [[ -f "$app/package.json" ]] || continue
+            [[ -f "$app/artisan" ]] && continue
+
+            checked=$((checked + 1))
+            if grep -Eq '"vite"[[:space:]]*:' "$app/package.json"; then
+              output="dist"
+            else
+              output="build"
+            fi
+
+            live="$app/$output"
+            if [[ -f "$live/index.html" ]]; then
+              echo "LIVE OK: $app/$output/index.html"
+              continue
+            fi
+
+            backup="$(find "$app" -maxdepth 1 -type d -name ".deploy-backup-${output}-*" -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -n1 | cut -d' ' -f2-)"
+            if [[ -n "$backup" && -f "$backup/index.html" ]]; then
+              echo "RESTORING: $app from $backup"
+              mkdir -p "$live"
+              (
+                cd "$backup"
+                tar --exclude='./index.html' -cf - .
+              ) | (
+                cd "$live"
+                tar -xf -
+              )
+              cp -f "$backup/index.html" "$live/.index.html.restore"
+              mv -f "$live/.index.html.restore" "$live/index.html"
+              restored=$((restored + 1))
+              echo "RESTORED: $live/index.html"
+            else
+              echo "NO VALID BACKUP: $app (safe deploy must rebuild it)"
+            fi
+          done
+
+          echo "Checked frontend applications: $checked"
+          echo "Restored missing live builds: $restored"
+          REMOTE
+
+          for attempt in 1 2 3 4 5 6 7 8; do
+            echo "Emergency restore SSH attempt $attempt/8"
+            if ssh \
+              -o StrictHostKeyChecking=accept-new \
+              -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+              -o ConnectTimeout=15 \
+              -o ConnectionAttempts=1 \
+              -o ServerAliveInterval=15 \
+              -o ServerAliveCountMax=4 \
+              -p "$port" "$VPS_USER@$VPS_HOST" \
+              'bash -s' < "$RUNNER_TEMP/restore-live-builds.sh"; then
+              exit 0
+            fi
+            sleep $((attempt * 5))
+          done
+          exit 1
