@@ -75,7 +75,20 @@ jobs:
           install -d -m 700 "$HOME/.ssh"
           printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
           chmod 600 "$HOME/.ssh/id_ed25519"
-          ssh-keyscan -p "$VPS_PORT" -H "$VPS_HOST" >> "$HOME/.ssh/known_hosts"
+          : > "$HOME/.ssh/known_hosts"
+
+          for attempt in 1 2 3 4 5; do
+            if ssh-keyscan -T 10 -p "$VPS_PORT" -H "$VPS_HOST" >> "$HOME/.ssh/known_hosts" 2>/dev/null && [[ -s "$HOME/.ssh/known_hosts" ]]; then
+              break
+            fi
+            echo "SSH host-key scan attempt $attempt failed; retrying..."
+            sleep $((attempt * 2))
+          done
+
+          if [[ ! -s "$HOME/.ssh/known_hosts" ]]; then
+            echo "Could not obtain the VPS SSH host key after retries." >&2
+            exit 1
+          fi
 
       - name: Deploy application
         if: steps.config.outputs.enabled == 'true'
@@ -90,7 +103,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          ssh -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
+          ssh \
+            -o ConnectTimeout=15 \
+            -o ConnectionAttempts=5 \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=10 \
+            -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
             "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH'" <<'REMOTE_SCRIPT'
           set -Eeuo pipefail
           umask 002
@@ -112,6 +130,14 @@ jobs:
           if [[ "$DEPLOY_TYPE" != "frontend" && "$DEPLOY_TYPE" != "laravel" ]]; then
             echo "Unsupported deploy type: $DEPLOY_TYPE" >&2
             exit 22
+          fi
+
+          # All Peter Tecnet repositories share this VPS. Serialize the heavy part
+          # of deployments so simultaneous pushes do not compete for RAM/CPU or npm.
+          exec 9>/tmp/petertecnet-vps-deploy.lock
+          if ! flock -w 1500 9; then
+            echo "Timed out waiting for the Peter Tecnet VPS deployment lock." >&2
+            exit 25
           fi
 
           cd "$DEPLOY_PATH"
@@ -248,8 +274,9 @@ jobs:
             --silent \
             --show-error \
             --location \
-            --retry 3 \
-            --retry-delay 2 \
+            --retry 5 \
+            --retry-all-errors \
+            --retry-delay 3 \
             --max-time 20 \
             "$HEALTH_URL" >/dev/null
           echo "Health check passed: $HEALTH_URL"
