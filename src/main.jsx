@@ -4,7 +4,6 @@ import './index.css'
 import './LandingEnhancements.css'
 import './seo.js'
 import App from './App.jsx'
-import FinancialCenter from './FinancialCenter.jsx'
 import PeterAccountGateway from './components/PeterAccountGateway.jsx'
 
 const API_BASE_URL = 'https://api.petertecnet.com.br/api'
@@ -16,13 +15,10 @@ const ecosystemToken = localStorage.getItem('token')
 if (adminToken && !ecosystemToken) localStorage.setItem('token', adminToken)
 if (ecosystemToken && !adminToken) localStorage.setItem('petertecnet_admin_token', ecosystemToken)
 
-const pathname = window.location.pathname.replace(/\/+$/, '') || '/'
-const RootPage = pathname === '/admin/financial' ? FinancialCenter : App
-
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <PeterAccountGateway apiBaseUrl={API_BASE_URL} appSlug={APP_SLUG}>
-      <RootPage />
+      <App />
     </PeterAccountGateway>
   </StrictMode>,
 )
