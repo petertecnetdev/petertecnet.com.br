@@ -32,7 +32,6 @@ const apiGet = async (path, signal) => {
 }
 
 export const fetchApplications = signal => apiGet('/api/applications', signal)
-
 export const fetchSite = signal => apiGet('/api/ecosystem/site', signal)
 
 const resolveNexusApplication = applications =>
@@ -55,15 +54,32 @@ const loadLegacyCatalog = async signal => {
   }
 }
 
+const discoverPeterTecnetCompany = async (nexusAppId, signal) => {
+  const queries = [
+    `/api/nexus/discovery?app_id=${encodeURIComponent(nexusAppId)}&q=${encodeURIComponent('Peter Tecnet')}&limit=20`,
+    `/api/nexus/discovery?app_id=${encodeURIComponent(nexusAppId)}&limit=100`,
+  ]
+
+  for (const path of queries) {
+    try {
+      const discovery = await apiGet(path, signal)
+      const companies = Array.isArray(discovery?.establishments) ? discovery.establishments : []
+      const company = companies.find(isPeterTecnetCompany)
+      if (company) return company
+    } catch (error) {
+      if (error?.name === 'AbortError') throw error
+    }
+  }
+
+  return null
+}
+
 export async function fetchPeterCatalog(applications, signal) {
   const nexus = resolveNexusApplication(applications)
 
   if (nexus?.id) {
     try {
-      const discovery = await apiGet(`/api/nexus/discovery?app_id=${encodeURIComponent(nexus.id)}&q=${encodeURIComponent('Peter Tecnet')}&limit=12`, signal)
-      const companies = Array.isArray(discovery?.establishments) ? discovery.establishments : []
-      const company = companies.find(isPeterTecnetCompany)
-
+      const company = await discoverPeterTecnetCompany(nexus.id, signal)
       if (company?.slug || company?.id) {
         const identifier = company.slug || company.id
         const catalog = await apiGet(`/api/nexus/catalog/${encodeURIComponent(identifier)}?app_id=${encodeURIComponent(nexus.id)}`, signal)
