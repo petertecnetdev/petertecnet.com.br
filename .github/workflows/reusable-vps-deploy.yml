@@ -37,7 +37,7 @@ jobs:
   deploy:
     name: Deploy to Peter Tecnet VPS
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     concurrency:
       group: deploy-${{ github.repository }}-${{ inputs.deploy_branch }}
       cancel-in-progress: false
@@ -67,8 +67,6 @@ jobs:
         if: steps.config.outputs.enabled == 'true'
         shell: bash
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_PORT: ${{ steps.config.outputs.port }}
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           set -euo pipefail
@@ -76,19 +74,7 @@ jobs:
           printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
           chmod 600 "$HOME/.ssh/id_ed25519"
           : > "$HOME/.ssh/known_hosts"
-
-          for attempt in 1 2 3 4 5; do
-            if ssh-keyscan -T 10 -p "$VPS_PORT" -H "$VPS_HOST" >> "$HOME/.ssh/known_hosts" 2>/dev/null && [[ -s "$HOME/.ssh/known_hosts" ]]; then
-              break
-            fi
-            echo "SSH host-key scan attempt $attempt failed; retrying..."
-            sleep $((attempt * 2))
-          done
-
-          if [[ ! -s "$HOME/.ssh/known_hosts" ]]; then
-            echo "Could not obtain the VPS SSH host key after retries." >&2
-            exit 1
-          fi
+          chmod 600 "$HOME/.ssh/known_hosts"
 
       - name: Deploy application
         if: steps.config.outputs.enabled == 'true'
@@ -103,11 +89,16 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Hosted runners are ephemeral. Avoid a separate ssh-keyscan connection,
+          # which can trigger sshd rate limiting when many ecosystem deploys start
+          # together. Trust the host on this run's first real SSH connection.
           ssh \
-            -o ConnectTimeout=15 \
+            -o StrictHostKeyChecking=accept-new \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            -o ConnectTimeout=20 \
             -o ConnectionAttempts=5 \
             -o ServerAliveInterval=30 \
-            -o ServerAliveCountMax=10 \
+            -o ServerAliveCountMax=20 \
             -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
             "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH'" <<'REMOTE_SCRIPT'
           set -Eeuo pipefail
@@ -132,10 +123,11 @@ jobs:
             exit 22
           fi
 
-          # All Peter Tecnet repositories share this VPS. Serialize the heavy part
-          # of deployments so simultaneous pushes do not compete for RAM/CPU or npm.
+          # Every Peter Tecnet app currently shares this VPS. Serialize dependency
+          # installation/build/migrations so parallel repository pushes do not fight
+          # for RAM, CPU, npm caches or runtime files.
           exec 9>/tmp/petertecnet-vps-deploy.lock
-          if ! flock -w 1500 9; then
+          if ! flock -w 3300 9; then
             echo "Timed out waiting for the Peter Tecnet VPS deployment lock." >&2
             exit 25
           fi
