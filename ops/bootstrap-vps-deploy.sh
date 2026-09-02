@@ -88,6 +88,8 @@ for app_path in "${!REPOSITORIES[@]}"; do
 
   if [[ -d "$app_path/storage" && -d "$app_path/bootstrap/cache" ]]; then
     chmod -R ug+rwX "$app_path/storage" "$app_path/bootstrap/cache"
+    find "$app_path/storage" "$app_path/bootstrap/cache" -type d -exec chmod 2775 {} +
+    find "$app_path/storage" "$app_path/bootstrap/cache" -type f -exec chmod 664 {} +
   fi
 
   if [[ -f "$app_path/.env" ]]; then
