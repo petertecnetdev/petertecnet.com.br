@@ -112,8 +112,8 @@ if [[ -n "$PUBLIC_IP" ]]; then
 fi
 echo "Private Actions key: $KEY_FILE"
 echo
-echo "Next step: authenticate GitHub CLI once, then run the secret configuration script:"
+echo "Next step: authenticate GitHub CLI once, then configure all repository secrets:"
 echo "  gh auth login"
-echo "  bash /var/www/petertecnet.com.br/ops/configure-github-deploy-secrets.sh"
+echo "  curl -fsSL https://raw.githubusercontent.com/petertecnetdev/petertecnet.com.br/main/ops/configure-github-deploy-secrets.sh | bash"
 echo
 echo "Do not publish, commit or send the private key stored at $KEY_FILE."
