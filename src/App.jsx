@@ -1,231 +1,394 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { AdminPage, LoginPage } from './Admin'
+import {
+  fetchApplications,
+  fetchPeterCatalog,
+  fetchPeterItem,
+  fetchSite,
+  formatCurrency,
+  getItemImage,
+  resolveAssetUrl,
+} from './landingApi'
+import useLandingMotion from './useLandingMotion'
+import { updatePageSeo } from './seo'
 
-const API_ORIGIN = 'https://api.petertecnet.com.br'
-const PETER_TECNET_CNPJ = '42595409000148'
+const defaultContact = {
+  email: 'contato@petertecnet.com.br',
+  instagram: 'https://www.instagram.com/petertecnet/',
+}
 
-const capabilities = [
-  ['01', 'Produtos digitais', 'Criamos e evoluímos produtos digitais próprios para diferentes mercados e necessidades.'],
-  ['02', 'Plataformas e aplicativos', 'Experiências web e mobile pensadas para operações reais, usuários reais e crescimento contínuo.'],
-  ['03', 'APIs e integrações', 'Conectamos sistemas, dados, autenticação, pagamentos e operações com arquitetura segura e escalável.'],
-  ['04', 'Soluções personalizadas', 'Quando uma empresa precisa de algo específico, transformamos o problema em uma solução tecnológica sob medida.'],
+const solutionPaths = [
+  {
+    id: 'eventos',
+    label: 'Eventos e ingressos',
+    title: 'Quero criar eventos e vender ingressos',
+    description: 'Organize produção, vendas, promoters, participantes e validação de entradas em uma operação digital.',
+    slugs: ['cutinapp'],
+  },
+  {
+    id: 'catalogo',
+    label: 'Catálogo e presença',
+    title: 'Quero colocar meus produtos e serviços online',
+    description: 'Crie presença digital, organize itens e transforme seu catálogo em um ponto de descoberta e conversão.',
+    slugs: ['nexus'],
+  },
+  {
+    id: 'atendimento',
+    label: 'Atendimento e vendas',
+    title: 'Quero vender e acompanhar clientes melhor',
+    description: 'Estruture atendimento, oportunidades, propostas, cobranças e follow-up em um fluxo comercial contínuo.',
+    slugs: ['payflow', 'peter-payflow'],
+  },
+  {
+    id: 'agenda',
+    label: 'Agenda e serviços',
+    title: 'Quero organizar agenda, equipe e serviços',
+    description: 'Digitalize a operação de serviços com agenda, equipe, clientes e disponibilidade conectados.',
+    slugs: ['rasoio'],
+  },
+  {
+    id: 'conexoes',
+    label: 'Comunidade e conexões',
+    title: 'Quero criar conexões e experiências sociais',
+    description: 'Use produtos do ecossistema voltados a descoberta, relacionamento, comunidade e novas interações.',
+    slugs: ['laora', 'plat'],
+  },
 ]
 
-const stack = ['React', 'Laravel', 'JavaScript', 'PHP', 'MySQL', 'APIs REST', 'WebSockets', 'Cloud']
+const capabilities = [
+  ['Produto digital', 'Da ideia à operação', 'Estratégia, experiência, engenharia e evolução contínua no mesmo ciclo.'],
+  ['Integrações', 'Sistemas que conversam', 'APIs, autenticação, pagamentos, dados e automações conectados sem criar ilhas.'],
+  ['Software sob medida', 'Tecnologia para um problema real', 'Quando o produto pronto não resolve, construímos a solução certa para a operação.'],
+]
 
-const defaultSite = {
-  navigation: [
-    { label: 'Ecossistema', href: '#ecossistema' },
-    { label: 'Serviços', href: '#servicos' },
-    { label: 'Sobre', href: '#sobre' },
-    { label: 'Tecnologia', href: '#tecnologia' },
-    { label: 'Fale conosco', href: '#contato', highlight: true },
-  ],
-  contact: {
-    email: 'contato@petertecnet.com.br',
-    instagram: 'https://www.instagram.com/petertecnet/',
-  },
+const normalizeText = value => String(value || '').toLocaleLowerCase('pt-BR')
+
+function MarketingHeader({ menuOpen, setMenuOpen }) {
+  const closeMenu = () => setMenuOpen(false)
+  return <header className="pt-nav">
+    <a className="pt-brand" href="/#inicio" onClick={closeMenu} aria-label="Peter Tecnet — início">
+      <span className="pt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span>
+      <span><strong>Peter Tecnet</strong><small>Technology ecosystem</small></span>
+    </a>
+    <button className="pt-menu-toggle" type="button" aria-label="Abrir menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><span /><span /></button>
+    <nav className={menuOpen ? 'pt-nav-links is-open' : 'pt-nav-links'} aria-label="Navegação principal">
+      <a href="/#ecossistema" onClick={closeMenu}>Ecossistema</a>
+      <a href="/#catalogo" onClick={closeMenu}>Catálogo</a>
+      <a href="/#como-funciona" onClick={closeMenu}>Como funciona</a>
+      <a href="/#empresa" onClick={closeMenu}>Para empresas</a>
+      <a className="pt-nav-cta" href="/#comece" onClick={closeMenu}>Encontre sua solução <span>↗</span></a>
+    </nav>
+  </header>
 }
 
-const resolveAssetUrl = (path) => {
-  if (!path) return null
-  if (/^https?:\/\//i.test(path)) return path
-  return `${API_ORIGIN}/${String(path).replace(/^\/+/, '')}`
+function ApplicationCard({ application, index }) {
+  return <article className="app-card" data-tilt>
+    <div className="app-card-top">
+      <span>{String(index + 1).padStart(2, '0')}</span>
+      <span>{application.version ? `v${application.version}` : 'Peter Tecnet'}</span>
+    </div>
+    <div className="app-logo-wrap">
+      <img src={resolveAssetUrl(application.logo) || '/petertecnetlogo.png'} alt={`Logo ${application.name}`} loading="lazy" />
+    </div>
+    <h3>{application.name}</h3>
+    <p>{application.description || 'Produto digital desenvolvido e evoluído dentro do ecossistema Peter Tecnet.'}</p>
+    {application.url && <a className="text-link" href={application.url} target="_blank" rel="noreferrer">Abrir plataforma <span>↗</span></a>}
+  </article>
 }
 
-const getItemImage = (item) => {
-  if (item?.image_url) return resolveAssetUrl(item.image_url)
-  const files = Array.isArray(item?.files) ? item.files : []
-  const preferred = files.find(file => file?.is_primary) || files.find(file => file?.type === 'image') || files[0]
-  return resolveAssetUrl(preferred?.public_url || preferred?.url || preferred?.path)
-}
-
-function Title({ text }) {
-  const parts = String(text || '').trim().split(/\s+/)
-  if (parts.length < 2) return <>{text}</>
-  return <>{parts.slice(0, -1).join(' ')} <span>{parts.at(-1)}</span></>
+function CatalogCard({ item }) {
+  const image = getItemImage(item)
+  const identifier = item.slug || item.id
+  return <article className="catalog-card" data-tilt>
+    <a className="catalog-media" href={`/solucoes/${encodeURIComponent(identifier)}`} aria-label={`Ver ${item.name}`}>
+      {image ? <img src={image} alt={item.name} loading="lazy" /> : <span className="catalog-placeholder"><img src="/petertecnetlogo.png" alt="" /></span>}
+      {item.is_featured && <span className="featured-pill">Destaque</span>}
+    </a>
+    <div className="catalog-body">
+      <div className="catalog-meta"><span>{item.category || item.type || 'Solução digital'}</span><strong>{formatCurrency(item.price)}</strong></div>
+      <h3><a href={`/solucoes/${encodeURIComponent(identifier)}`}>{item.name}</a></h3>
+      <p>{item.description || 'Solução disponível no catálogo Peter Tecnet.'}</p>
+      <a className="text-link" href={`/solucoes/${encodeURIComponent(identifier)}`}>Ver detalhes <span>↗</span></a>
+    </div>
+  </article>
 }
 
 function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
   const [applications, setApplications] = useState([])
-  const [projectsStatus, setProjectsStatus] = useState('loading')
-  const [services, setServices] = useState([])
-  const [servicesStatus, setServicesStatus] = useState('loading')
-  const [nexusCompany, setNexusCompany] = useState(null)
-  const [site, setSite] = useState(defaultSite)
+  const [appsStatus, setAppsStatus] = useState('loading')
+  const [catalog, setCatalog] = useState([])
+  const [catalogStatus, setCatalogStatus] = useState('loading')
+  const [catalogCompany, setCatalogCompany] = useState(null)
+  const [contact, setContact] = useState(defaultContact)
+  const [selectedPath, setSelectedPath] = useState(solutionPaths[0].id)
+  const [catalogQuery, setCatalogQuery] = useState('')
+  const [catalogCategory, setCatalogCategory] = useState('todos')
+  const [showAllCatalog, setShowAllCatalog] = useState(false)
+
+  useLandingMotion(true)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    updatePageSeo({
+      title: 'Peter Tecnet | Tecnologia para transformar operações em produtos digitais',
+      description: 'Conheça o ecossistema Peter Tecnet, encontre a plataforma ideal para sua necessidade e explore soluções, produtos e serviços do nosso catálogo digital.',
+      path: '/',
+    })
   }, [])
 
   useEffect(() => {
     const controller = new AbortController()
 
-    Promise.allSettled([
-      fetch(`${API_ORIGIN}/api/applications`, {
-        headers: { Accept: 'application/json' }, signal: controller.signal,
-      }).then(response => {
-        if (!response.ok) throw new Error('applications')
-        return response.json()
-      }),
-      fetch(`${API_ORIGIN}/api/ecosystem/site`, {
-        headers: { Accept: 'application/json' }, signal: controller.signal,
-      }).then(response => {
-        if (!response.ok) throw new Error('site')
-        return response.json()
-      }),
-      fetch(`${API_ORIGIN}/api/nexus/public/catalog-by-cnpj/${PETER_TECNET_CNPJ}`, {
-        headers: { Accept: 'application/json' }, signal: controller.signal,
-      }).then(response => {
-        if (!response.ok) throw new Error('nexus-services')
-        return response.json()
-      }),
-    ]).then(([appsResult, siteResult, servicesResult]) => {
+    const load = async () => {
+      const [appsResult, siteResult] = await Promise.allSettled([
+        fetchApplications(controller.signal),
+        fetchSite(controller.signal),
+      ])
+
+      let loadedApplications = []
       if (appsResult.status === 'fulfilled') {
-        setApplications(Array.isArray(appsResult.value?.applications) ? appsResult.value.applications : [])
-        setProjectsStatus('success')
+        loadedApplications = Array.isArray(appsResult.value?.applications) ? appsResult.value.applications : []
+        setApplications(loadedApplications)
+        setAppsStatus('success')
       } else {
-        setProjectsStatus('error')
+        setAppsStatus('error')
       }
 
-      if (siteResult.status === 'fulfilled' && siteResult.value?.site) {
-        const remoteSite = siteResult.value.site
-        setSite(prev => ({
-          ...prev,
-          ...remoteSite,
-          navigation: Array.isArray(remoteSite.navigation) ? remoteSite.navigation : prev.navigation,
-          contact: { ...prev.contact, ...(remoteSite.contact || {}) },
-        }))
+      if (siteResult.status === 'fulfilled' && siteResult.value?.site?.contact) {
+        setContact(current => ({ ...current, ...siteResult.value.site.contact }))
       }
 
-      if (servicesResult.status === 'fulfilled' && servicesResult.value?.success) {
-        setServices(Array.isArray(servicesResult.value.items) ? servicesResult.value.items : [])
-        setNexusCompany(servicesResult.value.establishment || null)
-        setServicesStatus('success')
-      } else {
-        setServicesStatus('error')
+      try {
+        const catalogPayload = await fetchPeterCatalog(loadedApplications, controller.signal)
+        setCatalog(Array.isArray(catalogPayload.items) ? catalogPayload.items : [])
+        setCatalogCompany(catalogPayload.establishment || null)
+        setCatalogStatus('success')
+      } catch (error) {
+        if (error?.name !== 'AbortError') setCatalogStatus('error')
       }
-    })
+    }
 
+    load()
     return () => controller.abort()
   }, [])
 
-  const closeMenu = () => setMenuOpen(false)
-  const contact = site.contact || defaultSite.contact
-  const navigation = Array.isArray(site.navigation) ? site.navigation : defaultSite.navigation
+  const categories = useMemo(() => {
+    const values = catalog.map(item => item.category || item.type).filter(Boolean)
+    return [...new Set(values)].slice(0, 10)
+  }, [catalog])
 
-  return <div className="site-shell">
-    <header className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
-      <a className="brand" href="#inicio" onClick={closeMenu} aria-label="Peter Tecnet — início">
-        <img src="/petertecnetlogo.png" alt="" /><span>Peter Tecnet</span>
-      </a>
-      <button className="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><span /><span /></button>
-      <nav className={menuOpen ? 'nav-links nav-links--open' : 'nav-links'} aria-label="Navegação principal">
-        {navigation.map((item, index) => <a key={`${item.label}-${index}`} className={item.highlight ? 'nav-contact' : ''} href={item.href || '#'} onClick={closeMenu}>{item.label}{item.highlight && <span> ↗</span>}</a>)}
-      </nav>
-    </header>
+  const filteredCatalog = useMemo(() => {
+    const query = normalizeText(catalogQuery.trim())
+    return catalog.filter(item => {
+      const category = item.category || item.type || ''
+      const matchesCategory = catalogCategory === 'todos' || category === catalogCategory
+      const haystack = normalizeText(`${item.name} ${item.description} ${item.category} ${item.subcategory} ${item.brand}`)
+      return matchesCategory && (!query || haystack.includes(query))
+    })
+  }, [catalog, catalogCategory, catalogQuery])
+
+  const visibleCatalog = showAllCatalog ? filteredCatalog : filteredCatalog.slice(0, 8)
+  const activePath = solutionPaths.find(path => path.id === selectedPath) || solutionPaths[0]
+  const recommendedApps = applications.filter(application => activePath.slugs.includes(String(application.slug || '').toLowerCase()))
+  const fallbackRecommendedApps = recommendedApps.length ? recommendedApps : applications.slice(0, 2)
+
+  return <div className="marketing-shell">
+    <div className="scroll-progress" aria-hidden="true" />
+    <div className="cursor-glow" aria-hidden="true" />
+    <MarketingHeader menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
     <main>
-      <section className="hero" id="inicio">
-        <video className="hero-video" autoPlay muted loop playsInline><source src="/video.mp4" type="video/mp4" /></video>
-        <div className="hero-overlay" /><div className="grid" /><div className="orb orb--one" /><div className="orb orb--two" />
-        <div className="hero-content container">
-          <p className="eyebrow"><i /> Tecnologia em movimento</p>
-          <h1><Title text="Tecnologia que cria soluções reais." /></h1>
-          <p className="hero-copy">A Peter Tecnet cria, opera e evolui plataformas, aplicativos e produtos digitais para pessoas e empresas. Um ecossistema de tecnologia construído para transformar necessidades reais em experiências simples, conectadas e escaláveis.</p>
-          <div className="hero-actions">
-            <a className="button button--primary" href="#ecossistema">Conhecer o ecossistema <span>↓</span></a>
-            <a className="button button--ghost" href="#servicos">Ver nossos serviços <span>↗</span></a>
-          </div>
-        </div>
-        <div className="hero-foot container"><span>Produtos próprios + soluções empresariais</span><span>PT / TECHNOLOGY ECOSYSTEM</span></div>
-      </section>
-
-      <section className="metrics" aria-label="Peter Tecnet em números e princípios">
-        <div className="container metrics-grid">
-          <div><strong>360°</strong><span>Ecossistema conectado</span></div>
-          <div><strong>24/7</strong><span>Produtos em operação</span></div>
-          <div><strong>API</strong><span>Arquitetura integrada</span></div>
-          <div><strong>∞</strong><span>Evolução contínua</span></div>
-        </div>
-      </section>
-
-      <section className="section projects" id="ecossistema">
-        <div className="container">
-          <div className="section-head">
-            <p className="kicker">Ecossistema Peter Tecnet</p>
-            <h2>Produtos digitais que já estão <span>em movimento.</span></h2>
-            <p>Rasoio, Nexus, Cutinapp, Plat e outras soluções fazem parte de um ecossistema criado e evoluído pela Peter Tecnet para atender diferentes mercados.</p>
-          </div>
-          {projectsStatus === 'loading' && <div className="projects-grid" aria-label="Carregando produtos">{[1,2,3].map(item => <div className="project-card project-card--loading" key={item} />)}</div>}
-          {projectsStatus === 'success' && applications.length > 0 && <div className="projects-grid">{applications.map(application => <article className="project-card" key={application.id || application.slug}>
-            <div className="project-logo"><img src={resolveAssetUrl(application.logo) || '/petertecnetlogo.png'} alt={`Logo ${application.name}`} loading="lazy" /></div>
-            <div className="project-body"><div className="project-meta"><span>Produto Peter Tecnet</span>{application.version && <span>v{application.version}</span>}</div><h3>{application.name}</h3><p>{application.description || 'Produto digital desenvolvido e evoluído pela Peter Tecnet.'}</p>{application.url && <a href={application.url} target="_blank" rel="noreferrer">Conhecer produto <span>↗</span></a>}</div>
-          </article>)}</div>}
-          {projectsStatus === 'success' && applications.length === 0 && <p className="projects-message">Novos produtos Peter Tecnet serão apresentados em breve.</p>}
-          {projectsStatus === 'error' && <p className="projects-message">Não foi possível carregar o ecossistema agora. Nossos produtos continuam disponíveis em seus respectivos canais.</p>}
-        </div>
-      </section>
-
-      <section className="section nexus-services" id="servicos">
-        <div className="container">
-          <div className="section-head section-head--split">
-            <div><p className="kicker">Serviços Peter Tecnet</p><h2>O que podemos construir <span>com você.</span></h2></div>
-            <p>{nexusCompany?.description || 'Além dos nossos próprios produtos, aplicamos nossa experiência em tecnologia para criar soluções, integrações e experiências digitais para empresas.'}</p>
+      <section className="pt-hero" id="inicio">
+        <video className="pt-hero-video" autoPlay muted loop playsInline aria-hidden="true"><source src="/video.mp4" type="video/mp4" /></video>
+        <div className="hero-atmosphere" aria-hidden="true" /><div className="hero-grid" aria-hidden="true" />
+        <div className="hero-layout pt-container">
+          <div className="hero-copy-block" data-reveal>
+            <p className="eyebrow"><span /> Tecnologia para problemas reais</p>
+            <h1>Encontre tecnologia para <em>vender, organizar e crescer.</em></h1>
+            <p className="hero-lead">A Peter Tecnet cria e opera um ecossistema de plataformas, aplicativos e soluções digitais. Você pode começar por uma necessidade específica e evoluir usando outras ferramentas conectadas ao mesmo ecossistema.</p>
+            <div className="hero-actions">
+              <a className="pt-button pt-button-primary" href="#comece">Encontrar minha solução <span>↘</span></a>
+              <a className="pt-button pt-button-secondary" href="#catalogo">Explorar catálogo <span>↗</span></a>
+            </div>
+            <div className="hero-trust"><span>CNPJ 42.595.409/0001-48</span><i /> <span>Produtos próprios + soluções empresariais</span></div>
           </div>
 
-          {servicesStatus === 'loading' && <div className="services-grid">{[1,2,3,4].map(item => <div className="service-card service-card--loading" key={item} />)}</div>}
-          {servicesStatus === 'success' && services.length > 0 && <div className="services-grid">{services.map((item, index) => {
-            const image = getItemImage(item)
-            return <article className="service-card service-card--nexus" key={item.id || item.slug || item.name}>
-              {image && <div className="service-media"><img src={image} alt={item.name} loading="lazy" /></div>}
-              <div className="card-top"><span>{String(index + 1).padStart(2, '0')}</span><b>NEXUS ↗</b></div>
-              <h3>{item.name}</h3>
-              <p>{item.description || 'Solução tecnológica oferecida pela Peter Tecnet.'}</p>
-              {(item.category || item.type) && <div className="service-tags">{item.category && <span>{item.category}</span>}{item.type && <span>{item.type}</span>}</div>}
-            </article>
-          })}</div>}
-
-          {(servicesStatus === 'error' || (servicesStatus === 'success' && services.length === 0)) && <>
-            <div className="services-grid">{capabilities.map(([number, title, description]) => <article className="service-card" key={title}><div className="card-top"><span>{number}</span><b>↗</b></div><div className="service-icon">⌁</div><h3>{title}</h3><p>{description}</p></article>)}</div>
-            <p className="nexus-sync-note">Os serviços cadastrados no catálogo Nexus da Peter Tecnet serão exibidos aqui automaticamente assim que o catálogo público estiver disponível.</p>
-          </>}
+          <aside className="hero-console" data-reveal data-tilt aria-label="Ecossistema Peter Tecnet em tempo real">
+            <div className="console-head"><span><i /> ECOSYSTEM / LIVE</span><small>API CONNECTED</small></div>
+            <div className="console-logo"><img src="/petertecnetlogo.png" alt="Peter Tecnet" /><span className="ring ring-a" /><span className="ring ring-b" /></div>
+            <div className="console-stats">
+              <div><strong>{appsStatus === 'success' ? applications.length : '—'}</strong><span>plataformas ativas</span></div>
+              <div><strong>{catalogStatus === 'success' ? catalog.length : '—'}</strong><span>soluções no catálogo</span></div>
+            </div>
+            <div className="console-stream"><span>01</span><p>Descubra a ferramenta certa</p><span>02</span><p>Ative e coloque em operação</p><span>03</span><p>Expanda dentro do ecossistema</p></div>
+          </aside>
         </div>
+        <div className="hero-marquee" aria-hidden="true"><div>PLATAFORMAS • APLICATIVOS • CATÁLOGOS • AUTOMAÇÕES • APIs • INTEGRAÇÕES • PRODUTOS DIGITAIS • </div><div>PLATAFORMAS • APLICATIVOS • CATÁLOGOS • AUTOMAÇÕES • APIs • INTEGRAÇÕES • PRODUTOS DIGITAIS • </div></div>
       </section>
 
-      <section className="section about" id="sobre">
-        <div className="container about-layout">
-          <div className="section-head"><p className="kicker">Quem somos</p><h2>Não fazemos apenas software. Criamos <span>produtos digitais.</span></h2></div>
-          <div className="about-copy">
-            <p>A Peter Tecnet é uma empresa brasileira de tecnologia dedicada à criação, desenvolvimento, operação e evolução de soluções digitais. Identificamos necessidades, transformamos oportunidades em produtos e mantemos cada solução em constante evolução.</p>
-            <p>Nosso ecossistema atende diferentes segmentos por meio de plataformas próprias. Também desenvolvemos soluções personalizadas quando uma empresa precisa de tecnologia específica, integrações ou novos fluxos digitais.</p>
-            <div className="identity-chip"><span>Peter Tecnet</span><small>CNPJ 42.595.409/0001-48</small></div>
+      <section className="path-section" id="comece">
+        <div className="pt-container">
+          <div className="section-heading" data-reveal><p className="kicker">Comece pelo seu objetivo</p><h2>Você não precisa conhecer nossas ferramentas. <span>Conte o que quer resolver.</span></h2><p>Escolha uma necessidade e mostramos os produtos do ecossistema mais próximos dela.</p></div>
+          <div className="path-layout" data-reveal>
+            <div className="path-selector" role="tablist" aria-label="Objetivos">
+              {solutionPaths.map(path => <button key={path.id} className={selectedPath === path.id ? 'path-option is-active' : 'path-option'} type="button" onClick={() => setSelectedPath(path.id)}><span>{path.label}</span><b>↗</b></button>)}
+            </div>
+            <div className="path-result">
+              <p className="path-index">/{String(solutionPaths.findIndex(path => path.id === activePath.id) + 1).padStart(2, '0')}</p>
+              <h3>{activePath.title}</h3>
+              <p>{activePath.description}</p>
+              <div className="recommended-apps">
+                {appsStatus === 'loading' && <span className="mini-loading">Buscando produtos do ecossistema…</span>}
+                {fallbackRecommendedApps.map(application => <a key={application.id || application.slug} href={application.url || '#ecossistema'} target={application.url ? '_blank' : undefined} rel={application.url ? 'noreferrer' : undefined}><img src={resolveAssetUrl(application.logo) || '/petertecnetlogo.png'} alt="" /><span><strong>{application.name}</strong><small>{application.description || 'Produto Peter Tecnet'}</small></span><b>↗</b></a>)}
+              </div>
+              <a className="text-link path-contact" href={`mailto:${contact.email}?subject=${encodeURIComponent(`Quero resolver: ${activePath.label}`)}`}>Quero conversar sobre esse objetivo <span>↗</span></a>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="section process" id="processo">
-        <div className="container process-layout"><div className="section-head sticky-copy"><p className="kicker">Como trabalhamos</p><h2>Produto nasce. Aprende. <span>Evolui.</span></h2><p>Usamos estratégia, engenharia e aprendizado contínuo para transformar tecnologia em solução útil.</p></div><ol className="process-list"><li><span>01</span><div><h3>Entender</h3><p>Mapeamos necessidades, contexto, usuários e oportunidade.</p></div></li><li><span>02</span><div><h3>Projetar</h3><p>Definimos experiência, arquitetura, integrações e prioridades.</p></div></li><li><span>03</span><div><h3>Construir</h3><p>Desenvolvemos com entregas contínuas, segurança, performance e qualidade.</p></div></li><li><span>04</span><div><h3>Evoluir</h3><p>Colocamos em operação, acompanhamos dados e melhoramos continuamente.</p></div></li></ol></div>
+      <section className="ecosystem-section" id="ecossistema">
+        <div className="pt-container">
+          <div className="section-heading section-heading-split" data-reveal><div><p className="kicker">Ecossistema Peter Tecnet</p><h2>Produtos feitos para entrar em operação, <span>não para ficar em apresentação.</span></h2></div><p>Cada produto resolve uma parte do dia a dia. Juntos, formam um ecossistema que pode acompanhar o usuário em diferentes necessidades sem obrigá-lo a recomeçar do zero.</p></div>
+          {appsStatus === 'loading' && <div className="app-grid">{[1,2,3,4].map(value => <div className="app-card loading-card" key={value} />)}</div>}
+          {appsStatus === 'success' && applications.length > 0 && <div className="app-grid">{applications.map((application, index) => <ApplicationCard application={application} index={index} key={application.id || application.slug} />)}</div>}
+          {appsStatus === 'error' && <div className="state-panel">Não foi possível consultar o ecossistema agora. As plataformas continuam acessíveis por seus domínios Peter Tecnet.</div>}
+        </div>
       </section>
 
-      <section className="section technology" id="tecnologia"><div className="container technology-layout"><div className="tech-visual"><div className="tech-ring"><img src="/petertecnetlogo.png" alt="Peter Tecnet" /></div></div><div className="section-head"><p className="kicker">Tecnologia com propósito</p><h2>Uma base para vários <span>produtos.</span></h2><p>Arquitetura compartilhada, APIs, integrações e padrões de experiência permitem que o ecossistema Peter Tecnet cresça com consistência e velocidade.</p><div className="stack-list">{stack.map(item => <span key={item}>{item}</span>)}</div></div></div></section>
+      <section className="catalog-section" id="catalogo">
+        <div className="pt-container">
+          <div className="section-heading section-heading-split" data-reveal><div><p className="kicker">Catálogo conectado à Nexus</p><h2>Veja o que a Peter Tecnet <span>oferece agora.</span></h2></div><p>{catalogCompany?.description || 'Produtos e serviços cadastrados no catálogo da Peter Tecnet são trazidos da API e passam a fazer parte da própria experiência do site.'}</p></div>
 
-      <section className="contact" id="contato"><div className="grid" /><div className="container contact-content"><p className="kicker">Tecnologia para empresas</p><h2><Title text="Precisa de uma solução específica?" /></h2><p>Além de desenvolver nossos próprios produtos, podemos criar plataformas, aplicativos, APIs, integrações e automações para necessidades específicas da sua empresa.</p><div className="contact-actions"><a className="button button--primary" href={`mailto:${contact.email}`}>{contact.email} <span>↗</span></a><a className="button button--ghost" href={contact.instagram} target="_blank" rel="noreferrer">Instagram @petertecnet <span>↗</span></a></div></div></section>
+          <div className="catalog-toolbar" data-reveal>
+            <label className="catalog-search"><span>⌕</span><input value={catalogQuery} onChange={event => setCatalogQuery(event.target.value)} placeholder="Buscar solução, produto ou serviço…" aria-label="Buscar no catálogo" /></label>
+            <div className="catalog-categories"><button className={catalogCategory === 'todos' ? 'is-active' : ''} onClick={() => setCatalogCategory('todos')} type="button">Todos</button>{categories.map(category => <button className={catalogCategory === category ? 'is-active' : ''} onClick={() => setCatalogCategory(category)} type="button" key={category}>{category}</button>)}</div>
+          </div>
+
+          {catalogStatus === 'loading' && <div className="catalog-grid">{[1,2,3,4].map(value => <div className="catalog-card loading-card" key={value} />)}</div>}
+          {catalogStatus === 'success' && visibleCatalog.length > 0 && <><div className="catalog-grid">{visibleCatalog.map(item => <CatalogCard item={item} key={item.id || item.slug} />)}</div>{filteredCatalog.length > 8 && <button className="catalog-more" type="button" onClick={() => setShowAllCatalog(value => !value)}>{showAllCatalog ? 'Mostrar menos' : `Ver todos os ${filteredCatalog.length} itens`} <span>↘</span></button>}</>}
+          {catalogStatus === 'success' && visibleCatalog.length === 0 && <div className="state-panel">Nenhum item do catálogo corresponde a essa busca.</div>}
+          {catalogStatus === 'error' && <div className="state-panel">O catálogo não pôde ser carregado agora. A landing continua funcionando e a integração tenta automaticamente o endpoint compatível com a versão da API em produção.</div>}
+        </div>
+      </section>
+
+      <section className="flow-section" id="como-funciona">
+        <div className="pt-container flow-layout">
+          <div className="section-heading flow-sticky" data-reveal><p className="kicker">Do visitante ao usuário ativo</p><h2>Entre por uma necessidade. <span>Continue pelo valor.</span></h2><p>O site passa a funcionar como porta de entrada para todo o ecossistema, conectando descoberta, ativação e evolução.</p></div>
+          <ol className="flow-list">
+            <li data-reveal><span>01</span><div><small>DESCUBRA</small><h3>Veja uma solução que faça sentido agora</h3><p>Objetivos, catálogo e páginas detalhadas reduzem a distância entre “o que vocês fazem?” e “isso resolve meu problema”.</p></div></li>
+            <li data-reveal><span>02</span><div><small>ATIVE</small><h3>Entre diretamente na ferramenta certa</h3><p>Cada produto do ecossistema tem uma chamada clara para uso, teste, cadastro ou contato comercial.</p></div></li>
+            <li data-reveal><span>03</span><div><small>EXPANDA</small><h3>Descubra outras ferramentas quando precisar</h3><p>O relacionamento não termina na primeira solução: o ecossistema apresenta próximos passos conforme novas necessidades aparecem.</p></div></li>
+          </ol>
+        </div>
+      </section>
+
+      <section className="company-section" id="empresa">
+        <div className="pt-container">
+          <div className="company-intro" data-reveal><p className="kicker">Tecnologia para empresas</p><h2>Produto próprio quando existe. <span>Solução sob medida quando precisa.</span></h2><p>A experiência de construir e operar nossas próprias plataformas também é aplicada em projetos empresariais: sistemas, integrações, automações, APIs e produtos digitais específicos.</p></div>
+          <div className="capability-grid">{capabilities.map(([label, title, description], index) => <article key={label} data-reveal><div><span>0{index + 1}</span><small>{label}</small></div><h3>{title}</h3><p>{description}</p></article>)}</div>
+        </div>
+      </section>
+
+      <section className="conversion-section" id="contato">
+        <div className="conversion-grid" aria-hidden="true" />
+        <div className="pt-container conversion-inner" data-reveal>
+          <span className="conversion-orbit"><img src="/petertecnetlogo.png" alt="" /></span>
+          <p className="kicker">Próximo passo</p>
+          <h2>Você chegou procurando tecnologia. <span>Saia com um caminho.</span></h2>
+          <p>Explore uma plataforma agora ou conte qual problema sua empresa precisa resolver. A Peter Tecnet pode atender com um produto do ecossistema ou construir a solução adequada.</p>
+          <div className="hero-actions conversion-actions"><a className="pt-button pt-button-primary" href="#comece">Encontrar uma plataforma <span>↗</span></a><a className="pt-button pt-button-secondary" href={`mailto:${contact.email}`}>Falar com a Peter Tecnet <span>↗</span></a></div>
+        </div>
+      </section>
     </main>
 
-    <footer><div className="container footer-inner"><div className="brand"><img src="/petertecnetlogo.png" alt="" /><span>Peter Tecnet</span></div><p>© {new Date().getFullYear()} Peter Tecnet. Plataformas, aplicativos e soluções tecnológicas.</p><div className="footer-links"><a href="/login">Administrar</a><a href={contact.instagram} target="_blank" rel="noreferrer">Instagram ↗</a><a href="#inicio">Voltar ao topo ↑</a></div></div></footer>
+    <footer className="pt-footer"><div className="pt-container footer-grid"><div className="pt-brand"><span className="pt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span><span><strong>Peter Tecnet</strong><small>Tecnologia em movimento</small></span></div><p>© {new Date().getFullYear()} Peter Tecnet · CNPJ 42.595.409/0001-48</p><nav><a href="/login">Administrar</a><a href={contact.instagram} target="_blank" rel="noreferrer">Instagram ↗</a><a href="#inicio">Topo ↑</a></nav></div></footer>
+  </div>
+}
+
+function ProductPage({ identifier }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [status, setStatus] = useState('loading')
+  const [payload, setPayload] = useState(null)
+
+  useLandingMotion(status === 'success')
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const load = async () => {
+      try {
+        const appsPayload = await fetchApplications(controller.signal)
+        const applications = Array.isArray(appsPayload?.applications) ? appsPayload.applications : []
+        const itemPayload = await fetchPeterItem(identifier, applications, controller.signal)
+        setPayload(itemPayload)
+        setStatus('success')
+        const image = getItemImage(itemPayload.item)
+        updatePageSeo({
+          title: `${itemPayload.item?.name || 'Solução'} | Peter Tecnet`,
+          description: itemPayload.item?.description || 'Conheça esta solução do catálogo Peter Tecnet.',
+          path: `/solucoes/${encodeURIComponent(identifier)}`,
+          image,
+          type: 'product',
+        })
+      } catch (error) {
+        if (error?.name !== 'AbortError') {
+          setStatus(error?.status === 404 ? 'not-found' : 'error')
+          updatePageSeo({
+            title: 'Solução não encontrada | Peter Tecnet',
+            description: 'A solução solicitada não está disponível no catálogo público da Peter Tecnet.',
+            path: `/solucoes/${encodeURIComponent(identifier)}`,
+            robots: 'noindex, nofollow',
+          })
+        }
+      }
+    }
+    load()
+    return () => controller.abort()
+  }, [identifier])
+
+  if (status === 'loading') return <div className="product-state"><img src="/petertecnetlogo.png" alt="" /><p>Consultando o catálogo Peter Tecnet…</p></div>
+  if (status === 'error' || status === 'not-found') return <div className="product-state"><img src="/petertecnetlogo.png" alt="" /><h1>{status === 'not-found' ? 'Solução não encontrada.' : 'Não foi possível carregar esta solução.'}</h1><p>Você pode voltar ao catálogo e explorar outras opções disponíveis.</p><a className="pt-button pt-button-primary" href="/#catalogo">Voltar ao catálogo <span>↗</span></a></div>
+
+  const { item, establishment, otherItems } = payload
+  const image = getItemImage(item)
+  const contactEmail = establishment?.email || defaultContact.email
+  const interestSubject = encodeURIComponent(`Interesse em ${item.name}`)
+  const interestBody = encodeURIComponent(`Olá, quero saber mais sobre ${item.name}, que encontrei no site da Peter Tecnet.`)
+
+  return <div className="marketing-shell product-shell">
+    <div className="cursor-glow" aria-hidden="true" />
+    <MarketingHeader menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+    <main>
+      <section className="product-hero">
+        <div className="hero-grid" aria-hidden="true" />
+        <div className="pt-container product-breadcrumb"><a href="/">Peter Tecnet</a><span>/</span><a href="/#catalogo">Catálogo</a><span>/</span><strong>{item.name}</strong></div>
+        <div className="pt-container product-layout">
+          <div className="product-copy" data-reveal>
+            <div className="catalog-meta"><span>{item.category || item.type || 'Solução Peter Tecnet'}</span>{item.source_app?.name && <span>Origem: {item.source_app.name}</span>}</div>
+            <h1>{item.name}</h1>
+            <p className="product-description">{item.description || 'Solução disponível no catálogo Peter Tecnet.'}</p>
+            <div className="product-price"><small>Investimento</small><strong>{formatCurrency(item.price)}</strong></div>
+            <div className="hero-actions"><a className="pt-button pt-button-primary" href={`mailto:${contactEmail}?subject=${interestSubject}&body=${interestBody}`}>Tenho interesse <span>↗</span></a><a className="pt-button pt-button-secondary" href="/#catalogo">Explorar catálogo <span>↘</span></a></div>
+          </div>
+          <div className="product-visual" data-reveal data-tilt>{image ? <img src={image} alt={item.name} /> : <span><img src="/petertecnetlogo.png" alt="Peter Tecnet" /></span>}<div className="product-visual-data"><small>CATALOG / PETER TECNET</small><b>{item.slug || `ITEM-${item.id}`}</b></div></div>
+        </div>
+      </section>
+
+      <section className="product-details"><div className="pt-container details-layout"><div className="section-heading" data-reveal><p className="kicker">Sobre esta solução</p><h2>Detalhes para decidir com <span>mais clareza.</span></h2></div><div className="detail-panel" data-reveal><p>{item.description || 'Entre em contato com a Peter Tecnet para entender aplicação, escopo e disponibilidade desta solução.'}</p><dl>{item.type && <><dt>Tipo</dt><dd>{item.type}</dd></>}{item.category && <><dt>Categoria</dt><dd>{item.category}</dd></>}{item.subcategory && <><dt>Subcategoria</dt><dd>{item.subcategory}</dd></>}{item.brand && <><dt>Marca</dt><dd>{item.brand}</dd></>}{establishment?.name && <><dt>Oferecido por</dt><dd>{establishment.fantasy || establishment.name}</dd></>}</dl></div></div></section>
+
+      {otherItems.length > 0 && <section className="related-section"><div className="pt-container"><div className="section-heading" data-reveal><p className="kicker">Continue explorando</p><h2>Outras soluções do <span>mesmo catálogo.</span></h2></div><div className="catalog-grid">{otherItems.slice(0, 4).map(candidate => <CatalogCard item={candidate} key={candidate.id || candidate.slug} />)}</div></div></section>}
+    </main>
+    <footer className="pt-footer"><div className="pt-container footer-grid"><div className="pt-brand"><span className="pt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span><span><strong>Peter Tecnet</strong><small>Tecnologia em movimento</small></span></div><p>© {new Date().getFullYear()} Peter Tecnet</p><nav><a href="/#catalogo">Catálogo</a><a href="/">Início</a></nav></div></footer>
   </div>
 }
 
 function App() {
-  if (window.location.pathname === '/login') return <LoginPage />
-  if (window.location.pathname.startsWith('/admin')) return <AdminPage />
+  const path = window.location.pathname.replace(/\/+$/, '') || '/'
+  if (path === '/login') return <LoginPage />
+  if (path.startsWith('/admin')) return <AdminPage />
+  const productMatch = path.match(/^\/solucoes\/([^/]+)$/)
+  if (productMatch) return <ProductPage identifier={decodeURIComponent(productMatch[1])} />
   return <LandingPage />
 }
 
