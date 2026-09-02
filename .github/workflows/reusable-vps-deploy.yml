@@ -89,18 +89,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Hosted runners are ephemeral. Avoid a separate ssh-keyscan connection,
-          # which can trigger sshd rate limiting when many ecosystem deploys start
-          # together. Trust the host on this run's first real SSH connection.
-          ssh \
-            -o StrictHostKeyChecking=accept-new \
-            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
-            -o ConnectTimeout=20 \
-            -o ConnectionAttempts=5 \
-            -o ServerAliveInterval=30 \
-            -o ServerAliveCountMax=20 \
-            -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
-            "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH'" <<'REMOTE_SCRIPT'
+          REMOTE_SCRIPT_FILE="$RUNNER_TEMP/petertecnet-vps-deploy-remote.sh"
+          cat > "$REMOTE_SCRIPT_FILE" <<'REMOTE_SCRIPT'
           set -Eeuo pipefail
           umask 002
 
@@ -123,9 +113,9 @@ jobs:
             exit 22
           fi
 
-          # Every Peter Tecnet app currently shares this VPS. Serialize dependency
-          # installation/build/migrations so parallel repository pushes do not fight
-          # for RAM, CPU, npm caches or runtime files.
+          # Every Peter Tecnet app currently shares this VPS. Serialize the heavy
+          # deployment section so parallel repository pushes do not fight for RAM,
+          # CPU, npm caches, migrations or runtime files.
           exec 9>/tmp/petertecnet-vps-deploy.lock
           if ! flock -w 3300 9; then
             echo "Timed out waiting for the Peter Tecnet VPS deployment lock." >&2
@@ -253,6 +243,42 @@ jobs:
           NEW_SHA="$(git rev-parse HEAD)"
           echo "Deployment completed: $OLD_SHA -> $NEW_SHA"
           REMOTE_SCRIPT
+
+          chmod 600 "$REMOTE_SCRIPT_FILE"
+
+          # Retry only SSH transport failures (255). A real deployment error from
+          # the remote script is returned immediately and is never hidden/retried.
+          for attempt in 1 2 3 4 5 6; do
+            echo "SSH deploy attempt $attempt/6"
+            if ssh \
+              -o StrictHostKeyChecking=accept-new \
+              -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+              -o ConnectTimeout=30 \
+              -o ConnectionAttempts=2 \
+              -o ServerAliveInterval=30 \
+              -o ServerAliveCountMax=20 \
+              -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
+              "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH'" \
+              < "$REMOTE_SCRIPT_FILE"; then
+              exit 0
+            else
+              exit_code=$?
+            fi
+
+            if [[ "$exit_code" -ne 255 ]]; then
+              echo "Remote deployment failed with non-transport exit code $exit_code; not retrying." >&2
+              exit "$exit_code"
+            fi
+
+            if [[ "$attempt" -eq 6 ]]; then
+              echo "SSH transport remained unavailable after 6 attempts." >&2
+              exit 255
+            fi
+
+            sleep_seconds=$((attempt * 10))
+            echo "Transient SSH failure; retrying in ${sleep_seconds}s..."
+            sleep "$sleep_seconds"
+          done
 
       - name: Health check
         if: steps.config.outputs.enabled == 'true' && inputs.health_url != ''
