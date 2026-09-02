@@ -2,18 +2,67 @@ const API_ORIGIN = 'https://api.petertecnet.com.br'
 export const PETER_TECNET_CNPJ = '42595409000148'
 
 const normalizeDocument = value => String(value || '').replace(/\D/g, '')
+const INITIALS_STOP_WORDS = new Set(['a', 'as', 'o', 'os', 'de', 'da', 'das', 'do', 'dos', 'e', 'em', 'para', 'por', 'com'])
 
 export const resolveAssetUrl = path => {
   if (!path) return null
+  if (/^data:/i.test(path)) return path
   if (/^https?:\/\//i.test(path)) return path
   return `${API_ORIGIN}/${String(path).replace(/^\/+/, '')}`
 }
 
+export const getItemInitials = item => {
+  const name = typeof item === 'string' ? item : item?.name
+  const words = String(name || 'Item')
+    .trim()
+    .split(/\s+/)
+    .map(word => word.replace(/[^\p{L}\p{N}]/gu, ''))
+    .filter(Boolean)
+
+  const meaningful = words.filter(word => !INITIALS_STOP_WORDS.has(word.toLocaleLowerCase('pt-BR')))
+  const source = meaningful.length ? meaningful : words
+
+  if (!source.length) return 'IT'
+  if (source.length === 1) return source[0].slice(0, 2).toLocaleUpperCase('pt-BR')
+
+  return `${source[0][0]}${source[1][0]}`.toLocaleUpperCase('pt-BR')
+}
+
+const createItemInitialsImage = item => {
+  const initials = getItemInitials(item)
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-label="${initials}">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#071a23"/>
+        <stop offset="0.55" stop-color="#041219"/>
+        <stop offset="1" stop-color="#01070b"/>
+      </linearGradient>
+      <radialGradient id="glow" cx="50%" cy="45%" r="62%">
+        <stop offset="0" stop-color="#19d8f2" stop-opacity="0.22"/>
+        <stop offset="0.55" stop-color="#0089b4" stop-opacity="0.08"/>
+        <stop offset="1" stop-color="#01070b" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="1200" height="760" rx="48" fill="url(#bg)"/>
+    <rect width="1200" height="760" rx="48" fill="url(#glow)"/>
+    <circle cx="600" cy="348" r="188" fill="#19d8f2" fill-opacity="0.035" stroke="#6ef0ff" stroke-opacity="0.16" stroke-width="2"/>
+    <circle cx="600" cy="348" r="145" fill="#19d8f2" fill-opacity="0.045" stroke="#6ef0ff" stroke-opacity="0.08" stroke-width="2"/>
+    <text x="600" y="395" text-anchor="middle" fill="#eefcff" font-family="Arial, Helvetica, sans-serif" font-size="176" font-weight="700" letter-spacing="-8">${initials}</text>
+    <text x="600" y="620" text-anchor="middle" fill="#6f8c95" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" letter-spacing="7">PETER TECNET · CATALOG</text>
+  </svg>`
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`
+}
+
 export const getItemImage = item => {
   if (item?.image_url) return resolveAssetUrl(item.image_url)
+  if (item?.image) return resolveAssetUrl(item.image)
+
   const files = Array.isArray(item?.files) ? item.files : []
   const preferred = files.find(file => file?.is_primary) || files.find(file => file?.type === 'image') || files[0]
-  return resolveAssetUrl(preferred?.public_url || preferred?.url || preferred?.path)
+  const fileImage = resolveAssetUrl(preferred?.public_url || preferred?.url || preferred?.path)
+
+  return fileImage || createItemInitialsImage(item)
 }
 
 const apiGet = async (path, signal) => {
