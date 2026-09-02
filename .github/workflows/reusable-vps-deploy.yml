@@ -93,6 +93,7 @@ jobs:
           ssh -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
             "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH'" <<'REMOTE_SCRIPT'
           set -Eeuo pipefail
+          umask 002
 
           DEPLOY_PATH="$1"
           DEPLOY_TYPE="$2"
@@ -183,7 +184,7 @@ jobs:
               if [[ -f package-lock.json ]]; then
                 npm ci --no-audit --no-fund
               else
-                npm install --no-audit --no-fund
+                npm install --no-audit --no-fund --package-lock=false
               fi
 
               npm run build
@@ -211,8 +212,8 @@ jobs:
 
               chmod -R ug+rwX storage bootstrap/cache || true
 
-              php artisan migrate --force
               php artisan optimize:clear
+              php artisan migrate --force
               php artisan config:cache
               php artisan view:cache
               php artisan queue:restart || true
