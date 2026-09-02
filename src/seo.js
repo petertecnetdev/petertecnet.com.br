@@ -32,7 +32,7 @@ export function updatePageSeo({ title, description, path = '/', image, type = 'w
   const canonical = `${PUBLIC_ORIGIN}${normalizedPath === '/' ? '/' : normalizedPath}`
   const pageTitle = title || 'Peter Tecnet | Plataformas, aplicativos e soluções tecnológicas'
   const pageDescription = description || 'Tecnologia para transformar necessidades reais em produtos, plataformas, aplicativos e soluções digitais.'
-  const pageImage = image || DEFAULT_IMAGE
+  const pageImage = image && !/^data:/i.test(image) ? image : DEFAULT_IMAGE
 
   document.title = pageTitle
   upsertCanonical(canonical)
