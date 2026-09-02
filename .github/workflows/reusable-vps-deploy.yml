@@ -186,7 +186,10 @@ jobs:
               export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=4096}"
 
               if [[ -f package-lock.json ]]; then
-                npm ci --no-audit --no-fund
+                if ! npm ci --no-audit --no-fund; then
+                  echo "package-lock.json is not compatible with npm ci; falling back to npm install without modifying the lock file."
+                  npm install --no-audit --no-fund --package-lock=false
+                fi
               else
                 npm install --no-audit --no-fund --package-lock=false
               fi
