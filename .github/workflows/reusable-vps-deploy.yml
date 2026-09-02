@@ -1,0 +1,245 @@
+name: Reusable VPS Deploy
+
+on:
+  workflow_call:
+    inputs:
+      deploy_path:
+        description: Absolute application path on the VPS.
+        required: true
+        type: string
+      deploy_type:
+        description: Deployment strategy (frontend or laravel).
+        required: true
+        type: string
+      deploy_branch:
+        description: Branch that must be deployed.
+        required: true
+        type: string
+      health_url:
+        description: Optional public URL checked after deployment.
+        required: false
+        default: ''
+        type: string
+    secrets:
+      VPS_HOST:
+        required: false
+      VPS_PORT:
+        required: false
+      VPS_USER:
+        required: false
+      VPS_SSH_KEY:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Peter Tecnet VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: deploy-${{ github.repository }}-${{ inputs.deploy_branch }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Check deploy configuration
+        id: config
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${VPS_HOST}" || -z "${VPS_USER}" || -z "${VPS_SSH_KEY}" ]]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Automatic VPS deployment is installed but not enabled yet. Configure VPS_HOST, VPS_USER and VPS_SSH_KEY in Actions Secrets."
+            exit 0
+          fi
+
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+          echo "port=${VPS_PORT:-22}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure SSH
+        if: steps.config.outputs.enabled == 'true'
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ steps.config.outputs.port }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          ssh-keyscan -p "$VPS_PORT" -H "$VPS_HOST" >> "$HOME/.ssh/known_hosts"
+
+      - name: Deploy application
+        if: steps.config.outputs.enabled == 'true'
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ steps.config.outputs.port }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          DEPLOY_PATH: ${{ inputs.deploy_path }}
+          DEPLOY_TYPE: ${{ inputs.deploy_type }}
+          DEPLOY_BRANCH: ${{ inputs.deploy_branch }}
+        run: |
+          set -euo pipefail
+
+          ssh -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
+            "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH'" <<'REMOTE_SCRIPT'
+          set -Eeuo pipefail
+
+          DEPLOY_PATH="$1"
+          DEPLOY_TYPE="$2"
+          DEPLOY_BRANCH="$3"
+
+          if [[ "$DEPLOY_PATH" != /var/www/* ]]; then
+            echo "Refusing deploy outside /var/www: $DEPLOY_PATH" >&2
+            exit 20
+          fi
+
+          if [[ ! "$DEPLOY_BRANCH" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            echo "Invalid deploy branch: $DEPLOY_BRANCH" >&2
+            exit 21
+          fi
+
+          if [[ "$DEPLOY_TYPE" != "frontend" && "$DEPLOY_TYPE" != "laravel" ]]; then
+            echo "Unsupported deploy type: $DEPLOY_TYPE" >&2
+            exit 22
+          fi
+
+          cd "$DEPLOY_PATH"
+
+          if [[ ! -d .git ]]; then
+            echo "$DEPLOY_PATH is not a Git repository." >&2
+            exit 23
+          fi
+
+          OLD_SHA="$(git rev-parse HEAD)"
+          FRONTEND_BACKUP=""
+          FRONTEND_OUTPUT=""
+
+          restore_source() {
+            echo "Restoring source revision $OLD_SHA after failed deployment..." >&2
+            git reset --hard "$OLD_SHA" || true
+          }
+
+          restore_frontend() {
+            if [[ -n "$FRONTEND_BACKUP" && -n "$FRONTEND_OUTPUT" ]]; then
+              rm -rf "$FRONTEND_OUTPUT" || true
+              if [[ -d "$FRONTEND_BACKUP/output" ]]; then
+                mv "$FRONTEND_BACKUP/output" "$FRONTEND_OUTPUT" || true
+              fi
+              rm -rf "$FRONTEND_BACKUP" || true
+            fi
+          }
+
+          on_error() {
+            exit_code=$?
+            echo "Deployment failed with exit code $exit_code." >&2
+            restore_frontend
+            restore_source
+            exit "$exit_code"
+          }
+
+          trap on_error ERR
+
+          git fetch --prune origin "$DEPLOY_BRANCH"
+
+          if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then
+            git checkout "$DEPLOY_BRANCH"
+          else
+            git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"
+          fi
+
+          git reset --hard "origin/$DEPLOY_BRANCH"
+
+          case "$DEPLOY_TYPE" in
+            frontend)
+              if [[ ! -f package.json ]]; then
+                echo "package.json not found in $DEPLOY_PATH" >&2
+                exit 30
+              fi
+
+              if grep -Eq '"vite"[[:space:]]*:' package.json; then
+                FRONTEND_OUTPUT="dist"
+              else
+                FRONTEND_OUTPUT="build"
+              fi
+
+              FRONTEND_BACKUP="$(mktemp -d /tmp/peter-deploy-frontend.XXXXXX)"
+              if [[ -d "$FRONTEND_OUTPUT" ]]; then
+                mv "$FRONTEND_OUTPUT" "$FRONTEND_BACKUP/output"
+              fi
+
+              export CI=true
+              export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=4096}"
+
+              if [[ -f package-lock.json ]]; then
+                npm ci --no-audit --no-fund
+              else
+                npm install --no-audit --no-fund
+              fi
+
+              npm run build
+
+              if [[ ! -d "$FRONTEND_OUTPUT" ]]; then
+                echo "Expected frontend output '$FRONTEND_OUTPUT' was not generated." >&2
+                exit 31
+              fi
+
+              rm -rf "$FRONTEND_BACKUP"
+              FRONTEND_BACKUP=""
+              ;;
+
+            laravel)
+              if [[ ! -f artisan || ! -f composer.json ]]; then
+                echo "Laravel application files were not found in $DEPLOY_PATH" >&2
+                exit 40
+              fi
+
+              composer install \
+                --no-dev \
+                --no-interaction \
+                --prefer-dist \
+                --optimize-autoloader
+
+              chmod -R ug+rwX storage bootstrap/cache || true
+
+              php artisan migrate --force
+              php artisan optimize:clear
+              php artisan config:cache
+              php artisan view:cache
+              php artisan queue:restart || true
+              php artisan reverb:restart || true
+              ;;
+          esac
+
+          trap - ERR
+
+          NEW_SHA="$(git rev-parse HEAD)"
+          echo "Deployment completed: $OLD_SHA -> $NEW_SHA"
+          REMOTE_SCRIPT
+
+      - name: Health check
+        if: steps.config.outputs.enabled == 'true' && inputs.health_url != ''
+        shell: bash
+        env:
+          HEALTH_URL: ${{ inputs.health_url }}
+        run: |
+          set -euo pipefail
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --location \
+            --retry 3 \
+            --retry-delay 2 \
+            --max-time 20 \
+            "$HEALTH_URL" >/dev/null
+          echo "Health check passed: $HEALTH_URL"
