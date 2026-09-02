@@ -40,7 +40,7 @@ jobs:
     timeout-minutes: 60
     concurrency:
       group: deploy-${{ github.repository }}-${{ inputs.deploy_branch }}
-      cancel-in-progress: false
+      cancel-in-progress: true
 
     steps:
       - name: Check deploy configuration
