@@ -121,6 +121,11 @@ jobs:
             exit 23
           fi
 
+          if [[ ! -w "$DEPLOY_PATH" ]]; then
+            echo "$DEPLOY_PATH is not writable by the deploy user." >&2
+            exit 24
+          fi
+
           OLD_SHA="$(git rev-parse HEAD)"
           FRONTEND_BACKUP=""
           FRONTEND_OUTPUT=""
@@ -133,10 +138,9 @@ jobs:
           restore_frontend() {
             if [[ -n "$FRONTEND_BACKUP" && -n "$FRONTEND_OUTPUT" ]]; then
               rm -rf "$FRONTEND_OUTPUT" || true
-              if [[ -d "$FRONTEND_BACKUP/output" ]]; then
-                mv "$FRONTEND_BACKUP/output" "$FRONTEND_OUTPUT" || true
+              if [[ -d "$FRONTEND_BACKUP" ]]; then
+                mv "$FRONTEND_BACKUP" "$FRONTEND_OUTPUT" || true
               fi
-              rm -rf "$FRONTEND_BACKUP" || true
             fi
           }
 
@@ -173,9 +177,9 @@ jobs:
                 FRONTEND_OUTPUT="build"
               fi
 
-              FRONTEND_BACKUP="$(mktemp -d /tmp/peter-deploy-frontend.XXXXXX)"
+              FRONTEND_BACKUP="$DEPLOY_PATH/.deploy-backup-${FRONTEND_OUTPUT}-$(date +%s)-${OLD_SHA:0:8}"
               if [[ -d "$FRONTEND_OUTPUT" ]]; then
-                mv "$FRONTEND_OUTPUT" "$FRONTEND_BACKUP/output"
+                mv "$FRONTEND_OUTPUT" "$FRONTEND_BACKUP"
               fi
 
               export CI=true
@@ -194,7 +198,9 @@ jobs:
                 exit 31
               fi
 
-              rm -rf "$FRONTEND_BACKUP"
+              if [[ -d "$FRONTEND_BACKUP" ]]; then
+                rm -rf "$FRONTEND_BACKUP" 2>/dev/null || echo "Legacy backup retained at $FRONTEND_BACKUP because old root-owned files could not be removed."
+              fi
               FRONTEND_BACKUP=""
               ;;
 
