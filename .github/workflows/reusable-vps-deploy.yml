@@ -53,13 +53,11 @@ jobs:
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           set -euo pipefail
-
           if [[ -z "${VPS_HOST}" || -z "${VPS_USER}" || -z "${VPS_SSH_KEY}" ]]; then
             echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Automatic VPS deployment is installed but not enabled yet. Configure VPS_HOST, VPS_USER and VPS_SSH_KEY in Actions Secrets."
+            echo "::notice::Automatic VPS deployment is installed but not enabled."
             exit 0
           fi
-
           echo "enabled=true" >> "$GITHUB_OUTPUT"
           echo "port=${VPS_PORT:-22}" >> "$GITHUB_OUTPUT"
 
@@ -90,11 +88,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          # GitHub concurrency is repository-scoped. Spread the first SSH connection
-          # across the ecosystem. Lock contention is handled with short connections
-          # below so a queued deploy never occupies an idle SSH session on the VPS.
           repository_checksum="$(printf '%s' "$DEPLOY_REPOSITORY" | cksum | awk '{print $1}')"
-          stagger_seconds=$((repository_checksum % 181))
+          stagger_seconds=$((repository_checksum % 31))
           echo "Ecosystem SSH stagger for $DEPLOY_REPOSITORY: ${stagger_seconds}s"
           sleep "$stagger_seconds"
 
@@ -106,26 +101,34 @@ jobs:
           DEPLOY_PATH="$1"
           DEPLOY_TYPE="$2"
           DEPLOY_BRANCH="$3"
+          BUILD_WORKTREE=""
+
+          cleanup_worktree() {
+            if [[ -n "$BUILD_WORKTREE" && -d "$BUILD_WORKTREE" ]]; then
+              cd "$DEPLOY_PATH" 2>/dev/null || true
+              git worktree remove --force "$BUILD_WORKTREE" >/dev/null 2>&1 || rm -rf "$BUILD_WORKTREE" || true
+              git worktree prune >/dev/null 2>&1 || true
+            fi
+          }
+
+          on_exit() {
+            cleanup_worktree
+          }
+          trap on_exit EXIT
 
           if [[ "$DEPLOY_PATH" != /var/www/* ]]; then
             echo "Refusing deploy outside /var/www: $DEPLOY_PATH" >&2
             exit 20
           fi
-
           if [[ ! "$DEPLOY_BRANCH" =~ ^[A-Za-z0-9._/-]+$ ]]; then
             echo "Invalid deploy branch: $DEPLOY_BRANCH" >&2
             exit 21
           fi
-
           if [[ "$DEPLOY_TYPE" != "frontend" && "$DEPLOY_TYPE" != "laravel" ]]; then
             echo "Unsupported deploy type: $DEPLOY_TYPE" >&2
             exit 22
           fi
 
-          # Every Peter Tecnet app shares this VPS. Acquire the global lock without
-          # waiting inside SSH. Exit 75 means "busy, retry later" to the caller.
-          # This prevents dozens of idle SSH sessions from exhausting sshd while
-          # another application is building or running migrations.
           exec 9>/tmp/petertecnet-vps-deploy.lock
           if ! flock -n 9; then
             echo "Peter Tecnet VPS deployment lock is busy; retry later."
@@ -133,59 +136,36 @@ jobs:
           fi
 
           cd "$DEPLOY_PATH"
-
           if [[ ! -d .git ]]; then
             echo "$DEPLOY_PATH is not a Git repository." >&2
             exit 23
           fi
-
           if [[ ! -w "$DEPLOY_PATH" ]]; then
             echo "$DEPLOY_PATH is not writable by the deploy user." >&2
             exit 24
           fi
 
           OLD_SHA="$(git rev-parse HEAD)"
-          FRONTEND_BACKUP=""
-          FRONTEND_OUTPUT=""
-
-          restore_source() {
-            echo "Restoring source revision $OLD_SHA after failed deployment..." >&2
-            git reset --hard "$OLD_SHA" || true
-          }
-
-          restore_frontend() {
-            if [[ -n "$FRONTEND_BACKUP" && -n "$FRONTEND_OUTPUT" ]]; then
-              rm -rf "$FRONTEND_OUTPUT" || true
-              if [[ -d "$FRONTEND_BACKUP" ]]; then
-                mv "$FRONTEND_BACKUP" "$FRONTEND_OUTPUT" || true
-              fi
-            fi
-          }
-
-          on_error() {
-            exit_code=$?
-            echo "Deployment failed with exit code $exit_code." >&2
-            restore_frontend
-            restore_source
-            exit "$exit_code"
-          }
-
-          trap on_error ERR
-
           git fetch --prune origin "$DEPLOY_BRANCH"
-
-          if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then
-            git checkout "$DEPLOY_BRANCH"
-          else
-            git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"
-          fi
-
-          git reset --hard "origin/$DEPLOY_BRANCH"
+          TARGET_SHA="$(git rev-parse "origin/$DEPLOY_BRANCH")"
 
           case "$DEPLOY_TYPE" in
             frontend)
+              # Build in an isolated Git worktree. The currently served build/dist is
+              # never removed or cleaned while npm installs and compiles the new release.
+              safe_name="$(basename "$DEPLOY_PATH" | tr -c 'A-Za-z0-9._-' '-')"
+              BUILD_WORKTREE="/tmp/petertecnet-build-${safe_name}-$$-$RANDOM"
+              git worktree add --detach "$BUILD_WORKTREE" "$TARGET_SHA"
+
+              for env_file in .env .env.local .env.production .env.production.local .npmrc; do
+                if [[ -f "$DEPLOY_PATH/$env_file" ]]; then
+                  cp -f "$DEPLOY_PATH/$env_file" "$BUILD_WORKTREE/$env_file"
+                fi
+              done
+
+              cd "$BUILD_WORKTREE"
               if [[ ! -f package.json ]]; then
-                echo "package.json not found in $DEPLOY_PATH" >&2
+                echo "package.json not found in release worktree." >&2
                 exit 30
               fi
 
@@ -195,50 +175,67 @@ jobs:
                 FRONTEND_OUTPUT="build"
               fi
 
-              FRONTEND_BACKUP="$DEPLOY_PATH/.deploy-backup-${FRONTEND_OUTPUT}-$(date +%s)-${OLD_SHA:0:8}"
-              if [[ -d "$FRONTEND_OUTPUT" ]]; then
-                mv "$FRONTEND_OUTPUT" "$FRONTEND_BACKUP"
-              fi
-
               export CI=true
               export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=4096}"
-
               if [[ -f package-lock.json ]]; then
                 if ! npm ci --no-audit --no-fund; then
-                  echo "package-lock.json is not compatible with npm ci; falling back to npm install without modifying the lock file."
+                  echo "package-lock.json incompatible with npm ci; using npm install without changing lock."
                   npm install --no-audit --no-fund --package-lock=false
                 fi
               else
                 npm install --no-audit --no-fund --package-lock=false
               fi
-
               npm run build
 
-              if [[ ! -d "$FRONTEND_OUTPUT" ]]; then
-                echo "Expected frontend output '$FRONTEND_OUTPUT' was not generated." >&2
+              NEW_OUTPUT="$BUILD_WORKTREE/$FRONTEND_OUTPUT"
+              LIVE_OUTPUT="$DEPLOY_PATH/$FRONTEND_OUTPUT"
+              if [[ ! -f "$NEW_OUTPUT/index.html" ]]; then
+                echo "New frontend release has no $FRONTEND_OUTPUT/index.html." >&2
                 exit 31
               fi
 
-              if [[ -d "$FRONTEND_BACKUP" ]]; then
-                rm -rf "$FRONTEND_BACKUP" 2>/dev/null || echo "Legacy backup retained at $FRONTEND_BACKUP because old root-owned files could not be removed."
+              # Publish all assets while the old index is still live. Do not delete old
+              # fingerprinted assets: cached/open old pages can continue requesting them.
+              mkdir -p "$LIVE_OUTPUT"
+              (
+                cd "$NEW_OUTPUT"
+                tar --exclude='./index.html' -cf - .
+              ) | (
+                cd "$LIVE_OUTPUT"
+                tar -xf -
+              )
+
+              # index.html is the release switch. Atomic rename means users see either
+              # the complete previous release or the complete new release, never a missing index.
+              cp -f "$NEW_OUTPUT/index.html" "$LIVE_OUTPUT/.index.html.next"
+              chmod --reference="$LIVE_OUTPUT/index.html" "$LIVE_OUTPUT/.index.html.next" 2>/dev/null || true
+              mv -f "$LIVE_OUTPUT/.index.html.next" "$LIVE_OUTPUT/index.html"
+
+              cd "$DEPLOY_PATH"
+              if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then
+                git checkout "$DEPLOY_BRANCH"
+              else
+                git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"
               fi
-              FRONTEND_BACKUP=""
+              git reset --hard "$TARGET_SHA"
               ;;
 
             laravel)
+              # Laravel remains online during the update; no maintenance mode is used.
+              if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then
+                git checkout "$DEPLOY_BRANCH"
+              else
+                git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"
+              fi
+              git reset --hard "$TARGET_SHA"
+
               if [[ ! -f artisan || ! -f composer.json ]]; then
                 echo "Laravel application files were not found in $DEPLOY_PATH" >&2
                 exit 40
               fi
 
-              composer install \
-                --no-dev \
-                --no-interaction \
-                --prefer-dist \
-                --optimize-autoloader
-
+              composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
               chmod -R ug+rwX storage bootstrap/cache || true
-
               php artisan optimize:clear
               php artisan migrate --force
               php artisan config:cache
@@ -248,17 +245,12 @@ jobs:
               ;;
           esac
 
-          trap - ERR
-
           NEW_SHA="$(git rev-parse HEAD)"
           echo "Deployment completed: $OLD_SHA -> $NEW_SHA"
           REMOTE_SCRIPT
 
           chmod 600 "$REMOTE_SCRIPT_FILE"
 
-          # The VPS lock is intentionally non-blocking inside SSH. A busy lock (75)
-          # or a transport failure (255) closes the connection and retries later with
-          # deterministic jitter. Real build/migration failures still fail immediately.
           max_attempts=50
           for attempt in $(seq 1 "$max_attempts"); do
             echo "SSH deploy attempt $attempt/$max_attempts"
@@ -281,19 +273,11 @@ jobs:
               echo "Remote deployment failed with non-retryable exit code $exit_code." >&2
               exit "$exit_code"
             fi
-
             if [[ "$attempt" -eq "$max_attempts" ]]; then
-              if [[ "$exit_code" -eq 75 ]]; then
-                echo "VPS deployment lock remained busy after $max_attempts attempts." >&2
-              else
-                echo "SSH transport remained unavailable after $max_attempts attempts." >&2
-              fi
               exit "$exit_code"
             fi
 
-            # 30-60 seconds, varied by repository and attempt. This spaces queued
-            # repositories without synchronized reconnect storms against sshd.
-            sleep_seconds=$((30 + (repository_checksum + attempt * 17) % 31))
+            sleep_seconds=$((20 + (repository_checksum + attempt * 17) % 21))
             if [[ "$exit_code" -eq 75 ]]; then
               echo "VPS deploy lock busy; reconnecting in ${sleep_seconds}s..."
             else
@@ -309,14 +293,7 @@ jobs:
           HEALTH_URL: ${{ inputs.health_url }}
         run: |
           set -euo pipefail
-          curl \
-            --fail \
-            --silent \
-            --show-error \
-            --location \
-            --retry 5 \
-            --retry-all-errors \
-            --retry-delay 3 \
-            --max-time 20 \
+          curl --fail --silent --show-error --location \
+            --retry 8 --retry-all-errors --retry-delay 3 --max-time 20 \
             "$HEALTH_URL" >/dev/null
           echo "Health check passed: $HEALTH_URL"
