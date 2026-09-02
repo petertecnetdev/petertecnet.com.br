@@ -1,0 +1,33 @@
+name: Peter Tecnet Frontend CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Production build
+        run: npm run build
+      - name: Verify command center sources
+        shell: bash
+        run: |
+          test -f src/CommandCenter.jsx
+          test -f src/FinancialCenter.jsx
+          grep -q "Mission Control" src/Admin.jsx
+          grep -q "command/overview" src/CommandCenter.jsx
+          grep -q "financial/orders" src/FinancialCenter.jsx
