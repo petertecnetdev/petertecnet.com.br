@@ -22,8 +22,8 @@ export const getItemInitials = item => {
   const meaningful = words.filter(word => !INITIALS_STOP_WORDS.has(word.toLocaleLowerCase('pt-BR')))
   const source = meaningful.length ? meaningful : words
 
-  if (!source.length) return 'IT'
-  if (source.length === 1) return source[0].slice(0, 2).toLocaleUpperCase('pt-BR')
+  if (!source.length) return 'I'
+  if (source.length === 1) return source[0][0].toLocaleUpperCase('pt-BR')
 
   return `${source[0][0]}${source[1][0]}`.toLocaleUpperCase('pt-BR')
 }
