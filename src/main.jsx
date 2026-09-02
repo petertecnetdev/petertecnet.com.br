@@ -16,7 +16,10 @@ const ecosystemToken = localStorage.getItem('token')
 if (adminToken && !ecosystemToken) localStorage.setItem('token', adminToken)
 if (ecosystemToken && !adminToken) localStorage.setItem('petertecnet_admin_token', ecosystemToken)
 
-const page = window.location.pathname.startsWith('/admin/laora') ? <LaoraAdminCenter /> : <App />
+const path = window.location.pathname
+const isLaoraAdmin = path.startsWith('/admin/laora')
+const isAdmin = path === '/admin' || path.startsWith('/admin/')
+const page = isLaoraAdmin ? <LaoraAdminCenter /> : <><App />{isAdmin && <a className="la-safety-shortcut" href="/admin/laora">Laora Safety</a>}</>
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
