@@ -4,6 +4,7 @@ import './index.css'
 import './seo.js'
 import App from './App.jsx'
 import LaoraAdminCenter from './LaoraAdminCenter.jsx'
+import AccountAccessPage from './AccountAccessPage.jsx'
 import PeterAccountGateway from './components/PeterAccountGateway.jsx'
 
 const API_BASE_URL = 'https://api.petertecnet.com.br/api'
@@ -15,15 +16,20 @@ const ecosystemToken = localStorage.getItem('token')
 if (adminToken && !ecosystemToken) localStorage.setItem('token', adminToken)
 if (ecosystemToken && !adminToken) localStorage.setItem('petertecnet_admin_token', ecosystemToken)
 
-const path = window.location.pathname
+const path = window.location.pathname.replace(/\/+$/, '') || '/'
+const isAccountAccess = path === '/account/activate' || path === '/account/password/reset'
 const isLaoraAdmin = path.startsWith('/admin/laora')
 const isAdmin = path === '/admin' || path.startsWith('/admin/')
 const page = isLaoraAdmin ? <LaoraAdminCenter /> : <><App />{isAdmin && <a className="la-safety-shortcut" href="/admin/laora">Laora Safety</a>}</>
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <PeterAccountGateway apiBaseUrl={API_BASE_URL} appSlug={APP_SLUG}>
-      {page}
-    </PeterAccountGateway>
+    {isAccountAccess ? (
+      <AccountAccessPage />
+    ) : (
+      <PeterAccountGateway apiBaseUrl={API_BASE_URL} appSlug={APP_SLUG}>
+        {page}
+      </PeterAccountGateway>
+    )}
   </StrictMode>,
 )
