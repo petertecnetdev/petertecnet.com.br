@@ -9,16 +9,12 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: deploy-${{ github.repository }}-main
+  cancel-in-progress: true
+
 jobs:
-  deploy:
-    uses: ./.github/workflows/reusable-vps-deploy.yml
-    with:
-      deploy_path: /var/www/petertecnet.com.br
-      deploy_type: frontend
-      deploy_branch: main
-      health_url: https://petertecnet.com.br/
-    secrets:
-      VPS_HOST: ${{ secrets.VPS_HOST }}
-      VPS_PORT: ${{ secrets.VPS_PORT }}
-      VPS_USER: ${{ secrets.VPS_USER }}
-      VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+  hold:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Production deployment temporarily held during VPS service recovery."
