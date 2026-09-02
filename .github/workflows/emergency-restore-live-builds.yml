@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   restore:
-    name: Restore missing frontend builds
+    name: Recover VPS services and frontend builds
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -29,7 +29,7 @@ jobs:
           : > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
 
-      - name: Restore missing live build from latest valid backup
+      - name: Recover VPS
         shell: bash
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
@@ -39,13 +39,36 @@ jobs:
           set -euo pipefail
           port="${VPS_PORT:-22}"
 
-          cat > "$RUNNER_TEMP/restore-live-builds.sh" <<'REMOTE'
+          cat > "$RUNNER_TEMP/recover-vps.sh" <<'REMOTE'
           set -u
           shopt -s nullglob
 
+          echo '===== BEFORE RECOVERY ====='
+          uptime || true
+          free -m || true
+          df -h / /var/www 2>/dev/null || true
+
+          # Production availability takes precedence during this incident. Stop only
+          # frontend compilation processes; do not touch database, queue, Reverb or
+          # migration processes.
+          build_pids="$(ps -eo pid=,args= | awk '
+            /node_modules\/\.bin\/(react-scripts|vite)/ ||
+            /npm (ci|install|run build)/ {
+              if ($0 !~ /awk/) print $1
+            }' | sort -u | tr '\n' ' ')"
+          if [[ -n "${build_pids// /}" ]]; then
+            echo "Stopping frontend build processes: $build_pids"
+            kill -TERM $build_pids 2>/dev/null || true
+            sleep 5
+            for pid in $build_pids; do
+              kill -0 "$pid" 2>/dev/null && kill -KILL "$pid" 2>/dev/null || true
+            done
+          else
+            echo 'No active frontend build processes found.'
+          fi
+
           restored=0
           checked=0
-
           for app in /var/www/*.petertecnet.com.br; do
             [[ -d "$app" ]] || continue
             [[ -f "$app/package.json" ]] || continue
@@ -60,7 +83,7 @@ jobs:
 
             live="$app/$output"
             if [[ -f "$live/index.html" ]]; then
-              echo "LIVE OK: $app/$output/index.html"
+              echo "LIVE OK: $live/index.html"
               continue
             fi
 
@@ -80,27 +103,50 @@ jobs:
               restored=$((restored + 1))
               echo "RESTORED: $live/index.html"
             else
-              echo "NO VALID BACKUP: $app (safe deploy must rebuild it)"
+              echo "NO VALID BACKUP: $app"
             fi
           done
 
           echo "Checked frontend applications: $checked"
           echo "Restored missing live builds: $restored"
+
+          # Clear abandoned temporary worktrees only after compiler processes are gone.
+          find /tmp -maxdepth 1 -type d -name 'petertecnet-build-*' -mmin +2 -print -exec rm -rf {} + 2>/dev/null || true
+
+          # Reload web services without changing data or application configuration.
+          if command -v nginx >/dev/null 2>&1; then
+            nginx -t && (systemctl reload nginx || service nginx reload || true)
+          fi
+          if systemctl list-unit-files 2>/dev/null | grep -q '^php8.3-fpm\.service'; then
+            systemctl reload php8.3-fpm || true
+          fi
+
+          echo '===== LOCAL HTTP CHECKS ====='
+          for host in petertecnet.com.br nexus.petertecnet.com.br cutinapp.petertecnet.com.br rasoio.petertecnet.com.br plat.petertecnet.com.br inkap.petertecnet.com.br; do
+            code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 8 -H "Host: $host" http://127.0.0.1/ || true)"
+            echo "$host -> ${code:-curl-error}"
+          done
+          api_code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 8 -H 'Host: api.petertecnet.com.br' http://127.0.0.1/health || true)"
+          echo "api.petertecnet.com.br/health -> ${api_code:-curl-error}"
+
+          echo '===== AFTER RECOVERY ====='
+          uptime || true
+          free -m || true
           REMOTE
 
-          for attempt in 1 2 3 4 5 6 7 8; do
-            echo "Emergency restore SSH attempt $attempt/8"
+          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            echo "Emergency recovery SSH attempt $attempt/12"
             if ssh \
               -o StrictHostKeyChecking=accept-new \
               -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
-              -o ConnectTimeout=15 \
+              -o ConnectTimeout=12 \
               -o ConnectionAttempts=1 \
-              -o ServerAliveInterval=15 \
-              -o ServerAliveCountMax=4 \
+              -o ServerAliveInterval=10 \
+              -o ServerAliveCountMax=6 \
               -p "$port" "$VPS_USER@$VPS_HOST" \
-              'bash -s' < "$RUNNER_TEMP/restore-live-builds.sh"; then
+              'bash -s' < "$RUNNER_TEMP/recover-vps.sh"; then
               exit 0
             fi
-            sleep $((attempt * 5))
+            sleep $((5 + attempt * 3))
           done
           exit 1
