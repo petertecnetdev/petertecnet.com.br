@@ -61,8 +61,24 @@ function annotateNavigation() {
 function clickLegacyTabButton(key) {
   annotateNavigation()
   const button = document.querySelector(`nav[data-admin-legacy-navigation="true"] button[data-admin-tab="${key}"]`)
-  if (button && !button.classList.contains('active')) button.click()
-  return Boolean(button)
+  if (!button || button.classList.contains('active')) return Boolean(button)
+
+  // Admin.jsx is still the business-workspace implementation for legacy tabs and
+  // historically mutated browser history from its hidden sidebar. The canonical
+  // router owns the URL now, so suppress that synchronous legacy pushState while
+  // retaining the tab state transition itself. This prevents duplicate/back-stack
+  // entries and keeps deep links such as /admin/users/:id intact.
+  const originalPushState = window.history.pushState
+  let suppressed = false
+  try {
+    window.history.pushState = () => undefined
+    suppressed = window.history.pushState !== originalPushState
+    button.click()
+  } finally {
+    if (suppressed) window.history.pushState = originalPushState
+  }
+
+  return true
 }
 
 function announceNavigation(item, source = 'programmatic') {
