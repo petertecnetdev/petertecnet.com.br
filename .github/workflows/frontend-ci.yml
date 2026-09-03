@@ -39,6 +39,13 @@ jobs:
           grep -q "command/overview" src/CommandCenter.jsx
           grep -q "command/security" src/CommandCenter.jsx
           grep -q "command/issues" src/CommandCenter.jsx
+          grep -q "command/intelligence" src/CommandCenter.jsx
+          grep -q "issues/.*intelligence" src/CommandCenter.jsx
+          grep -q "repair-plan" src/CommandCenter.jsx
           grep -q "OperationalIssuesPanel" src/CommandCenter.jsx
+          grep -q "Causa provável" src/OperationalIssuesPanel.jsx
+          grep -q "SLO / confiabilidade" src/OperationalIssuesPanel.jsx
+          grep -q "Rollback inteligente" src/OperationalIssuesPanel.jsx
+          grep -q "AUTOMAÇÃO SUPERVISIONADA" src/OperationalIssuesPanel.jsx
           grep -q "financial/orders" src/FinancialCenter.jsx
           grep -q "ecosystem-launcher" src/main.jsx
