@@ -1,38 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { ADMIN_TABS, ADMIN_TAB_BY_KEY } from './admin/AdminNavigationConfig.js'
+import { useAdminUi } from './admin/AdminUiContext.jsx'
 
 const API = 'https://api.petertecnet.com.br/api'
 const PREFS_KEY = 'petertecnet_admin_dashboard_preferences_v1'
-
-const NAV_ITEMS = [
-  { key: 'command', label: 'Mission Control', path: '/admin/mission-control', group: 'Operação', icon: '⌘' },
-  { key: 'dashboard', label: 'Visão geral', path: '/admin/overview', group: 'Operação', icon: '▦' },
-  { key: 'activity', label: 'Atividade', path: '/admin/activity', group: 'Operação', icon: '⌁' },
-  { key: 'financial', label: 'Financeiro', path: '/admin/financial', group: 'Negócio', icon: '¤' },
-  { key: 'applications', label: 'Aplicações', path: '/admin/applications', group: 'Ecossistema', icon: '◇' },
-  { key: 'users', label: 'Usuários', path: '/admin/users', group: 'Governança', icon: '◉' },
-  { key: 'profiles', label: 'Perfis e permissões', path: '/admin/profiles', group: 'Governança', icon: '⌗' },
-  { key: 'establishments', label: 'Estabelecimentos', path: '/admin/establishments', group: 'Negócio', icon: '⌂' },
-  { key: 'items', label: 'Itens', path: '/admin/items', group: 'Negócio', icon: '▣' },
-  { key: 'site', label: 'Site institucional', path: '/admin/site', group: 'Configurações', icon: '✦' },
-  { key: 'audit', label: 'Auditoria', path: '/admin/audit', group: 'Governança', icon: '◎' },
-]
-
-const ROUTE_ALIASES = {
-  '/admin': 'command',
-  '/admin/mission-control': 'command',
-  '/admin/overview': 'dashboard',
-  '/admin/dashboard': 'dashboard',
-  '/admin/activity': 'activity',
-  '/admin/financial': 'financial',
-  '/admin/applications': 'applications',
-  '/admin/users': 'users',
-  '/admin/profiles': 'profiles',
-  '/admin/establishments': 'establishments',
-  '/admin/items': 'items',
-  '/admin/site': 'site',
-  '/admin/audit': 'audit',
-}
+const NAV_ITEMS = ADMIN_TABS
 
 const SEARCH_DESTINATIONS = {
   users: 'users', user: 'users', usuarios: 'users',
@@ -44,11 +17,9 @@ const SEARCH_DESTINATIONS = {
   audit: 'audit', activity: 'activity', interactions: 'activity',
 }
 
-const normalizePath = path => (path || '/').replace(/\/+$/, '') || '/'
 const normalizeText = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 const getToken = () => localStorage.getItem('token') || localStorage.getItem('petertecnet_admin_token')
-const currentRouteTab = () => ROUTE_ALIASES[normalizePath(window.location.pathname)] || 'command'
-const itemFor = key => NAV_ITEMS.find(item => item.key === key) || NAV_ITEMS[0]
+const itemFor = key => ADMIN_TAB_BY_KEY[key] || ADMIN_TABS[0]
 
 async function api(path) {
   const token = getToken()
@@ -112,7 +83,7 @@ function Breadcrumbs({ target, activeTab, heading }) {
   )
 }
 
-function ContextActions({ target, activeTab, onNavigate, onPalette, onCustomize }) {
+function ContextActions({ target, activeTab, onPalette, onCustomize }) {
   if (!target) return null
 
   function scrollToForm() {
@@ -178,7 +149,6 @@ function CommandPalette({ open, query, setQuery, results, loading, onClose, onNa
         {commands.map(item => <button type="button" key={item.key} onClick={() => { onNavigate(item.key); onClose() }}>
           <i>{item.icon}</i><span><b>{item.label}</b><small>{item.group} · {item.path}</small></span><em>↵</em>
         </button>)}
-
         {query.trim().length >= 2 && <>
           <div className="admin-command-section-title">Busca global {loading && <small>consultando…</small>}</div>
           {!loading && !groups.length && <div className="admin-command-empty">Nenhum resultado operacional encontrado.</div>}
@@ -329,7 +299,7 @@ function TableEnhancers({ activeTab }) {
 }
 
 export default function AdminProductivityBridge() {
-  const [activeTab, setActiveTab] = useState(currentRouteTab)
+  const { activeTab, navigate } = useAdminUi()
   const [heading, setHeading] = useState('')
   const [brandTarget, setBrandTarget] = useState(null)
   const [headingTarget, setHeadingTarget] = useState(null)
@@ -345,85 +315,34 @@ export default function AdminProductivityBridge() {
     try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || { order: [], hidden: [] } } catch { return { order: [], hidden: [] } }
   })
 
-  const navMap = useMemo(() => new Map(NAV_ITEMS.map(item => [item.label, item])), [])
-
   function setPrefs(next) {
     setPrefsState(next)
     localStorage.setItem(PREFS_KEY, JSON.stringify(next))
   }
 
-  function annotateNavigation() {
-    const nav = document.querySelector('.ecosystem-sidebar nav')
-    if (!nav) return false
-    let previousGroup = ''
-    ;[...nav.querySelectorAll('button')].forEach(button => {
-      const item = navMap.get(button.textContent.trim())
-      if (!item) return
-      button.dataset.adminTab = item.key
-      button.dataset.icon = item.icon
-      button.dataset.group = item.group
-      if (item.group !== previousGroup) button.dataset.groupStart = item.group
-      else delete button.dataset.groupStart
-      previousGroup = item.group
-      if (!button.dataset.routeBound) {
-        button.dataset.routeBound = 'true'
-        button.addEventListener('click', () => {
-          window.requestAnimationFrame(() => {
-            if (normalizePath(window.location.pathname) !== item.path) window.history.pushState({ adminTab: item.key }, '', item.path)
-            setActiveTab(item.key)
-            document.title = `${item.label} · Admin Center · Peter Tecnet`
-          })
-        })
-      }
-    })
-    return true
-  }
-
-  function navigate(tab, { replace = false } = {}) {
-    const item = itemFor(tab)
-    const button = document.querySelector(`.ecosystem-sidebar nav button[data-admin-tab="${item.key}"]`)
-    if (button && !button.classList.contains('active')) button.click()
-    window.requestAnimationFrame(() => {
-      if (replace) window.history.replaceState({ adminTab: item.key }, '', item.path)
-      else if (normalizePath(window.location.pathname) !== item.path) window.history.pushState({ adminTab: item.key }, '', item.path)
-      setActiveTab(item.key)
-      document.title = `${item.label} · Admin Center · Peter Tecnet`
-    })
-  }
-
   useEffect(() => {
     let attempts = 0
-    const connect = () => {
+    let retryId = 0
+    const syncTargets = () => {
       attempts += 1
-      const navReady = annotateNavigation()
       const brand = document.querySelector('.ecosystem-brand')
       const titleContainer = document.querySelector('.ecosystem-top > div:first-child')
       const actions = document.querySelector('.ecosystem-top .top-actions')
       const title = document.querySelector('.ecosystem-top h1')
-      if (brand) setBrandTarget(brand)
-      if (titleContainer) setHeadingTarget(titleContainer)
-      if (actions) setActionsTarget(actions)
-      if (title) setHeading(title.textContent.trim())
-      if (navReady) navigate(currentRouteTab(), { replace: true })
-      if ((!navReady || !brand || !titleContainer || !actions) && attempts < 20) window.setTimeout(connect, 80)
+      if (brand) setBrandTarget(current => current?.isConnected ? current : brand)
+      if (titleContainer) setHeadingTarget(current => current?.isConnected ? current : titleContainer)
+      if (actions) setActionsTarget(current => current?.isConnected ? current : actions)
+      if (title) {
+        const value = title.textContent.trim()
+        setHeading(current => current === value ? current : value)
+      }
+      if ((!brand || !titleContainer || !actions) && attempts < 20) retryId = window.setTimeout(syncTargets, 80)
     }
-    connect()
+    syncTargets()
 
-    const observer = new MutationObserver(() => {
-      annotateNavigation()
-      const active = document.querySelector('.ecosystem-sidebar nav button.active[data-admin-tab]')
-      if (active?.dataset.adminTab) setActiveTab(active.dataset.adminTab)
-      const title = document.querySelector('.ecosystem-top h1')
-      if (title) setHeading(title.textContent.trim())
-      if (!brandTarget) setBrandTarget(document.querySelector('.ecosystem-brand'))
-      if (!headingTarget) setHeadingTarget(document.querySelector('.ecosystem-top > div:first-child'))
-      if (!actionsTarget) setActionsTarget(document.querySelector('.ecosystem-top .top-actions'))
-    })
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] })
-
-    const onPop = () => navigate(currentRouteTab(), { replace: true })
-    window.addEventListener('popstate', onPop)
-    return () => { observer.disconnect(); window.removeEventListener('popstate', onPop) }
+    const observer = new MutationObserver(syncTargets)
+    observer.observe(document.body, { childList: true, subtree: true })
+    return () => { observer.disconnect(); window.clearTimeout(retryId) }
   }, [])
 
   useEffect(() => {
@@ -438,7 +357,7 @@ export default function AdminProductivityBridge() {
     document.addEventListener('click', onClick)
     window.addEventListener('keydown', onKey)
     return () => { document.removeEventListener('click', onClick); window.removeEventListener('keydown', onKey) }
-  }, [])
+  }, [navigate])
 
   useEffect(() => {
     let active = true
@@ -501,7 +420,7 @@ export default function AdminProductivityBridge() {
   return <>
     <HealthBadge target={brandTarget} health={health} />
     <Breadcrumbs target={headingTarget} activeTab={activeTab} heading={heading} />
-    <ContextActions target={actionsTarget} activeTab={activeTab} onNavigate={navigate} onPalette={() => setPaletteOpen(true)} onCustomize={() => setCustomizeOpen(true)} />
+    <ContextActions target={actionsTarget} activeTab={activeTab} onPalette={() => setPaletteOpen(true)} onCustomize={() => setCustomizeOpen(true)} />
     <TableEnhancers activeTab={activeTab} />
     <CommandPalette open={paletteOpen} query={paletteQuery} setQuery={setPaletteQuery} results={searchResults} loading={searchLoading} onClose={() => setPaletteOpen(false)} onNavigate={navigate} />
     <DashboardCustomizer open={customizeOpen} prefs={prefs} setPrefs={setPrefs} labels={metricLabels} onClose={() => setCustomizeOpen(false)} />
