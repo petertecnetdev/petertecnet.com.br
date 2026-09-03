@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import './seo.js'
 import App from './App.jsx'
+import MarketingExperience from './MarketingExperience.jsx'
 import LaoraAdminCenter from './LaoraAdminCenter.jsx'
 import AccountAccessPage from './AccountAccessPage.jsx'
 import EcosystemLauncherAdmin from './EcosystemLauncherAdmin.jsx'
@@ -36,6 +37,9 @@ const isAccountAccess = path === '/account/activate' || path === '/account/passw
 const isLauncherAdmin = path === '/admin/ecosystem-launcher'
 const isLaoraAdmin = path.startsWith('/admin/laora')
 const isAdmin = path === '/admin' || path.startsWith('/admin/')
+const isLogin = path === '/login'
+const isMarketing = !isAdmin && !isLogin && !isAccountAccess
+
 const page = isLauncherAdmin ? (
   <EcosystemLauncherAdmin />
 ) : isLaoraAdmin ? (
@@ -43,6 +47,8 @@ const page = isLauncherAdmin ? (
     <LaoraAdminCenter />
     <AdminMobileNavigation />
   </>
+) : isMarketing ? (
+  <MarketingExperience />
 ) : (
   <>
     <App />
