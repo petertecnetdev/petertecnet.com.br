@@ -1,36 +1,24 @@
 import { useEffect } from 'react'
-import { adminTabFromLocation, normalizeAdminPath } from './admin/AdminNavigationConfig.js'
+import { adminTabFromLocation, isLegacyAdminTab, normalizeAdminPath } from './admin/AdminNavigationConfig.js'
 import { requestAdminNavigation } from './admin/AdminUiEvents.js'
-
-const ROUTABLE_PATHS = new Set([
-  '/admin/mission-control',
-  '/admin/overview',
-  '/admin/dashboard',
-  '/admin/activity',
-  '/admin/financial',
-  '/admin/applications',
-  '/admin/users',
-  '/admin/profiles',
-  '/admin/establishments',
-  '/admin/items',
-  '/admin/site',
-  '/admin/audit',
-])
 
 export default function AdminRouteSync() {
   useEffect(() => {
     const path = normalizeAdminPath(window.location.pathname)
-    if (path === '/admin') return undefined
+    const key = adminTabFromLocation(path)
+    if (!isLegacyAdminTab(key)) return undefined
 
-    const isDetailRoute = /^\/admin\/(users|establishments|items)\/\d+$/.test(path)
-    const isMissionRoute = /^\/admin\/mission-control\/(incidents|security|queues|search)$/.test(path)
-    if (!ROUTABLE_PATHS.has(path) && !isDetailRoute && !isMissionRoute) return undefined
+    let secondFrame = 0
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        requestAdminNavigation(key, { preservePath: true })
+      })
+    })
 
-    const timer = window.setTimeout(() => {
-      requestAdminNavigation(adminTabFromLocation(path), { preservePath: true })
-    }, 120)
-
-    return () => window.clearTimeout(timer)
+    return () => {
+      window.cancelAnimationFrame(firstFrame)
+      window.cancelAnimationFrame(secondFrame)
+    }
   }, [])
 
   return null
