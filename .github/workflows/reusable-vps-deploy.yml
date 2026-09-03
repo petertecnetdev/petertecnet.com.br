@@ -89,7 +89,7 @@ jobs:
           set -euo pipefail
 
           repository_checksum="$(printf '%s' "$DEPLOY_REPOSITORY" | cksum | awk '{print $1}')"
-          stagger_seconds=$((repository_checksum % 31))
+          stagger_seconds=$((repository_checksum % 11))
           echo "Ecosystem SSH stagger for $DEPLOY_REPOSITORY: ${stagger_seconds}s"
           sleep "$stagger_seconds"
 
@@ -129,11 +129,16 @@ jobs:
             exit 22
           fi
 
+          # One global deployment queue protects the shared VPS from concurrent npm/composer
+          # builds. Waiting on the same flock descriptor keeps older jobs queued instead of
+          # reconnecting and being overtaken by newer releases.
           exec 9>/tmp/petertecnet-vps-deploy.lock
-          if ! flock -n 9; then
-            echo "Peter Tecnet VPS deployment lock is busy; retry later."
+          echo "Waiting for Peter Tecnet VPS deployment slot..."
+          if ! flock -w 2700 9; then
+            echo "Timed out waiting for Peter Tecnet VPS deployment slot." >&2
             exit 75
           fi
+          echo "Peter Tecnet VPS deployment slot acquired."
 
           cd "$DEPLOY_PATH"
           if [[ ! -d .git ]]; then
@@ -251,7 +256,10 @@ jobs:
 
           chmod 600 "$REMOTE_SCRIPT_FILE"
 
-          max_attempts=50
+          # SSH may still fail transiently before the remote queue is reached. Retry only
+          # transport failures or an exceptionally long queue timeout; normal lock contention
+          # is handled inside the same SSH session by flock -w above.
+          max_attempts=3
           for attempt in $(seq 1 "$max_attempts"); do
             echo "SSH deploy attempt $attempt/$max_attempts"
             if ssh \
@@ -277,9 +285,9 @@ jobs:
               exit "$exit_code"
             fi
 
-            sleep_seconds=$((20 + (repository_checksum + attempt * 17) % 21))
+            sleep_seconds=$((10 + (repository_checksum + attempt * 7) % 11))
             if [[ "$exit_code" -eq 75 ]]; then
-              echo "VPS deploy lock busy; reconnecting in ${sleep_seconds}s..."
+              echo "VPS deployment queue timed out; reconnecting in ${sleep_seconds}s..."
             else
               echo "Transient SSH failure; reconnecting in ${sleep_seconds}s..."
             fi
