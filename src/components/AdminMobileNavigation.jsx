@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useAdminUi } from '../admin/AdminUiContext.jsx'
+import { useAdminUi } from '../admin/useAdminUi.js'
 import './AdminMobileNavigation.css'
 
 const MOBILE_QUERY = '(max-width: 760px)'
@@ -17,12 +17,12 @@ function findDrawer() {
 export default function AdminMobileNavigation() {
   const { activeLabel, navigate } = useAdminUi()
   const [open, setOpen] = useState(false)
-  const [section, setSection] = useState(activeLabel || 'Admin Center')
+  const [laoraSection, setLaoraSection] = useState(() => laoraSectionLabel())
   const [mobile, setMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches)
   const menuButtonRef = useRef(null)
   const wasOpenRef = useRef(false)
-
-  useEffect(() => setSection(activeLabel || 'Admin Center'), [activeLabel])
+  const isLaora = Boolean(document.querySelector('.la-admin'))
+  const section = isLaora ? laoraSection : (activeLabel || 'Admin Center')
 
   useEffect(() => {
     const media = window.matchMedia(MOBILE_QUERY)
@@ -39,11 +39,11 @@ export default function AdminMobileNavigation() {
     const onNavigation = event => {
       const button = event.target.closest?.('.ecosystem-sidebar nav button, .la-admin aside nav button')
       if (!button) return
-      if (button.closest('.la-admin')) setSection(button.textContent?.trim() || 'Admin Center')
+      if (button.closest('.la-admin')) setLaoraSection(button.textContent?.trim() || 'Admin Center')
       setOpen(false)
     }
     const onPopState = () => {
-      if (document.querySelector('.la-admin')) window.requestAnimationFrame(() => setSection(laoraSectionLabel()))
+      if (document.querySelector('.la-admin')) window.requestAnimationFrame(() => setLaoraSection(laoraSectionLabel()))
       setOpen(false)
     }
 
@@ -122,7 +122,6 @@ export default function AdminMobileNavigation() {
 
   if (!mobile) return null
 
-  const isLaora = Boolean(document.querySelector('.la-admin'))
   const goHome = event => {
     if (isLaora) return
     event.preventDefault()
