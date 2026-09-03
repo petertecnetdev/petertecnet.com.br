@@ -53,7 +53,7 @@ function normalizePath(path) {
   return normalized || '/'
 }
 
-export function updatePageSeo({ title, description, path = '/', image, type = 'website', robots, schema } = {}) {
+export function updatePageSeo({ title, description, path = '/', image, type = 'website', robots, schema, keywords } = {}) {
   const normalizedPath = normalizePath(path)
   const canonical = `${PUBLIC_ORIGIN}${normalizedPath === '/' ? '/' : normalizedPath}`
   const pageTitle = title || 'Peter Tecnet | Software, automação, APIs e produtos digitais'
@@ -63,6 +63,7 @@ export function updatePageSeo({ title, description, path = '/', image, type = 'w
   document.title = pageTitle
   upsertCanonical(canonical)
   upsertMeta('meta[name="description"]', { name: 'description', content: pageDescription })
+  if (Array.isArray(keywords) && keywords.length) upsertMeta('meta[name="keywords"]', { name: 'keywords', content: keywords.join(', ') })
   upsertMeta('meta[name="robots"]', { name: 'robots', content: robots || 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' })
   upsertMeta('meta[name="author"]', { name: 'author', content: 'Peter Tecnet' })
   upsertMeta('meta[property="og:type"]', { property: 'og:type', content: type })
@@ -86,7 +87,9 @@ export function applySeoPolicy() {
   const isSolution = /^\/solucoes\/[^/]+$/.test(path)
   const isPlatform = /^\/plataformas\/[^/]+$/.test(path)
   const isBlog = path === '/blog' || /^\/blog\/[^/]+$/.test(path)
-  const isPublic = isLanding || isSolution || isPlatform || isBlog
+  const isBusiness = /^\/empresas\/[^/]+$/.test(path)
+  const isCategory = /^\/catalogo\/[^/]+$/.test(path)
+  const isPublic = isLanding || isSolution || isPlatform || isBlog || isBusiness || isCategory
 
   upsertMeta('meta[name="robots"]', {
     name: 'robots',
