@@ -28,7 +28,7 @@ jobs:
           : > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
 
-      - name: Inspect granular privileges
+      - name: Inspect HTTPS routing
         shell: bash
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
@@ -37,31 +37,33 @@ jobs:
         run: |
           set -euo pipefail
           port="${VPS_PORT:-22}"
-          cat > "$RUNNER_TEMP/granular-probe.sh" <<'REMOTE'
+          cat > "$RUNNER_TEMP/https-probe.sh" <<'REMOTE'
           set -u
-          echo '===== ID ====='
-          id
-          echo '===== SUDO RULES ====='
-          sudo -n -l 2>&1 || true
-          echo '===== NGINX TOP-LEVEL CONFIG ====='
-          sed -n '1,220p' /etc/nginx/nginx.conf 2>/dev/null || true
-          echo '===== NGINX DIRECTORY ACLS / PERMISSIONS ====='
-          namei -l /etc/nginx/sites-available 2>/dev/null || true
-          namei -l /etc/nginx/sites-enabled 2>/dev/null || true
-          getfacl -p /etc/nginx /etc/nginx/sites-available /etc/nginx/sites-enabled 2>/dev/null || true
-          echo '===== WRITABLE NGINX-RELATED PATHS ====='
-          find /etc/nginx /usr/local/etc/nginx /var/www -maxdepth 3 -type d -writable -print 2>/dev/null | head -n 200 || true
-          echo '===== PRIVILEGED / DEPLOY HELPERS ====='
-          find /usr/local/bin /usr/local/sbin /opt /home -maxdepth 4 -type f \( -iname '*nginx*' -o -iname '*cert*' -o -iname '*deploy*' -o -iname '*site*' -o -iname '*vhost*' \) -ls 2>/dev/null | head -n 300 || true
-          echo '===== SYSTEMD USER / TIMERS ====='
-          systemctl --user list-unit-files 2>/dev/null | head -n 200 || true
-          systemctl list-timers --all 2>/dev/null | head -n 120 || true
-          echo '===== CERTBOT CERTIFICATES READABLE NAMES ====='
-          ls -la /etc/letsencrypt/live 2>/dev/null || true
+          DOMAIN="locaio.petertecnet.com.br"
+          echo '===== TLS CERTIFICATE PRESENTED FOR LOCAIO SNI ====='
+          timeout 15 openssl s_client -connect 127.0.0.1:443 -servername "$DOMAIN" -showcerts </dev/null 2>/tmp/sclient.err | openssl x509 -noout -subject -issuer -dates -ext subjectAltName 2>&1 || true
+          echo '--- s_client stderr ---'
+          cat /tmp/sclient.err 2>/dev/null || true
+
+          echo '===== HTTPS RESPONSE USING LOCAIO SNI ====='
+          curl -k -sS -D /tmp/https-headers.txt -o /tmp/https-body.txt --max-time 15 --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/" || true
+          cat /tmp/https-headers.txt 2>/dev/null || true
+          echo '--- body prefix ---'
+          head -c 1600 /tmp/https-body.txt 2>/dev/null || true
+          echo
+
+          echo '===== API VHOST CONTENT (READ-ONLY) ====='
+          sed -n '1,260p' /etc/nginx/sites-enabled/api.petertecnet.com.br 2>/dev/null || true
+          echo '===== FIRST SSL VHOSTS BY NGINX GLOB ORDER ====='
+          for file in /etc/nginx/sites-enabled/*; do
+            grep -q 'listen .*443' "$file" 2>/dev/null || continue
+            echo "--- $file ---"
+            grep -E 'server_name|listen .*443|ssl_certificate|root |proxy_pass' "$file" 2>/dev/null || true
+          done
           REMOTE
 
           for attempt in 1 2 3 4 5; do
-            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15 -o ConnectionAttempts=1 -p "$port" "$VPS_USER@$VPS_HOST" 'bash -s' < "$RUNNER_TEMP/granular-probe.sh"; then
+            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15 -o ConnectionAttempts=1 -p "$port" "$VPS_USER@$VPS_HOST" 'bash -s' < "$RUNNER_TEMP/https-probe.sh"; then
               exit 0
             fi
             sleep $((3 + attempt * 2))
