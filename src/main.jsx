@@ -14,6 +14,7 @@ import AdminProductivityBridge from './AdminProductivityBridge.jsx'
 import AdminHomeBridge from './AdminHomeBridge.jsx'
 import AdminDeepLinkBridge from './AdminDeepLinkBridge.jsx'
 import { installGlobalImageFallbacks } from './utils/imageFallback.js'
+import { installPasswordVisibilityToggles } from './utils/passwordVisibility.js'
 import './AdminMobileNavigation.css'
 import './AdminDesktop.css'
 import './AdminProductivityBridge.css'
@@ -30,6 +31,7 @@ if (adminToken && !ecosystemToken) localStorage.setItem('token', adminToken)
 if (ecosystemToken && !adminToken) localStorage.setItem('petertecnet_admin_token', ecosystemToken)
 
 installGlobalImageFallbacks()
+installPasswordVisibilityToggles()
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 const isAccountAccess = path === '/account/activate' || path === '/account/password/reset'
