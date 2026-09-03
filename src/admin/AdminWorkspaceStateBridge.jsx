@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { normalizeAdminPath } from './AdminNavigationConfig.js'
 import { ADMIN_BEFORE_NAVIGATE_EVENT, ADMIN_NAVIGATION_CHANGED_EVENT } from './AdminUiEvents.js'
 
-const STORAGE_KEY = 'petertecnet:admin-workspace-state:v1'
+const STORAGE_KEY = 'petertecnet:admin-workspace-state:v2'
 const FILTER_SELECTOR = [
   '.filter-grid input',
   '.filter-grid select',
@@ -13,6 +13,9 @@ const FILTER_SELECTOR = [
   '[data-admin-persist-state] select',
   '[data-admin-persist-state] textarea',
 ].join(',')
+const PAGINATION_SELECTOR = '.pagination, [data-admin-pagination]'
+const ACTIVE_PAGE_SELECTOR = '[aria-current="page"], button.active, a.active, [data-page].active'
+const PAGE_CONTROL_SELECTOR = 'button, a, [data-page]'
 
 function readStore() {
   try {
@@ -24,7 +27,9 @@ function readStore() {
 
 function writeStore(store) {
   try {
-    const entries = Object.entries(store).slice(-30)
+    const entries = Object.entries(store)
+      .sort(([, a], [, b]) => Number(a?.savedAt || 0) - Number(b?.savedAt || 0))
+      .slice(-30)
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(entries)))
   } catch {
     // State persistence must never block the Admin Center.
@@ -58,6 +63,17 @@ function captureFields() {
     }))
 }
 
+function capturePagination() {
+  return [...document.querySelectorAll(PAGINATION_SELECTOR)].map((container, index) => {
+    const active = container.querySelector(ACTIVE_PAGE_SELECTOR)
+    if (!active) return null
+    return {
+      index,
+      page: active.dataset.page || active.getAttribute('aria-label') || active.textContent?.trim() || '',
+    }
+  }).filter(entry => entry?.page)
+}
+
 function nativeSetValue(element, value) {
   const prototype = Object.getPrototypeOf(element)
   const descriptor = Object.getOwnPropertyDescriptor(prototype, 'value')
@@ -88,6 +104,25 @@ function restoreFields(fields = []) {
   })
 }
 
+function restorePagination(savedPages = []) {
+  if (!savedPages.length) return
+  const containers = [...document.querySelectorAll(PAGINATION_SELECTOR)]
+
+  savedPages.forEach(saved => {
+    const container = containers[saved.index]
+    if (!container) return
+    const active = container.querySelector(ACTIVE_PAGE_SELECTOR)
+    const activePage = active?.dataset.page || active?.getAttribute('aria-label') || active?.textContent?.trim() || ''
+    if (String(activePage) === String(saved.page)) return
+
+    const target = [...container.querySelectorAll(PAGE_CONTROL_SELECTOR)].find(control => {
+      const page = control.dataset.page || control.getAttribute('aria-label') || control.textContent?.trim() || ''
+      return String(page) === String(saved.page)
+    })
+    if (target && !target.disabled && target.getAttribute('aria-disabled') !== 'true') target.click()
+  })
+}
+
 function savePath(pathname = window.location.pathname) {
   const path = normalizeAdminPath(pathname)
   const store = readStore()
@@ -95,6 +130,7 @@ function savePath(pathname = window.location.pathname) {
     scrollY: Math.max(0, window.scrollY || 0),
     mainScrollTop: Math.max(0, document.querySelector('.admin-persistent-main')?.scrollTop || 0),
     fields: captureFields(),
+    pagination: capturePagination(),
     savedAt: Date.now(),
   }
   writeStore(store)
@@ -106,6 +142,7 @@ function restorePath(pathname = window.location.pathname) {
   if (!state) return
 
   restoreFields(state.fields)
+  restorePagination(state.pagination)
   const main = document.querySelector('.admin-persistent-main')
   if (main && Number.isFinite(state.mainScrollTop)) main.scrollTop = state.mainScrollTop
   if (Number.isFinite(state.scrollY)) window.scrollTo({ top: state.scrollY, left: 0, behavior: 'auto' })
@@ -130,12 +167,13 @@ export default function AdminWorkspaceStateBridge() {
     const onNavigationChanged = () => queueRestore()
     const onPageHide = () => savePath()
     const onInteraction = event => {
-      if (event.target?.matches?.(FILTER_SELECTOR)) queueSave()
+      if (event.target?.matches?.(FILTER_SELECTOR) || event.target?.closest?.(PAGINATION_SELECTOR)) queueSave()
     }
 
     queueRestore()
     document.addEventListener('input', onInteraction, true)
     document.addEventListener('change', onInteraction, true)
+    document.addEventListener('click', onInteraction, true)
     window.addEventListener('scroll', queueSave, { passive: true })
     window.addEventListener('pagehide', onPageHide)
     window.addEventListener(ADMIN_BEFORE_NAVIGATE_EVENT, onBeforeNavigate)
@@ -146,6 +184,7 @@ export default function AdminWorkspaceStateBridge() {
       window.cancelAnimationFrame(restoreFrame)
       document.removeEventListener('input', onInteraction, true)
       document.removeEventListener('change', onInteraction, true)
+      document.removeEventListener('click', onInteraction, true)
       window.removeEventListener('scroll', queueSave)
       window.removeEventListener('pagehide', onPageHide)
       window.removeEventListener(ADMIN_BEFORE_NAVIGATE_EVENT, onBeforeNavigate)
