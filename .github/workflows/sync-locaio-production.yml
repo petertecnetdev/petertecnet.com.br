@@ -1,0 +1,87 @@
+name: Sync Locaio Production
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/15 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-locaio-production
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Configure SSH
+        shell: bash
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          : > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Synchronize frontend when main changes
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          port="${VPS_PORT:-22}"
+          cat > "$RUNNER_TEMP/sync-locaio.sh" <<'REMOTE'
+          set -Eeuo pipefail
+          APP_DIR="/var/www/locaio.petertecnet.com.br"
+          DOMAIN="locaio.petertecnet.com.br"
+
+          [[ -d "$APP_DIR/.git" ]] || { echo "Locaio ainda não foi provisionado. Execute ops/bootstrap-vps.sh como root uma única vez." >&2; exit 20; }
+          [[ -w "$APP_DIR" ]] || { echo "$APP_DIR não é gravável pelo usuário de deploy." >&2; exit 21; }
+
+          exec 9>/tmp/petertecnet-vps-deploy.lock
+          flock -w 1800 9
+
+          git -C "$APP_DIR" fetch --prune origin main
+          current="$(git -C "$APP_DIR" rev-parse HEAD)"
+          target="$(git -C "$APP_DIR" rev-parse origin/main)"
+          if [[ "$current" == "$target" && -f "$APP_DIR/dist/index.html" ]]; then
+            echo "Locaio já está atualizado em $current"
+          else
+            echo "Atualizando Locaio: $current -> $target"
+            git -C "$APP_DIR" checkout main
+            git -C "$APP_DIR" reset --hard "$target"
+            cd "$APP_DIR"
+            export CI=true
+            export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=4096}"
+            if [[ -f package-lock.json ]]; then
+              npm ci --no-audit --no-fund || npm install --no-audit --no-fund --package-lock=false
+            else
+              npm install --no-audit --no-fund --package-lock=false
+            fi
+            npm run build
+            test -f dist/index.html
+            grep -Fq 'Locaio' dist/index.html
+          fi
+
+          html="$(curl --fail --silent --show-error --location --max-time 20 "https://$DOMAIN/")"
+          grep -Fq 'Locaio | Gestão de imóveis, contratos e aluguéis' <<<"$html"
+          echo "Locaio production healthy at $(git -C "$APP_DIR" rev-parse HEAD)"
+          REMOTE
+
+          for attempt in 1 2 3 4 5; do
+            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15 -o ConnectionAttempts=1 -o ServerAliveInterval=30 -o ServerAliveCountMax=8 -p "$port" "$VPS_USER@$VPS_HOST" 'bash -s' < "$RUNNER_TEMP/sync-locaio.sh"; then
+              exit 0
+            fi
+            status=$?
+            [[ "$status" -ne 255 ]] && exit "$status"
+            sleep $((5 + attempt * 3))
+          done
+          exit 255
