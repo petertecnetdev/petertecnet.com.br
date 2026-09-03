@@ -1,0 +1,97 @@
+name: Diagnose Locaio VHost
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/diagnose-locaio-vhost.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Configure SSH
+        shell: bash
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          : > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Inspect Locaio routing on VPS
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          port="${VPS_PORT:-22}"
+          cat > "$RUNNER_TEMP/diagnose-locaio.sh" <<'REMOTE'
+          set -u
+          DOMAIN="locaio.petertecnet.com.br"
+          APP_DIR="/var/www/locaio.petertecnet.com.br"
+
+          echo '===== IDENTITY / PRIVILEGES ====='
+          id
+          printf 'sudo-nopasswd='; if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then echo yes; else echo no; fi
+          printf 'nginx-site-dir-writable='; [[ -w /etc/nginx/sites-available ]] && echo yes || echo no
+          printf 'nginx-enabled-dir-writable='; [[ -w /etc/nginx/sites-enabled ]] && echo yes || echo no
+
+          echo '===== APP DIR ====='
+          ls -ld /var/www "$APP_DIR" 2>&1 || true
+          readlink -f "$APP_DIR" 2>/dev/null || true
+          if [[ -d "$APP_DIR/.git" ]]; then
+            git -C "$APP_DIR" remote -v || true
+            git -C "$APP_DIR" rev-parse --abbrev-ref HEAD || true
+            git -C "$APP_DIR" rev-parse HEAD || true
+          fi
+          find "$APP_DIR" -maxdepth 2 -type f \( -name index.html -o -name artisan -o -name package.json -o -name composer.json \) -print 2>/dev/null || true
+
+          echo '===== NGINX FILE REFERENCES ====='
+          matches="$(grep -RIl --exclude='*.pem' --exclude='*.key' "$DOMAIN" /etc/nginx 2>/dev/null || true)"
+          if [[ -z "$matches" ]]; then
+            echo 'No explicit loca io server_name reference found.'
+          else
+            while IFS= read -r file; do
+              [[ -n "$file" ]] || continue
+              echo "--- $file ---"
+              ls -l "$file" 2>/dev/null || true
+              sed -n '1,220p' "$file" 2>/dev/null || true
+            done <<< "$matches"
+          fi
+
+          echo '===== ENABLED SITES ====='
+          ls -la /etc/nginx/sites-enabled 2>/dev/null || true
+
+          echo '===== SERVER NAMES / ROOTS / PROXIES ====='
+          grep -RHE '^[[:space:]]*(server_name|root|proxy_pass|listen)[[:space:]]' /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null || true
+
+          echo '===== LOCAL HOST CHECK ====='
+          curl -sS -D /tmp/locaio-headers.txt -o /tmp/locaio-body.txt --max-time 10 -H "Host: $DOMAIN" http://127.0.0.1/ || true
+          cat /tmp/locaio-headers.txt 2>/dev/null || true
+          echo '--- body prefix ---'
+          head -c 1000 /tmp/locaio-body.txt 2>/dev/null || true
+          echo
+
+          echo '===== DNS FROM VPS ====='
+          getent ahosts "$DOMAIN" 2>/dev/null || true
+          REMOTE
+
+          for attempt in 1 2 3 4 5; do
+            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15 -o ConnectionAttempts=1 -p "$port" "$VPS_USER@$VPS_HOST" 'bash -s' < "$RUNNER_TEMP/diagnose-locaio.sh"; then
+              exit 0
+            fi
+            sleep $((3 + attempt * 2))
+          done
+          exit 1
