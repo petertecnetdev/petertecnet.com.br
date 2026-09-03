@@ -28,7 +28,7 @@ jobs:
           : > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
 
-      - name: Probe administrative SSH access
+      - name: Inspect granular privileges
         shell: bash
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
@@ -37,12 +37,33 @@ jobs:
         run: |
           set -euo pipefail
           port="${VPS_PORT:-22}"
-          echo 'Configured deploy identity:'
-          ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15 -p "$port" "$VPS_USER@$VPS_HOST" 'id; echo deploy-ok'
+          cat > "$RUNNER_TEMP/granular-probe.sh" <<'REMOTE'
+          set -u
+          echo '===== ID ====='
+          id
+          echo '===== SUDO RULES ====='
+          sudo -n -l 2>&1 || true
+          echo '===== NGINX TOP-LEVEL CONFIG ====='
+          sed -n '1,220p' /etc/nginx/nginx.conf 2>/dev/null || true
+          echo '===== NGINX DIRECTORY ACLS / PERMISSIONS ====='
+          namei -l /etc/nginx/sites-available 2>/dev/null || true
+          namei -l /etc/nginx/sites-enabled 2>/dev/null || true
+          getfacl -p /etc/nginx /etc/nginx/sites-available /etc/nginx/sites-enabled 2>/dev/null || true
+          echo '===== WRITABLE NGINX-RELATED PATHS ====='
+          find /etc/nginx /usr/local/etc/nginx /var/www -maxdepth 3 -type d -writable -print 2>/dev/null | head -n 200 || true
+          echo '===== PRIVILEGED / DEPLOY HELPERS ====='
+          find /usr/local/bin /usr/local/sbin /opt /home -maxdepth 4 -type f \( -iname '*nginx*' -o -iname '*cert*' -o -iname '*deploy*' -o -iname '*site*' -o -iname '*vhost*' \) -ls 2>/dev/null | head -n 300 || true
+          echo '===== SYSTEMD USER / TIMERS ====='
+          systemctl --user list-unit-files 2>/dev/null | head -n 200 || true
+          systemctl list-timers --all 2>/dev/null | head -n 120 || true
+          echo '===== CERTBOT CERTIFICATES READABLE NAMES ====='
+          ls -la /etc/letsencrypt/live 2>/dev/null || true
+          REMOTE
 
-          echo 'Root key probe:'
-          if ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15 -p "$port" "root@$VPS_HOST" 'id; echo root-ok'; then
-            echo 'ROOT_SSH_AVAILABLE=yes'
-          else
-            echo 'ROOT_SSH_AVAILABLE=no'
-          fi
+          for attempt in 1 2 3 4 5; do
+            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15 -o ConnectionAttempts=1 -p "$port" "$VPS_USER@$VPS_HOST" 'bash -s' < "$RUNNER_TEMP/granular-probe.sh"; then
+              exit 0
+            fi
+            sleep $((3 + attempt * 2))
+          done
+          exit 1
