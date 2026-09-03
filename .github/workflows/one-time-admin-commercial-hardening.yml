@@ -1,0 +1,174 @@
+name: One-time Admin Commercial Hardening
+
+on:
+  push:
+    branches:
+      - feat/admin-hardening-20260903
+    paths:
+      - .github/workflows/one-time-admin-commercial-hardening.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/admin-hardening-20260903
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Apply hardening patch
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          path = Path('src/AdminCommercialWorkspaceV2.jsx')
+          s = path.read_text()
+
+          def replace_once(old, new, label):
+              global s
+              count = s.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected 1 match, found {count}')
+              s = s.replace(old, new, 1)
+
+          replace_once(
+              "import { useCallback, useEffect, useMemo, useRef, useState } from 'react'\n",
+              "import { useCallback, useEffect, useMemo, useRef, useState } from 'react'\nimport { useCommercialOnboardingSession } from './commercial/useCommercialOnboardingSession.js'\n",
+              'session hook import',
+          )
+
+          replace_once(
+              "  name: '', fantasy: '', cnpj: '', type: '', category: '', phone: '', email: '', description: '',\n",
+              "  name: '', fantasy: '', cnpj: '', tax_id: '', country_code: 'BR', type: '', category: '', phone: '', email: '', description: '',\n",
+              'generic tax fields',
+          )
+
+          replace_once(
+              "    cnpj: formatDocument(item?.cnpj || ''),\n",
+              "    cnpj: formatDocument(item?.tax_id || item?.cnpj || ''),\n    tax_id: item?.tax_id || digits(item?.cnpj || ''),\n    country_code: item?.country_code || 'BR',\n",
+              'tax normalization',
+          )
+
+          old_load = """      const [appsData, usersData, establishmentsData, itemsData] = await Promise.all([\n        apiRequest('/admin/applications'),\n        apiRequest('/admin/ecosystem/users'),\n        apiRequest('/admin/ecosystem/establishments'),\n        apiRequest('/admin/ecosystem/items'),\n      ])\n      setApplications(appsData?.applications || [])\n      setUsers(usersData?.users || [])\n      setEstablishments(establishmentsData?.establishments || [])\n      setItems(itemsData?.items || itemsData?.data || [])\n"""
+          new_load = """      const context = await apiRequest('/admin/ecosystem/operations/context')\n      setApplications(context?.applications || [])\n      setUsers(context?.users || [])\n      setEstablishments(context?.establishments || [])\n      setItems(context?.items || context?.data || [])\n"""
+          replace_once(old_load, new_load, 'least privilege workspace context')
+
+          refs = """  const establishmentSnapshot = useRef(serialize(emptyEstablishment))\n  const itemSnapshot = useRef(serialize(emptyItem))\n\n"""
+          session_block = """  const establishmentSnapshot = useRef(serialize(emptyEstablishment))\n  const itemSnapshot = useRef(serialize(emptyItem))\n\n  const onboardingState = useMemo(() => ({\n    guidedStep,\n    guided,\n    mode,\n    establishmentForm: guidedActive && mode === 'establishments' ? establishmentForm : null,\n    itemForm: guidedActive && mode === 'items' ? itemForm : null,\n  }), [guidedStep, guided, mode, guidedActive, establishmentForm, itemForm])\n\n  const onboardingSession = useCommercialOnboardingSession({\n    enabled: open,\n    active: guidedActive,\n    state: onboardingState,\n    apiRequest,\n  })\n\n"""
+          replace_once(refs, session_block, 'onboarding session state')
+
+          old_duplicate = """    const search = cnpj.length >= 11 ? formatDocument(cnpj) : email.includes('@') ? email : phone.length >= 10 ? formatPhone(phone) : name.length >= 5 ? name : ''\n    if (!search) {\n      setRemoteDuplicates([])\n      return undefined\n    }\n    const timer = window.setTimeout(async () => {\n      try {\n        const result = await apiRequest(`/admin/ecosystem/establishments?search=${encodeURIComponent(search)}`)\n        setRemoteDuplicates((result?.establishments || []).filter(item => Number(item.id) !== Number(establishmentId)))\n      } catch {\n        setRemoteDuplicates([])\n      }\n    }, 450)\n"""
+          new_duplicate = """    const hasSignal = cnpj.length >= 11 || email.includes('@') || phone.length >= 10 || name.length >= 5\n    if (!hasSignal) {\n      setRemoteDuplicates([])\n      return undefined\n    }\n    const timer = window.setTimeout(async () => {\n      try {\n        const result = await apiRequest('/admin/ecosystem/establishment-duplicates', {\n          method: 'POST',\n          body: JSON.stringify({\n            name: name || null,\n            tax_id: cnpj || null,\n            country_code: 'BR',\n            phone: phone || null,\n            email: email.includes('@') ? email : null,\n            exclude_id: establishmentId || null,\n            limit: 5,\n          }),\n        })\n        setRemoteDuplicates((result?.matches || []).map(match => ({\n          ...(match.establishment || {}),\n          __duplicate_score: Number(match.score || 0),\n          __duplicate_reasons: match.reasons || [],\n        })))\n      } catch {\n        setRemoteDuplicates([])\n      }\n    }, 450)\n"""
+          replace_once(old_duplicate, new_duplicate, 'server duplicate detector')
+
+          start = s.index('  const duplicateMatches = useMemo(() => {')
+          end = s.index('\n\n  function resetMessages()', start)
+          replacement = """  const duplicateMatches = useMemo(() => remoteDuplicates.slice(0, 5), [remoteDuplicates])\n\n  const exactDocumentDuplicate = duplicateMatches.some(item => Number(item.__duplicate_score) === 100 || (digits(item.cnpj || item.tax_id) && digits(item.cnpj || item.tax_id) === digits(establishmentForm.cnpj)))"""
+          s = s[:start] + replacement + s[end:]
+
+          replace_once(
+              "      fantasy: clean(establishmentForm.fantasy), cnpj: clean(establishmentForm.cnpj), type: clean(establishmentForm.type), category: clean(establishmentForm.category),\n",
+              "      fantasy: clean(establishmentForm.fantasy), cnpj: digits(establishmentForm.cnpj) || null, tax_id: digits(establishmentForm.cnpj) || null, country_code: 'BR', type: clean(establishmentForm.type), category: clean(establishmentForm.category),\n",
+              'tax request body',
+          )
+
+          replace_once(
+              "      const result = await apiRequest(`/admin/ecosystem/establishments${establishmentId ? `/${establishmentId}` : ''}`, {\n",
+              "      const result = await apiRequest(`/admin/ecosystem/operations/establishments${establishmentId ? `/${establishmentId}` : ''}`, {\n",
+              'establishment operation endpoint',
+          )
+
+          replace_once(
+              "      const refreshed = await apiRequest('/admin/ecosystem/establishments')\n      const refreshedEstablishments = refreshed?.establishments || []\n      setEstablishments(refreshedEstablishments)\n",
+              "      const refreshed = await apiRequest('/admin/ecosystem/operations/context')\n      const refreshedEstablishments = refreshed?.establishments || []\n      setEstablishments(refreshedEstablishments)\n      setItems(refreshed?.items || [])\n      setUsers(refreshed?.users || [])\n      setApplications(refreshed?.applications || [])\n",
+              'establishment refresh context',
+          )
+
+          replace_once(
+              "    formData.append('is_primary', '1')\n",
+              "",
+              'primary flag handled by API',
+          )
+          replace_once(
+              "    const upload = await apiRequest('/file', { method: 'POST', body: formData })\n",
+              "    const upload = await apiRequest('/admin/ecosystem/files/primary', { method: 'POST', body: formData })\n",
+              'transactional primary upload',
+          )
+
+          replace_once(
+              "      const result = await apiRequest(`/admin/ecosystem/items${itemId ? `/${itemId}` : ''}`, { method: itemId ? 'PUT' : 'POST', body: JSON.stringify(body) })\n",
+              "      const result = await apiRequest(`/admin/ecosystem/operations/items${itemId ? `/${itemId}` : ''}`, { method: itemId ? 'PUT' : 'POST', body: JSON.stringify(body) })\n",
+              'item operation endpoint',
+          )
+          replace_once(
+              "        const imageUpdate = await apiRequest(`/admin/ecosystem/items/${savedItem.id}`, { method: 'PUT', body: JSON.stringify({ image }) })\n",
+              "        const imageUpdate = await apiRequest(`/admin/ecosystem/operations/items/${savedItem.id}`, { method: 'PUT', body: JSON.stringify({ image }) })\n",
+              'item image operation endpoint',
+          )
+          replace_once(
+              "      const refreshed = await apiRequest('/admin/ecosystem/items')\n      const refreshedItems = refreshed?.items || refreshed?.data || []\n      setItems(refreshedItems)\n",
+              "      const refreshed = await apiRequest('/admin/ecosystem/operations/context')\n      const refreshedItems = refreshed?.items || refreshed?.data || []\n      setItems(refreshedItems)\n      setEstablishments(refreshed?.establishments || [])\n      setUsers(refreshed?.users || [])\n      setApplications(refreshed?.applications || [])\n",
+              'item refresh context',
+          )
+
+          replace_once(
+              "        const updated = await apiRequest(`/admin/ecosystem/users/${createdUser.id}`, {\n",
+              "        const updated = await apiRequest(`/admin/ecosystem/operations/users/${createdUser.id}/identity`, {\n",
+              'limited customer identity endpoint',
+          )
+          replace_once(
+              "      const usersResult = await apiRequest('/admin/ecosystem/users')\n      const nextUsers = usersResult?.users || []\n      setUsers(nextUsers)\n",
+              "      const context = await apiRequest('/admin/ecosystem/operations/context')\n      const nextUsers = context?.users || []\n      setUsers(nextUsers)\n      setEstablishments(context?.establishments || [])\n      setItems(context?.items || [])\n      setApplications(context?.applications || [])\n",
+              'quick user refresh context',
+          )
+
+          old_begin = """  function beginGuided() {\n    if (!confirmDiscard()) return\n    setGuidedActive(true)\n"""
+          new_begin = """  async function beginGuided() {\n    if (!confirmDiscard()) return\n    await onboardingSession.startFresh()\n    setGuidedActive(true)\n"""
+          replace_once(old_begin, new_begin, 'start fresh onboarding session')
+
+          old_finish = """  function finishGuided() {\n    setFinalized(true)\n    setSuccess('Atendimento concluído. Usuário, empresa e catálogo inicial ficaram preparados.')\n    setGuidedActive(false)\n  }\n\n"""
+          new_finish = """  async function finishGuided() {\n    const synced = await onboardingSession.complete()\n    setFinalized(true)\n    setSuccess(synced ? 'Atendimento concluído. Usuário, empresa e catálogo inicial ficaram preparados e a sessão foi encerrada.' : 'Atendimento concluído localmente. A API não confirmou o encerramento da sessão; ela poderá expirar automaticamente.')\n    setGuidedActive(false)\n  }\n\n  function restoreGuidedSession() {\n    const state = onboardingSession.restore()\n    if (!state) return setError('Não foi possível recuperar os dados do atendimento.')\n    setGuidedActive(true)\n    setFinalized(false)\n    setGuidedStep(Number(state.guidedStep || 0))\n    setGuided({ user_id: '', app_id: '', establishment_id: '', item_ids: [], ...(state.guided || {}) })\n    setMode(state.mode || 'guided')\n    if (state.establishmentForm) setEstablishmentForm({ ...emptyEstablishment, ...state.establishmentForm })\n    if (state.itemForm) setItemForm({ ...emptyItem, ...state.itemForm })\n    setSuccess('Atendimento recuperado. Campos de imagem precisam ser selecionados novamente por segurança do navegador.')\n  }\n\n  async function abandonGuidedSession() {\n    await onboardingSession.abandon()\n    setGuidedActive(false)\n    setFinalized(false)\n    setGuidedStep(0)\n    setGuided({ user_id: '', app_id: '', establishment_id: '', item_ids: [] })\n    setMode('guided')\n    setSuccess('Atendimento incompleto descartado.')\n  }\n\n"""
+          replace_once(old_finish, new_finish, 'finish and recovery actions')
+
+          replace_once(
+              "      await apiRequest(`/admin/ecosystem/establishments/${guidedEstablishment.id}`, {\n",
+              "      await apiRequest(`/admin/ecosystem/operations/establishments/${guidedEstablishment.id}`, {\n",
+              'guided application operation endpoint',
+          )
+          replace_once(
+              "      const refreshed = await apiRequest('/admin/ecosystem/establishments')\n      setEstablishments(refreshed?.establishments || [])\n",
+              "      const refreshed = await apiRequest('/admin/ecosystem/operations/context')\n      setEstablishments(refreshed?.establishments || [])\n      setItems(refreshed?.items || [])\n",
+              'guided application refresh context',
+          )
+
+          old_reason = """  function duplicateReason(item) {\n    const reasons = []\n    if (digits(establishmentForm.cnpj) && digits(item.cnpj) === digits(establishmentForm.cnpj)) reasons.push('mesmo documento')\n    if (digits(establishmentForm.phone).length >= 10 && digits(item.phone) === digits(establishmentForm.phone)) reasons.push('mesmo telefone')\n    if (establishmentForm.email && String(item.email || '').toLocaleLowerCase('pt-BR') === String(establishmentForm.email).toLocaleLowerCase('pt-BR')) reasons.push('mesmo e-mail')\n    if (nameSimilarity(item.name || item.fantasy, establishmentForm.name) >= 0.72) reasons.push('nome semelhante')\n    return reasons.join(', ')\n  }\n"""
+          new_reason = """  function duplicateReason(item) {\n    const labels = { same_tax_id: 'mesmo documento', same_phone: 'mesmo telefone', same_email: 'mesmo e-mail', similar_name: 'nome semelhante' }\n    const reasons = (item.__duplicate_reasons || []).map(reason => labels[reason] || reason)\n    const detail = reasons.length ? reasons.join(', ') : 'possível duplicidade'\n    return item.__duplicate_score ? `${item.__duplicate_score}% · ${detail}` : detail\n  }\n"""
+          replace_once(old_reason, new_reason, 'duplicate score display')
+
+          old_empty = """          {!guidedActive && !finalized && <div className=\"aco-guided-empty\"><span>◎</span><h3>Atendimento comercial em uma única sequência</h3><p>O colaborador não precisa entender a estrutura interna do ecossistema. O assistente conduz o cadastro e reutiliza os módulos genéricos já existentes.</p><button type=\"button\" onClick={beginGuided}>Iniciar novo atendimento</button></div>}\n"""
+          new_empty = """          {!guidedActive && !finalized && <div className=\"aco-guided-empty\"><span>◎</span><h3>Atendimento comercial em uma única sequência</h3><p>O colaborador não precisa entender a estrutura interna do ecossistema. O assistente conduz o cadastro e reutiliza os módulos genéricos já existentes.</p>{onboardingSession.recoverable && <div className=\"aco-recovery-card\"><b>Atendimento incompleto encontrado</b><small>{onboardingSession.recoverable.subject_user?.email || onboardingSession.recoverable.state?.guided?.user_id ? `Etapa ${(onboardingSession.recoverable.current_step ?? onboardingSession.recoverable.state?.guidedStep ?? 0) + 1} de 5` : 'Dados recuperáveis disponíveis'}</small><div><button type=\"button\" onClick={restoreGuidedSession}>Continuar atendimento</button><button type=\"button\" className=\"aco-secondary-action\" onClick={abandonGuidedSession}>Descartar</button></div></div>}<button type=\"button\" onClick={beginGuided}>Iniciar novo atendimento</button></div>}\n"""
+          replace_once(old_empty, new_empty, 'recovery UI')
+
+          stepper = """          <div className=\"aco-guided-stepper\" aria-label=\"Etapas do atendimento\">{guidedStepLabels.map((label, index) => <button type=\"button\" key={label} className={index === guidedStep ? 'is-current' : index < guidedStep ? 'is-done' : ''} disabled={!guidedActive && !finalized} onClick={() => guidedActive && index <= guidedStep && setGuidedStep(index)}><b>{index < guidedStep ? '✓' : index + 1}</b><span>{label}</span></button>)}</div>\n\n"""
+          session_status = stepper + """          {guidedActive && <div className=\"aco-session-status\" role=\"status\"><span>{onboardingSession.syncStatus === 'syncing' ? 'Sincronizando atendimento…' : onboardingSession.syncStatus === 'local' ? 'Salvo neste aparelho; sincronização remota pendente' : 'Atendimento salvo automaticamente'}</span><button type=\"button\" onClick={abandonGuidedSession}>Abandonar atendimento</button></div>}\n\n"""
+          replace_once(stepper, session_status, 'session sync status')
+
+          path.write_text(s)
+          PY
+
+          npm ci
+          npm run lint
+          npm run build
+
+          git config user.name "Peter Tecnet"
+          git config user.email "petertecnet@gmail.com"
+          git add src/AdminCommercialWorkspaceV2.jsx
+          git commit -m "feat(admin): connect commercial hardening APIs and recovery"
+          git push origin HEAD:feat/admin-hardening-20260903
