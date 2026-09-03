@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "oxlint",
     "test:ecosystem": "node scripts/validate-ecosystem-sdk.mjs",
+    "test:admin-ui": "node scripts/validate-admin-browser.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
