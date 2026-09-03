@@ -10,6 +10,7 @@ import PeterAccountGateway from './components/PeterAccountGateway.jsx'
 import AdminMobileNavigation from './components/AdminMobileNavigation.jsx'
 import AdminEstablishmentMediaBridge from './AdminEstablishmentMedia.jsx'
 import './AdminMobileNavigation.css'
+import './AdminDesktop.css'
 
 const API_BASE_URL = 'https://api.petertecnet.com.br/api'
 const APP_SLUG = 'peter-tecnet'
