@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCommercialOnboardingSession } from './commercial/useCommercialOnboardingSession.js'
 
 const API = 'https://api.petertecnet.com.br/api'
 const API_ORIGIN = 'https://api.petertecnet.com.br'
@@ -8,7 +9,7 @@ const OPTIMIZED_IMAGE_MAX_WIDTH = 1600
 const OPTIMIZED_IMAGE_MAX_HEIGHT = 1200
 
 const emptyEstablishment = {
-  name: '', fantasy: '', cnpj: '', type: '', category: '', phone: '', email: '', description: '',
+  name: '', fantasy: '', cnpj: '', tax_id: '', country_code: 'BR', type: '', category: '', phone: '', email: '', description: '',
   city: '', uf: '', cep: '', address: '', website_url: '', instagram_url: '', user_id: '', app_id: '', app_ids: [],
   is_published: true, is_approved: true, is_featured: false, is_cancelled: false,
 }
@@ -148,7 +149,9 @@ function normalizeEstablishment(item) {
   return {
     ...emptyEstablishment,
     ...item,
-    cnpj: formatDocument(item?.cnpj || ''),
+    cnpj: formatDocument(item?.tax_id || item?.cnpj || ''),
+    tax_id: item?.tax_id || digits(item?.cnpj || ''),
+    country_code: item?.country_code || 'BR',
     phone: formatPhone(item?.phone || ''),
     cep: formatCep(item?.cep || ''),
     user_id: item?.user_id || item?.user?.id || '',
@@ -399,20 +402,30 @@ export default function AdminCommercialWorkspaceV2() {
   const establishmentSnapshot = useRef(serialize(emptyEstablishment))
   const itemSnapshot = useRef(serialize(emptyItem))
 
+  const onboardingState = useMemo(() => ({
+    guidedStep,
+    guided,
+    mode,
+    establishmentForm: guidedActive && mode === 'establishments' ? establishmentForm : null,
+    itemForm: guidedActive && mode === 'items' ? itemForm : null,
+  }), [guidedStep, guided, mode, guidedActive, establishmentForm, itemForm])
+
+  const onboardingSession = useCommercialOnboardingSession({
+    enabled: open,
+    active: guidedActive,
+    state: onboardingState,
+    apiRequest,
+  })
+
   const loadWorkspace = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
-      const [appsData, usersData, establishmentsData, itemsData] = await Promise.all([
-        apiRequest('/admin/applications'),
-        apiRequest('/admin/ecosystem/users'),
-        apiRequest('/admin/ecosystem/establishments'),
-        apiRequest('/admin/ecosystem/items'),
-      ])
-      setApplications(appsData?.applications || [])
-      setUsers(usersData?.users || [])
-      setEstablishments(establishmentsData?.establishments || [])
-      setItems(itemsData?.items || itemsData?.data || [])
+      const context = await apiRequest('/admin/ecosystem/operations/context')
+      setApplications(context?.applications || [])
+      setUsers(context?.users || [])
+      setEstablishments(context?.establishments || [])
+      setItems(context?.items || context?.data || [])
     } catch (requestError) {
       setError(requestError.message)
     } finally {
@@ -500,15 +513,30 @@ export default function AdminCommercialWorkspaceV2() {
     const phone = digits(establishmentForm.phone)
     const email = String(establishmentForm.email || '').trim().toLocaleLowerCase('pt-BR')
     const name = String(establishmentForm.name || '').trim()
-    const search = cnpj.length >= 11 ? formatDocument(cnpj) : email.includes('@') ? email : phone.length >= 10 ? formatPhone(phone) : name.length >= 5 ? name : ''
-    if (!search) {
+    const hasSignal = cnpj.length >= 11 || email.includes('@') || phone.length >= 10 || name.length >= 5
+    if (!hasSignal) {
       setRemoteDuplicates([])
       return undefined
     }
     const timer = window.setTimeout(async () => {
       try {
-        const result = await apiRequest(`/admin/ecosystem/establishments?search=${encodeURIComponent(search)}`)
-        setRemoteDuplicates((result?.establishments || []).filter(item => Number(item.id) !== Number(establishmentId)))
+        const result = await apiRequest('/admin/ecosystem/establishment-duplicates', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: name || null,
+            tax_id: cnpj || null,
+            country_code: 'BR',
+            phone: phone || null,
+            email: email.includes('@') ? email : null,
+            exclude_id: establishmentId || null,
+            limit: 5,
+          }),
+        })
+        setRemoteDuplicates((result?.matches || []).map(match => ({
+          ...(match.establishment || {}),
+          __duplicate_score: Number(match.score || 0),
+          __duplicate_reasons: match.reasons || [],
+        })))
       } catch {
         setRemoteDuplicates([])
       }
@@ -544,25 +572,9 @@ export default function AdminCommercialWorkspaceV2() {
   const establishmentCompletion = useMemo(() => completeness(establishmentForm, establishmentItems.length), [establishmentForm, establishmentItems.length])
   const guidedCompletion = useMemo(() => completeness(guidedEstablishment || {}, guidedItems.length), [guidedEstablishment, guidedItems.length])
 
-  const duplicateMatches = useMemo(() => {
-    const cnpj = digits(establishmentForm.cnpj)
-    const phone = digits(establishmentForm.phone)
-    const email = String(establishmentForm.email || '').trim().toLocaleLowerCase('pt-BR')
-    const name = establishmentForm.name
-    const combined = [...establishments, ...remoteDuplicates]
-    const seen = new Set()
-    return combined.filter(item => {
-      if (!item?.id || Number(item.id) === Number(establishmentId) || seen.has(Number(item.id))) return false
-      seen.add(Number(item.id))
-      const exactCnpj = cnpj.length >= 11 && digits(item.cnpj) === cnpj
-      const exactPhone = phone.length >= 10 && digits(item.phone) === phone
-      const exactEmail = email && String(item.email || '').trim().toLocaleLowerCase('pt-BR') === email
-      const similarName = String(name || '').trim().length >= 5 && nameSimilarity(item.name || item.fantasy, name) >= 0.72
-      return exactCnpj || exactPhone || exactEmail || similarName
-    }).slice(0, 5)
-  }, [establishments, remoteDuplicates, establishmentId, establishmentForm.cnpj, establishmentForm.phone, establishmentForm.email, establishmentForm.name])
+  const duplicateMatches = useMemo(() => remoteDuplicates.slice(0, 5), [remoteDuplicates])
 
-  const exactDocumentDuplicate = duplicateMatches.some(item => digits(item.cnpj) && digits(item.cnpj) === digits(establishmentForm.cnpj))
+  const exactDocumentDuplicate = duplicateMatches.some(item => Number(item.__duplicate_score) === 100 || (digits(item.cnpj || item.tax_id) && digits(item.cnpj || item.tax_id) === digits(establishmentForm.cnpj)))
 
   function resetMessages() {
     setError('')
@@ -640,7 +652,7 @@ export default function AdminCommercialWorkspaceV2() {
 
     const body = {
       name: establishmentForm.name.trim(),
-      fantasy: clean(establishmentForm.fantasy), cnpj: clean(establishmentForm.cnpj), type: clean(establishmentForm.type), category: clean(establishmentForm.category),
+      fantasy: clean(establishmentForm.fantasy), cnpj: digits(establishmentForm.cnpj) || null, tax_id: digits(establishmentForm.cnpj) || null, country_code: 'BR', type: clean(establishmentForm.type), category: clean(establishmentForm.category),
       phone: clean(establishmentForm.phone), email: clean(establishmentForm.email), description: clean(establishmentForm.description), city: clean(establishmentForm.city),
       uf: clean(establishmentForm.uf)?.toUpperCase() || null, cep: clean(establishmentForm.cep), address: clean(establishmentForm.address),
       website_url: clean(establishmentForm.website_url), instagram_url: clean(establishmentForm.instagram_url), user_id: Number(establishmentForm.user_id),
@@ -650,13 +662,16 @@ export default function AdminCommercialWorkspaceV2() {
 
     setSaving(true)
     try {
-      const result = await apiRequest(`/admin/ecosystem/establishments${establishmentId ? `/${establishmentId}` : ''}`, {
+      const result = await apiRequest(`/admin/ecosystem/operations/establishments${establishmentId ? `/${establishmentId}` : ''}`, {
         method: establishmentId ? 'PUT' : 'POST', body: JSON.stringify(body),
       })
       const saved = result?.establishment
-      const refreshed = await apiRequest('/admin/ecosystem/establishments')
+      const refreshed = await apiRequest('/admin/ecosystem/operations/context')
       const refreshedEstablishments = refreshed?.establishments || []
       setEstablishments(refreshedEstablishments)
+      setItems(refreshed?.items || [])
+      setUsers(refreshed?.users || [])
+      setApplications(refreshed?.applications || [])
       if (saved?.id) {
         const fresh = refreshedEstablishments.find(item => Number(item.id) === Number(saved.id)) || saved
         const normalized = normalizeEstablishment(fresh)
@@ -745,10 +760,9 @@ export default function AdminCommercialWorkspaceV2() {
     formData.append('entity_id', String(item.id))
     formData.append('entity_name', 'item')
     formData.append('group', 'cover')
-    formData.append('is_primary', '1')
     formData.append('visibility', 'public')
     formData.append('file', photoFile)
-    const upload = await apiRequest('/file', { method: 'POST', body: formData })
+    const upload = await apiRequest('/admin/ecosystem/files/primary', { method: 'POST', body: formData })
     const publicUrl = absoluteAssetUrl(upload?.file?.public_url)
     if (!publicUrl) throw new Error('A foto foi enviada, mas a API não retornou a URL pública do arquivo.')
     return publicUrl
@@ -780,18 +794,21 @@ export default function AdminCommercialWorkspaceV2() {
 
     setSaving(true)
     try {
-      const result = await apiRequest(`/admin/ecosystem/items${itemId ? `/${itemId}` : ''}`, { method: itemId ? 'PUT' : 'POST', body: JSON.stringify(body) })
+      const result = await apiRequest(`/admin/ecosystem/operations/items${itemId ? `/${itemId}` : ''}`, { method: itemId ? 'PUT' : 'POST', body: JSON.stringify(body) })
       let savedItem = result?.item
       if (!savedItem?.id) throw new Error('A API não retornou o item salvo.')
       setItemId(savedItem.id)
       if (photoFile) {
         const image = await uploadItemPhoto(savedItem, appId)
-        const imageUpdate = await apiRequest(`/admin/ecosystem/items/${savedItem.id}`, { method: 'PUT', body: JSON.stringify({ image }) })
+        const imageUpdate = await apiRequest(`/admin/ecosystem/operations/items/${savedItem.id}`, { method: 'PUT', body: JSON.stringify({ image }) })
         savedItem = imageUpdate?.item || { ...savedItem, image }
       }
-      const refreshed = await apiRequest('/admin/ecosystem/items')
+      const refreshed = await apiRequest('/admin/ecosystem/operations/context')
       const refreshedItems = refreshed?.items || refreshed?.data || []
       setItems(refreshedItems)
+      setEstablishments(refreshed?.establishments || [])
+      setUsers(refreshed?.users || [])
+      setApplications(refreshed?.applications || [])
       setSuccess(itemId ? 'Item atualizado com sucesso.' : 'Item cadastrado com sucesso.')
       if (guidedActive) {
         setGuided(current => ({ ...current, item_ids: [...new Set([...(current.item_ids || []), Number(savedItem.id)])] }))
@@ -838,15 +855,18 @@ export default function AdminCommercialWorkspaceV2() {
       if (!createdUser?.id) throw new Error('A API não retornou o usuário preparado.')
       if (onboarding.created_user && quickUser.name.trim()) {
         const names = splitName(quickUser.name)
-        const updated = await apiRequest(`/admin/ecosystem/users/${createdUser.id}`, {
+        const updated = await apiRequest(`/admin/ecosystem/operations/users/${createdUser.id}/identity`, {
           method: 'PUT',
           body: JSON.stringify(names),
         })
         createdUser = updated?.user || createdUser
       }
-      const usersResult = await apiRequest('/admin/ecosystem/users')
-      const nextUsers = usersResult?.users || []
+      const context = await apiRequest('/admin/ecosystem/operations/context')
+      const nextUsers = context?.users || []
       setUsers(nextUsers)
+      setEstablishments(context?.establishments || [])
+      setItems(context?.items || [])
+      setApplications(context?.applications || [])
       setEstablishmentForm(current => ({
         ...current,
         user_id: Number(createdUser.id),
@@ -865,8 +885,9 @@ export default function AdminCommercialWorkspaceV2() {
     }
   }
 
-  function beginGuided() {
+  async function beginGuided() {
     if (!confirmDiscard()) return
+    await onboardingSession.startFresh()
     setGuidedActive(true)
     setFinalized(false)
     setGuidedStep(0)
@@ -908,12 +929,13 @@ export default function AdminCommercialWorkspaceV2() {
     setSaving(true)
     resetMessages()
     try {
-      await apiRequest(`/admin/ecosystem/establishments/${guidedEstablishment.id}`, {
+      await apiRequest(`/admin/ecosystem/operations/establishments/${guidedEstablishment.id}`, {
         method: 'PUT',
         body: JSON.stringify({ app_id: primaryAppId, app_ids: ids }),
       })
-      const refreshed = await apiRequest('/admin/ecosystem/establishments')
+      const refreshed = await apiRequest('/admin/ecosystem/operations/context')
       setEstablishments(refreshed?.establishments || [])
+      setItems(refreshed?.items || [])
       setGuided(current => ({ ...current, app_id: primaryAppId }))
       setGuidedStep(3)
       setSuccess('Aplicações confirmadas. Agora cadastre os produtos ou serviços.')
@@ -942,10 +964,34 @@ export default function AdminCommercialWorkspaceV2() {
     setMode('items')
   }
 
-  function finishGuided() {
+  async function finishGuided() {
+    const synced = await onboardingSession.complete()
     setFinalized(true)
-    setSuccess('Atendimento concluído. Usuário, empresa e catálogo inicial ficaram preparados.')
+    setSuccess(synced ? 'Atendimento concluído. Usuário, empresa e catálogo inicial ficaram preparados e a sessão foi encerrada.' : 'Atendimento concluído localmente. A API não confirmou o encerramento da sessão; ela poderá expirar automaticamente.')
     setGuidedActive(false)
+  }
+
+  function restoreGuidedSession() {
+    const state = onboardingSession.restore()
+    if (!state) return setError('Não foi possível recuperar os dados do atendimento.')
+    setGuidedActive(true)
+    setFinalized(false)
+    setGuidedStep(Number(state.guidedStep || 0))
+    setGuided({ user_id: '', app_id: '', establishment_id: '', item_ids: [], ...(state.guided || {}) })
+    setMode(state.mode || 'guided')
+    if (state.establishmentForm) setEstablishmentForm({ ...emptyEstablishment, ...state.establishmentForm })
+    if (state.itemForm) setItemForm({ ...emptyItem, ...state.itemForm })
+    setSuccess('Atendimento recuperado. Campos de imagem precisam ser selecionados novamente por segurança do navegador.')
+  }
+
+  async function abandonGuidedSession() {
+    await onboardingSession.abandon()
+    setGuidedActive(false)
+    setFinalized(false)
+    setGuidedStep(0)
+    setGuided({ user_id: '', app_id: '', establishment_id: '', item_ids: [] })
+    setMode('guided')
+    setSuccess('Atendimento incompleto descartado.')
   }
 
   function openWorkspace(nextMode = 'guided') {
@@ -959,12 +1005,10 @@ export default function AdminCommercialWorkspaceV2() {
   }
 
   function duplicateReason(item) {
-    const reasons = []
-    if (digits(establishmentForm.cnpj) && digits(item.cnpj) === digits(establishmentForm.cnpj)) reasons.push('mesmo documento')
-    if (digits(establishmentForm.phone).length >= 10 && digits(item.phone) === digits(establishmentForm.phone)) reasons.push('mesmo telefone')
-    if (establishmentForm.email && String(item.email || '').toLocaleLowerCase('pt-BR') === String(establishmentForm.email).toLocaleLowerCase('pt-BR')) reasons.push('mesmo e-mail')
-    if (nameSimilarity(item.name || item.fantasy, establishmentForm.name) >= 0.72) reasons.push('nome semelhante')
-    return reasons.join(', ')
+    const labels = { same_tax_id: 'mesmo documento', same_phone: 'mesmo telefone', same_email: 'mesmo e-mail', similar_name: 'nome semelhante' }
+    const reasons = (item.__duplicate_reasons || []).map(reason => labels[reason] || reason)
+    const detail = reasons.length ? reasons.join(', ') : 'possível duplicidade'
+    return item.__duplicate_score ? `${item.__duplicate_score}% · ${detail}` : detail
   }
 
   const establishmentValidationHints = {
@@ -1000,7 +1044,9 @@ export default function AdminCommercialWorkspaceV2() {
         {!loading && mode === 'guided' && <div className="aco-guided-wrap">
           <div className="aco-guided-stepper" aria-label="Etapas do atendimento">{guidedStepLabels.map((label, index) => <button type="button" key={label} className={index === guidedStep ? 'is-current' : index < guidedStep ? 'is-done' : ''} disabled={!guidedActive && !finalized} onClick={() => guidedActive && index <= guidedStep && setGuidedStep(index)}><b>{index < guidedStep ? '✓' : index + 1}</b><span>{label}</span></button>)}</div>
 
-          {!guidedActive && !finalized && <div className="aco-guided-empty"><span>◎</span><h3>Atendimento comercial em uma única sequência</h3><p>O colaborador não precisa entender a estrutura interna do ecossistema. O assistente conduz o cadastro e reutiliza os módulos genéricos já existentes.</p><button type="button" onClick={beginGuided}>Iniciar novo atendimento</button></div>}
+          {guidedActive && <div className="aco-session-status" role="status"><span>{onboardingSession.syncStatus === 'syncing' ? 'Sincronizando atendimento…' : onboardingSession.syncStatus === 'local' ? 'Salvo neste aparelho; sincronização remota pendente' : 'Atendimento salvo automaticamente'}</span><button type="button" onClick={abandonGuidedSession}>Abandonar atendimento</button></div>}
+
+          {!guidedActive && !finalized && <div className="aco-guided-empty"><span>◎</span><h3>Atendimento comercial em uma única sequência</h3><p>O colaborador não precisa entender a estrutura interna do ecossistema. O assistente conduz o cadastro e reutiliza os módulos genéricos já existentes.</p>{onboardingSession.recoverable && <div className="aco-recovery-card"><b>Atendimento incompleto encontrado</b><small>{onboardingSession.recoverable.subject_user?.email || onboardingSession.recoverable.state?.guided?.user_id ? `Etapa ${(onboardingSession.recoverable.current_step ?? onboardingSession.recoverable.state?.guidedStep ?? 0) + 1} de 5` : 'Dados recuperáveis disponíveis'}</small><div><button type="button" onClick={restoreGuidedSession}>Continuar atendimento</button><button type="button" className="aco-secondary-action" onClick={abandonGuidedSession}>Descartar</button></div></div>}<button type="button" onClick={beginGuided}>Iniciar novo atendimento</button></div>}
 
           {finalized && !guidedActive && <div className="aco-guided-empty is-success"><span>✓</span><h3>Atendimento concluído</h3><p>O cliente foi preparado e o histórico permaneceu registrado. Você pode iniciar outro atendimento quando quiser.</p><button type="button" onClick={beginGuided}>Novo atendimento</button></div>}
 
