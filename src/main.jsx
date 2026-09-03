@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import './seo.js'
 import PeterAccountGateway from './components/PeterAccountGateway.jsx'
-import { installWebVitals } from './discoveryApi.js'
+import { installAccessibilityAudit, installWebVitals } from './discoveryApi.js'
 import { installGlobalImageFallbacks } from './utils/imageFallback.js'
 import { installPasswordVisibilityToggles } from './utils/passwordVisibility.js'
 
@@ -30,7 +30,10 @@ const isAdmin = path === '/admin' || path.startsWith('/admin/')
 const isLogin = path === '/login'
 const isMarketing = !isAdmin && !isLogin && !isAccountAccess
 
-if (isMarketing) installWebVitals(APP_SLUG)
+if (isMarketing) {
+  installWebVitals(APP_SLUG)
+  installAccessibilityAudit(APP_SLUG)
+}
 
 const lazyFallback = <main style={{ minHeight: '70vh', display: 'grid', placeItems: 'center', background: '#02090d', color: '#e9fbff' }}><p>Carregando experiência…</p></main>
 
