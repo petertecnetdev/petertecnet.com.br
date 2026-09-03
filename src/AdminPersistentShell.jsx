@@ -12,6 +12,18 @@ export default function AdminPersistentShell({ activeKey, children }) {
     if (current?.label) document.title = `${current.label} · Admin Center · Peter Tecnet`
   }, [current?.label])
 
+  useEffect(() => {
+    const nav = document.querySelector('.admin-persistent-sidebar nav')
+    const active = nav?.querySelector(`[data-admin-route="${resolvedActiveKey}"]`)
+    if (!nav || !active || nav.scrollHeight <= nav.clientHeight) return
+
+    const top = active.offsetTop
+    const bottom = top + active.offsetHeight
+    if (top < nav.scrollTop || bottom > nav.scrollTop + nav.clientHeight) {
+      nav.scrollTo({ top: Math.max(0, top - nav.clientHeight / 3), behavior: 'smooth' })
+    }
+  }, [resolvedActiveKey])
+
   const grouped = ADMIN_GROUP_ORDER.map(group => ({
     group,
     items: ADMIN_TABS.filter(item => item.group === group),
