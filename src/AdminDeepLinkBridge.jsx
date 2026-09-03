@@ -1,20 +1,10 @@
 import { useEffect, useRef } from 'react'
+import { requestAdminNavigation } from './admin/AdminUiContext.jsx'
 import './AdminDeepLinkBridge.css'
 
 const API = 'https://api.petertecnet.com.br/api'
 const normalizePath = path => (path || '/').replace(/\/+$/, '') || '/'
 const token = () => localStorage.getItem('token') || localStorage.getItem('petertecnet_admin_token')
-
-const NAV_LABELS = {
-  users: 'Usuários',
-  establishments: 'Estabelecimentos',
-  items: 'Itens',
-  command: 'Mission Control',
-}
-
-function navButton(key) {
-  return document.querySelector(`.ecosystem-sidebar nav button[data-admin-tab="${key}"]`) || [...document.querySelectorAll('.ecosystem-sidebar nav button')].find(button => button.textContent.trim().includes(NAV_LABELS[key]))
-}
 
 async function waitFor(getter, timeout = 7000) {
   const start = Date.now()
@@ -26,6 +16,13 @@ async function waitFor(getter, timeout = 7000) {
     }
     tick()
   })
+}
+
+async function activateTab(key) {
+  requestAdminNavigation(key, { preservePath: true })
+  const button = await waitFor(() => document.querySelector(`.ecosystem-sidebar nav button[data-admin-tab="${key}"]`))
+  if (button && !button.classList.contains('active')) button.click()
+  return button
 }
 
 function replacePath(path) {
@@ -51,7 +48,7 @@ export default function AdminDeepLinkBridge() {
   async function recoverUser(id, deepPath) {
     recovering.current = true
     const payload = await fetchUser(id)
-    navButton('users')?.click()
+    await activateTab('users')
     const email = payload?.user?.email
     const card = await waitFor(() => email ? [...document.querySelectorAll('.ecosystem-main .user-card')].find(item => item.textContent.includes(email)) : null)
     const details = card && [...card.querySelectorAll('button')].find(button => /detalhes/i.test(button.textContent))
@@ -63,7 +60,7 @@ export default function AdminDeepLinkBridge() {
 
   async function recoverEstablishment(id, deepPath) {
     recovering.current = true
-    navButton('establishments')?.click()
+    await activateTab('establishments')
     const row = await waitFor(() => rowById(id))
     const edit = row && [...row.querySelectorAll('button')].find(button => /editar dados/i.test(button.textContent))
     edit?.click()
@@ -74,7 +71,7 @@ export default function AdminDeepLinkBridge() {
 
   async function recoverItem(id, deepPath) {
     recovering.current = true
-    navButton('items')?.click()
+    await activateTab('items')
     const row = await waitFor(() => rowById(id))
     document.querySelectorAll('.admin-deeplink-focus').forEach(item => item.classList.remove('admin-deeplink-focus'))
     if (row) {
@@ -87,10 +84,10 @@ export default function AdminDeepLinkBridge() {
 
   async function recoverMission(section, deepPath) {
     recovering.current = true
-    navButton('command')?.click()
-    const wanted = { incidents: 'Incidentes', security: 'Segurança', queues: 'Filas & runtime', search: 'Busca global' }[section]
-    if (wanted) {
-      const button = await waitFor(() => [...document.querySelectorAll('.cc-toolbar nav button')].find(item => item.textContent.trim() === wanted))
+    await activateTab('command')
+    const sectionIndex = { incidents: 1, security: 2, queues: 3, search: 4 }[section]
+    if (Number.isInteger(sectionIndex)) {
+      const button = await waitFor(() => document.querySelectorAll('.cc-toolbar nav button')[sectionIndex])
       button?.click()
     }
     replacePath(deepPath)
@@ -131,7 +128,9 @@ export default function AdminDeepLinkBridge() {
 
       const toolbar = event.target.closest?.('.cc-toolbar nav button')
       if (toolbar) {
-        const section = { 'Incidentes': 'incidents', 'Segurança': 'security', 'Filas & runtime': 'queues', 'Busca global': 'search', 'Operações': '' }[toolbar.textContent.trim()]
+        const buttons = [...toolbar.parentElement.querySelectorAll('button')]
+        const index = buttons.indexOf(toolbar)
+        const section = ['', 'incidents', 'security', 'queues', 'search'][index]
         if (section !== undefined) window.setTimeout(() => replacePath(section ? `/admin/mission-control/${section}` : '/admin/mission-control'), 20)
         return
       }
