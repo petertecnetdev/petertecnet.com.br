@@ -26,19 +26,31 @@ const defaultContact = {
 }
 
 const heroSignals = [
-  'catálogos digitais',
-  'automação de processos',
-  'APIs e integrações',
-  'agendamento online',
-  'eventos e ingressos',
-  'produtos digitais',
+  'desenvolvimento de software',
+  'criação de sites e landing pages',
+  'aplicativos sob medida',
+  'IA e automação',
+  'APIs, integrações e banco de dados',
+  'serviços digitais e documentos',
 ]
 
 const goalPaths = [
+  { label: 'Criar software, site ou aplicativo', detail: 'Desenvolvimento sob medida, landing pages, e-commerce, sistemas, APIs, integrações e IA.', href: '#catalogo' },
   { label: 'Vender e divulgar produtos', detail: 'Catálogo digital, páginas de itens, QR Codes e presença online.', slug: 'nexus' },
   { label: 'Organizar agenda e serviços', detail: 'Serviços, profissionais, recursos, disponibilidade e reservas.', slug: 'rasoio' },
   { label: 'Criar e operar eventos', detail: 'Eventos, ingressos, participantes, promoters e check-in.', slug: 'cutinapp' },
   { label: 'Acompanhar oportunidades', detail: 'Clientes, propostas, cobranças e follow-up comercial.', slug: 'payflow' },
+]
+
+const catalogHighlights = [
+  'Desenvolvimento de software',
+  'Sites e landing pages',
+  'Aplicativos',
+  'E-commerce',
+  'IA e automação',
+  'APIs e integrações',
+  'Banco de dados',
+  'Documentos e serviços digitais',
 ]
 
 const safeText = value => String(value || '').trim()
@@ -157,8 +169,8 @@ function CatalogCard({ item }) {
     <div className="mkt-catalog-body">
       <div className="mkt-catalog-meta"><span>{item.brand || item.subcategory || 'Peter Tecnet'}</span><strong>{formatCurrency(item.price)}</strong></div>
       <h3><a href={itemHref(item)}>{item.name}</a></h3>
-      <p>{item.description || 'Produto ou serviço disponível no catálogo digital Peter Tecnet.'}</p>
-      <a className="mkt-text-link" href={itemHref(item)}>Ver página do item <span>↗</span></a>
+      <p>{item.description || 'Produto ou serviço disponível no catálogo da Peter Tecnet.'}</p>
+      <a className="mkt-text-link" href={itemHref(item)}>Ver detalhes <span>↗</span></a>
     </div>
   </article>
 }
@@ -181,7 +193,7 @@ function BlogCard({ article, compact = false }) {
 }
 
 function LandingPage() {
-  const { applications, catalog, establishment, contact, status } = useMarketingData({ withCatalog: true })
+  const { applications, catalog, contact, status } = useMarketingData({ withCatalog: true })
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('todos')
   const [goal, setGoal] = useState(0)
@@ -189,15 +201,15 @@ function LandingPage() {
 
   useEffect(() => {
     updatePageSeo({
-      title: 'Peter Tecnet | Software, automação, APIs, catálogos e produtos digitais',
-      description: 'Encontre plataformas, software para empresas, catálogos digitais, automação de processos, APIs, integrações, agendamento online e soluções digitais da Peter Tecnet.',
+      title: 'Peter Tecnet | Desenvolvimento de software, sites, apps, IA e serviços de tecnologia',
+      description: 'Aplicativos e plataformas próprias, desenvolvimento de software, sites, landing pages, e-commerce, APIs, banco de dados, integrações, IA, automações e serviços digitais da Peter Tecnet.',
       path: '/',
       schema: {
         '@context': 'https://schema.org',
         '@type': 'WebPage',
-        name: 'Peter Tecnet — tecnologia para empresas e produtos digitais',
+        name: 'Peter Tecnet — software, aplicativos, sites, IA e serviços de tecnologia',
         url: `${ORIGIN}/`,
-        description: 'Ecossistema de plataformas, software, automações, APIs, catálogos e produtos digitais.',
+        description: 'Produtos, plataformas e serviços de tecnologia do básico ao avançado: software, aplicativos, sites, e-commerce, APIs, banco de dados, IA, automação e serviços digitais.',
         isPartOf: { '@id': `${ORIGIN}/#website` },
       },
     })
@@ -221,7 +233,7 @@ function LandingPage() {
   }, [catalog, category, query])
 
   const selectedGoal = goalPaths[goal]
-  const goalApp = applications.find(application => platformSlug(application) === selectedGoal.slug)
+  const goalApp = selectedGoal.slug ? applications.find(application => platformSlug(application) === selectedGoal.slug) : null
 
   return <PageChrome contact={contact}>
     <main>
@@ -231,33 +243,33 @@ function LandingPage() {
         <div className="mkt-container mkt-hero-layout">
           <div className="mkt-hero-copy" data-reveal>
             <p className="mkt-kicker"><span /> TECNOLOGIA PARA PROBLEMAS REAIS</p>
-            <h1>Transformamos necessidades em <em>produtos digitais que entram em operação.</em></h1>
-            <p className="mkt-hero-lead">Software para empresas, plataformas próprias, catálogos digitais, automações, APIs e integrações. Comece pelo problema que precisa resolver e descubra a ferramenta certa dentro do ecossistema.</p>
-            <div className="mkt-hero-actions"><a className="mkt-btn is-primary" href="#comece">Encontrar minha solução <span>↘</span></a><a className="mkt-btn is-ghost" href="#catalogo">Explorar catálogo <span>↗</span></a></div>
+            <h1>Tecnologia do básico ao avançado para <em>resolver o que você precisa.</em></h1>
+            <p className="mkt-hero-lead">Criamos software, aplicativos, sites, landing pages, e-commerce, APIs, bancos de dados, integrações, automações e soluções com IA. Também atendemos serviços digitais mais simples, documentos e demandas operacionais que podem ser resolvidas com tecnologia.</p>
+            <div className="mkt-hero-actions"><a className="mkt-btn is-primary" href="#comece">Encontrar minha solução <span>↘</span></a><a className="mkt-btn is-ghost" href="#catalogo">Explorar produtos e serviços <span>↗</span></a></div>
             <div className="mkt-live-query"><small>PESSOAS PROCURAM POR</small><strong key={heroSignals[signal]}>{heroSignals[signal]}</strong><span>_</span></div>
           </div>
 
           <aside className="mkt-command" data-reveal data-tilt aria-label="Visão do ecossistema Peter Tecnet">
             <div className="mkt-command-head"><span><i /> ECOSYSTEM / ONLINE</span><small>API CONNECTED</small></div>
             <div className="mkt-command-core"><div className="mkt-core-rings"><span /><span /><span /></div><img src="/petertecnetlogo.png" alt="Peter Tecnet" /></div>
-            <div className="mkt-command-stats"><div><strong>{status === 'success' ? applications.length : '—'}</strong><span>plataformas</span></div><div><strong>{status === 'success' ? catalog.length : '—'}</strong><span>itens públicos</span></div><div><strong>1</strong><span>ecossistema</span></div></div>
+            <div className="mkt-command-stats"><div><strong>{status === 'success' ? applications.length : '—'}</strong><span>plataformas</span></div><div><strong>{status === 'success' ? catalog.length : '—'}</strong><span>produtos e serviços</span></div><div><strong>1</strong><span>ecossistema</span></div></div>
             <div className="mkt-command-stream"><span>DISCOVER</span><b>→</b><span>CONNECT</span><b>→</b><span>OPERATE</span></div>
           </aside>
         </div>
-        <div className="mkt-marquee" aria-hidden="true"><div>SOFTWARE • AUTOMAÇÃO • API • INTEGRAÇÃO • CATÁLOGO DIGITAL • AGENDAMENTO • EVENTOS • PRODUTOS DIGITAIS • </div><div>SOFTWARE • AUTOMAÇÃO • API • INTEGRAÇÃO • CATÁLOGO DIGITAL • AGENDAMENTO • EVENTOS • PRODUTOS DIGITAIS • </div></div>
+        <div className="mkt-marquee" aria-hidden="true"><div>SOFTWARE • APLICATIVOS • SITES • LANDING PAGES • E-COMMERCE • IA • AUTOMAÇÃO • API • BANCO DE DADOS • INTEGRAÇÕES • SERVIÇOS DIGITAIS • </div><div>SOFTWARE • APLICATIVOS • SITES • LANDING PAGES • E-COMMERCE • IA • AUTOMAÇÃO • API • BANCO DE DADOS • INTEGRAÇÕES • SERVIÇOS DIGITAIS • </div></div>
       </section>
 
       <section className="mkt-goals" id="comece">
         <div className="mkt-container">
-          <div className="mkt-section-heading" data-reveal><p className="mkt-kicker">COMECE PELO OBJETIVO</p><h2>Não precisa decorar nome de aplicativo. <span>Diga o que quer melhorar.</span></h2><p>A landing agora funciona como um mapa do ecossistema: necessidade primeiro, produto depois.</p></div>
+          <div className="mkt-section-heading" data-reveal><p className="mkt-kicker">COMECE PELO QUE VOCÊ PRECISA</p><h2>Você pode precisar de uma plataforma pronta ou <span>de um serviço sob medida.</span></h2><p>Escolha o objetivo mais próximo da sua necessidade. A Peter Tecnet pode entregar uma ferramenta do ecossistema ou desenvolver e executar a solução necessária.</p></div>
           <div className="mkt-goal-layout" data-reveal>
-            <div className="mkt-goal-list">{goalPaths.map((item, index) => <button type="button" key={item.slug} className={goal === index ? 'is-active' : ''} onClick={() => setGoal(index)}><span>0{index + 1}</span><div><strong>{item.label}</strong><small>{item.detail}</small></div><b>↗</b></button>)}</div>
+            <div className="mkt-goal-list">{goalPaths.map((item, index) => <button type="button" key={item.slug || item.label} className={goal === index ? 'is-active' : ''} onClick={() => setGoal(index)}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{item.label}</strong><small>{item.detail}</small></div><b>↗</b></button>)}</div>
             <div className="mkt-goal-result">
-              <p className="mkt-card-eyebrow">Solução recomendada</p>
+              <p className="mkt-card-eyebrow">Caminho recomendado</p>
               <h3>{goalApp?.name || applicationSeo[selectedGoal.slug]?.eyebrow || selectedGoal.label}</h3>
               <p>{applicationSeo[selectedGoal.slug]?.headline || selectedGoal.detail}</p>
-              <div className="mkt-chip-row">{(applicationSeo[selectedGoal.slug]?.intents || []).map(intent => <span key={intent}>{intent}</span>)}</div>
-              <a className="mkt-btn is-primary" href={goalApp ? applicationHref(goalApp) : `/#plataformas`}>Ver solução <span>↗</span></a>
+              <div className="mkt-chip-row">{(applicationSeo[selectedGoal.slug]?.intents || catalogHighlights.slice(0, 4)).map(intent => <span key={intent}>{intent}</span>)}</div>
+              <a className="mkt-btn is-primary" href={goalApp ? applicationHref(goalApp) : selectedGoal.href || '/#catalogo'}>{goalApp ? 'Ver solução' : 'Explorar serviços'} <span>↗</span></a>
             </div>
           </div>
         </div>
@@ -265,7 +277,7 @@ function LandingPage() {
 
       <section className="mkt-platforms" id="plataformas">
         <div className="mkt-container">
-          <div className="mkt-section-heading is-split" data-reveal><div><p className="mkt-kicker">ECOSSISTEMA PETER TECNET</p><h2>Cada plataforma resolve uma parte. <span>A arquitetura conecta o todo.</span></h2></div><p>As plataformas têm páginas próprias, conteúdo específico e caminhos claros para o usuário — melhor para descoberta, compreensão do produto e mecanismos de busca.</p></div>
+          <div className="mkt-section-heading is-split" data-reveal><div><p className="mkt-kicker">ECOSSISTEMA PETER TECNET</p><h2>Cada plataforma resolve uma parte. <span>A arquitetura conecta o todo.</span></h2></div><p>Aplicativos e plataformas próprias são uma parte do que entregamos. Eles resolvem operações específicas e compartilham uma base tecnológica pensada para integração, evolução e reaproveitamento.</p></div>
           {status === 'loading' && <div className="mkt-state">Carregando plataformas conectadas à API…</div>}
           {applications.length > 0 && <div className="mkt-platform-grid">{applications.map((application, index) => <PlatformCard application={application} index={index} key={application.id || application.slug} />)}</div>}
           {status === 'error' && <div className="mkt-state">As plataformas não puderam ser carregadas agora. O conteúdo institucional continua disponível.</div>}
@@ -274,24 +286,25 @@ function LandingPage() {
 
       <section className="mkt-discovery" id="empresa">
         <div className="mkt-container">
-          <div className="mkt-section-heading is-split" data-reveal><div><p className="mkt-kicker">TECNOLOGIA QUE O CLIENTE CONSEGUE ENCONTRAR</p><h2>Conteúdo útil primeiro. <span>Palavras-chave entram com contexto.</span></h2></div><p>Em vez de uma página vaga sobre “tecnologia”, explicamos o que fazemos com termos que correspondem a problemas reais: software, catálogo digital, automação, APIs, integrações, agenda e operação.</p></div>
+          <div className="mkt-section-heading is-split" data-reveal><div><p className="mkt-kicker">DO BÁSICO AO AVANÇADO</p><h2>Uma empresa de tecnologia para <span>muito mais que software pronto.</span></h2></div><p>Atendemos desde tarefas digitais simples até projetos completos: formatação e criação de documentos, contratos e serviços online; sites, landing pages e e-commerce; sistemas, aplicativos, banco de dados, APIs, integrações, automações e inteligência artificial.</p></div>
           <div className="mkt-pillar-grid">{marketingPillars.map((pillar, index) => <article key={pillar.eyebrow} data-reveal><span>0{index + 1}</span><p className="mkt-card-eyebrow">{pillar.eyebrow}</p><h3>{pillar.title}</h3><p>{pillar.description}</p><div className="mkt-chip-row">{pillar.keywords.map(keyword => <span key={keyword}>{keyword}</span>)}</div></article>)}</div>
         </div>
       </section>
 
       <section className="mkt-catalog" id="catalogo">
         <div className="mkt-container">
-          <div className="mkt-section-heading is-split" data-reveal><div><p className="mkt-kicker">CATÁLOGO CONECTADO À API</p><h2>O item cadastrado vira <span>uma página que pode ser descoberta.</span></h2></div><p>{establishment?.description || 'Cada item público recebe endereço próprio, título baseado no nome, descrição, imagem e dados estruturados. Isso aproxima o cadastro operacional da presença digital.'}</p></div>
-          <div className="mkt-catalog-tools" data-reveal><label><span>⌕</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar produto, serviço, categoria ou marca…" aria-label="Buscar catálogo" /></label><div><button type="button" className={category === 'todos' ? 'is-active' : ''} onClick={() => setCategory('todos')}>Todos</button>{categories.map(itemCategory => <button type="button" className={category === itemCategory ? 'is-active' : ''} onClick={() => setCategory(itemCategory)} key={itemCategory}>{itemCategory}</button>)}</div></div>
-          {status === 'loading' && <div className="mkt-state">Consultando o catálogo público…</div>}
+          <div className="mkt-section-heading is-split" data-reveal><div><p className="mkt-kicker">CATÁLOGO PETER TECNET</p><h2>Conheça o que a Peter Tecnet <span>oferece de verdade.</span></h2></div><p>Esta é a nossa vitrine de produtos e serviços. Aqui entram desenvolvimento de software, sites, aplicativos, e-commerce, integrações, IA, banco de dados e também serviços digitais mais simples, como documentos e outras demandas tecnológicas. Os dados vêm da API central da Peter Tecnet; a Nexus é apenas uma das plataformas que também utiliza essa mesma base.</p></div>
+          <div className="mkt-chip-row is-large" data-reveal>{catalogHighlights.map(highlight => <span key={highlight}>{highlight}</span>)}</div>
+          <div className="mkt-catalog-tools" data-reveal><label><span>⌕</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar software, site, aplicativo, serviço, documento…" aria-label="Buscar produtos e serviços da Peter Tecnet" /></label><div><button type="button" className={category === 'todos' ? 'is-active' : ''} onClick={() => setCategory('todos')}>Todos</button>{categories.map(itemCategory => <button type="button" className={category === itemCategory ? 'is-active' : ''} onClick={() => setCategory(itemCategory)} key={itemCategory}>{itemCategory}</button>)}</div></div>
+          {status === 'loading' && <div className="mkt-state">Carregando produtos e serviços da Peter Tecnet…</div>}
           {status === 'success' && filtered.length > 0 && <div className="mkt-catalog-grid">{filtered.slice(0, 12).map(item => <CatalogCard item={item} key={item.id || item.slug} />)}</div>}
-          {status === 'success' && filtered.length === 0 && <div className="mkt-state">Nenhum item corresponde a essa busca.</div>}
+          {status === 'success' && filtered.length === 0 && <div className="mkt-state">Nenhum produto ou serviço corresponde a essa busca.</div>}
         </div>
       </section>
 
       <section className="mkt-blog-preview" id="conteudo">
         <div className="mkt-container">
-          <div className="mkt-section-heading is-split" data-reveal><div><p className="mkt-kicker">PETER TECNET / CONTEÚDO</p><h2>Um blog para responder dúvidas <span>antes da conversa comercial.</span></h2></div><p>Artigos ajudam quem está pesquisando um problema a conhecer a Peter Tecnet antes mesmo de saber qual plataforma procurar.</p></div>
+          <div className="mkt-section-heading is-split" data-reveal><div><p className="mkt-kicker">PETER TECNET / CONTEÚDO</p><h2>Um blog para responder dúvidas <span>antes da conversa comercial.</span></h2></div><p>Artigos ajudam quem está pesquisando um problema a conhecer a Peter Tecnet antes mesmo de saber qual plataforma ou serviço procurar.</p></div>
           <div className="mkt-blog-grid">{blogArticles.slice(0, 3).map(article => <BlogCard article={article} key={article.slug} compact />)}</div>
           <div className="mkt-section-action"><a className="mkt-btn is-ghost" href="/blog">Ver todos os artigos <span>↗</span></a></div>
         </div>
@@ -302,9 +315,9 @@ function LandingPage() {
         <div className="mkt-container mkt-conversion-inner" data-reveal>
           <div className="mkt-conversion-mark"><img src="/petertecnetlogo.png" alt="" /><span /><span /></div>
           <p className="mkt-kicker">PRÓXIMO PASSO</p>
-          <h2>Chegue procurando uma tecnologia. <span>Saia com um caminho de implementação.</span></h2>
-          <p>Use uma plataforma do ecossistema ou fale com a Peter Tecnet sobre software sob medida, integração, automação ou evolução de uma operação digital existente.</p>
-          <div className="mkt-hero-actions"><a className="mkt-btn is-primary" href={`mailto:${contact.email}?subject=${encodeURIComponent('Quero conversar sobre uma solução tecnológica')}`}>Falar com a Peter Tecnet <span>↗</span></a><a className="mkt-btn is-ghost" href="/blog">Explorar conteúdo <span>↗</span></a></div>
+          <h2>Do serviço digital simples ao sistema completo. <span>Se envolve tecnologia, buscamos um caminho.</span></h2>
+          <p>Use uma plataforma do ecossistema, contrate um item do catálogo ou fale com a Peter Tecnet sobre desenvolvimento sob medida, sites, aplicativos, documentos, integrações, automação, IA e evolução de uma operação digital existente.</p>
+          <div className="mkt-hero-actions"><a className="mkt-btn is-primary" href={`mailto:${contact.email}?subject=${encodeURIComponent('Quero conversar sobre um produto ou serviço da Peter Tecnet')}`}>Falar com a Peter Tecnet <span>↗</span></a><a className="mkt-btn is-ghost" href="#catalogo">Ver produtos e serviços <span>↗</span></a></div>
         </div>
       </section>
     </main>
@@ -436,7 +449,7 @@ function ProductPage({ identifier }) {
     }
     updatePageSeo({
       title: `${item.name} | ${item.category || item.type || 'Produto'} | Peter Tecnet`,
-      description: item.description || `${item.name}: conheça detalhes, categoria e disponibilidade no catálogo digital Peter Tecnet.`,
+      description: item.description || `${item.name}: conheça detalhes, categoria e disponibilidade no catálogo da Peter Tecnet.`,
       path: `/solucoes/${encodeURIComponent(identifier)}`,
       image,
       type: 'product',
@@ -469,20 +482,20 @@ function ProductPage({ identifier }) {
         <div className="mkt-container mkt-detail-layout">
           <div data-reveal>
             <div className="mkt-breadcrumb"><a href="/">Peter Tecnet</a><span>/</span><a href="/#catalogo">Catálogo</a><span>/</span><strong>{item.name}</strong></div>
-            <p className="mkt-kicker">{item.category || item.type || 'CATÁLOGO DIGITAL'}</p>
+            <p className="mkt-kicker">{item.category || item.type || 'PRODUTO OU SERVIÇO'}</p>
             <h1>{item.name}</h1>
-            <p className="mkt-detail-lead">{item.description || 'Produto ou serviço disponível no catálogo digital Peter Tecnet.'}</p>
+            <p className="mkt-detail-lead">{item.description || 'Produto ou serviço disponível no catálogo da Peter Tecnet.'}</p>
             <div className="mkt-product-price"><small>Valor</small><strong>{formatCurrency(item.price)}</strong></div>
             <div className="mkt-chip-row is-large">{[item.brand, item.category, item.subcategory].filter(Boolean).map(value => <span key={value}>{value}</span>)}</div>
             <div className="mkt-hero-actions"><a className="mkt-btn is-primary" href={`mailto:${contactEmail}?subject=${encodeURIComponent(`Interesse em ${item.name}`)}&body=${encodeURIComponent(`Olá, encontrei ${item.name} no catálogo da Peter Tecnet e quero saber mais.`)}`}>Tenho interesse <span>↗</span></a><a className="mkt-btn is-ghost" href="/#catalogo">Continuar no catálogo <span>↘</span></a></div>
           </div>
-          <div className="mkt-product-photo" data-reveal data-tilt><img src={image} alt={item.name} /><div><small>PUBLIC CATALOG</small><strong>{item.slug || `ITEM-${item.id}`}</strong></div></div>
+          <div className="mkt-product-photo" data-reveal data-tilt><img src={image} alt={item.name} /><div><small>PETER TECNET / CATALOG</small><strong>{item.slug || `ITEM-${item.id}`}</strong></div></div>
         </div>
       </section>
 
-      <section className="mkt-product-info"><div className="mkt-container mkt-product-info-grid"><div className="mkt-section-heading" data-reveal><p className="mkt-kicker">INFORMAÇÃO INDEXÁVEL E ÚTIL</p><h2>Uma página própria para <span>cada item do catálogo.</span></h2><p>Nome, descrição, categoria, preço, URL canônica e dados estruturados ajudam pessoas e mecanismos de busca a entender exatamente o que esta página oferece.</p></div><dl data-reveal>{item.type && <><dt>Tipo</dt><dd>{item.type}</dd></>}{item.category && <><dt>Categoria</dt><dd>{item.category}</dd></>}{item.subcategory && <><dt>Subcategoria</dt><dd>{item.subcategory}</dd></>}{item.brand && <><dt>Marca</dt><dd>{item.brand}</dd></>}{establishment?.name && <><dt>Estabelecimento</dt><dd>{establishment.fantasy || establishment.name}</dd></>}</dl></div></section>
+      <section className="mkt-product-info"><div className="mkt-container mkt-product-info-grid"><div className="mkt-section-heading" data-reveal><p className="mkt-kicker">DETALHES DA SOLUÇÃO</p><h2>Entenda o que está incluído <span>neste produto ou serviço.</span></h2><p>Aqui reunimos descrição, categoria, valor e informações úteis para você avaliar a solução e falar com a Peter Tecnet sabendo exatamente o que procura.</p></div><dl data-reveal>{item.type && <><dt>Tipo</dt><dd>{item.type}</dd></>}{item.category && <><dt>Categoria</dt><dd>{item.category}</dd></>}{item.subcategory && <><dt>Subcategoria</dt><dd>{item.subcategory}</dd></>}{item.brand && <><dt>Marca</dt><dd>{item.brand}</dd></>}{establishment?.name && <><dt>Responsável</dt><dd>{establishment.fantasy || establishment.name}</dd></>}</dl></div></section>
 
-      {otherItems.length > 0 && <section className="mkt-related-products"><div className="mkt-container"><div className="mkt-section-heading" data-reveal><p className="mkt-kicker">CONTINUE EXPLORANDO</p><h2>Outros itens do <span>mesmo catálogo.</span></h2></div><div className="mkt-catalog-grid">{otherItems.slice(0, 4).map(candidate => <CatalogCard item={candidate} key={candidate.id || candidate.slug} />)}</div></div></section>}
+      {otherItems.length > 0 && <section className="mkt-related-products"><div className="mkt-container"><div className="mkt-section-heading" data-reveal><p className="mkt-kicker">CONTINUE EXPLORANDO</p><h2>Outros produtos e serviços <span>da Peter Tecnet.</span></h2></div><div className="mkt-catalog-grid">{otherItems.slice(0, 4).map(candidate => <CatalogCard item={candidate} key={candidate.id || candidate.slug} />)}</div></div></section>}
     </main>
   </PageChrome>
 }
