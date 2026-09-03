@@ -6,6 +6,7 @@ export const ADMIN_TABS = [
   { key: 'applications', label: 'Aplicações', icon: '◇', path: '/admin/applications', group: 'Ecossistema' },
   { key: 'branding', label: 'Branding', icon: '✧', path: '/admin/branding', group: 'Ecossistema' },
   { key: 'content', label: 'Conteúdo e SEO', icon: '◫', path: '/admin/content', group: 'Negócio' },
+  { key: 'identity', label: 'Identidade e sessões', icon: '◈', path: '/admin/identity', group: 'Governança' },
   { key: 'users', label: 'Usuários', icon: '◉', path: '/admin/users', group: 'Governança' },
   { key: 'profiles', label: 'Perfis e permissões', icon: '⌗', path: '/admin/profiles', group: 'Governança' },
   { key: 'establishments', label: 'Estabelecimentos', icon: '⌂', path: '/admin/establishments', group: 'Negócio' },
@@ -26,6 +27,7 @@ export const ADMIN_ROUTE_ALIASES = {
   '/admin/applications': 'applications',
   '/admin/branding': 'branding',
   '/admin/content': 'content',
+  '/admin/identity': 'identity',
   '/admin/users': 'users',
   '/admin/profiles': 'profiles',
   '/admin/establishments': 'establishments',
@@ -45,6 +47,7 @@ export function adminTabFromLocation(pathname = window.location.pathname) {
   if (path.startsWith('/admin/establishments/')) return 'establishments'
   if (path.startsWith('/admin/items/')) return 'items'
   if (path.startsWith('/admin/content/')) return 'content'
+  if (path.startsWith('/admin/identity/')) return 'identity'
   if (path.startsWith('/admin/mission-control/')) return 'command'
   return 'command'
 }
