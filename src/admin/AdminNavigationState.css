@@ -21,3 +21,13 @@
   .admin-mobile-backdrop { z-index: var(--admin-z-backdrop) !important; }
   .ecosystem-sidebar, .la-admin aside { z-index: var(--admin-z-drawer) !important; }
 }
+
+@media (max-width: 430px) {
+  .metric-grid,
+  .metric-grid.three,
+  .cc-kpis,
+  .cc-kpis.three,
+  .finance-kpis {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
