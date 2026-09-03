@@ -1,0 +1,302 @@
+/* Peter Tecnet Admin Center — desktop visual system only.
+   Layout, breakpoints and responsive behavior belong to AdminExperience.css. */
+
+@media (min-width: 761px) {
+  .ecosystem-shell {
+    --admin-cyan: #35dff2;
+    --admin-green: #4ee0a1;
+    --admin-line: rgba(116, 217, 234, .11);
+    --admin-shadow-soft: 0 16px 44px rgba(0, 0, 0, .16);
+  }
+
+  .ecosystem-shell::before {
+    content: '';
+    position: fixed;
+    inset: 0 0 0 var(--admin-sidebar-width, 240px);
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(113, 225, 241, .018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(113, 225, 241, .014) 1px, transparent 1px);
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,.58), transparent 82%);
+  }
+
+  .ecosystem-shell::after {
+    content: '';
+    position: fixed;
+    right: -210px;
+    top: 18vh;
+    z-index: -1;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(53, 223, 242, .055), transparent 66%);
+  }
+
+  .ecosystem-sidebar {
+    backdrop-filter: blur(22px) saturate(125%);
+    -webkit-backdrop-filter: blur(22px) saturate(125%);
+  }
+
+  .ecosystem-brand img {
+    padding: 4px;
+    border: 1px solid rgba(91, 226, 244, .14);
+    background: linear-gradient(145deg, rgba(46, 205, 231, .08), rgba(255,255,255,.018));
+    filter: drop-shadow(0 9px 20px rgba(38, 211, 235, .14));
+  }
+
+  .ecosystem-sidebar nav {
+    position: relative;
+  }
+
+  .ecosystem-sidebar nav::before {
+    content: 'CENTRAL DE OPERAÇÕES';
+    position: absolute;
+    color: #45626b;
+    font-size: 7px;
+    font-weight: 900;
+    letter-spacing: .18em;
+  }
+
+  .ecosystem-sidebar nav button {
+    position: relative;
+    display: grid !important;
+    align-items: center;
+    border: 1px solid transparent !important;
+    color: #7898a1 !important;
+    font-weight: 700 !important;
+    transition: color .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease !important;
+  }
+
+  .ecosystem-sidebar nav button::before {
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(112, 214, 232, .08);
+    background: rgba(255,255,255,.018);
+    color: #5f818a;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    transition: .2s ease;
+  }
+
+  .ecosystem-sidebar nav button:nth-child(1)::before { content: '◈'; }
+  .ecosystem-sidebar nav button:nth-child(2)::before { content: '▦'; }
+  .ecosystem-sidebar nav button:nth-child(3)::before { content: '⌁'; }
+  .ecosystem-sidebar nav button:nth-child(4)::before { content: '¤'; }
+  .ecosystem-sidebar nav button:nth-child(5)::before { content: '◇'; }
+  .ecosystem-sidebar nav button:nth-child(6)::before { content: '◉'; }
+  .ecosystem-sidebar nav button:nth-child(7)::before { content: '⌘'; }
+  .ecosystem-sidebar nav button:nth-child(8)::before { content: '⌂'; }
+  .ecosystem-sidebar nav button:nth-child(9)::before { content: '▣'; }
+  .ecosystem-sidebar nav button:nth-child(10)::before { content: '✦'; }
+  .ecosystem-sidebar nav button:nth-child(11)::before { content: '◎'; }
+
+  .ecosystem-sidebar nav button::after {
+    content: '';
+    width: 5px;
+    height: 5px;
+    justify-self: end;
+    border-radius: 50%;
+    background: #31505a;
+    transition: .2s ease;
+  }
+
+  .ecosystem-sidebar nav button:hover {
+    color: #dffbfe !important;
+    border-color: rgba(112, 214, 232, .105) !important;
+    background: linear-gradient(90deg, rgba(31, 205, 231, .07), rgba(255,255,255,.018)) !important;
+  }
+
+  .ecosystem-sidebar nav button.active {
+    color: #f5feff !important;
+    border-color: rgba(53, 223, 242, .22) !important;
+    background: linear-gradient(90deg, rgba(35, 211, 235, .18), rgba(35, 211, 235, .045) 68%, rgba(255,255,255,.012)) !important;
+    box-shadow: inset 0 1px rgba(255,255,255,.035), 0 9px 24px rgba(0,0,0,.12) !important;
+  }
+
+  .ecosystem-sidebar nav button.active::before {
+    border-color: rgba(65, 225, 244, .28);
+    color: #dfffff;
+    background: linear-gradient(145deg, rgba(41, 215, 238, .18), rgba(24, 102, 118, .08));
+  }
+
+  .ecosystem-sidebar nav button.active::after {
+    background: var(--admin-cyan);
+    box-shadow: 0 0 0 4px rgba(53, 223, 242, .07), 0 0 14px rgba(53, 223, 242, .5);
+  }
+
+  .top-actions button,
+  .ecosystem-top > button {
+    border: 1px solid rgba(111, 208, 226, .13) !important;
+    background: linear-gradient(145deg, rgba(12, 37, 49, .9), rgba(5, 20, 28, .94)) !important;
+    color: #cdecef !important;
+    box-shadow: inset 0 1px rgba(255,255,255,.035), 0 8px 20px rgba(0,0,0,.12);
+    transition: .18s ease;
+  }
+
+  .top-actions button:hover,
+  .ecosystem-top > button:hover {
+    border-color: rgba(55, 220, 241, .32) !important;
+    color: #f3feff !important;
+    background: linear-gradient(145deg, rgba(18, 57, 70, .95), rgba(8, 28, 38, .96)) !important;
+  }
+
+  .metric-card {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid var(--admin-line) !important;
+    background: linear-gradient(145deg, rgba(12, 37, 48, .92), rgba(4, 16, 23, .97)) !important;
+  }
+
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(115deg, rgba(255,255,255,.032), transparent 28%, transparent 72%, rgba(53,223,242,.025));
+  }
+
+  .metric-card::after {
+    content: '';
+    position: absolute;
+    right: -34px;
+    bottom: -52px;
+    z-index: -1;
+    width: 118px;
+    height: 118px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(53,223,242,.11), transparent 68%);
+  }
+
+  .metric-card span {
+    color: #7798a1 !important;
+    font-weight: 900;
+    letter-spacing: .13em !important;
+  }
+
+  .metric-card small {
+    color: #587983 !important;
+  }
+
+  .admin-panel {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--admin-line) !important;
+    background: linear-gradient(180deg, rgba(9, 30, 40, .9), rgba(4, 16, 23, .96)) !important;
+  }
+
+  .admin-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(113, 232, 247, .16), transparent);
+  }
+
+  .panel-title {
+    border-bottom: 1px solid rgba(111, 206, 224, .075);
+  }
+
+  .panel-title h2::after {
+    content: '';
+    display: block;
+    width: 22px;
+    height: 2px;
+    margin-top: 7px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--admin-cyan), transparent);
+  }
+
+  .admin-panel input,
+  .admin-panel textarea,
+  .admin-panel select {
+    border: 1px solid rgba(111, 206, 224, .115) !important;
+    background: linear-gradient(180deg, rgba(2, 13, 19, .94), rgba(3, 17, 24, .88)) !important;
+    color: #eafafd !important;
+  }
+
+  .admin-panel input:focus,
+  .admin-panel textarea:focus,
+  .admin-panel select:focus {
+    border-color: rgba(53, 223, 242, .68) !important;
+    box-shadow: 0 0 0 3px rgba(53, 223, 242, .07) !important;
+  }
+
+  .primary {
+    background: linear-gradient(135deg, #79f3ff 0%, #22cfe7 46%, #159fba 100%) !important;
+    box-shadow: 0 9px 24px rgba(34,207,231,.13), inset 0 1px rgba(255,255,255,.28) !important;
+  }
+
+  .table-wrap,
+  .cc-table-wrap,
+  .finance-table-wrap {
+    border: 1px solid rgba(111, 206, 224, .075);
+    background: rgba(2, 12, 18, .38);
+    box-shadow: inset 0 1px rgba(255,255,255,.012);
+  }
+
+  .table-wrap th,
+  .cc-table-wrap th,
+  .finance-table-wrap th {
+    color: #6f919b !important;
+    background: linear-gradient(180deg, rgba(10, 31, 41, .98), rgba(7, 24, 33, .98)) !important;
+    font-weight: 900 !important;
+  }
+
+  .table-wrap tbody tr:hover,
+  .cc-table-wrap tbody tr:hover,
+  .finance-table-wrap tbody tr:hover {
+    background: linear-gradient(90deg, rgba(53, 223, 242, .045), rgba(53,223,242,.012)) !important;
+    box-shadow: inset 2px 0 var(--admin-cyan);
+  }
+
+  .user-hero {
+    border-color: rgba(86, 220, 239, .15) !important;
+    background:
+      radial-gradient(360px 180px at 92% 10%, rgba(53,223,242,.09), transparent 72%),
+      linear-gradient(135deg, rgba(11, 39, 50, .94), rgba(4, 16, 23, .97)) !important;
+    box-shadow: var(--admin-shadow-soft);
+  }
+
+  .cc-hero,
+  .finance-hero {
+    border-color: rgba(93, 176, 220, .17) !important;
+    background:
+      radial-gradient(430px 210px at 88% 5%, rgba(80, 194, 255, .11), transparent 68%),
+      linear-gradient(135deg, rgba(16, 34, 57, .97), rgba(7, 17, 30, .99)) !important;
+  }
+
+  .cc-toolbar,
+  .finance-tabs,
+  .cc-global-search {
+    border-color: rgba(100, 168, 210, .13) !important;
+    background: linear-gradient(180deg, rgba(9, 21, 37, .9), rgba(6, 16, 29, .9)) !important;
+  }
+
+  .cc-kpi,
+  .finance-kpi,
+  .cc-panel,
+  .finance-panel,
+  .finance-health-full,
+  .ops-card {
+    border-color: rgba(101, 156, 198, .13) !important;
+    background: linear-gradient(150deg, rgba(13, 28, 48, .94), rgba(7, 16, 29, .985)) !important;
+  }
+
+  .ecosystem-shell ::selection {
+    background: rgba(53,223,242,.24);
+    color: #fff;
+  }
+
+  .ecosystem-shell button:focus-visible,
+  .ecosystem-shell a:focus-visible,
+  .ecosystem-shell input:focus-visible,
+  .ecosystem-shell select:focus-visible,
+  .ecosystem-shell textarea:focus-visible {
+    outline: 2px solid rgba(78,225,243,.76) !important;
+    outline-offset: 3px;
+  }
+}
