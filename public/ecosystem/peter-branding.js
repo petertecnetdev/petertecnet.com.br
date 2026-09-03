@@ -1,7 +1,7 @@
 (() => {
   'use strict'
 
-  const RUNTIME_VERSION = '1.0.0'
+  const RUNTIME_VERSION = '1.1.0'
   const DEFAULT_API = 'https://api.petertecnet.com.br/api'
   const CACHE_TTL_MS = 5 * 60 * 1000
   const CACHE_PREFIX = 'peter.branding.v1:'
@@ -15,7 +15,6 @@
     if (host === 'petertecnet.com.br' || host === 'www.petertecnet.com.br') return 'peter-tecnet'
     const label = host.split('.')[0]
     return ({
-      'laora': 'laora',
       'la-ora': 'laora',
     }[label] || label)
   }
@@ -58,6 +57,38 @@
     }, { once: true })
   }
 
+  const isLocalLegacyLogo = element => {
+    const src = element.getAttribute('src')
+    if (!src || src.startsWith('data:') || src.startsWith('blob:')) return false
+    try {
+      const url = new URL(src, window.location.href)
+      if (url.origin !== window.location.origin) return false
+      const path = url.pathname.toLowerCase()
+      return /(^|\/)logo(?:[._-][a-z0-9-]+)?\.(png|jpe?g|webp|svg)$/.test(path)
+        || /\/static\/media\/logo\.[a-z0-9]+\.(png|jpe?g|webp|svg)$/.test(path)
+        || /\/assets\/logo-[a-z0-9]+\.(png|jpe?g|webp|svg)$/.test(path)
+    } catch {
+      return false
+    }
+  }
+
+  const applyLegacyLogo = branding => {
+    if (script?.dataset?.autoLegacyLogo !== 'true' || !branding.logo) return
+    document.querySelectorAll('img[src]').forEach(element => {
+      if (isLocalLegacyLogo(element)) applyImage(element, branding.logo)
+    })
+  }
+
+  const applyConfiguredSelector = branding => {
+    const selector = script?.dataset?.logoSelector
+    if (!selector || !branding.logo) return
+    try {
+      document.querySelectorAll(selector).forEach(element => applyImage(element, branding.logo))
+    } catch (error) {
+      console.warn('[Peter Branding] Seletor de logo inválido.', error)
+    }
+  }
+
   const applyMarkedElements = branding => {
     document.querySelectorAll('[data-peter-branding]').forEach(element => {
       const role = element.getAttribute('data-peter-branding') || 'logo'
@@ -68,6 +99,8 @@
       if (role === 'display-name' && branding.display_name) element.textContent = branding.display_name
       if (role === 'short-name' && branding.short_name) element.textContent = branding.short_name
     })
+    applyConfiguredSelector(branding)
+    applyLegacyLogo(branding)
   }
 
   const applyDocumentMetadata = branding => {
@@ -117,7 +150,7 @@
     const observe = branding => {
       observer?.disconnect()
       observer = new MutationObserver(() => applyMarkedElements(branding))
-      observer.observe(document.documentElement, { childList: true, subtree: true })
+      observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] })
     }
     if (cached?.branding) observe(cached.branding)
 
