@@ -1,25 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { ADMIN_TABS, adminTabFromLocation, normalizeAdminPath } from './admin/AdminNavigationConfig.js'
+import { ADMIN_NAVIGATION_CHANGED_EVENT } from './admin/AdminUiEvents.js'
+import { useAdminUi } from './admin/useAdminUi.js'
 import './AdminHomeBridge.css'
 
 const API = 'https://api.petertecnet.com.br/api'
 const LAST_PATH_KEY = 'petertecnet_admin_last_path_v1'
-
-const NAV = {
-  command: { label: 'Mission Control', path: '/admin/mission-control' },
-  dashboard: { label: 'Visão geral', path: '/admin/overview' },
-  activity: { label: 'Atividade', path: '/admin/activity' },
-  financial: { label: 'Financeiro', path: '/admin/financial' },
-  applications: { label: 'Aplicações', path: '/admin/applications' },
-  users: { label: 'Usuários', path: '/admin/users' },
-  profiles: { label: 'Perfis e permissões', path: '/admin/profiles' },
-  establishments: { label: 'Estabelecimentos', path: '/admin/establishments' },
-  items: { label: 'Itens', path: '/admin/items' },
-  site: { label: 'Site institucional', path: '/admin/site' },
-  audit: { label: 'Auditoria', path: '/admin/audit' },
-}
-
-const normalizePath = path => (path || '/').replace(/\/+$/, '') || '/'
 const getToken = () => localStorage.getItem('token') || localStorage.getItem('petertecnet_admin_token')
 
 async function api(path) {
@@ -134,7 +121,8 @@ function HomeContent({ target, dashboard, applications, loading, error, lastPath
 }
 
 export default function AdminHomeBridge() {
-  const initialPath = useRef(normalizePath(window.location.pathname))
+  const { navigate: navigateTab } = useAdminUi()
+  const initialPath = useRef(normalizeAdminPath(window.location.pathname))
   const userNavigated = useRef(false)
   const [home, setHome] = useState(initialPath.current === '/admin')
   const [mainTarget, setMainTarget] = useState(null)
@@ -154,28 +142,35 @@ export default function AdminHomeBridge() {
     setActionsTarget(current => current?.isConnected ? current : document.querySelector('.ecosystem-top .top-actions'))
   }
 
+  function rememberPath(path) {
+    if (!path.startsWith('/admin/') || path === '/admin/') return
+    localStorage.setItem(LAST_PATH_KEY, path)
+    setLastPath(path)
+  }
+
   function goHome({ replace = false } = {}) {
     const method = replace ? 'replaceState' : 'pushState'
-    if (normalizePath(window.location.pathname) !== '/admin') window.history[method]({ adminHome: true }, '', '/admin')
+    if (normalizeAdminPath(window.location.pathname) !== '/admin') window.history[method]({ adminHome: true }, '', '/admin')
     setHome(true)
   }
 
   function navigate(destination) {
     if (typeof destination === 'string' && destination.startsWith('/admin/')) {
-      const item = Object.entries(NAV).find(([, value]) => value.path === destination || (destination === '/admin/dashboard' && value.path === '/admin/overview'))
-      if (item) return navigate(item[0])
-      window.history.pushState({}, '', destination)
+      const exactBaseTab = ADMIN_TABS.find(item => normalizeAdminPath(item.path) === normalizeAdminPath(destination))
+      if (exactBaseTab) {
+        navigateTab(exactBaseTab.key)
+      } else {
+        const key = adminTabFromLocation(destination)
+        window.history.pushState({ adminTab: key }, '', destination)
+        navigateTab(key, { preservePath: true })
+      }
+      rememberPath(destination)
       setHome(false)
       return
     }
-    const item = NAV[destination]
-    if (!item) return
-    const button = document.querySelector(`.ecosystem-sidebar nav button[data-admin-tab="${destination}"]`) || [...document.querySelectorAll('.ecosystem-sidebar nav button')].find(candidate => candidate.textContent.trim().includes(item.label))
-    if (button) button.click()
-    else {
-      window.history.pushState({ adminTab: destination }, '', item.path)
-      window.dispatchEvent(new PopStateEvent('popstate'))
-    }
+    if (!ADMIN_TABS.some(item => item.key === destination)) return
+    navigateTab(destination)
+    rememberPath(ADMIN_TABS.find(item => item.key === destination)?.path || '')
     setHome(false)
   }
 
@@ -187,29 +182,18 @@ export default function AdminHomeBridge() {
   }, [])
 
   useEffect(() => {
-    const originalPush = window.history.pushState
-    const originalReplace = window.history.replaceState
-    const emit = () => window.dispatchEvent(new Event('petertecnet:admin-route'))
-    const pushWrapper = function (...args) { originalPush.apply(window.history, args); emit() }
-    const replaceWrapper = function (...args) { originalReplace.apply(window.history, args); emit() }
-    window.history.pushState = pushWrapper
-    window.history.replaceState = replaceWrapper
-
     const syncRoute = () => {
-      const path = normalizePath(window.location.pathname)
+      const path = normalizeAdminPath(window.location.pathname)
       const nextHome = path === '/admin'
       setHome(nextHome)
-      if (!nextHome && path.startsWith('/admin/')) {
-        localStorage.setItem(LAST_PATH_KEY, path)
-        setLastPath(path)
-      }
+      if (!nextHome) rememberPath(path)
     }
     const onPop = () => {
-      const wasHome = normalizePath(window.location.pathname) === '/admin'
-      syncRoute()
-      if (wasHome) window.setTimeout(() => { if (!userNavigated.current) goHome({ replace: true }) }, 70)
+      const path = normalizeAdminPath(window.location.pathname)
+      setHome(path === '/admin')
+      if (path !== '/admin') rememberPath(path)
     }
-    window.addEventListener('petertecnet:admin-route', syncRoute)
+    window.addEventListener(ADMIN_NAVIGATION_CHANGED_EVENT, syncRoute)
     window.addEventListener('popstate', onPop)
 
     const initialWasHome = initialPath.current === '/admin'
@@ -219,10 +203,8 @@ export default function AdminHomeBridge() {
 
     return () => {
       window.clearTimeout(keepHome)
-      window.removeEventListener('petertecnet:admin-route', syncRoute)
+      window.removeEventListener(ADMIN_NAVIGATION_CHANGED_EVENT, syncRoute)
       window.removeEventListener('popstate', onPop)
-      if (window.history.pushState === pushWrapper) window.history.pushState = originalPush
-      if (window.history.replaceState === replaceWrapper) window.history.replaceState = originalReplace
     }
   }, [])
 
@@ -236,7 +218,7 @@ export default function AdminHomeBridge() {
         goHome()
         return
       }
-      const navButton = event.target.closest?.('.ecosystem-sidebar nav button:not(.admin-home-nav-button)')
+      const navButton = event.target.closest?.('.ecosystem-sidebar nav button[data-admin-tab]')
       if (navButton) userNavigated.current = true
     }
     document.addEventListener('click', onCapture, true)
