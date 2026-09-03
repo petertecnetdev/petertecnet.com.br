@@ -16,6 +16,7 @@ const FILTER_SELECTOR = [
 const PAGINATION_SELECTOR = '.pagination, [data-admin-pagination]'
 const ACTIVE_PAGE_SELECTOR = '[aria-current="page"], button.active, a.active, [data-page].active'
 const PAGE_CONTROL_SELECTOR = 'button, a, [data-page]'
+const SUBNAV_SELECTOR = '.la-admin > aside nav, [data-admin-subnavigation]'
 
 function readStore() {
   try {
@@ -74,6 +75,17 @@ function capturePagination() {
   }).filter(entry => entry?.page)
 }
 
+function captureSubnavigation() {
+  return [...document.querySelectorAll(SUBNAV_SELECTOR)].map((container, index) => {
+    const active = container.querySelector('button.active, [aria-current="page"]')
+    if (!active) return null
+    return {
+      index,
+      key: active.dataset.adminSubnav || active.getAttribute('aria-label') || active.textContent?.trim() || '',
+    }
+  }).filter(entry => entry?.key)
+}
+
 function nativeSetValue(element, value) {
   const prototype = Object.getPrototypeOf(element)
   const descriptor = Object.getOwnPropertyDescriptor(prototype, 'value')
@@ -123,6 +135,25 @@ function restorePagination(savedPages = []) {
   })
 }
 
+function restoreSubnavigation(savedItems = []) {
+  if (!savedItems.length) return
+  const containers = [...document.querySelectorAll(SUBNAV_SELECTOR)]
+
+  savedItems.forEach(saved => {
+    const container = containers[saved.index]
+    if (!container) return
+    const active = container.querySelector('button.active, [aria-current="page"]')
+    const activeKey = active?.dataset.adminSubnav || active?.getAttribute('aria-label') || active?.textContent?.trim() || ''
+    if (String(activeKey) === String(saved.key)) return
+
+    const target = [...container.querySelectorAll('button, [data-admin-subnav]')].find(control => {
+      const key = control.dataset.adminSubnav || control.getAttribute('aria-label') || control.textContent?.trim() || ''
+      return String(key) === String(saved.key)
+    })
+    if (target && !target.disabled) target.click()
+  })
+}
+
 function savePath(pathname = window.location.pathname) {
   const path = normalizeAdminPath(pathname)
   const store = readStore()
@@ -131,6 +162,7 @@ function savePath(pathname = window.location.pathname) {
     mainScrollTop: Math.max(0, document.querySelector('.admin-persistent-main')?.scrollTop || 0),
     fields: captureFields(),
     pagination: capturePagination(),
+    subnavigation: captureSubnavigation(),
     savedAt: Date.now(),
   }
   writeStore(store)
@@ -143,6 +175,7 @@ function restorePath(pathname = window.location.pathname) {
 
   restoreFields(state.fields)
   restorePagination(state.pagination)
+  restoreSubnavigation(state.subnavigation)
   const main = document.querySelector('.admin-persistent-main')
   if (main && Number.isFinite(state.mainScrollTop)) main.scrollTop = state.mainScrollTop
   if (Number.isFinite(state.scrollY)) window.scrollTo({ top: state.scrollY, left: 0, behavior: 'auto' })
@@ -167,7 +200,11 @@ export default function AdminWorkspaceStateBridge() {
     const onNavigationChanged = () => queueRestore()
     const onPageHide = () => savePath()
     const onInteraction = event => {
-      if (event.target?.matches?.(FILTER_SELECTOR) || event.target?.closest?.(PAGINATION_SELECTOR)) queueSave()
+      if (
+        event.target?.matches?.(FILTER_SELECTOR)
+        || event.target?.closest?.(PAGINATION_SELECTOR)
+        || event.target?.closest?.(SUBNAV_SELECTOR)
+      ) queueSave()
     }
 
     queueRestore()
