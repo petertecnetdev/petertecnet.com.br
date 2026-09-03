@@ -3,23 +3,57 @@ import { ADMIN_TABS, ADMIN_TAB_BY_KEY, adminTabFromLocation, adminTabLabel, admi
 import { ADMIN_NAVIGATE_EVENT, ADMIN_NAVIGATION_CHANGED_EVENT } from './AdminUiEvents.js'
 import { AdminUiContext } from './AdminUiState.js'
 
+const CORE_ADMIN_TAB_KEYS = [
+  'command',
+  'dashboard',
+  'activity',
+  'financial',
+  'applications',
+  'users',
+  'profiles',
+  'establishments',
+  'items',
+  'site',
+  'audit',
+]
+
+const CORE_ADMIN_TABS = CORE_ADMIN_TAB_KEYS.map(key => ADMIN_TAB_BY_KEY[key]).filter(Boolean)
+const AUXILIARY_NAV_SELECTOR = '.admin-home-nav-button, [data-pto-onboarding], [data-admin-aux-nav]'
+
+function clearNavigationMetadata(button) {
+  delete button.dataset.adminTab
+  delete button.dataset.icon
+  delete button.dataset.group
+  delete button.dataset.groupStart
+}
+
 function annotateNavigation() {
   const nav = document.querySelector('.ecosystem-sidebar nav')
   if (!nav) return null
 
-  const buttons = [...nav.querySelectorAll('button')]
+  const allButtons = [...nav.querySelectorAll('button')]
+  allButtons.filter(button => button.matches(AUXILIARY_NAV_SELECTOR)).forEach(clearNavigationMetadata)
+
+  const buttons = allButtons.filter(button => !button.matches(AUXILIARY_NAV_SELECTOR))
   let previousGroup = ''
+
   buttons.forEach((button, index) => {
-    const item = ADMIN_TABS[index]
-    if (!item) return
+    const item = CORE_ADMIN_TABS[index]
+    if (!item) {
+      clearNavigationMetadata(button)
+      return
+    }
+
     button.dataset.adminTab = item.key
     button.dataset.icon = item.icon
     button.dataset.group = item.group
     button.setAttribute('aria-label', item.label)
+
     if (item.group !== previousGroup) button.dataset.groupStart = item.group
     else delete button.dataset.groupStart
     previousGroup = item.group
   })
+
   nav.id ||= 'admin-navigation'
   nav.setAttribute('aria-label', 'Seções do Admin Center')
   return nav
