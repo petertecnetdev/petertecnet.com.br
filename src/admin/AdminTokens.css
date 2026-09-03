@@ -1,0 +1,28 @@
+:root {
+  --pt-admin-bg: #02080d;
+  --pt-admin-sidebar: #041019;
+  --pt-admin-surface: rgba(7, 25, 35, .92);
+  --pt-admin-surface-soft: rgba(9, 31, 42, .78);
+  --pt-admin-line: rgba(116, 217, 234, .12);
+  --pt-admin-line-strong: rgba(53, 223, 242, .28);
+  --pt-admin-text: #effcff;
+  --pt-admin-muted: #76949d;
+  --pt-admin-accent: #35dff2;
+  --pt-admin-radius: 18px;
+  --pt-admin-shadow: 0 18px 50px rgba(0, 0, 0, .2);
+  --admin-mobile-bar-height: 60px;
+  --admin-sidebar-min: 226px;
+  --admin-sidebar-fluid: 17vw;
+  --admin-sidebar-max: 256px;
+  --admin-content-max: 1540px;
+  --admin-z-content: 1;
+  --admin-z-header: 80;
+  --admin-z-backdrop: 1375;
+  --admin-z-drawer: 1400;
+  --admin-z-mobile-bar: 1500;
+  --admin-focus-ring: 0 0 0 3px rgba(53, 223, 242, .28);
+}
+
+@media (min-width: 761px) and (max-width: 1180px) {
+  :root { --admin-sidebar-min: 218px; --admin-sidebar-fluid: 218px; --admin-sidebar-max: 218px; }
+}
