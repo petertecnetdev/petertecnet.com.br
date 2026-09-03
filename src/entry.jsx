@@ -7,7 +7,10 @@ const isMarketingHub = path === '/'
   || path.startsWith('/servicos/')
 
 if (isMarketingHub) {
-  import('./MarketingHubApp.jsx')
+  Promise.all([
+    import('./MarketingHubApp.jsx'),
+    import('./MarketingRuntimeConfig.js'),
+  ])
 } else {
   import('./main.jsx')
 }
