@@ -6,7 +6,6 @@ const origin = 'https://petertecnet.com.br'
 const api = 'https://api.petertecnet.com.br/api'
 const today = new Date().toISOString().slice(0, 10)
 
-const slug = value => String(value || '').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 const escapeHtml = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')
 
 async function fetchJson(path) {
