@@ -1,6 +1,7 @@
 export const ADMIN_GROUP_ORDER = ['Operação', 'Negócio', 'Ecossistema', 'Governança', 'Configurações', 'Produtos']
 
 export const ADMIN_TABS = [
+  { key: 'home', label: 'Início', icon: '⌂', path: '/admin', group: 'Operação', surface: 'module' },
   { key: 'command', label: 'Mission Control', icon: '⌘', path: '/admin/mission-control', group: 'Operação', surface: 'legacy' },
   { key: 'dashboard', label: 'Visão geral', icon: '▦', path: '/admin/overview', group: 'Operação', surface: 'legacy' },
   { key: 'activity', label: 'Atividade', icon: '⌁', path: '/admin/activity', group: 'Operação', surface: 'legacy' },
@@ -28,7 +29,6 @@ export const ADMIN_LEGACY_DOM_ORDER = ['command', 'dashboard', 'activity', 'fina
 
 export const ADMIN_ROUTE_ALIASES = Object.fromEntries([
   ...ADMIN_TABS.map(tab => [tab.path, tab.key]),
-  ['/admin', 'command'],
   ['/admin/dashboard', 'dashboard'],
 ])
 
@@ -50,7 +50,7 @@ export function adminTabFromLocation(pathname = window.location.pathname) {
   if (path.startsWith('/admin/ecosystem-launcher/')) return 'ecosystem-launcher'
   if (path.startsWith('/admin/laora')) return 'laora'
   if (path.startsWith('/admin/mission-control/')) return 'command'
-  return 'command'
+  return 'home'
 }
 
 export function adminTabLabel(key) {
@@ -58,7 +58,7 @@ export function adminTabLabel(key) {
 }
 
 export function adminTabPath(key) {
-  return ADMIN_TAB_BY_KEY[key]?.path || '/admin/mission-control'
+  return ADMIN_TAB_BY_KEY[key]?.path || '/admin'
 }
 
 export function isLegacyAdminTab(key) {
