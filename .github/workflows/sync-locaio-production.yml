@@ -43,7 +43,10 @@ jobs:
           APP_DIR="/var/www/locaio.petertecnet.com.br"
           DOMAIN="locaio.petertecnet.com.br"
 
-          [[ -d "$APP_DIR/.git" ]] || { echo "Locaio ainda não foi provisionado. Execute ops/bootstrap-vps.sh como root uma única vez." >&2; exit 20; }
+          if [[ ! -d "$APP_DIR/.git" ]]; then
+            echo "Locaio ainda não foi provisionado; sincronização ficará inativa até o bootstrap inicial."
+            exit 0
+          fi
           [[ -w "$APP_DIR" ]] || { echo "$APP_DIR não é gravável pelo usuário de deploy." >&2; exit 21; }
 
           exec 9>/tmp/petertecnet-vps-deploy.lock
