@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import './AdminMobileNavigation.css'
 
 const MOBILE_QUERY = '(max-width: 760px)'
 
