@@ -5,6 +5,12 @@
 .admin-persistent-sidebar nav {
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
 }
 
 .admin-persistent-nav-group {
