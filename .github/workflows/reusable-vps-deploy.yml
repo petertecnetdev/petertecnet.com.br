@@ -129,9 +129,6 @@ jobs:
             exit 22
           fi
 
-          # One global deployment queue protects the shared VPS from concurrent npm/composer
-          # builds. Waiting on the same flock descriptor keeps older jobs queued instead of
-          # reconnecting and being overtaken by newer releases.
           exec 9>/tmp/petertecnet-vps-deploy.lock
           echo "Waiting for Peter Tecnet VPS deployment slot..."
           if ! flock -w 2700 9; then
@@ -156,8 +153,6 @@ jobs:
 
           case "$DEPLOY_TYPE" in
             frontend)
-              # Build in an isolated Git worktree. The currently served build/dist is
-              # never removed or cleaned while npm installs and compiles the new release.
               safe_name="$(basename "$DEPLOY_PATH" | tr -c 'A-Za-z0-9._-' '-')"
               BUILD_WORKTREE="/tmp/petertecnet-build-${safe_name}-$$-$RANDOM"
               git worktree add --detach "$BUILD_WORKTREE" "$TARGET_SHA"
@@ -199,8 +194,6 @@ jobs:
                 exit 31
               fi
 
-              # Publish all assets while the old index is still live. Do not delete old
-              # fingerprinted assets: cached/open old pages can continue requesting them.
               mkdir -p "$LIVE_OUTPUT"
               (
                 cd "$NEW_OUTPUT"
@@ -210,8 +203,6 @@ jobs:
                 tar -xf -
               )
 
-              # index.html is the release switch. Atomic rename means users see either
-              # the complete previous release or the complete new release, never a missing index.
               cp -f "$NEW_OUTPUT/index.html" "$LIVE_OUTPUT/.index.html.next"
               chmod --reference="$LIVE_OUTPUT/index.html" "$LIVE_OUTPUT/.index.html.next" 2>/dev/null || true
               mv -f "$LIVE_OUTPUT/.index.html.next" "$LIVE_OUTPUT/index.html"
@@ -226,7 +217,6 @@ jobs:
               ;;
 
             laravel)
-              # Laravel remains online during the update; no maintenance mode is used.
               if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then
                 git checkout "$DEPLOY_BRANCH"
               else
@@ -244,6 +234,15 @@ jobs:
               php artisan optimize:clear
               php artisan migrate --force
               php artisan config:cache
+
+              # Applications may expose a production preflight for invariants that
+              # cannot be proven by CI (Redis, external services, migrated schema).
+              # Keep the shared deploy generic: only execute the hook when present.
+              if php artisan list --raw | grep -q '^identity:preflight'; then
+                echo "Running Peter Identity production preflight..."
+                php artisan identity:preflight --production
+              fi
+
               php artisan view:cache
               php artisan queue:restart || true
               php artisan reverb:restart || true
@@ -256,9 +255,6 @@ jobs:
 
           chmod 600 "$REMOTE_SCRIPT_FILE"
 
-          # SSH may still fail transiently before the remote queue is reached. Retry only
-          # transport failures or an exceptionally long queue timeout; normal lock contention
-          # is handled inside the same SSH session by flock -w above.
           max_attempts=3
           for attempt in $(seq 1 "$max_attempts"); do
             echo "SSH deploy attempt $attempt/$max_attempts"
