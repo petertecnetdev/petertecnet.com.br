@@ -12,6 +12,7 @@ import AdminMobileNavigation from './components/AdminMobileNavigation.jsx'
 import AdminEstablishmentMediaBridge from './AdminEstablishmentMedia.jsx'
 import AdminProductivityBridge from './AdminProductivityBridge.jsx'
 import AdminHomeBridge from './AdminHomeBridge.jsx'
+import AdminDeepLinkBridge from './AdminDeepLinkBridge.jsx'
 import './AdminMobileNavigation.css'
 import './AdminDesktop.css'
 import './AdminProductivityBridge.css'
@@ -45,6 +46,7 @@ const page = isLauncherAdmin ? (
     {isAdmin && <AdminMobileNavigation />}
     {isAdmin && <AdminProductivityBridge />}
     {isAdmin && <AdminHomeBridge />}
+    {isAdmin && <AdminDeepLinkBridge />}
   </>
 )
 
