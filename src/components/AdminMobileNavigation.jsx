@@ -5,24 +5,17 @@ import './AdminMobileNavigation.css'
 const MOBILE_QUERY = '(max-width: 760px)'
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
 
-function laoraSectionLabel() {
-  const active = document.querySelector('.la-admin aside nav button.active')
-  return active?.textContent?.trim() || 'Admin Center'
-}
-
 function findDrawer() {
-  return document.querySelector('.ecosystem-sidebar, .la-admin aside')
+  return document.querySelector('.admin-persistent-sidebar, .ecosystem-sidebar')
 }
 
 export default function AdminMobileNavigation() {
   const { activeLabel, navigate } = useAdminUi()
   const [open, setOpen] = useState(false)
-  const [laoraSection, setLaoraSection] = useState(() => laoraSectionLabel())
   const [mobile, setMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches)
   const menuButtonRef = useRef(null)
   const wasOpenRef = useRef(false)
-  const isLaora = Boolean(document.querySelector('.la-admin'))
-  const section = isLaora ? laoraSection : (activeLabel || 'Admin Center')
+  const section = activeLabel || 'Admin Center'
 
   useEffect(() => {
     const media = window.matchMedia(MOBILE_QUERY)
@@ -37,15 +30,10 @@ export default function AdminMobileNavigation() {
 
   useEffect(() => {
     const onNavigation = event => {
-      const button = event.target.closest?.('.ecosystem-sidebar nav button, .la-admin aside nav button')
-      if (!button) return
-      if (button.closest('.la-admin')) setLaoraSection(button.textContent?.trim() || 'Admin Center')
-      setOpen(false)
+      const button = event.target.closest?.('.admin-persistent-sidebar nav button, .ecosystem-sidebar nav button')
+      if (button) setOpen(false)
     }
-    const onPopState = () => {
-      if (document.querySelector('.la-admin')) window.requestAnimationFrame(() => setLaoraSection(laoraSectionLabel()))
-      setOpen(false)
-    }
+    const onPopState = () => setOpen(false)
 
     document.addEventListener('click', onNavigation)
     window.addEventListener('popstate', onPopState)
@@ -123,7 +111,6 @@ export default function AdminMobileNavigation() {
   if (!mobile) return null
 
   const goHome = event => {
-    if (isLaora) return
     event.preventDefault()
     navigate('command')
     setOpen(false)
@@ -146,7 +133,7 @@ export default function AdminMobileNavigation() {
           <span />
         </button>
 
-        <a className="admin-mobile-identity" href="/admin" aria-label="Ir para a home do Admin Center" onClick={goHome}>
+        <a className="admin-mobile-identity" href="/admin/mission-control" aria-label="Ir para a home do Admin Center" onClick={goHome}>
           <img src="/petertecnetlogo.png" alt="" />
           <span>
             <small>Admin Center</small>
