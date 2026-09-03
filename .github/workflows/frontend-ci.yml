@@ -25,6 +25,16 @@ jobs:
         run: npm run test:ecosystem
       - name: Production build
         run: npm run build
+      - name: Validate Admin Center in real browser
+        run: npm run test:admin-ui
+      - name: Upload Admin Center viewport captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-ui-viewports
+          path: artifacts/admin-ui/*.png
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Verify command center sources
         shell: bash
         run: |
@@ -36,7 +46,12 @@ jobs:
           test -f src/EcosystemLauncherAdmin.jsx
           test -f src/AdminExperience.css
           test -f src/AdminVisualSystem.css
+          test -f src/admin/AdminTokens.css
+          test -f src/admin/AdminNavigationConfig.js
+          test -f src/admin/AdminUiContext.jsx
+          test -f src/admin/AdminNavigationState.css
           test -f src/components/AdminMobileNavigation.css
+          test -f scripts/validate-admin-browser.mjs
           test -f public/ecosystem/peter-ecosystem.js
           test ! -f src/AdminResponsive.css
           test ! -f src/AdminDesktop.css
@@ -57,6 +72,11 @@ jobs:
           grep -q "ecosystem-launcher" src/main.jsx
           grep -q "AdminVisualSystem.css" src/main.jsx
           grep -q "AdminExperience.css" src/main.jsx
+          grep -q "AdminTokens.css" src/main.jsx
+          grep -q "AdminUiProvider" src/main.jsx
+          grep -q "data-icon" src/admin/AdminNavigationState.css
+          grep -q "focusables" src/components/AdminMobileNavigation.jsx
+          grep -q "drawer.inert" src/components/AdminMobileNavigation.jsx
           grep -q "./AdminMobileNavigation.css" src/components/AdminMobileNavigation.jsx
           ! grep -q "AdminResponsive.css" src/main.jsx
           ! grep -q "AdminDesktop.css" src/main.jsx
