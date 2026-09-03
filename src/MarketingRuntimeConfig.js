@@ -38,10 +38,11 @@ function orderCards(containerSelector, cardSelector, linkSelector, slugs = []) {
     const anchor = card.querySelector(linkSelector)
     return [slugFromHref(anchor?.getAttribute('href') || ''), card]
   }))
+  const ordered = slugs.map(slug => bySlug.get(slug)).filter(Boolean)
+  if (!ordered.length) return
+
   cards.forEach(card => { card.style.display = 'none' })
-  slugs.forEach(slug => {
-    const card = bySlug.get(slug)
-    if (!card) return
+  ordered.forEach(card => {
     card.style.display = ''
     container.appendChild(card)
   })
@@ -64,6 +65,7 @@ function ensureWhatsapp(metadata) {
   const raw = String(metadata.contact_whatsapp || '').trim()
   if (!raw) return
   const digits = raw.replace(/\D/g, '')
+  if (!/^https?:/i.test(raw) && !digits) return
   const href = /^https?:/i.test(raw) ? raw : `https://wa.me/${digits.startsWith('55') ? digits : `55${digits}`}`
   const anchor = document.createElement('a')
   anchor.className = 'hub-whatsapp-float'
