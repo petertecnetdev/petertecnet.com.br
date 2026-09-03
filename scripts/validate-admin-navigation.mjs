@@ -21,8 +21,11 @@ const adminJs = read('src/Admin.js')
 const mobile = read('src/components/AdminMobileNavigation.jsx')
 const stateBridge = read('src/admin/AdminWorkspaceStateBridge.jsx')
 const deepLink = read('src/AdminDeepLinkBridge.jsx')
+const homeBridge = read('src/AdminHomeBridge.jsx')
+const homeCss = read('src/AdminHomeBridge.css')
 
 const requiredRoutes = [
+  '/admin',
   '/admin/mission-control',
   '/admin/overview',
   '/admin/activity',
@@ -44,12 +47,14 @@ const requiredRoutes = [
 ]
 
 requiredRoutes.forEach(route => check(`canonical route ${route}`, config.includes(`path: '${route}'`)))
+check('Admin home is canonical instead of a command alias', config.includes("key: 'home'") && !config.includes("['/admin', 'command']"))
 check('single navigation catalog includes module surface metadata', config.includes("surface: 'module'") && config.includes("surface: 'legacy'"))
 check('AdminEntry has one canonical persistent shell', (entry.match(/<AdminPersistentShell\b/g) || []).length === 1)
 check('AdminEntry routes Laora inside the canonical shell', entry.includes("path.startsWith('/admin/laora')") && entry.includes('return <LaoraAdminCenter />'))
 check('AdminEntry includes workspace state persistence', entry.includes('<AdminWorkspaceStateBridge />'))
 check('persistent shell has no duplicated EXTRA_TABS catalog', !shell.includes('EXTRA_TABS'))
 check('persistent shell delegates internal navigation to AdminUiProvider', shell.includes('navigate(item.key)') || shell.includes('navigate(key)'))
+check('persistent shell brand routes to canonical home', shell.includes('href="/admin"') && shell.includes("go(event, 'home')"))
 check('persistent shell keeps current item inside scrollable sidebar viewport', shell.includes('nav.scrollTo') && shellCss.includes('overflow-y: auto'))
 check('AdminUiProvider does not hard reload module routes', !provider.includes('window.location.assign(') && !provider.includes('window.location.replace('))
 check('AdminUiProvider uses pushState/replaceState for route changes', provider.includes("'pushState'") && provider.includes("'replaceState'"))
@@ -60,6 +65,10 @@ check('legacy Admin.js no longer owns visibility route', !adminJs.includes('Admi
 check('canonical CSS hides nested legacy sidebar', shellCss.includes('.admin-persistent-main > .ecosystem-shell > .ecosystem-sidebar') && shellCss.includes('display: none !important'))
 check('Laora sidebar becomes in-content subnavigation', shellCss.includes('.admin-persistent-main .la-admin > aside') && shellCss.includes('position: static !important'))
 check('mobile drawer prioritizes canonical persistent sidebar', mobile.includes("document.querySelector('.admin-persistent-sidebar, .ecosystem-sidebar')"))
+check('mobile identity routes to canonical home', mobile.includes("navigate('home')") && mobile.includes('href="/admin"'))
+check('home bridge targets nested legacy workspace rather than canonical main', homeBridge.includes(".admin-persistent-main > .ecosystem-shell > .ecosystem-main") && !homeBridge.includes("document.querySelector('.ecosystem-main')"))
+check('home bridge no longer injects parallel navigation button', !homeBridge.includes('HomeNavButton') && !homeCss.includes('.admin-home-nav-button'))
+check('home styling no longer suppresses canonical active route', !homeCss.includes('.admin-home-active .ecosystem-sidebar nav button.active'))
 check('state bridge only persists filter-oriented controls', stateBridge.includes('.filter-grid input') && stateBridge.includes('.la-filters input'))
 check('state bridge excludes password/file controls', stateBridge.includes("['password', 'file', 'hidden', 'submit', 'button']"))
 check('state bridge persists pagination state', stateBridge.includes('capturePagination') && stateBridge.includes('restorePagination'))
