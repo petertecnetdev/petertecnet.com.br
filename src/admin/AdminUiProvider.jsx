@@ -9,6 +9,7 @@ const CORE_ADMIN_TAB_KEYS = [
   'activity',
   'financial',
   'applications',
+  'branding',
   'users',
   'profiles',
   'establishments',
@@ -18,7 +19,9 @@ const CORE_ADMIN_TAB_KEYS = [
 ]
 
 const CORE_ADMIN_TABS = CORE_ADMIN_TAB_KEYS.map(key => ADMIN_TAB_BY_KEY[key]).filter(Boolean)
+const STANDALONE_ADMIN_TABS = new Set(['branding', 'content', 'discovery'])
 const AUXILIARY_NAV_SELECTOR = '.admin-home-nav-button, [data-pto-onboarding], [data-admin-aux-nav]'
+const MANAGED_ROUTE_SELECTOR = '[data-admin-managed-route]'
 
 function clearNavigationMetadata(button) {
   delete button.dataset.adminTab
@@ -27,9 +30,32 @@ function clearNavigationMetadata(button) {
   delete button.dataset.groupStart
 }
 
+function ensureManagedNavigationButtons(nav) {
+  if (!nav) return
+
+  const branding = ADMIN_TAB_BY_KEY.branding
+  if (!branding || nav.querySelector(`${MANAGED_ROUTE_SELECTOR}[data-admin-managed-route="branding"]`)) return
+
+  const nativeButtons = [...nav.querySelectorAll('button')].filter(button => (
+    !button.matches(AUXILIARY_NAV_SELECTOR) && !button.matches(MANAGED_ROUTE_SELECTOR)
+  ))
+  const applicationsIndex = CORE_ADMIN_TAB_KEYS.indexOf('applications')
+  const applicationsButton = nativeButtons[applicationsIndex]
+  const button = document.createElement('button')
+  button.type = 'button'
+  button.textContent = branding.label
+  button.dataset.adminManagedRoute = branding.key
+  button.className = 'admin-branding-nav-button'
+
+  if (applicationsButton?.parentNode === nav) applicationsButton.insertAdjacentElement('afterend', button)
+  else nav.appendChild(button)
+}
+
 function annotateNavigation() {
   const nav = document.querySelector('.ecosystem-sidebar nav')
   if (!nav) return null
+
+  ensureManagedNavigationButtons(nav)
 
   const allButtons = [...nav.querySelectorAll('button')]
   allButtons.filter(button => button.matches(AUXILIARY_NAV_SELECTOR)).forEach(clearNavigationMetadata)
@@ -77,6 +103,16 @@ export default function AdminUiProvider({ children }) {
 
   const navigate = useCallback((key, { replace = false, preservePath = false } = {}) => {
     const item = ADMIN_TAB_BY_KEY[key] || ADMIN_TABS[0]
+
+    if (STANDALONE_ADMIN_TABS.has(item.key)) {
+      const nextPath = adminTabPath(item.key)
+      if (normalizeAdminPath(window.location.pathname) !== normalizeAdminPath(nextPath)) {
+        if (replace) window.location.replace(nextPath)
+        else window.location.assign(nextPath)
+      }
+      return item.key
+    }
+
     clickTabButton(item.key)
 
     if (!preservePath) {
@@ -103,6 +139,14 @@ export default function AdminUiProvider({ children }) {
       if (!button) return
       const key = button.dataset.adminTab
       if (!ADMIN_TAB_BY_KEY[key]) return
+
+      if (STANDALONE_ADMIN_TABS.has(key)) {
+        event.preventDefault()
+        const nextPath = adminTabPath(key)
+        if (normalizeAdminPath(window.location.pathname) !== normalizeAdminPath(nextPath)) window.location.assign(nextPath)
+        return
+      }
+
       setActiveTab(key)
       window.dispatchEvent(new CustomEvent(ADMIN_NAVIGATION_CHANGED_EVENT, { detail: { key, label: adminTabLabel(key) } }))
     }
