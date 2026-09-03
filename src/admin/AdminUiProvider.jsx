@@ -1,27 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ADMIN_TABS, ADMIN_TAB_BY_KEY, adminTabFromLocation, adminTabLabel, adminTabPath, normalizeAdminPath } from './AdminNavigationConfig.js'
-import { ADMIN_NAVIGATE_EVENT, ADMIN_NAVIGATION_CHANGED_EVENT } from './AdminUiEvents.js'
+import {
+  ADMIN_LEGACY_DOM_ORDER,
+  ADMIN_TABS,
+  ADMIN_TAB_BY_KEY,
+  adminTabFromLocation,
+  adminTabLabel,
+  adminTabPath,
+  isLegacyAdminTab,
+  normalizeAdminPath,
+} from './AdminNavigationConfig.js'
+import {
+  ADMIN_BEFORE_NAVIGATE_EVENT,
+  ADMIN_NAVIGATE_EVENT,
+  ADMIN_NAVIGATION_CHANGED_EVENT,
+} from './AdminUiEvents.js'
 import { AdminUiContext } from './AdminUiState.js'
 
-const CORE_ADMIN_TAB_KEYS = [
-  'command',
-  'dashboard',
-  'activity',
-  'financial',
-  'applications',
-  'branding',
-  'users',
-  'profiles',
-  'establishments',
-  'items',
-  'site',
-  'audit',
-]
-
-const CORE_ADMIN_TABS = CORE_ADMIN_TAB_KEYS.map(key => ADMIN_TAB_BY_KEY[key]).filter(Boolean)
-const STANDALONE_ADMIN_TABS = new Set(['branding', 'content', 'discovery'])
 const AUXILIARY_NAV_SELECTOR = '.admin-home-nav-button, [data-pto-onboarding], [data-admin-aux-nav]'
-const MANAGED_ROUTE_SELECTOR = '[data-admin-managed-route]'
 
 function clearNavigationMetadata(button) {
   delete button.dataset.adminTab
@@ -30,41 +25,14 @@ function clearNavigationMetadata(button) {
   delete button.dataset.groupStart
 }
 
-function ensureManagedNavigationButtons(nav) {
-  if (!nav) return
+function annotateLegacyNavigation(nav) {
+  if (!nav || nav.closest('.admin-persistent-sidebar')) return
 
-  const branding = ADMIN_TAB_BY_KEY.branding
-  if (!branding || nav.querySelector(`${MANAGED_ROUTE_SELECTOR}[data-admin-managed-route="branding"]`)) return
-
-  const nativeButtons = [...nav.querySelectorAll('button')].filter(button => (
-    !button.matches(AUXILIARY_NAV_SELECTOR) && !button.matches(MANAGED_ROUTE_SELECTOR)
-  ))
-  const applicationsIndex = CORE_ADMIN_TAB_KEYS.indexOf('applications')
-  const applicationsButton = nativeButtons[applicationsIndex]
-  const button = document.createElement('button')
-  button.type = 'button'
-  button.textContent = branding.label
-  button.dataset.adminManagedRoute = branding.key
-  button.className = 'admin-branding-nav-button'
-
-  if (applicationsButton?.parentNode === nav) applicationsButton.insertAdjacentElement('afterend', button)
-  else nav.appendChild(button)
-}
-
-function annotateNavigation() {
-  const nav = document.querySelector('.ecosystem-sidebar nav')
-  if (!nav) return null
-
-  ensureManagedNavigationButtons(nav)
-
-  const allButtons = [...nav.querySelectorAll('button')]
-  allButtons.filter(button => button.matches(AUXILIARY_NAV_SELECTOR)).forEach(clearNavigationMetadata)
-
-  const buttons = allButtons.filter(button => !button.matches(AUXILIARY_NAV_SELECTOR))
+  const buttons = [...nav.querySelectorAll('button')].filter(button => !button.matches(AUXILIARY_NAV_SELECTOR))
   let previousGroup = ''
 
   buttons.forEach((button, index) => {
-    const item = CORE_ADMIN_TABS[index]
+    const item = ADMIN_TAB_BY_KEY[ADMIN_LEGACY_DOM_ORDER[index]]
     if (!item) {
       clearNavigationMetadata(button)
       return
@@ -80,52 +48,60 @@ function annotateNavigation() {
     previousGroup = item.group
   })
 
-  nav.id ||= 'admin-navigation'
-  nav.setAttribute('aria-label', 'Seções do Admin Center')
-  return nav
+  nav.dataset.adminLegacyNavigation = 'true'
+  nav.setAttribute('aria-label', 'Navegação interna do workspace administrativo')
 }
 
-function clickTabButton(key) {
+function annotateNavigation() {
+  const navs = [...document.querySelectorAll('.ecosystem-sidebar nav')]
+  navs.forEach(annotateLegacyNavigation)
+  return navs
+}
+
+function clickLegacyTabButton(key) {
   annotateNavigation()
-  const button = document.querySelector(`.ecosystem-sidebar nav button[data-admin-tab="${key}"]`)
+  const button = document.querySelector(`nav[data-admin-legacy-navigation="true"] button[data-admin-tab="${key}"]`)
   if (button && !button.classList.contains('active')) button.click()
   return Boolean(button)
+}
+
+function announceNavigation(item, source = 'programmatic') {
+  document.title = `${item.label} · Admin Center · Peter Tecnet`
+  window.dispatchEvent(new CustomEvent(ADMIN_NAVIGATION_CHANGED_EVENT, {
+    detail: { key: item.key, label: item.label, path: adminTabPath(item.key), source },
+  }))
 }
 
 export default function AdminUiProvider({ children }) {
   const [activeTab, setActiveTab] = useState(() => adminTabFromLocation())
 
-  const syncFromLocation = useCallback(() => {
+  const syncFromLocation = useCallback((source = 'location') => {
     const key = adminTabFromLocation()
-    setActiveTab(key)
-    return key
+    const item = ADMIN_TAB_BY_KEY[key] || ADMIN_TABS[0]
+    setActiveTab(item.key)
+    if (isLegacyAdminTab(item.key)) window.requestAnimationFrame(() => clickLegacyTabButton(item.key))
+    announceNavigation(item, source)
+    return item.key
   }, [])
 
   const navigate = useCallback((key, { replace = false, preservePath = false } = {}) => {
     const item = ADMIN_TAB_BY_KEY[key] || ADMIN_TABS[0]
+    const currentPath = normalizeAdminPath(window.location.pathname)
+    const nextPath = normalizeAdminPath(adminTabPath(item.key))
 
-    if (STANDALONE_ADMIN_TABS.has(item.key)) {
-      const nextPath = adminTabPath(item.key)
-      if (normalizeAdminPath(window.location.pathname) !== normalizeAdminPath(nextPath)) {
-        if (replace) window.location.replace(nextPath)
-        else window.location.assign(nextPath)
-      }
-      return item.key
-    }
+    window.dispatchEvent(new CustomEvent(ADMIN_BEFORE_NAVIGATE_EVENT, {
+      detail: { from: currentPath, to: nextPath, key: item.key },
+    }))
 
-    clickTabButton(item.key)
+    if (isLegacyAdminTab(item.key)) clickLegacyTabButton(item.key)
 
-    if (!preservePath) {
-      const nextPath = adminTabPath(item.key)
-      if (normalizeAdminPath(window.location.pathname) !== normalizeAdminPath(nextPath)) {
-        const method = replace ? 'replaceState' : 'pushState'
-        window.history[method]({ adminTab: item.key }, '', nextPath)
-      }
+    if (!preservePath && currentPath !== nextPath) {
+      const method = replace ? 'replaceState' : 'pushState'
+      window.history[method]({ adminTab: item.key }, '', nextPath)
     }
 
     setActiveTab(item.key)
-    document.title = `${item.label} · Admin Center · Peter Tecnet`
-    window.dispatchEvent(new CustomEvent(ADMIN_NAVIGATION_CHANGED_EVENT, { detail: { key: item.key, label: item.label } }))
+    announceNavigation(item, 'navigate')
     return item.key
   }, [])
 
@@ -135,22 +111,15 @@ export default function AdminUiProvider({ children }) {
     observer.observe(document.body, { childList: true, subtree: true })
 
     const onClick = event => {
-      const button = event.target.closest?.('.ecosystem-sidebar nav button[data-admin-tab]')
+      const button = event.target.closest?.('nav[data-admin-legacy-navigation="true"] button[data-admin-tab]')
       if (!button) return
       const key = button.dataset.adminTab
-      if (!ADMIN_TAB_BY_KEY[key]) return
-
-      if (STANDALONE_ADMIN_TABS.has(key)) {
-        event.preventDefault()
-        const nextPath = adminTabPath(key)
-        if (normalizeAdminPath(window.location.pathname) !== normalizeAdminPath(nextPath)) window.location.assign(nextPath)
-        return
-      }
-
+      const item = ADMIN_TAB_BY_KEY[key]
+      if (!item) return
       setActiveTab(key)
-      window.dispatchEvent(new CustomEvent(ADMIN_NAVIGATION_CHANGED_EVENT, { detail: { key, label: adminTabLabel(key) } }))
+      announceNavigation(item, 'legacy-click')
     }
-    const onPop = () => syncFromLocation()
+    const onPop = () => syncFromLocation('popstate')
     const onNavigate = event => {
       const { key, replace, preservePath } = event.detail || {}
       if (key) navigate(key, { replace, preservePath })
