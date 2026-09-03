@@ -1,0 +1,21 @@
+:root {
+  --pt-admin-accent: var(--peter-brand-primary, #35dff2) !important;
+  --admin-nav-accent: var(--peter-brand-primary, #55dce9) !important;
+  --admin-future-accent: var(--peter-brand-primary, #48e4f5) !important;
+  --admin-nav-hover: rgba(var(--peter-brand-primary-rgb, 85, 220, 233), .055) !important;
+  --admin-nav-icon: var(--peter-brand-secondary, #8db0b8) !important;
+}
+
+.admin-primary,
+.branding-actions .primary,
+.admin-command-primary,
+.admin-action-primary {
+  background: var(--peter-brand-gradient, linear-gradient(135deg, var(--pt-admin-accent), var(--peter-brand-secondary, #55dce9))) !important;
+}
+
+.admin-kicker,
+.admin-brand em,
+.ecosystem-sidebar nav button.active,
+.admin-mobile-topbar strong {
+  color: var(--peter-brand-primary, var(--pt-admin-accent)) !important;
+}
