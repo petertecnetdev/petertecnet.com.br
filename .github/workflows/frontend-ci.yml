@@ -21,6 +21,8 @@ jobs:
         run: npm ci
       - name: Lint
         run: npm run lint
+      - name: Validate ecosystem SDK
+        run: npm run test:ecosystem
       - name: Production build
         run: npm run build
       - name: Verify command center sources
@@ -31,9 +33,12 @@ jobs:
           test -f src/OperationalIssuesPanel.jsx
           test -f src/OperationalIssuesPanel.css
           test -f src/FinancialCenter.jsx
+          test -f src/EcosystemLauncherAdmin.jsx
+          test -f public/ecosystem/peter-ecosystem.js
           grep -q "Mission Control" src/Admin.jsx
           grep -q "command/overview" src/CommandCenter.jsx
           grep -q "command/security" src/CommandCenter.jsx
           grep -q "command/issues" src/CommandCenter.jsx
           grep -q "OperationalIssuesPanel" src/CommandCenter.jsx
           grep -q "financial/orders" src/FinancialCenter.jsx
+          grep -q "ecosystem-launcher" src/main.jsx
