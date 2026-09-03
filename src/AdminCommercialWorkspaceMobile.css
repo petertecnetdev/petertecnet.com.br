@@ -1,7 +1,11 @@
 /* Mobile-first management layout for Cadastro e edição assistidos.
    Keeps the record browser compact and gives the editor most of the viewport. */
 @media (max-width: 980px) {
-  .aco-workspace { height: 100dvh; }
+  .aco-backdrop { overflow: hidden; }
+  .aco-workspace {
+    height: 100dvh;
+    max-height: 100dvh;
+  }
   .aco-header { flex: 0 0 auto; }
   .aco-tabs { flex: 0 0 auto; position: sticky; top: 0; z-index: 8; }
 
@@ -14,45 +18,46 @@
 
   .aco-records {
     flex: 0 0 auto;
-    max-height: none;
-    padding: 12px 14px 10px;
+    max-height: 190px;
+    padding: 10px 14px 8px;
     border-right: 0;
     border-bottom: 1px solid rgba(255,255,255,.08);
     background: #06101a;
   }
 
-  .aco-records-head { margin-bottom: 8px; }
-  .aco-records-head > div { flex-direction: row; align-items: baseline; gap: 8px; }
+  .aco-records-head { margin-bottom: 7px; }
+  .aco-records-head > div { flex-direction: row; align-items: baseline; gap: 8px; min-width: 0; }
   .aco-records-head b { font-size: 16px; }
-  .aco-records-head small { font-size: 11px; }
-  .aco-records-head button { min-height: 38px; }
+  .aco-records-head small { font-size: 11px; white-space: nowrap; }
+  .aco-records-head button { min-height: 36px; padding-inline: 12px; }
 
-  .aco-search { margin-bottom: 8px; gap: 5px; }
+  .aco-search { margin-bottom: 7px; gap: 5px; }
   .aco-search span { display: none; }
-  .aco-search input { min-height: 42px; }
+  .aco-search input { min-height: 40px; }
 
   .aco-record-list {
-    min-height: 74px;
-    max-height: 92px;
+    min-height: 62px;
+    max-height: 68px;
     overflow-x: auto;
     overflow-y: hidden;
     flex-direction: row;
     gap: 8px;
-    padding: 0 2px 5px 0;
-    scroll-snap-type: x proximity;
+    padding: 0 2px 4px 0;
+    scroll-snap-type: x mandatory;
     overscroll-behavior-x: contain;
+    scrollbar-width: thin;
   }
 
   .aco-record {
-    flex: 0 0 min(82vw, 310px);
-    min-height: 72px;
-    padding: 8px 9px;
-    grid-template-columns: 38px minmax(0,1fr) auto;
+    flex: 0 0 min(80vw, 292px);
+    min-height: 60px;
+    padding: 7px 8px;
+    grid-template-columns: 36px minmax(0,1fr) auto;
     gap: 8px;
     border-radius: 12px;
     scroll-snap-align: start;
   }
-  .aco-record-icon, .aco-record-photo { width: 38px; height: 38px; border-radius: 10px; }
+  .aco-record-icon, .aco-record-photo { width: 36px; height: 36px; border-radius: 10px; }
   .aco-record > span:nth-child(2) b { font-size: 13px; }
   .aco-record > span:nth-child(2) small,
   .aco-record > span:nth-child(2) i { font-size: 10px; }
@@ -63,7 +68,7 @@
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior-y: contain;
-    padding-top: 16px;
+    padding-top: 14px;
     scroll-padding-bottom: 110px;
   }
 
@@ -75,17 +80,31 @@
 }
 
 @media (max-width: 680px) {
-  .aco-header { padding: 13px 14px; gap: 12px; }
-  .aco-header h2 { font-size: 20px; }
-  .aco-header p { font-size: 10px; }
+  .aco-header { padding: 10px 12px; gap: 10px; min-height: 72px; }
+  .aco-header > div:first-child { min-width: 0; }
+  .aco-header h2 { font-size: 19px; line-height: 1.08; }
+  .aco-header p { margin-bottom: 3px; font-size: 9px; }
+  .aco-header > div:first-child > span { display: none; }
+  .aco-header-actions > button:not(.aco-close) { display: none; }
   .aco-header-actions .aco-close { width: 40px; min-height: 40px; }
 
-  .aco-tabs > button { min-height: 54px; }
-  .aco-records { padding: 10px 12px 8px; }
-  .aco-record-list { min-height: 70px; max-height: 82px; }
-  .aco-record { flex-basis: min(86vw, 300px); min-height: 66px; }
+  .aco-tabs { padding-inline: 8px; }
+  .aco-tabs > button {
+    justify-content: center;
+    min-height: 50px;
+    padding: 7px 8px;
+  }
+  .aco-tabs > button span { display: none; }
+  .aco-tabs > button > b { width: 34px; height: 34px; }
 
-  .aco-editor { padding: 14px 12px 30px; }
+  .aco-records { max-height: 170px; padding: 8px 10px 6px; }
+  .aco-records-head { margin-bottom: 6px; }
+  .aco-records-head button { min-height: 34px; }
+  .aco-search input { min-height: 38px; font-size: 14px; }
+  .aco-record-list { min-height: 58px; max-height: 62px; }
+  .aco-record { flex-basis: min(82vw, 286px); min-height: 56px; }
+
+  .aco-editor { padding: 12px 12px 30px; }
   .aco-editor-title { margin-bottom: 10px; }
   .aco-completeness-top { flex-direction: row; align-items: baseline; gap: 8px; }
   .aco-completeness-top small { text-align: right; }
@@ -97,7 +116,9 @@
 }
 
 @media (max-height: 740px) and (max-width: 980px) {
-  .aco-record-list { max-height: 70px; min-height: 62px; }
-  .aco-record { min-height: 60px; }
-  .aco-record-icon, .aco-record-photo { width: 34px; height: 34px; }
+  .aco-header { min-height: 64px; }
+  .aco-records { max-height: 150px; }
+  .aco-record-list { max-height: 56px; min-height: 52px; }
+  .aco-record { min-height: 50px; }
+  .aco-record-icon, .aco-record-photo { width: 32px; height: 32px; }
 }
