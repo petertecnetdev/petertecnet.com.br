@@ -18,6 +18,7 @@ import './AdminVisualSystem.css'
 import './AdminExperience.css'
 import './admin/AdminFutureTheme.css'
 import './admin/AdminNavigationState.css'
+import './admin/AdminSidebarRefinement.css'
 
 function normalizePath(pathname = window.location.pathname) {
   return String(pathname || '/').replace(/\/+$/, '') || '/'
