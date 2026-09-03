@@ -112,7 +112,7 @@ export default function AdminMobileNavigation() {
 
   const goHome = event => {
     event.preventDefault()
-    navigate('command')
+    navigate('home')
     setOpen(false)
   }
 
@@ -133,7 +133,7 @@ export default function AdminMobileNavigation() {
           <span />
         </button>
 
-        <a className="admin-mobile-identity" href="/admin/mission-control" aria-label="Ir para a home do Admin Center" onClick={goHome}>
+        <a className="admin-mobile-identity" href="/admin" aria-label="Ir para a home do Admin Center" onClick={goHome}>
           <img src="/petertecnetlogo.png" alt="" />
           <span>
             <small>Admin Center</small>
