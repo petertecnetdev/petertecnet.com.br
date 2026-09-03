@@ -31,6 +31,13 @@ jobs:
         run: |
           python3 <<'PY'
           from pathlib import Path
+          import re
+
+          def sub_once(text, pattern, replacement, label, flags=0):
+              updated, count = re.subn(pattern, replacement, text, count=1, flags=flags)
+              if count != 1:
+                  raise SystemExit(f'Patch target not found or ambiguous: {label} ({count})')
+              return updated
 
           def replace_once(text, old, new, label):
               if old not in text:
@@ -45,11 +52,9 @@ jobs:
               "import FinancialCenter from './FinancialCenter.jsx'\nimport AdminHome, { AdminBreadcrumbs, PlatformSwitcher } from './AdminHome.jsx'\nimport './AdminEnhancements.css'\n",
               'admin imports')
 
-          old_tabs = """const TABS = [
-            ['command', 'Mission Control'], ['dashboard', 'Visão geral'], ['activity', 'Atividade'], ['financial', 'Financeiro'], ['applications', 'Aplicações'], ['users', 'Usuários'],
-            ['profiles', 'Perfis e permissões'], ['establishments', 'Estabelecimentos'], ['items', 'Itens'], ['site', 'Site institucional'], ['audit', 'Auditoria'],
-          ]"""
-          new_tabs = """const TABS = [
+          tabs_start = s.index('const TABS = [')
+          tabs_end = s.index('const emptyApp', tabs_start)
+          tabs_block = '''const TABS = [
             ['home', 'Início'], ['command', 'Mission Control'], ['dashboard', 'Visão geral'], ['activity', 'Atividade'], ['financial', 'Financeiro'], ['applications', 'Aplicações'], ['users', 'Usuários'],
             ['profiles', 'Perfis e permissões'], ['establishments', 'Estabelecimentos'], ['items', 'Itens'], ['site', 'Site institucional'], ['audit', 'Auditoria'],
           ]
@@ -73,30 +78,18 @@ jobs:
             if (path.startsWith('/admin/mission-control/')) return 'command'
             return Object.entries(ADMIN_ROUTES).find(([, route]) => route === path)?.[0] || 'home'
           }
-          const idFromPath = entity => Number(normalizedPath().match(new RegExp(`^/admin/${entity}/(\\\\d+)$`))?.[1]) || 0"""
-          s = replace_once(s, old_tabs, new_tabs, 'tabs and routes')
-          s = replace_once(s,
-              "const tabFromLocation = () => window.location.pathname.replace(/\\/+$/, '') === '/admin/financial' ? 'financial' : 'command'\n",
-              "",
-              'old tabFromLocation')
+          const idFromPath = entity => Number(normalizedPath().match(new RegExp(`^/admin/${entity}/(\\\\d+)$`))?.[1]) || 0
+          '''
+          s = s[:tabs_start] + tabs_block + s[tabs_end:]
+          s = re.sub(r"const tabFromLocation = .*?\n", '', s, count=1)
 
           s = replace_once(s,
               "    dashboard: '/admin/ecosystem/dashboard', activity: '/admin/ecosystem/activity', applications: '/admin/applications', users: '/admin/ecosystem/users', profiles: '/admin/ecosystem/profiles', establishments: '/admin/ecosystem/establishments', items: '/admin/ecosystem/items', site: '/admin/ecosystem/settings', audit: '/admin/ecosystem/audit',",
               "    home: '/admin/ecosystem/dashboard', dashboard: '/admin/ecosystem/dashboard', activity: '/admin/ecosystem/activity', applications: '/admin/applications', users: '/admin/ecosystem/users', profiles: '/admin/ecosystem/profiles', establishments: '/admin/ecosystem/establishments', items: '/admin/ecosystem/items', site: '/admin/ecosystem/settings', audit: '/admin/ecosystem/audit',",
               'home load path')
 
-          old_open_user = """  async function openUser(user) {
-            setProcessing(true)
-            setError('')
-            try {
-              setUserDetail(await request(`/admin/ecosystem/users/${user.id}`))
-            } catch (err) {
-              setError(err.message)
-            } finally {
-              setProcessing(false)
-            }
-          }"""
-          new_open_user = """  async function openUser(user, { push = true } = {}) {
+          open_user_pattern = r"  async function openUser\(user\) \{.*?\n  \}\n\n  useEffect\(\(\) => \{"
+          open_user_replacement = '''  async function openUser(user, { push = true } = {}) {
             setProcessing(true)
             setError('')
             try {
@@ -110,17 +103,13 @@ jobs:
             } finally {
               setProcessing(false)
             }
-          }"""
-          s = replace_once(s, old_open_user, new_open_user, 'openUser deep link')
+          }
 
-          old_initial_effect = """  useEffect(() => {
-            if (!localStorage.getItem(TOKEN_KEY)) {
-              window.location.href = '/login'
-              return
-            }
-            if (!['financial', 'command'].includes(tab)) load(tab)
-          }, [])"""
-          new_initial_effect = """  useEffect(() => {
+          useEffect(() => {'''
+          s = sub_once(s, open_user_pattern, open_user_replacement, 'openUser deep link', re.S)
+
+          initial_pattern = r"  useEffect\(\(\) => \{\n    if \(!localStorage\.getItem\(TOKEN_KEY\)\) \{.*?\n  \}, \[\]\)"
+          initial_replacement = '''  useEffect(() => {
             if (!localStorage.getItem(TOKEN_KEY)) {
               window.location.href = '/login'
               return
@@ -131,20 +120,11 @@ jobs:
             }
             const userId = idFromPath('users')
             if (userId) openUser({ id: userId }, { push: false })
-          }, [])"""
-          s = replace_once(s, old_initial_effect, new_initial_effect, 'initial admin effect')
+          }, [])'''
+          s = sub_once(s, initial_pattern, initial_replacement, 'initial admin effect', re.S)
 
-          s = replace_once(s,
-              "    if (localStorage.getItem(TOKEN_KEY) && !['financial', 'command'].includes(tab) && !data[tab]) load(tab)",
-              "    if (localStorage.getItem(TOKEN_KEY) && !['financial', 'command'].includes(tab) && !data[tab]) load(tab)",
-              'tab load effect')
-
-          old_pop = """  useEffect(() => {
-            const onPop = () => setTab(tabFromLocation())
-            window.addEventListener('popstate', onPop)
-            return () => window.removeEventListener('popstate', onPop)
-          }, [])"""
-          new_pop = """  useEffect(() => {
+          pop_pattern = r"  useEffect\(\(\) => \{\n    const onPop = \(\) => setTab\(tabFromLocation\(\)\)\n    window\.addEventListener\('popstate', onPop\)\n    return \(\) => window\.removeEventListener\('popstate', onPop\)\n  \}, \[\]\)"
+          pop_replacement = '''  useEffect(() => {
             const onPop = () => {
               const nextTab = tabFromLocation()
               setTab(nextTab)
@@ -156,18 +136,11 @@ jobs:
             }
             window.addEventListener('popstate', onPop)
             return () => window.removeEventListener('popstate', onPop)
-          }, [])"""
-          s = replace_once(s, old_pop, new_pop, 'popstate routing')
+          }, [])'''
+          s = sub_once(s, pop_pattern, pop_replacement, 'popstate routing')
 
-          old_change = """  function changeTab(key) {
-            setTab(key)
-            setUserDetail(null)
-            setMessage('')
-            setError('')
-            const next = key === 'financial' ? '/admin/financial' : '/admin'
-            if (window.location.pathname !== next) window.history.pushState({}, '', next)
-          }"""
-          new_change = """  function changeTab(key) {
+          change_pattern = r"  function changeTab\(key\) \{.*?\n  \}\n\n  function logout"
+          change_replacement = '''  function changeTab(key) {
             setTab(key)
             setUserDetail(null)
             setMessage('')
@@ -175,68 +148,72 @@ jobs:
             if (key !== 'home') localStorage.setItem('petertecnet_admin_last_tab', key)
             const next = ADMIN_ROUTES[key] || '/admin'
             if (normalizedPath() !== next) window.history.pushState({}, '', next)
-          }"""
-          s = replace_once(s, old_change, new_change, 'changeTab routes')
+          }
 
-          old_shell = """  const counts = data.dashboard?.summary || {}
-            return <>{processing&&<ProcessingIndicator message=\"Atualizando ecossistema...\"/>}<main className=\"ecosystem-shell\"><aside className=\"ecosystem-sidebar\"><a className=\"admin-brand ecosystem-brand\" href=\"/admin\" aria-label=\"Ir para a home do Admin Center\" onClick={event=>{event.preventDefault();changeTab('command')}}><img src=\"/petertecnetlogo.png\" alt=\"\"/><span><b>Peter Tecnet</b><small>Mission Control</small></span></a><nav>{TABS.map(([key,label])=><button key={key} className={tab===key?'active':''} onClick={()=>changeTab(key)}>{label}</button>)}</nav><div className=\"sidebar-foot\"><a href=\"https://petertecnet.com.br/\" target=\"_blank\" rel=\"noreferrer\" aria-label=\"Abrir site Peter Tecnet em uma nova aba\">Site Peter Tecnet ↗</a><button onClick={logout}>Sair</button></div></aside><section className=\"ecosystem-main\"><header className=\"ecosystem-top\"><div><p className=\"admin-kicker\">Peter Tecnet Command Center</p><h1>{userDetail?'Detalhes do usuário':TABS.find(x=>x[0]===tab)?.[1]}</h1></div><div className=\"top-actions\">{userDetail&&<button onClick={()=>setUserDetail(null)}>← Voltar</button>}{!['financial','command'].includes(tab)&&<button onClick={()=>userDetail?openUser(userDetail.user):load(tab)}>Atualizar</button>}</div></header>{error&&<div className=\"notice error\">{error}</div>}{message&&<div className=\"notice success\">{message}</div>}{userDetail?<UserDetail payload={userDetail} mutate={mutate}/>:<>{tab==='command'&&<CommandCenter/>} {tab==='dashboard'&&<Dashboard summary={counts} payload={data.dashboard} onUser={openUser}/>} {tab==='activity'&&<Activity payload={data.activity} applications={data.applications} users={data.users} load={load} setData={setData}/>} {tab==='financial'&&<FinancialCenter embedded/>} {tab==='applications'&&<Applications payload={data.applications} mutate={mutate}/>} {tab==='users'&&<Users payload={data.users} profiles={data.profiles} applications={data.applications} load={load} mutate={mutate} openUser={openUser}/>} {tab==='profiles'&&<Profiles payload={data.profiles} mutate={mutate}/>} {tab==='establishments'&&<Establishments payload={data.establishments} applications={data.applications} load={load} mutate={mutate}/>} {tab==='items'&&<Items payload={data.items}/>} {tab==='site'&&<SiteSettings payload={data.site} mutate={mutate}/>} {tab==='audit'&&<Audit payload={data.audit}/>}</>}</section></main></>"""
-          new_shell = """  const counts = data.home?.summary || data.dashboard?.summary || {}
+          function logout'''
+          s = sub_once(s, change_pattern, change_replacement, 'changeTab routes', re.S)
+
+          shell_start = s.index('  const counts = data.dashboard?.summary || {}')
+          shell_end = s.index('\n}\n\nfunction Dashboard', shell_start)
+          shell = '''  const counts = data.home?.summary || data.dashboard?.summary || {}
             const lastTab = localStorage.getItem('petertecnet_admin_last_tab') || ''
             const apps = data.applications?.applications || []
-            return <>{processing&&<ProcessingIndicator message=\"Atualizando ecossistema...\"/>}<main className=\"ecosystem-shell\"><aside className=\"ecosystem-sidebar\"><a className=\"admin-brand ecosystem-brand\" href=\"/admin\" aria-label=\"Ir para a home do Admin Center\" onClick={event=>{event.preventDefault();changeTab('home')}}><img src=\"/petertecnetlogo.png\" alt=\"\"/><span><b>Peter Tecnet</b><small>Admin Center</small></span></a><nav className=\"admin-nav-groups\">{NAV_GROUPS.map(([group,keys])=><div className=\"admin-nav-group\" key={group}><span>{group}</span>{keys.map(key=>{const label=tabLabel(key);return <button key={key} className={tab===key?'active':''} onClick={()=>changeTab(key)}>{label}</button>})}</div>)}</nav><div className=\"sidebar-foot\"><a className=\"public-site-link\" href=\"https://petertecnet.com.br/\" target=\"_blank\" rel=\"noreferrer\" aria-label=\"Abrir site Peter Tecnet em uma nova aba\"><span>◎</span> Site Peter Tecnet ↗</a><button onClick={logout}>Sair</button></div></aside><section className=\"ecosystem-main\"><header className=\"ecosystem-top\"><div><p className=\"admin-kicker\">Peter Tecnet Admin Center</p><h1>{userDetail?'Detalhes do usuário':tabLabel(tab)}</h1><AdminBreadcrumbs tab={tab} userDetail={userDetail}/></div><div className=\"top-actions\"><PlatformSwitcher applications={apps}/>{userDetail&&<button onClick={()=>{setUserDetail(null);window.history.pushState({},'',ADMIN_ROUTES.users)}}>← Voltar</button>}{!['financial','command'].includes(tab)&&<button onClick={()=>userDetail?openUser(userDetail.user,{push:false}):load(tab)}>Atualizar</button>}</div></header>{error&&<div className=\"notice error\">{error}</div>}{message&&<div className=\"notice success\">{message}</div>}{userDetail?<UserDetail payload={userDetail} mutate={mutate}/>:<>{tab==='home'&&<AdminHome payload={data.home||data.dashboard} applications={apps} lastTab={lastTab} onNavigate={changeTab}/>} {tab==='command'&&<CommandCenter/>} {tab==='dashboard'&&<Dashboard summary={counts} payload={data.dashboard} onUser={openUser}/>} {tab==='activity'&&<Activity payload={data.activity} applications={data.applications} users={data.users} load={load} setData={setData}/>} {tab==='financial'&&<FinancialCenter embedded/>} {tab==='applications'&&<Applications payload={data.applications} mutate={mutate}/>} {tab==='users'&&<Users payload={data.users} profiles={data.profiles} applications={data.applications} load={load} mutate={mutate} openUser={openUser}/>} {tab==='profiles'&&<Profiles payload={data.profiles} mutate={mutate}/>} {tab==='establishments'&&<Establishments payload={data.establishments} applications={data.applications} load={load} mutate={mutate}/>} {tab==='items'&&<Items payload={data.items}/>} {tab==='site'&&<SiteSettings payload={data.site} mutate={mutate}/>} {tab==='audit'&&<Audit payload={data.audit}/>}</>}</section></main></>"""
-          s = replace_once(s, old_shell, new_shell, 'admin shell')
+            return <>{processing&&<ProcessingIndicator message="Atualizando ecossistema..."/>}<main className="ecosystem-shell"><aside className="ecosystem-sidebar"><a className="admin-brand ecosystem-brand" href="/admin" aria-label="Ir para a home do Admin Center" onClick={event=>{event.preventDefault();changeTab('home')}}><img src="/petertecnetlogo.png" alt=""/><span><b>Peter Tecnet</b><small>Admin Center</small></span></a><nav className="admin-nav-groups">{NAV_GROUPS.map(([group,keys])=><div className="admin-nav-group" key={group}><span>{group}</span>{keys.map(key=>{const label=tabLabel(key);return <button key={key} className={tab===key?'active':''} onClick={()=>changeTab(key)}>{label}</button>})}</div>)}</nav><div className="sidebar-foot"><a className="public-site-link" href="https://petertecnet.com.br/" target="_blank" rel="noreferrer" aria-label="Abrir site Peter Tecnet em uma nova aba"><span>◎</span> Site Peter Tecnet ↗</a><button onClick={logout}>Sair</button></div></aside><section className="ecosystem-main"><header className="ecosystem-top"><div><p className="admin-kicker">Peter Tecnet Admin Center</p><h1>{userDetail?'Detalhes do usuário':tabLabel(tab)}</h1><AdminBreadcrumbs tab={tab} userDetail={userDetail}/></div><div className="top-actions"><PlatformSwitcher applications={apps}/>{userDetail&&<button onClick={()=>{setUserDetail(null);window.history.pushState({},'',ADMIN_ROUTES.users)}}>← Voltar</button>}{!['financial','command'].includes(tab)&&<button onClick={()=>userDetail?openUser(userDetail.user,{push:false}):load(tab)}>Atualizar</button>}</div></header>{error&&<div className="notice error">{error}</div>}{message&&<div className="notice success">{message}</div>}{userDetail?<UserDetail payload={userDetail} mutate={mutate}/>:<>{tab==='home'&&<AdminHome payload={data.home||data.dashboard} applications={apps} lastTab={lastTab} onNavigate={changeTab}/>} {tab==='command'&&<CommandCenter/>} {tab==='dashboard'&&<Dashboard summary={counts} payload={data.dashboard} onUser={openUser}/>} {tab==='activity'&&<Activity payload={data.activity} applications={data.applications} users={data.users} load={load} setData={setData}/>} {tab==='financial'&&<FinancialCenter embedded/>} {tab==='applications'&&<Applications payload={data.applications} mutate={mutate}/>} {tab==='users'&&<Users payload={data.users} profiles={data.profiles} applications={data.applications} load={load} mutate={mutate} openUser={openUser}/>} {tab==='profiles'&&<Profiles payload={data.profiles} mutate={mutate}/>} {tab==='establishments'&&<Establishments payload={data.establishments} applications={data.applications} load={load} mutate={mutate}/>} {tab==='items'&&<Items payload={data.items}/>} {tab==='site'&&<SiteSettings payload={data.site} mutate={mutate}/>} {tab==='audit'&&<Audit payload={data.audit}/>}</>}</section></main></>'''
+          s = s[:shell_start] + shell + s[shell_end:]
 
-          # Establishment deep links and native media slot.
-          s = replace_once(s,
-              "  useEffect(() => { if (!applications) load('applications') }, [])\n",
-              "  useEffect(() => { if (!applications) load('applications') }, [])\n  useEffect(() => {\n    const deepId = Number(window.location.pathname.match(/^\\/admin\\/establishments\\/(\\d+)$/)?.[1]) || 0\n    if (!deepId || editing || !rows.length) return\n    const target = rows.find(item => Number(item.id) === deepId)\n    if (target) beginEdit(target, { push: false })\n  // eslint-disable-next-line react-hooks/exhaustive-deps\n  }, [rows, editing])\n",
-              'establishment deep-link effect')
-
-          s = replace_once(s,
-              "  function beginEdit(item) {",
-              "  function beginEdit(item, { push = true } = {}) {",
-              'beginEdit signature')
+          est_effect_anchor = "  useEffect(() => { if (!applications) load('applications') }, [])\n"
+          s = replace_once(s, est_effect_anchor, est_effect_anchor + '''  useEffect(() => {
+            const deepId = Number(window.location.pathname.match(/^\\/admin\\/establishments\\/(\\d+)$/)?.[1]) || 0
+            if (!deepId || editing || !rows.length) return
+            const target = rows.find(item => Number(item.id) === deepId)
+            if (target) beginEdit(target, { push: false })
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+          }, [rows, editing])
+''', 'establishment deep-link effect')
+          s = replace_once(s, "  function beginEdit(item) {", "  function beginEdit(item, { push = true } = {}) {", 'beginEdit signature')
           s = replace_once(s,
               "    window.scrollTo({ top: 0, behavior: 'smooth' })\n  }\n\n  function closeEditor()",
               "    if (push) {\n      const next = `/admin/establishments/${item.id}`\n      if (window.location.pathname !== next) window.history.pushState({}, '', next)\n    }\n    window.scrollTo({ top: 0, behavior: 'smooth' })\n  }\n\n  function closeEditor()",
               'beginEdit route push')
+          close_pattern = r"  function closeEditor\(\) \{\n    if \(saving\) return\n    setEditing\(null\)\n    setForm\(null\)\n    setOwnerSnapshot\(null\)\n    setLocalError\(''\)\n  \}"
+          close_replacement = '''  function closeEditor() {
+            if (saving) return
+            setEditing(null)
+            setForm(null)
+            setOwnerSnapshot(null)
+            setLocalError('')
+            if (window.location.pathname !== '/admin/establishments') window.history.pushState({}, '', '/admin/establishments')
+          }'''
+          s = sub_once(s, close_pattern, close_replacement, 'close editor route')
           s = replace_once(s,
-              "    setLocalError('')\n  }\n\n  function setPrimaryApplication",
-              "    setLocalError('')\n    if (window.location.pathname !== '/admin/establishments') window.history.pushState({}, '', '/admin/establishments')\n  }\n\n  function setPrimaryApplication",
-              'close editor route')
-          s = replace_once(s,
-              "      <form className=\"form-grid\" onSubmit={save}>",
-              "      <form className=\"form-grid\" data-establishment-editor-id={editing} onSubmit={save}>",
+              "    {editing && form && <Panel title={`Editar estabelecimento #${editing}`}>\n      <form className=\"form-grid\" onSubmit={save}>",
+              "    {editing && form && <Panel title={`Editar estabelecimento #${editing}`}>\n      <form className=\"form-grid\" data-establishment-editor-id={editing} onSubmit={save}>",
               'establishment form marker')
           s = replace_once(s,
               "        <label className=\"wide\">Descrição\n          <textarea rows=\"5\" value={form.description} onChange={event=>setForm({...form,description:event.target.value})}/>\n        </label>\n\n        <div className=\"wide\">",
               "        <label className=\"wide\">Descrição\n          <textarea rows=\"5\" value={form.description} onChange={event=>setForm({...form,description:event.target.value})}/>\n        </label>\n\n        <div className=\"wide establishment-media-native-slot\" data-establishment-media-slot={editing} />\n\n        <div className=\"wide\">",
               'media native slot')
 
-          # Replace Items with a deep-linkable detail view.
-          old_items_start = s.index("function Items({payload})")
-          old_items_end = s.index("\n\nfunction SiteSettings", old_items_start)
+          old_items_start = s.index('function Items({payload})')
+          old_items_end = s.index('\n\nfunction SiteSettings', old_items_start)
           items_new = '''function Items({payload}) {
             const rows = payload?.items || payload?.data || []
-            const pathId = decodeURIComponent(window.location.pathname.match(/^\\/admin\\/items\\/([^/]+)$/)?.[1] || '')
+            const [routePath, setRoutePath] = useState(window.location.pathname)
+            useEffect(() => { const onPop = () => setRoutePath(window.location.pathname); window.addEventListener('popstate', onPop); return () => window.removeEventListener('popstate', onPop) }, [])
+            const pathId = decodeURIComponent(routePath.match(/^\\/admin\\/items\\/([^/]+)$/)?.[1] || '')
             const selected = pathId ? rows.find(item => String(item.id) === pathId || String(item.slug || '') === pathId) : null
-            function openItem(item) {
-              const identifier = item.slug || item.id
-              window.history.pushState({}, '', `/admin/items/${encodeURIComponent(identifier)}`)
-              window.dispatchEvent(new PopStateEvent('popstate'))
-            }
-            if (selected) return <div className="admin-stack"><div className="admin-breadcrumb-inline"><button onClick={()=>{window.history.pushState({},'',ADMIN_ROUTES.items);window.dispatchEvent(new PopStateEvent('popstate'))}}>Itens</button><span>›</span><b>{selected.name}</b></div><Panel title={selected.name}><div className="admin-item-detail"><Info label="ID" value={`#${selected.id}`}/><Info label="Slug" value={selected.slug||'—'}/><Info label="Aplicação" value={selected.application?.name||selected.app?.name||selected.app_id||'—'}/><Info label="Estabelecimento" value={selected.establishment?.fantasy||selected.establishment?.name||selected.establishment_id||'—'}/><Info label="Preço" value={selected.price!=null?Number(selected.price).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'—'}/><Info label="Status" value={selected.is_active===false?'Inativo':'Ativo'}/>{selected.description&&<div className="admin-item-description"><span>Descrição</span><p>{selected.description}</p></div>}</div></Panel></div>
+            function go(path) { window.history.pushState({}, '', path); setRoutePath(path) }
+            function openItem(item) { go(`/admin/items/${encodeURIComponent(item.slug || item.id)}`) }
+            if (selected) return <div className="admin-stack"><div className="admin-breadcrumb-inline"><button onClick={()=>go(ADMIN_ROUTES.items)}>Itens</button><span>›</span><b>{selected.name}</b></div><Panel title={selected.name}><div className="admin-item-detail"><Info label="ID" value={`#${selected.id}`}/><Info label="Slug" value={selected.slug||'—'}/><Info label="Aplicação" value={selected.application?.name||selected.app?.name||selected.app_id||'—'}/><Info label="Estabelecimento" value={selected.establishment?.fantasy||selected.establishment?.name||selected.establishment_id||'—'}/><Info label="Preço" value={selected.price!=null?Number(selected.price).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'—'}/><Info label="Status" value={selected.is_active===false?'Inativo':'Ativo'}/>{selected.description&&<div className="admin-item-description"><span>Descrição</span><p>{selected.description}</p></div>}</div></Panel></div>
             return <Panel title={`Itens (${rows.length})`}><div className="table-wrap"><table><thead><tr><th>ID</th><th>Item</th><th>Aplicação</th><th>Estabelecimento</th><th>Preço</th><th>Status</th></tr></thead><tbody>{rows.length?rows.map(item=><tr key={item.id}><td>#{item.id}</td><td><button className="link-button" onClick={()=>openItem(item)}><b>{item.name}</b><small>{item.slug||''}</small></button></td><td>{item.application?.name||item.app?.name||item.app_id||'—'}</td><td>{item.establishment?.fantasy||item.establishment?.name||item.establishment_id||'—'}</td><td>{item.price!=null?Number(item.price).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'—'}</td><td><span className={item.is_active===false?'status':'status on'}>{item.is_active===false?'Inativo':'Ativo'}</span></td></tr>):<tr><td colSpan="6">Nenhum item encontrado.</td></tr>}</tbody></table></div></Panel>
           }'''
           s = s[:old_items_start] + items_new + s[old_items_end:]
-
           admin.write_text(s)
 
-          # Make the media bridge deterministic and expand context/view preview.
           media = Path('src/AdminEstablishmentMedia.jsx')
           m = media.read_text()
-          old_locator_start = m.index('function locateEstablishmentEditor()')
-          old_locator_end = m.index('\n\nfunction filesForRole', old_locator_start)
+          locator_start = m.index('function locateEstablishmentEditor()')
+          locator_end = m.index('\n\nfunction filesForRole', locator_start)
           locator_new = '''function locateEstablishmentEditor() {
             const form = document.querySelector('form.form-grid[data-establishment-editor-id]')
             if (!form) return null
@@ -244,35 +221,21 @@ jobs:
             const slot = form.querySelector(`[data-establishment-media-slot="${id}"]`)
             return id && slot ? { id, form, slot } : null
           }'''
-          m = m[:old_locator_start] + locator_new + m[old_locator_end:]
-
-          old_context = '''  const appId = Number(findLabel('Aplicação principal')?.querySelector('select')?.value) || 0
-            return { name, category, city, uf, appId }'''
-          new_context = '''  const appId = Number(findLabel('Aplicação principal')?.querySelector('select')?.value) || 0
-            const phone = findLabel('Telefone')?.querySelector('input')?.value || ''
-            const website = findLabel('Website')?.querySelector('input')?.value || ''
-            const instagram = findLabel('Instagram')?.querySelector('input')?.value || ''
-            const description = findLabel('Descrição')?.querySelector('textarea')?.value || ''
-            return { name, category, city, uf, appId, phone, website, instagram, description }'''
-          m = replace_once(m, old_context, new_context, 'media context')
+          m = m[:locator_start] + locator_new + m[locator_end:]
+          m = replace_once(m,
+              "  const appId = Number(findLabel('Aplicação principal')?.querySelector('select')?.value) || 0\n  return { name, category, city, uf, appId }",
+              "  const appId = Number(findLabel('Aplicação principal')?.querySelector('select')?.value) || 0\n  const phone = findLabel('Telefone')?.querySelector('input')?.value || ''\n  const website = findLabel('Website')?.querySelector('input')?.value || ''\n  const instagram = findLabel('Instagram')?.querySelector('input')?.value || ''\n  const description = findLabel('Descrição')?.querySelector('textarea')?.value || ''\n  return { name, category, city, uf, appId, phone, website, instagram, description }",
+              'media context')
           m = m.replace('<h3>Logo e capa do estabelecimento</h3>', '<h3>Logo, capa e prévia da página do estabelecimento</h3>', 1)
           m = m.replace('<p>Escolha as imagens e confira o resultado antes de salvar o cadastro.</p>', '<p>Adicione a identidade visual e veja, em tempo real, como o estabelecimento será apresentado ao público.</p>', 1)
-
-          preview_anchor = '''    <div className="media-guidance">'''
           public_preview = '''    <section className="establishment-page-preview" aria-label="Prévia da view pública do estabelecimento">
               <div className="establishment-page-preview__head"><div><span>PRÉVIA DA VIEW</span><b>Como o cliente verá o estabelecimento</b></div><small>Dados ainda não salvos também aparecem aqui</small></div>
               <div className="establishment-page-preview__surface">
-                <div className={`establishment-page-preview__cover ${!backgroundUrl ? 'empty' : ''}`} style={backgroundUrl ? { backgroundImage: `url("${backgroundUrl}")` } : undefined}>
-                  {!backgroundUrl && <span>CAPA DO ESTABELECIMENTO</span>}
-                </div>
+                <div className={`establishment-page-preview__cover ${!backgroundUrl ? 'empty' : ''}`} style={backgroundUrl ? { backgroundImage: `url("${backgroundUrl}")` } : undefined}>{!backgroundUrl && <span>CAPA DO ESTABELECIMENTO</span>}</div>
                 <div className="establishment-page-preview__body">
                   <div className={`establishment-page-preview__avatar ${!logoUrl ? 'empty' : ''}`}>{logoUrl ? <img src={logoUrl} alt="Logo do estabelecimento"/> : <span>LOGO</span>}</div>
                   <div className="establishment-page-preview__identity"><span>{context.category || 'Categoria do estabelecimento'}</span><h4>{context.name || `Estabelecimento #${establishmentId}`}</h4><p>{location || 'Cidade / UF'}</p></div>
-                  <div className="establishment-page-preview__actions">
-                    <button type="button" disabled={!context.phone}>Contato</button>
-                    <button type="button" disabled={!context.website}>Site</button>
-                    <button type="button" disabled={!context.instagram}>Instagram</button>
-                  </div>
+                  <div className="establishment-page-preview__actions"><button type="button" disabled={!context.phone}>Contato</button><button type="button" disabled={!context.website}>Site</button><button type="button" disabled={!context.instagram}>Instagram</button></div>
                   <div className="establishment-page-preview__description"><b>Sobre</b><p>{context.description || 'A descrição do estabelecimento aparecerá aqui para apresentar a empresa, seus diferenciais e sua proposta ao cliente.'}</p></div>
                   <div className="establishment-page-preview__catalog"><div><b>Produtos e serviços</b><span>Prévia da área de catálogo</span></div><div className="establishment-page-preview__cards"><i/><i/><i/></div></div>
                 </div>
@@ -280,14 +243,13 @@ jobs:
             </section>
 
             <div className="media-guidance">'''
-          m = replace_once(m, preview_anchor, public_preview, 'public establishment preview')
+          m = replace_once(m, '    <div className="media-guidance">', public_preview, 'public establishment preview')
           m = replace_once(m,
               "  return createPortal(<EstablishmentMediaEditor key={editor.id} establishmentId={editor.id} formElement={editor.form} />, editor.form)",
               "  return createPortal(<EstablishmentMediaEditor key={editor.id} establishmentId={editor.id} formElement={editor.form} />, editor.slot)",
               'portal slot')
           media.write_text(m)
 
-          # Command Center real internal routes.
           command = Path('src/CommandCenter.jsx')
           c = command.read_text()
           c = replace_once(c,
@@ -304,41 +266,19 @@ jobs:
               'command popstate')
           command.write_text(c)
 
-          # Home, breadcrumbs and ecosystem switcher.
           Path('src/AdminHome.jsx').write_text(r'''const LABELS = {
             home: 'Início', command: 'Mission Control', dashboard: 'Visão geral', activity: 'Atividade', financial: 'Financeiro', applications: 'Aplicações', users: 'Usuários', profiles: 'Perfis e permissões', establishments: 'Estabelecimentos', items: 'Itens', site: 'Site institucional', audit: 'Auditoria',
           }
-
-          export function AdminBreadcrumbs({ tab, userDetail }) {
-            return <nav className="admin-breadcrumbs" aria-label="Breadcrumb"><button type="button" onClick={()=>{window.history.pushState({},'', '/admin');window.dispatchEvent(new PopStateEvent('popstate'))}}>Admin Center</button>{tab !== 'home' && <><span>›</span><b>{LABELS[tab] || tab}</b></>}{userDetail?.user && <><span>›</span><strong>{[userDetail.user.first_name,userDetail.user.last_name].filter(Boolean).join(' ') || userDetail.user.email}</strong></>}</nav>
-          }
-
-          export function PlatformSwitcher({ applications = [] }) {
-            const rows = applications.filter(app => app?.url && app?.is_active !== false)
-            return <label className="admin-platform-switcher"><span>Ecossistema</span><select value="" onChange={event=>{if(event.target.value) window.location.href=event.target.value}} aria-label="Abrir uma plataforma Peter Tecnet"><option value="">Abrir plataforma…</option><option value="https://petertecnet.com.br/">Peter Tecnet</option>{rows.map(app=><option key={app.id} value={app.url}>{app.name}</option>)}</select></label>
-          }
-
+          export function AdminBreadcrumbs({ tab, userDetail }) { return <nav className="admin-breadcrumbs" aria-label="Breadcrumb"><button type="button" onClick={()=>{window.history.pushState({},'', '/admin');window.dispatchEvent(new PopStateEvent('popstate'))}}>Admin Center</button>{tab !== 'home' && <><span>›</span><b>{LABELS[tab] || tab}</b></>}{userDetail?.user && <><span>›</span><strong>{[userDetail.user.first_name,userDetail.user.last_name].filter(Boolean).join(' ') || userDetail.user.email}</strong></>}</nav> }
+          export function PlatformSwitcher({ applications = [] }) { const rows = applications.filter(app => app?.url && app?.is_active !== false && !String(app.url).includes('petertecnet.com.br/admin')); return <label className="admin-platform-switcher"><span>Ecossistema</span><select value="" onChange={event=>{if(event.target.value) window.location.href=event.target.value}} aria-label="Abrir uma plataforma Peter Tecnet"><option value="">Abrir plataforma…</option><option value="https://petertecnet.com.br/">Peter Tecnet</option>{rows.map(app=><option key={app.id} value={app.url}>{app.name}</option>)}</select></label> }
           export default function AdminHome({ payload, applications = [], lastTab, onNavigate }) {
-            const summary = payload?.summary || {}
-            const recentUsers = payload?.recent_users || []
-            const recentActivity = payload?.recent_activity || []
-            const cards = [
-              ['Usuários', summary.users, 'Contas do ecossistema'],
-              ['Estabelecimentos', summary.establishments, `${summary.approved_establishments || 0} aprovados`],
-              ['Aplicações', summary.applications, `${summary.active_applications || 0} ativas`],
-              ['Interações 30d', summary.interactions_30d, 'Atividade registrada'],
-            ]
-            return <div className="admin-home-stack">
-              <section className="admin-home-hero"><div><span>HOME ADMINISTRATIVA</span><h2>Visão executiva do ecossistema</h2><p>Entre pela visão de negócio e gestão. Use o Mission Control quando precisar investigar operação, infraestrutura, segurança ou incidentes.</p></div><div className="admin-home-hero-actions"><button className="primary" onClick={()=>onNavigate('command')}>Abrir Mission Control</button>{lastTab && lastTab !== 'home' && LABELS[lastTab] && <button onClick={()=>onNavigate(lastTab)}>Continuar em {LABELS[lastTab]}</button>}</div></section>
-              <div className="admin-home-metrics">{cards.map(([label,value,sub])=><button key={label} onClick={()=>onNavigate(label==='Usuários'?'users':label==='Estabelecimentos'?'establishments':label==='Aplicações'?'applications':'activity')}><span>{label}</span><strong>{value ?? '—'}</strong><small>{sub}</small></button>)}</div>
-              <section className="admin-home-quick"><header><div><span>ATALHOS</span><h3>Ações frequentes</h3></div></header><div><button onClick={()=>onNavigate('users')}><b>+ Novo usuário</b><span>Cadastrar e gerenciar acessos</span></button><button onClick={()=>onNavigate('establishments')}><b>Estabelecimentos</b><span>Editar dados, logo e capa</span></button><button onClick={()=>onNavigate('items')}><b>Itens</b><span>Consultar produtos e serviços</span></button><button onClick={()=>onNavigate('command')}><b>Incidentes</b><span>Abrir sala operacional</span></button></div></section>
-              <div className="admin-home-columns"><section className="admin-home-panel"><header><span>ÚLTIMOS USUÁRIOS</span><button onClick={()=>onNavigate('users')}>Ver todos</button></header>{recentUsers.slice(0,5).map(user=><article key={user.id}><div><b>{[user.first_name,user.last_name].filter(Boolean).join(' ') || user.user_name || 'Usuário'}</b><span>{user.email}</span></div><small>#{user.id}</small></article>)}{!recentUsers.length&&<p>Nenhum usuário recente.</p>}</section><section className="admin-home-panel"><header><span>ATIVIDADE RECENTE</span><button onClick={()=>onNavigate('activity')}>Abrir atividade</button></header>{recentActivity.slice(0,5).map(row=><article key={row.id}><div><b>{String(row.type||'atividade').replaceAll('_',' ')}</b><span>{row.application?.name || row.name || 'Ecossistema'}</span></div><small>{row.created_at ? new Date(row.created_at).toLocaleString('pt-BR') : '—'}</small></article>)}{!recentActivity.length&&<p>Nenhuma atividade recente.</p>}</section></div>
-              <section className="admin-home-apps"><header><div><span>ECOSSISTEMA</span><h3>Plataformas disponíveis</h3></div><button onClick={()=>onNavigate('applications')}>Gerenciar aplicações</button></header><div>{applications.filter(app=>app?.url&&app?.is_active!==false).slice(0,8).map(app=><a key={app.id} href={app.url} target="_blank" rel="noreferrer"><img src={app.logo||'/petertecnetlogo.png'} alt=""/><span><b>{app.name}</b><small>Abrir plataforma ↗</small></span></a>)}</div></section>
-            </div>
+            const summary = payload?.summary || {}, recentUsers = payload?.recent_users || [], recentActivity = payload?.recent_activity || []
+            const cards = [['Usuários',summary.users,'Contas do ecossistema','users'],['Estabelecimentos',summary.establishments,`${summary.approved_establishments||0} aprovados`,'establishments'],['Aplicações',summary.applications,`${summary.active_applications||0} ativas`,'applications'],['Interações 30d',summary.interactions_30d,'Atividade registrada','activity']]
+            return <div className="admin-home-stack"><section className="admin-home-hero"><div><span>HOME ADMINISTRATIVA</span><h2>Visão executiva do ecossistema</h2><p>Entre pela visão de negócio e gestão. Use o Mission Control quando precisar investigar operação, infraestrutura, segurança ou incidentes.</p></div><div className="admin-home-hero-actions"><button className="primary" onClick={()=>onNavigate('command')}>Abrir Mission Control</button>{lastTab&&lastTab!=='home'&&LABELS[lastTab]&&<button onClick={()=>onNavigate(lastTab)}>Continuar em {LABELS[lastTab]}</button>}</div></section><div className="admin-home-metrics">{cards.map(([label,value,sub,target])=><button key={label} onClick={()=>onNavigate(target)}><span>{label}</span><strong>{value??'—'}</strong><small>{sub}</small></button>)}</div><section className="admin-home-quick"><header><div><span>ATALHOS</span><h3>Ações frequentes</h3></div></header><div><button onClick={()=>onNavigate('users')}><b>+ Novo usuário</b><span>Cadastrar e gerenciar acessos</span></button><button onClick={()=>onNavigate('establishments')}><b>Estabelecimentos</b><span>Editar dados, logo e capa</span></button><button onClick={()=>onNavigate('items')}><b>Itens</b><span>Consultar produtos e serviços</span></button><button onClick={()=>onNavigate('command')}><b>Incidentes</b><span>Abrir sala operacional</span></button></div></section><div className="admin-home-columns"><section className="admin-home-panel"><header><span>ÚLTIMOS USUÁRIOS</span><button onClick={()=>onNavigate('users')}>Ver todos</button></header>{recentUsers.slice(0,5).map(user=><article key={user.id}><div><b>{[user.first_name,user.last_name].filter(Boolean).join(' ')||user.user_name||'Usuário'}</b><span>{user.email}</span></div><small>#{user.id}</small></article>)}{!recentUsers.length&&<p>Nenhum usuário recente.</p>}</section><section className="admin-home-panel"><header><span>ATIVIDADE RECENTE</span><button onClick={()=>onNavigate('activity')}>Abrir atividade</button></header>{recentActivity.slice(0,5).map(row=><article key={row.id}><div><b>{String(row.type||'atividade').replaceAll('_',' ')}</b><span>{row.application?.name||row.name||'Ecossistema'}</span></div><small>{row.created_at?new Date(row.created_at).toLocaleString('pt-BR'):'—'}</small></article>)}{!recentActivity.length&&<p>Nenhuma atividade recente.</p>}</section></div><section className="admin-home-apps"><header><div><span>ECOSSISTEMA</span><h3>Plataformas disponíveis</h3></div><button onClick={()=>onNavigate('applications')}>Gerenciar aplicações</button></header><div>{applications.filter(app=>app?.url&&app?.is_active!==false).slice(0,8).map(app=><a key={app.id} href={app.url} target="_blank" rel="noreferrer"><img src={app.logo||'/petertecnetlogo.png'} alt=""/><span><b>{app.name}</b><small>Abrir plataforma ↗</small></span></a>)}</div></section></div>
           }
           ''')
 
-          Path('src/AdminEnhancements.css').write_text(r'''.admin-nav-groups{display:flex!important;flex-direction:column;gap:16px!important}.admin-nav-group{display:grid;gap:4px}.admin-nav-group>span{padding:0 12px 5px;color:#416a74;font-size:9px;font-weight:800;letter-spacing:.17em;text-transform:uppercase}.admin-nav-group button{width:100%}.public-site-link{display:flex!important;align-items:center;gap:8px}.public-site-link>span{font-size:16px;color:#64e4f4}.admin-breadcrumbs{display:flex;align-items:center;gap:7px;margin-top:7px;font-size:11px;color:#567c85}.admin-breadcrumbs button{padding:0!important;min-height:0!important;border:0!important;background:none!important;color:#6fbac5!important}.admin-breadcrumbs span{opacity:.45}.admin-breadcrumbs b,.admin-breadcrumbs strong{color:#8aaeb6;font-weight:600}.admin-platform-switcher{display:flex;align-items:center;gap:8px}.admin-platform-switcher>span{font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#557d86}.admin-platform-switcher select{min-height:38px;max-width:190px;padding:8px 30px 8px 10px;border:1px solid rgba(79,199,216,.18);border-radius:10px;background:#061a20;color:#a9ccd3;font-size:11px}.admin-home-stack{display:grid;gap:18px}.admin-home-hero{display:flex;justify-content:space-between;gap:28px;padding:28px;border:1px solid rgba(70,209,230,.16);border-radius:20px;background:linear-gradient(135deg,rgba(6,33,41,.96),rgba(4,20,26,.92));box-shadow:0 18px 50px rgba(0,0,0,.16)}.admin-home-hero span,.admin-home-quick header span,.admin-home-panel header>span,.admin-home-apps header span{font-size:9px;font-weight:800;letter-spacing:.18em;color:#56d8e9}.admin-home-hero h2{margin:8px 0 9px;font-size:28px;color:#e9fbff}.admin-home-hero p{max-width:680px;margin:0;color:#789da6;line-height:1.65}.admin-home-hero-actions{display:flex;align-items:flex-end;gap:9px;flex-wrap:wrap}.admin-home-hero-actions button{white-space:nowrap}.admin-home-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.admin-home-metrics button{display:grid;gap:5px;text-align:left;padding:18px;border:1px solid rgba(72,195,212,.12);border-radius:16px;background:rgba(6,28,35,.72);color:#b7d5db}.admin-home-metrics button:hover{border-color:rgba(76,222,240,.35);transform:translateY(-1px)}.admin-home-metrics span{font-size:11px;color:#6f949d}.admin-home-metrics strong{font-size:26px;color:#effcff}.admin-home-metrics small{color:#54757d}.admin-home-quick,.admin-home-panel,.admin-home-apps{padding:20px;border:1px solid rgba(72,195,212,.11);border-radius:16px;background:rgba(5,24,30,.66)}.admin-home-quick header,.admin-home-apps header,.admin-home-panel header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.admin-home-quick h3,.admin-home-apps h3{margin:4px 0 0;color:#dff7fb}.admin-home-quick>div{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.admin-home-quick>div>button{display:grid;gap:5px;text-align:left;padding:15px;border:1px solid rgba(64,179,195,.12);border-radius:13px;background:#071e25;color:#b6d5db}.admin-home-quick button span{font-size:10px;color:#577b84}.admin-home-columns{display:grid;grid-template-columns:1fr 1fr;gap:14px}.admin-home-panel header button,.admin-home-apps header button{font-size:10px}.admin-home-panel article{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid rgba(116,194,205,.08)}.admin-home-panel article div{display:grid;gap:3px}.admin-home-panel article span,.admin-home-panel article small{font-size:10px;color:#5e8088}.admin-home-apps>div{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.admin-home-apps a{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid rgba(74,188,204,.11);border-radius:13px;background:#071d23;text-decoration:none}.admin-home-apps img{width:34px;height:34px;object-fit:contain;border-radius:9px}.admin-home-apps a span{display:grid;gap:2px}.admin-home-apps a b{font-size:11px;color:#d4eef2}.admin-home-apps a small{font-size:9px;color:#567b83}.establishment-media-native-slot{min-width:0}.admin-breadcrumb-inline{display:flex;align-items:center;gap:8px;color:#6d929a;font-size:11px}.admin-breadcrumb-inline button,.link-button{border:0!important;background:none!important;padding:0!important;color:#66cbd8!important;text-align:left}.link-button{display:grid;gap:2px}.link-button small{display:block;color:#587b83}.admin-item-detail{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}.admin-item-description{grid-column:1/-1;padding-top:14px}.admin-item-description span{font-size:10px;color:#60848d}.admin-item-description p{color:#a5c3c9;line-height:1.6}.establishment-page-preview{margin:18px 0 20px}.establishment-page-preview__head{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:10px}.establishment-page-preview__head>div{display:grid;gap:4px}.establishment-page-preview__head span{font-size:9px;font-weight:800;letter-spacing:.18em;color:#55d9e9}.establishment-page-preview__head b{color:#dff7fb}.establishment-page-preview__head small{color:#587d85;font-size:10px}.establishment-page-preview__surface{overflow:hidden;border:1px solid rgba(76,204,221,.18);border-radius:18px;background:#071c22;box-shadow:0 18px 44px rgba(0,0,0,.2)}.establishment-page-preview__cover{height:190px;background-position:center;background-size:cover;background-color:#0a2730;display:grid;place-items:center}.establishment-page-preview__cover.empty span{font-size:10px;letter-spacing:.16em;color:#456b74}.establishment-page-preview__body{position:relative;padding:0 24px 22px}.establishment-page-preview__avatar{position:absolute;top:-44px;left:24px;width:88px;height:88px;display:grid;place-items:center;border:5px solid #071c22;border-radius:22px;background:#0a2932;overflow:hidden}.establishment-page-preview__avatar img{width:100%;height:100%;object-fit:cover}.establishment-page-preview__avatar.empty span{font-size:11px;color:#557d86}.establishment-page-preview__identity{padding:18px 0 14px 112px;min-height:88px}.establishment-page-preview__identity>span{font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#5bd9e9}.establishment-page-preview__identity h4{margin:4px 0 2px;font-size:22px;color:#e5f9fc}.establishment-page-preview__identity p{margin:0;color:#658991;font-size:11px}.establishment-page-preview__actions{display:flex;gap:8px;flex-wrap:wrap;padding:11px 0;border-top:1px solid rgba(92,184,197,.1);border-bottom:1px solid rgba(92,184,197,.1)}.establishment-page-preview__actions button{min-height:34px;padding:7px 13px;border:1px solid rgba(84,210,227,.18);border-radius:9px;background:#0a2a33;color:#8edee8;font-size:10px}.establishment-page-preview__actions button:disabled{opacity:.35}.establishment-page-preview__description{padding:16px 0}.establishment-page-preview__description b,.establishment-page-preview__catalog b{color:#cdebf0}.establishment-page-preview__description p{margin:7px 0 0;max-width:760px;color:#7599a1;line-height:1.55;font-size:11px}.establishment-page-preview__catalog>div:first-child{display:flex;justify-content:space-between}.establishment-page-preview__catalog span{font-size:10px;color:#527780}.establishment-page-preview__cards{display:grid!important;grid-template-columns:repeat(3,1fr);gap:9px!important;margin-top:10px}.establishment-page-preview__cards i{height:70px;border:1px solid rgba(88,181,194,.09);border-radius:10px;background:linear-gradient(135deg,#0a2932,#082128)}@media(max-width:900px){.admin-home-metrics,.admin-home-quick>div,.admin-home-apps>div{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-home-columns{grid-template-columns:1fr}.admin-home-hero{flex-direction:column}.admin-platform-switcher>span{display:none}}@media(max-width:620px){.admin-home-metrics,.admin-home-quick>div,.admin-home-apps>div{grid-template-columns:1fr}.admin-home-hero{padding:20px}.admin-home-hero h2{font-size:23px}.admin-platform-switcher{width:100%}.admin-platform-switcher select{max-width:none;width:100%}.ecosystem-top .top-actions{flex-wrap:wrap}.establishment-page-preview__cover{height:130px}.establishment-page-preview__body{padding:0 15px 16px}.establishment-page-preview__avatar{left:15px;width:72px;height:72px;top:-36px}.establishment-page-preview__identity{padding-left:86px}.establishment-page-preview__identity h4{font-size:18px}.establishment-page-preview__head{align-items:start;flex-direction:column}.establishment-page-preview__cards{grid-template-columns:1fr!important}.admin-item-detail{grid-template-columns:1fr}}
+          Path('src/AdminEnhancements.css').write_text(r'''.admin-nav-groups{display:flex!important;flex-direction:column;gap:16px!important}.admin-nav-group{display:grid;gap:4px}.admin-nav-group>span{padding:0 12px 5px;color:#416a74;font-size:9px;font-weight:800;letter-spacing:.17em;text-transform:uppercase}.admin-nav-group button{width:100%}.public-site-link{display:flex!important;align-items:center;gap:8px}.public-site-link>span{font-size:16px;color:#64e4f4}.admin-breadcrumbs{display:flex;align-items:center;gap:7px;margin-top:7px;font-size:11px;color:#567c85}.admin-breadcrumbs button{padding:0!important;min-height:0!important;border:0!important;background:none!important;color:#6fbac5!important}.admin-breadcrumbs span{opacity:.45}.admin-breadcrumbs b,.admin-breadcrumbs strong{color:#8aaeb6;font-weight:600}.admin-platform-switcher{display:flex;align-items:center;gap:8px}.admin-platform-switcher>span{font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#557d86}.admin-platform-switcher select{min-height:38px;max-width:190px;padding:8px 30px 8px 10px;border:1px solid rgba(79,199,216,.18);border-radius:10px;background:#061a20;color:#a9ccd3;font-size:11px}.admin-home-stack{display:grid;gap:18px}.admin-home-hero{display:flex;justify-content:space-between;gap:28px;padding:28px;border:1px solid rgba(70,209,230,.16);border-radius:20px;background:linear-gradient(135deg,rgba(6,33,41,.96),rgba(4,20,26,.92));box-shadow:0 18px 50px rgba(0,0,0,.16)}.admin-home-hero span,.admin-home-quick header span,.admin-home-panel header>span,.admin-home-apps header span{font-size:9px;font-weight:800;letter-spacing:.18em;color:#56d8e9}.admin-home-hero h2{margin:8px 0 9px;font-size:28px;color:#e9fbff}.admin-home-hero p{max-width:680px;margin:0;color:#789da6;line-height:1.65}.admin-home-hero-actions{display:flex;align-items:flex-end;gap:9px;flex-wrap:wrap}.admin-home-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.admin-home-metrics button{display:grid;gap:5px;text-align:left;padding:18px;border:1px solid rgba(72,195,212,.12);border-radius:16px;background:rgba(6,28,35,.72);color:#b7d5db}.admin-home-metrics strong{font-size:26px;color:#effcff}.admin-home-metrics span,.admin-home-metrics small{color:#668c95}.admin-home-quick,.admin-home-panel,.admin-home-apps{padding:20px;border:1px solid rgba(72,195,212,.11);border-radius:16px;background:rgba(5,24,30,.66)}.admin-home-quick header,.admin-home-apps header,.admin-home-panel header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.admin-home-quick h3,.admin-home-apps h3{margin:4px 0 0;color:#dff7fb}.admin-home-quick>div{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.admin-home-quick>div>button{display:grid;gap:5px;text-align:left;padding:15px;border:1px solid rgba(64,179,195,.12);border-radius:13px;background:#071e25;color:#b6d5db}.admin-home-quick button span{font-size:10px;color:#577b84}.admin-home-columns{display:grid;grid-template-columns:1fr 1fr;gap:14px}.admin-home-panel article{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid rgba(116,194,205,.08)}.admin-home-panel article div{display:grid;gap:3px}.admin-home-panel article span,.admin-home-panel article small{font-size:10px;color:#5e8088}.admin-home-apps>div{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.admin-home-apps a{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid rgba(74,188,204,.11);border-radius:13px;background:#071d23;text-decoration:none}.admin-home-apps img{width:34px;height:34px;object-fit:contain;border-radius:9px}.admin-home-apps a span{display:grid;gap:2px}.admin-home-apps a b{font-size:11px;color:#d4eef2}.admin-home-apps a small{font-size:9px;color:#567b83}.establishment-media-native-slot{min-width:0}.admin-breadcrumb-inline{display:flex;align-items:center;gap:8px;color:#6d929a;font-size:11px}.admin-breadcrumb-inline button,.link-button{border:0!important;background:none!important;padding:0!important;color:#66cbd8!important;text-align:left}.link-button{display:grid;gap:2px}.link-button small{display:block;color:#587b83}.admin-item-detail{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}.admin-item-description{grid-column:1/-1;padding-top:14px}.admin-item-description span{font-size:10px;color:#60848d}.admin-item-description p{color:#a5c3c9;line-height:1.6}.establishment-page-preview{margin:18px 0 20px}.establishment-page-preview__head{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:10px}.establishment-page-preview__head>div{display:grid;gap:4px}.establishment-page-preview__head span{font-size:9px;font-weight:800;letter-spacing:.18em;color:#55d9e9}.establishment-page-preview__head b{color:#dff7fb}.establishment-page-preview__head small{color:#587d85;font-size:10px}.establishment-page-preview__surface{overflow:hidden;border:1px solid rgba(76,204,221,.18);border-radius:18px;background:#071c22;box-shadow:0 18px 44px rgba(0,0,0,.2)}.establishment-page-preview__cover{height:190px;background-position:center;background-size:cover;background-color:#0a2730;display:grid;place-items:center}.establishment-page-preview__cover.empty span{font-size:10px;letter-spacing:.16em;color:#456b74}.establishment-page-preview__body{position:relative;padding:0 24px 22px}.establishment-page-preview__avatar{position:absolute;top:-44px;left:24px;width:88px;height:88px;display:grid;place-items:center;border:5px solid #071c22;border-radius:22px;background:#0a2932;overflow:hidden}.establishment-page-preview__avatar img{width:100%;height:100%;object-fit:cover}.establishment-page-preview__identity{padding:18px 0 14px 112px;min-height:88px}.establishment-page-preview__identity>span{font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#5bd9e9}.establishment-page-preview__identity h4{margin:4px 0 2px;font-size:22px;color:#e5f9fc}.establishment-page-preview__identity p{margin:0;color:#658991;font-size:11px}.establishment-page-preview__actions{display:flex;gap:8px;flex-wrap:wrap;padding:11px 0;border-top:1px solid rgba(92,184,197,.1);border-bottom:1px solid rgba(92,184,197,.1)}.establishment-page-preview__actions button{min-height:34px;padding:7px 13px;border:1px solid rgba(84,210,227,.18);border-radius:9px;background:#0a2a33;color:#8edee8;font-size:10px}.establishment-page-preview__actions button:disabled{opacity:.35}.establishment-page-preview__description{padding:16px 0}.establishment-page-preview__description b,.establishment-page-preview__catalog b{color:#cdebf0}.establishment-page-preview__description p{margin:7px 0 0;max-width:760px;color:#7599a1;line-height:1.55;font-size:11px}.establishment-page-preview__catalog>div:first-child{display:flex;justify-content:space-between}.establishment-page-preview__catalog span{font-size:10px;color:#527780}.establishment-page-preview__cards{display:grid!important;grid-template-columns:repeat(3,1fr);gap:9px!important;margin-top:10px}.establishment-page-preview__cards i{height:70px;border:1px solid rgba(88,181,194,.09);border-radius:10px;background:linear-gradient(135deg,#0a2932,#082128)}@media(max-width:900px){.admin-home-metrics,.admin-home-quick>div,.admin-home-apps>div{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-home-columns{grid-template-columns:1fr}.admin-home-hero{flex-direction:column}.admin-platform-switcher>span{display:none}}@media(max-width:620px){.admin-home-metrics,.admin-home-quick>div,.admin-home-apps>div{grid-template-columns:1fr}.admin-home-hero{padding:20px}.admin-home-hero h2{font-size:23px}.admin-platform-switcher{width:100%}.admin-platform-switcher select{max-width:none;width:100%}.ecosystem-top .top-actions{flex-wrap:wrap}.establishment-page-preview__cover{height:130px}.establishment-page-preview__body{padding:0 15px 16px}.establishment-page-preview__avatar{left:15px;width:72px;height:72px;top:-36px}.establishment-page-preview__identity{padding-left:86px}.establishment-page-preview__identity h4{font-size:18px}.establishment-page-preview__head{align-items:start;flex-direction:column}.establishment-page-preview__cards{grid-template-columns:1fr!important}.admin-item-detail{grid-template-columns:1fr}}
           ''')
           PY
 
@@ -379,4 +319,5 @@ jobs:
             exit 0
           fi
           git commit -m "feat(admin): mature navigation and establishment visual editor"
+          git pull --rebase origin main
           git push origin HEAD:main
