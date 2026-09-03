@@ -101,6 +101,7 @@ jobs:
           DEPLOY_PATH="$1"
           DEPLOY_TYPE="$2"
           DEPLOY_BRANCH="$3"
+          DEPLOY_REPOSITORY="$4"
           BUILD_WORKTREE=""
 
           cleanup_worktree() {
@@ -128,6 +129,10 @@ jobs:
             echo "Unsupported deploy type: $DEPLOY_TYPE" >&2
             exit 22
           fi
+          if [[ ! "$DEPLOY_REPOSITORY" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+            echo "Invalid GitHub repository: $DEPLOY_REPOSITORY" >&2
+            exit 25
+          fi
 
           # One global deployment queue protects the shared VPS from concurrent npm/composer
           # builds. Waiting on the same flock descriptor keeps older jobs queued instead of
@@ -139,6 +144,20 @@ jobs:
             exit 75
           fi
           echo "Peter Tecnet VPS deployment slot acquired."
+
+          # New applications no longer require a manual first clone on the VPS. Existing
+          # repositories are untouched. A non-empty, non-Git directory is rejected to avoid
+          # overwriting manually managed content.
+          if [[ ! -d "$DEPLOY_PATH/.git" ]]; then
+            if [[ -d "$DEPLOY_PATH" && -n "$(ls -A "$DEPLOY_PATH" 2>/dev/null)" ]]; then
+              echo "$DEPLOY_PATH exists, is not a Git repository and is not empty." >&2
+              exit 23
+            fi
+            mkdir -p "$(dirname "$DEPLOY_PATH")"
+            rm -rf "$DEPLOY_PATH"
+            echo "Bootstrapping $DEPLOY_REPOSITORY into $DEPLOY_PATH..."
+            git clone --branch "$DEPLOY_BRANCH" --single-branch "https://github.com/$DEPLOY_REPOSITORY.git" "$DEPLOY_PATH"
+          fi
 
           cd "$DEPLOY_PATH"
           if [[ ! -d .git ]]; then
@@ -270,7 +289,7 @@ jobs:
               -o ServerAliveInterval=30 \
               -o ServerAliveCountMax=8 \
               -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
-              "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH'" \
+              "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH' '$DEPLOY_REPOSITORY'" \
               < "$REMOTE_SCRIPT_FILE"; then
               exit 0
             else
