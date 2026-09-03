@@ -45,6 +45,7 @@ jobs:
           test -f src/OperationalIssuesPanel.css
           test -f src/FinancialCenter.jsx
           test -f src/EcosystemLauncherAdmin.jsx
+          test -f src/AdminEntry.jsx
           test -f src/AdminExperience.css
           test -f src/AdminVisualSystem.css
           test -f src/admin/AdminTokens.css
@@ -74,11 +75,12 @@ jobs:
           grep -q "Rollback inteligente" src/OperationalIssuesPanel.jsx
           grep -q "AUTOMAÇÃO SUPERVISIONADA" src/OperationalIssuesPanel.jsx
           grep -q "financial/orders" src/FinancialCenter.jsx
-          grep -q "ecosystem-launcher" src/main.jsx
-          grep -q "AdminVisualSystem.css" src/main.jsx
-          grep -q "AdminExperience.css" src/main.jsx
-          grep -q "AdminTokens.css" src/main.jsx
-          grep -q "AdminUiProvider" src/main.jsx
+          grep -q "AdminEntry" src/main.jsx
+          grep -q "ecosystem-launcher" src/AdminEntry.jsx
+          grep -q "AdminVisualSystem.css" src/AdminEntry.jsx
+          grep -q "AdminExperience.css" src/AdminEntry.jsx
+          grep -q "AdminTokens.css" src/AdminEntry.jsx
+          grep -q "AdminUiProvider" src/AdminEntry.jsx
           grep -q "data-icon" src/admin/AdminNavigationState.css
           grep -q "focusables" src/components/AdminMobileNavigation.jsx
           grep -q "drawer.inert" src/components/AdminMobileNavigation.jsx
@@ -86,3 +88,6 @@ jobs:
           ! grep -q "AdminResponsive.css" src/main.jsx
           ! grep -q "AdminDesktop.css" src/main.jsx
           ! grep -q "AdminMobileNavigation.css" src/main.jsx
+          ! grep -q "AdminTokens.css" src/main.jsx
+          ! grep -q "AdminVisualSystem.css" src/main.jsx
+          ! grep -q "AdminExperience.css" src/main.jsx
