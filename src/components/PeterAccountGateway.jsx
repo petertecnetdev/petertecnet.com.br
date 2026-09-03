@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const SDK_VERSION = '2.0.0'
-const AUTH_SESSION_VERSION = '1.0.0'
+const AUTH_SESSION_VERSION = '2.0.0'
 const SDK_URL = `https://petertecnet.com.br/ecosystem/peter-ecosystem.js?v=${SDK_VERSION}`
 const AUTH_SESSION_URL = `https://petertecnet.com.br/ecosystem/peter-auth-session.js?v=${AUTH_SESSION_VERSION}`
 let sdkPromise
@@ -39,15 +39,14 @@ function loadAuthSession(apiBaseUrl, appSlug) {
   })
 
   if (window.PeterTecnetAuthSession?.version === AUTH_SESSION_VERSION) {
-    configure()
-    return Promise.resolve()
+    return Promise.resolve(configure())
   }
 
   if (!authSessionPromise) {
     authSessionPromise = new Promise((resolve, reject) => {
       const existing = document.querySelector('script[data-peter-auth-session]')
       if (existing) {
-        if (window.PeterTecnetAuthSession?.version === AUTH_SESSION_VERSION) resolve()
+        if (window.PeterTecnetAuthSession) resolve()
         else {
           existing.addEventListener('load', () => resolve(), { once: true })
           existing.addEventListener('error', () => reject(new Error('Não foi possível carregar a sessão global Peter Tecnet.')), { once: true })
@@ -69,14 +68,36 @@ function loadAuthSession(apiBaseUrl, appSlug) {
   return authSessionPromise.then(() => configure())
 }
 
+function IdentityBootstrap() {
+  return (
+    <div role="status" aria-live="polite" style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', background: '#07111f', color: '#eaf4ff', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <div style={{ textAlign: 'center', padding: 24 }}>
+        <img src="/petertecnetlogo.png" alt="" width="54" height="54" style={{ objectFit: 'contain', marginBottom: 12 }} />
+        <div style={{ fontWeight: 800 }}>Conectando sua Conta Peter Tecnet…</div>
+        <small style={{ opacity: .7 }}>Validando sua sessão no ecossistema.</small>
+      </div>
+    </div>
+  )
+}
+
 export default function PeterAccountGateway({ apiBaseUrl, appSlug, children }) {
   const hostRef = useRef(null)
+  const [authReady, setAuthReady] = useState(false)
+
   useEffect(() => {
     let active = true
     const host = hostRef.current
 
     loadAuthSession(apiBaseUrl, appSlug)
-      .catch(error => console.error('[Peter Tecnet Auth]', error))
+      .then(async session => {
+        if (!active) return
+        if (!session?.getAccessToken?.()) await session?.recover?.()
+        if (active) setAuthReady(true)
+      })
+      .catch(error => {
+        console.error('[Peter Tecnet Auth]', error)
+        if (active) setAuthReady(true)
+      })
 
     loadSdk().then(() => {
       if (!active || !host) return
@@ -93,5 +114,5 @@ export default function PeterAccountGateway({ apiBaseUrl, appSlug, children }) {
     }
   }, [apiBaseUrl, appSlug])
 
-  return <>{children}<span ref={hostRef} style={{ display: 'contents' }} /></>
+  return <>{authReady ? children : <IdentityBootstrap />}<span ref={hostRef} style={{ display: 'contents' }} /></>
 }
