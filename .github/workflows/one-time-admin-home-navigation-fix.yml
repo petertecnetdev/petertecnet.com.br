@@ -1,0 +1,86 @@
+name: One-time Admin Home Navigation Fix
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/one-time-admin-home-navigation-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch Admin Center navigation
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('src/Admin.jsx')
+          content = path.read_text(encoding='utf-8')
+
+          old_brand = '<a className="admin-brand ecosystem-brand" href="/"><img src="/petertecnetlogo.png" alt=""/><span><b>Peter Tecnet</b><small>Mission Control</small></span></a>'
+          new_brand = '<a className="admin-brand ecosystem-brand" href="/admin" aria-label="Ir para a home do Admin Center" onClick={event=>{event.preventDefault();changeTab(\'command\')}}><img src="/petertecnetlogo.png" alt=""/><span><b>Peter Tecnet</b><small>Mission Control</small></span></a>'
+
+          old_site = '<div className="sidebar-foot"><a href="/" target="_blank">Abrir site ↗</a><button onClick={logout}>Sair</button></div>'
+          new_site = '<div className="sidebar-foot"><a href="https://petertecnet.com.br/" target="_blank" rel="noreferrer" aria-label="Abrir site Peter Tecnet em uma nova aba">Site Peter Tecnet ↗</a><button onClick={logout}>Sair</button></div>'
+
+          if old_brand not in content:
+              raise SystemExit('Admin brand markup not found; refusing unsafe patch.')
+          if old_site not in content:
+              raise SystemExit('Admin site shortcut markup not found; refusing unsafe patch.')
+
+          content = content.replace(old_brand, new_brand, 1).replace(old_site, new_site, 1)
+          path.write_text(content, encoding='utf-8')
+
+      - name: Verify navigation contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F 'href="/admin" aria-label="Ir para a home do Admin Center"' src/Admin.jsx
+          grep -F 'changeTab('\''command'\'')' src/Admin.jsx
+          grep -F 'href="https://petertecnet.com.br/"' src/Admin.jsx
+          grep -F 'Site Peter Tecnet ↗' src/Admin.jsx
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Commit fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "Peter Tecnet Automation"
+          git config user.email "petertecnet@gmail.com"
+          git add src/Admin.jsx
+          git diff --cached --quiet && exit 0
+          git commit -m "fix(admin): separate admin home and public site navigation"
+          git push origin HEAD:main
+
+  deploy:
+    needs: patch-and-test
+    uses: ./.github/workflows/reusable-vps-deploy.yml
+    with:
+      deploy_path: /var/www/petertecnet.com.br
+      deploy_type: frontend
+      deploy_branch: main
+      health_url: https://petertecnet.com.br/
+    secrets:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_PORT: ${{ secrets.VPS_PORT }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
