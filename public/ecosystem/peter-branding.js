@@ -88,11 +88,11 @@
     } catch { return false }
   }
 
-  const isLocalLegacyLogo = (element, slug) => isLocalAppLogoUrl(
-    element.getAttribute('src'),
-    slug,
-    semanticText(element)
-  )
+  const isLocalLegacyLogo = (element, slug) => {
+    const semantics = semanticText(element)
+    return isLocalAppLogoUrl(element.getAttribute('src'), slug, semantics)
+      || isLocalAppLogoUrl(element.dataset.peterBrandingFallback, slug, semantics)
+  }
 
   const applyLegacyLogo = (branding, slug) => {
     if (script?.dataset?.autoLegacyLogo !== 'true' || !branding.logo) return
@@ -109,11 +109,19 @@
     )
 
     candidates.forEach(element => {
+      const semantics = semanticText(element)
       const background = element.style.backgroundImage || window.getComputedStyle(element).backgroundImage
-      const match = background && background.match(/url\(["']?([^"')]+)["']?\)/i)
-      if (!match || !isLocalAppLogoUrl(match[1], slug, semanticText(element))) return
+      const currentMatch = background && background.match(/url\(["']?([^"')]+)["']?\)/i)
+      const fallbackBackground = element.dataset.peterBrandingBackgroundFallback || ''
+      const fallbackMatch = fallbackBackground.match(/url\(["']?([^"')]+)["']?\)/i)
+      const isManagedBackground = Boolean(
+        (currentMatch && isLocalAppLogoUrl(currentMatch[1], slug, semantics))
+        || (fallbackMatch && isLocalAppLogoUrl(fallbackMatch[1], slug, semantics))
+      )
+
+      if (!isManagedBackground) return
       if (!element.dataset.peterBrandingBackgroundFallback) {
-        element.dataset.peterBrandingBackgroundFallback = element.style.backgroundImage || ''
+        element.dataset.peterBrandingBackgroundFallback = background
       }
       element.style.backgroundImage = `url("${branding.logo}")`
     })
