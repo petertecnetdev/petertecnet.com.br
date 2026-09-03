@@ -20,9 +20,7 @@ async function waitFor(getter, timeout = 7000) {
 
 async function activateTab(key) {
   requestAdminNavigation(key, { preservePath: true })
-  const button = await waitFor(() => document.querySelector(`.ecosystem-sidebar nav button[data-admin-tab="${key}"]`))
-  if (button && !button.classList.contains('active')) button.click()
-  return button
+  return waitFor(() => document.querySelector(`nav[data-admin-legacy-navigation="true"] button[data-admin-tab="${key}"].active`))
 }
 
 function replacePath(path) {
