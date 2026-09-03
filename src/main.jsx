@@ -8,6 +8,7 @@ import LaoraAdminCenter from './LaoraAdminCenter.jsx'
 import AccountAccessPage from './AccountAccessPage.jsx'
 import PeterAccountGateway from './components/PeterAccountGateway.jsx'
 import AdminMobileNavigation from './components/AdminMobileNavigation.jsx'
+import AdminEstablishmentMediaBridge from './AdminEstablishmentMedia.jsx'
 import './AdminMobileNavigation.css'
 
 const API_BASE_URL = 'https://api.petertecnet.com.br/api'
@@ -31,6 +32,7 @@ const page = isLaoraAdmin ? (
 ) : (
   <>
     <App />
+    {isAdmin && <AdminEstablishmentMediaBridge />}
     {isAdmin && <AdminMobileNavigation />}
     {isAdmin && <a className="la-safety-shortcut" href="/admin/laora">Laora Safety</a>}
   </>
