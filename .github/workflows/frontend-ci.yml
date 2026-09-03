@@ -34,7 +34,13 @@ jobs:
           test -f src/OperationalIssuesPanel.css
           test -f src/FinancialCenter.jsx
           test -f src/EcosystemLauncherAdmin.jsx
+          test -f src/AdminExperience.css
+          test -f src/AdminVisualSystem.css
+          test -f src/components/AdminMobileNavigation.css
           test -f public/ecosystem/peter-ecosystem.js
+          test ! -f src/AdminResponsive.css
+          test ! -f src/AdminDesktop.css
+          test ! -f src/AdminMobileNavigation.css
           grep -q "Mission Control" src/Admin.jsx
           grep -q "command/overview" src/CommandCenter.jsx
           grep -q "command/security" src/CommandCenter.jsx
@@ -49,3 +55,9 @@ jobs:
           grep -q "AUTOMAÇÃO SUPERVISIONADA" src/OperationalIssuesPanel.jsx
           grep -q "financial/orders" src/FinancialCenter.jsx
           grep -q "ecosystem-launcher" src/main.jsx
+          grep -q "AdminVisualSystem.css" src/main.jsx
+          grep -q "AdminExperience.css" src/main.jsx
+          grep -q "./AdminMobileNavigation.css" src/components/AdminMobileNavigation.jsx
+          ! grep -q "AdminResponsive.css" src/main.jsx
+          ! grep -q "AdminDesktop.css" src/main.jsx
+          ! grep -q "AdminMobileNavigation.css" src/main.jsx
