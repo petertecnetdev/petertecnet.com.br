@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
-import { dirname, join, resolve } from 'node:path'
+import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const root = resolve(process.cwd())
@@ -59,10 +59,12 @@ function fixture(viewport) {
     const grid = document.querySelector('.metric-grid')
     const tableWrap = document.querySelector('.table-wrap')
     const width = window.innerWidth
+    const height = window.innerHeight
     const closedTransform = getComputedStyle(sidebar).transform
     const columns = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length
     const mainRect = main.getBoundingClientRect()
 
+    add('requested-viewport-width', Math.abs(width - ${viewport.width}) <= 1, width + ' requested=${viewport.width}')
     add('no-page-horizontal-overflow', document.documentElement.scrollWidth <= width + 2, document.documentElement.scrollWidth + '/' + width)
     add('main-contained-in-viewport', mainRect.left >= -2 && mainRect.right <= width + 2, JSON.stringify({ left: mainRect.left, right: mainRect.right, width }))
     add('table-scroll-contained', tableWrap.scrollWidth >= tableWrap.clientWidth && tableWrap.getBoundingClientRect().right <= mainRect.right + 2, tableWrap.scrollWidth + '/' + tableWrap.clientWidth)
@@ -83,7 +85,7 @@ function fixture(viewport) {
       add('mobile-topbar-hidden', getComputedStyle(topbar).display === 'none', getComputedStyle(topbar).display)
     }
 
-    const result = { viewport: '${viewport.name}', width, height: window.innerHeight, checks, ok: checks.every(check => check.pass) }
+    const result = { viewport: '${viewport.name}', requestedWidth: ${viewport.width}, requestedHeight: ${viewport.height}, width, height, columns, checks, ok: checks.every(check => check.pass) }
     document.querySelector('#browser-result').textContent = JSON.stringify(result)
     document.body.dataset.browserValidation = result.ok ? 'ok' : 'failed'
   })()
@@ -108,7 +110,7 @@ for (const viewport of viewports) {
     continue
   }
   const result = JSON.parse(match[1].replaceAll('&quot;', '"').replaceAll('&amp;', '&'))
-  console.log(`${result.ok ? '✓' : '✗'} ${viewport.name}: ${result.checks.map(check => `${check.name}=${check.pass ? 'ok' : 'FAIL'}`).join(', ')}`)
+  console.log(`${result.ok ? '✓' : '✗'} ${viewport.name} requested=${result.requestedWidth} actual=${result.width}: ${result.checks.map(check => `${check.name}=${check.pass ? 'ok' : 'FAIL'}`).join(', ')}`)
   if (!result.ok) failures.push(`${viewport.name}: ${result.checks.filter(check => !check.pass).map(check => `${check.name} (${check.detail})`).join('; ')}`)
   spawnSync(chrome, [...common, `--screenshot=${screenshot}`, url], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 })
 }
