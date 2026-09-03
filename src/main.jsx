@@ -2,29 +2,14 @@ import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import './seo.js'
-import App from './App.jsx'
-import LaoraAdminCenter from './LaoraAdminCenter.jsx'
-import AccountAccessPage from './AccountAccessPage.jsx'
-import EcosystemLauncherAdmin from './EcosystemLauncherAdmin.jsx'
-import ApplicationBrandingPage from './ApplicationBrandingPage.jsx'
 import PeterAccountGateway from './components/PeterAccountGateway.jsx'
-import AdminMobileNavigation from './components/AdminMobileNavigation.jsx'
-import AdminEstablishmentMediaBridge from './AdminEstablishmentMedia.jsx'
-import AdminProductivityBridge from './AdminProductivityBridge.jsx'
-import AdminHomeBridge from './AdminHomeBridge.jsx'
-import AdminDeepLinkBridge from './AdminDeepLinkBridge.jsx'
-import AdminUiProvider from './admin/AdminUiProvider.jsx'
 import { installGlobalImageFallbacks } from './utils/imageFallback.js'
 import { installPasswordVisibilityToggles } from './utils/passwordVisibility.js'
-import './admin/AdminTokens.css'
-import './AdminProductivityBridge.css'
-import './AdminProductivityLayoutFix.css'
-import './AdminVisualSystem.css'
-import './AdminExperience.css'
-import './admin/AdminNavigationState.css'
 
 const PublicDiscoveryExperience = lazy(() => import('./PublicDiscoveryExperience.jsx'))
-const ContentDiscoveryAdminPage = lazy(() => import('./ContentDiscoveryAdminPage.jsx'))
+const AdminEntry = lazy(() => import('./AdminEntry.jsx'))
+const LegacyApp = lazy(() => import('./App.jsx'))
+const AccountAccessPage = lazy(() => import('./AccountAccessPage.jsx'))
 
 const API_BASE_URL = 'https://api.petertecnet.com.br/api'
 const APP_SLUG = 'peter-tecnet'
@@ -40,53 +25,25 @@ installPasswordVisibilityToggles()
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 const isAccountAccess = path === '/account/activate' || path === '/account/password/reset'
-const isLauncherAdmin = path === '/admin/ecosystem-launcher'
-const isBrandingAdmin = path === '/admin/branding'
-const isContentAdmin = path === '/admin/content'
-const isLaoraAdmin = path.startsWith('/admin/laora')
 const isAdmin = path === '/admin' || path.startsWith('/admin/')
 const isLogin = path === '/login'
 const isMarketing = !isAdmin && !isLogin && !isAccountAccess
 
-const lazyFallback = <main className="ecosystem-main" style={{ minHeight: '70vh', display: 'grid', placeItems: 'center' }}><p>Carregando experiência…</p></main>
+const lazyFallback = <main style={{ minHeight: '70vh', display: 'grid', placeItems: 'center', background: '#02090d', color: '#e9fbff' }}><p>Carregando experiência…</p></main>
 
-const page = isLauncherAdmin ? (
-  <EcosystemLauncherAdmin />
-) : isBrandingAdmin ? (
-  <>
-    <ApplicationBrandingPage />
-    <AdminMobileNavigation />
-  </>
-) : isContentAdmin ? (
-  <>
-    <Suspense fallback={lazyFallback}><ContentDiscoveryAdminPage /></Suspense>
-    <AdminMobileNavigation />
-  </>
-) : isLaoraAdmin ? (
-  <>
-    <LaoraAdminCenter />
-    <AdminMobileNavigation />
-  </>
-) : isMarketing ? (
-  <Suspense fallback={lazyFallback}><PublicDiscoveryExperience /></Suspense>
-) : (
-  <>
-    <App />
-    {isAdmin && <AdminEstablishmentMediaBridge />}
-    {isAdmin && <AdminMobileNavigation />}
-    {isAdmin && <AdminProductivityBridge />}
-    {isAdmin && <AdminHomeBridge />}
-    {isAdmin && <AdminDeepLinkBridge />}
-  </>
-)
+const appPage = isAdmin
+  ? <Suspense fallback={lazyFallback}><AdminEntry /></Suspense>
+  : isMarketing
+    ? <Suspense fallback={lazyFallback}><PublicDiscoveryExperience /></Suspense>
+    : <Suspense fallback={lazyFallback}><LegacyApp /></Suspense>
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     {isAccountAccess ? (
-      <AccountAccessPage />
+      <Suspense fallback={lazyFallback}><AccountAccessPage /></Suspense>
     ) : (
       <PeterAccountGateway apiBaseUrl={API_BASE_URL} appSlug={APP_SLUG}>
-        {isAdmin ? <AdminUiProvider>{page}</AdminUiProvider> : page}
+        {appPage}
       </PeterAccountGateway>
     )}
   </StrictMode>,
