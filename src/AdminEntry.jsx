@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import App from './App.jsx'
 import LaoraAdminCenter from './LaoraAdminCenter.jsx'
 import EcosystemLauncherAdmin from './EcosystemLauncherAdmin.jsx'
@@ -15,6 +16,9 @@ import AdminProductivityBridge from './AdminProductivityBridge.jsx'
 import AdminHomeBridge from './AdminHomeBridge.jsx'
 import AdminDeepLinkBridge from './AdminDeepLinkBridge.jsx'
 import AdminUiProvider from './admin/AdminUiProvider.jsx'
+import AdminWorkspaceStateBridge from './admin/AdminWorkspaceStateBridge.jsx'
+import { adminTabFromLocation, normalizeAdminPath } from './admin/AdminNavigationConfig.js'
+import { ADMIN_NAVIGATION_CHANGED_EVENT } from './admin/AdminUiEvents.js'
 import './admin/AdminTokens.css'
 import './AdminProductivityBridge.css'
 import './AdminProductivityLayoutFix.css'
@@ -24,42 +28,55 @@ import './admin/AdminFutureTheme.css'
 import './admin/AdminNavigationState.css'
 import './admin/AdminSidebarRefinement.css'
 
-function normalizePath(pathname = window.location.pathname) {
-  return String(pathname || '/').replace(/\/+$/, '') || '/'
+function useAdminPath() {
+  const [path, setPath] = useState(() => normalizeAdminPath(window.location.pathname))
+
+  useEffect(() => {
+    const sync = () => setPath(normalizeAdminPath(window.location.pathname))
+    window.addEventListener('popstate', sync)
+    window.addEventListener(ADMIN_NAVIGATION_CHANGED_EVENT, sync)
+    return () => {
+      window.removeEventListener('popstate', sync)
+      window.removeEventListener(ADMIN_NAVIGATION_CHANGED_EVENT, sync)
+    }
+  }, [])
+
+  return path
 }
 
-function persistentPage(activeKey, content) {
-  return <><AdminPersistentShell activeKey={activeKey}>{content}</AdminPersistentShell><AdminMobileNavigation /></>
+function legacyWorkspace() {
+  return <>
+    <App />
+    <AdminEstablishmentMediaBridge />
+    <AdminProductivityBridge />
+    <AdminHomeBridge />
+    <AdminDeepLinkBridge />
+    <AdminRouteSync />
+  </>
+}
+
+function adminRouteContent(path) {
+  if (path === '/admin/ecosystem-launcher') return <EcosystemLauncherAdmin />
+  if (path === '/admin/branding') return <ApplicationBrandingPage />
+  if (path === '/admin/content') return <><ContentApiMigrationBridge /><ContentDiscoveryAdminPage /></>
+  if (path === '/admin/discovery') return <DiscoveryIntelligenceAdminPage />
+  if (path === '/admin/marketing') return <MarketingSettingsAdminPage />
+  if (path === '/admin/visibility') return <AdminVisibilityPage />
+  if (path.startsWith('/admin/laora')) return <LaoraAdminCenter />
+  return legacyWorkspace()
 }
 
 export default function AdminEntry() {
-  const path = normalizePath()
-  const isLauncherAdmin = path === '/admin/ecosystem-launcher'
-  const isBrandingAdmin = path === '/admin/branding'
-  const isContentAdmin = path === '/admin/content'
-  const isDiscoveryAdmin = path === '/admin/discovery'
-  const isMarketingAdmin = path === '/admin/marketing'
-  const isVisibilityAdmin = path === '/admin/visibility'
-  const isLaoraAdmin = path.startsWith('/admin/laora')
+  const path = useAdminPath()
+  const activeKey = adminTabFromLocation(path)
 
-  let page
-  if (isLauncherAdmin) {
-    page = persistentPage('ecosystem-launcher', <EcosystemLauncherAdmin />)
-  } else if (isBrandingAdmin) {
-    page = persistentPage('branding', <ApplicationBrandingPage />)
-  } else if (isContentAdmin) {
-    page = persistentPage('content', <><ContentApiMigrationBridge /><ContentDiscoveryAdminPage /></>)
-  } else if (isDiscoveryAdmin) {
-    page = persistentPage('discovery', <DiscoveryIntelligenceAdminPage />)
-  } else if (isMarketingAdmin) {
-    page = persistentPage('marketing', <MarketingSettingsAdminPage />)
-  } else if (isVisibilityAdmin) {
-    page = persistentPage('visibility', <AdminVisibilityPage />)
-  } else if (isLaoraAdmin) {
-    page = <><LaoraAdminCenter /><AdminMobileNavigation /></>
-  } else {
-    page = <><App /><AdminEstablishmentMediaBridge /><AdminMobileNavigation /><AdminProductivityBridge /><AdminHomeBridge /><AdminDeepLinkBridge /><AdminRouteSync /></>
-  }
-
-  return <AdminUiProvider>{page}</AdminUiProvider>
+  return (
+    <AdminUiProvider>
+      <AdminPersistentShell activeKey={activeKey}>
+        {adminRouteContent(path)}
+      </AdminPersistentShell>
+      <AdminMobileNavigation />
+      <AdminWorkspaceStateBridge />
+    </AdminUiProvider>
+  )
 }
