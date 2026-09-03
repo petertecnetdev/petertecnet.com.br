@@ -63,19 +63,36 @@ function clickLegacyTabButton(key) {
   const button = document.querySelector(`nav[data-admin-legacy-navigation="true"] button[data-admin-tab="${key}"]`)
   if (!button || button.classList.contains('active')) return Boolean(button)
 
-  // Admin.jsx is still the business-workspace implementation for legacy tabs and
-  // historically mutated browser history from its hidden sidebar. The canonical
-  // router owns the URL now, so suppress that synchronous legacy pushState while
-  // retaining the tab state transition itself. This prevents duplicate/back-stack
-  // entries and keeps deep links such as /admin/users/:id intact.
+  // Admin.jsx still implements the legacy business workspace and historically
+  // pushed /admin from its now-hidden sidebar. The canonical router owns browser
+  // history, so suppress only that synchronous legacy push while retaining the
+  // React tab transition. A guarded fallback restores the current URL if a browser
+  // does not allow shadowing History.pushState.
   const originalPushState = window.history.pushState
+  const originalUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`
+  const originalState = window.history.state
   let suppressed = false
+
   try {
     window.history.pushState = () => undefined
     suppressed = window.history.pushState !== originalPushState
+  } catch {
+    suppressed = false
+  }
+
+  try {
     button.click()
   } finally {
-    if (suppressed) window.history.pushState = originalPushState
+    if (suppressed) {
+      try {
+        window.history.pushState = originalPushState
+      } catch {
+        // The canonical navigation below still keeps the visible route correct.
+      }
+    } else {
+      const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`
+      if (currentUrl !== originalUrl) window.history.replaceState(originalState, '', originalUrl)
+    }
   }
 
   return true
