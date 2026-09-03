@@ -1,7 +1,7 @@
 (() => {
   'use strict'
 
-  const RUNTIME_VERSION = '1.1.0'
+  const RUNTIME_VERSION = '1.2.0'
   const DEFAULT_API = 'https://api.petertecnet.com.br/api'
   const CACHE_TTL_MS = 5 * 60 * 1000
   const CACHE_PREFIX = 'peter.branding.v1:'
@@ -39,10 +39,17 @@
 
   const applyImage = (element, url) => {
     if (!url || !(element instanceof HTMLImageElement)) return
+    if (element.dataset.peterBrandingFailed === url) return
     if (!element.dataset.peterBrandingFallback) element.dataset.peterBrandingFallback = element.getAttribute('src') || ''
     if (element.src === url || element.getAttribute('src') === url) return
+
+    if (element.dataset.peterBrandingFailed && element.dataset.peterBrandingFailed !== url) {
+      delete element.dataset.peterBrandingFailed
+    }
+
     element.src = url
     element.addEventListener('error', () => {
+      element.dataset.peterBrandingFailed = url
       const fallback = element.dataset.peterBrandingFallback
       if (fallback && element.getAttribute('src') !== fallback) element.src = fallback
     }, { once: true })
@@ -94,13 +101,14 @@
 
     const favicon = assetFor(branding, 'favicon')
     if (favicon) {
-      let link = document.querySelector('link[rel="icon"], link[rel="shortcut icon"]')
-      if (!link) {
-        link = document.createElement('link')
+      const icons = [...document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]')]
+      if (!icons.length) {
+        const link = document.createElement('link')
         link.rel = 'icon'
         document.head.appendChild(link)
+        icons.push(link)
       }
-      link.href = favicon
+      icons.forEach(link => { link.href = favicon })
     }
 
     if (branding.social_image) document.querySelectorAll('meta[property="og:image"], meta[name="twitter:image"]').forEach(meta => meta.setAttribute('content', branding.social_image))
