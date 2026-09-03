@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import './ApplicationBrandingManager.css'
+import { extractBrandPalette } from './utils/brandPalette.js'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'token'
@@ -25,6 +26,10 @@ const EMPTY = {
 
 function editableBranding(value = {}) {
   return Object.fromEntries(Object.keys(EMPTY).map(key => [key, value?.[key] || '']))
+}
+
+function draftBody(value) {
+  return Object.fromEntries(Object.entries(editableBranding(value)).map(([key, item]) => [key, String(item || '').trim() || null]))
 }
 
 async function api(path, options = {}) {
@@ -91,7 +96,7 @@ export default function ApplicationBrandingManager({ applications = [] }) {
     return data
   }
 
-  async function saveDraft({ quiet = false } = {}) {
+  async function saveDraft({ quiet = false, value = form } = {}) {
     if (!applicationId) return null
     setBusy(true)
     setError('')
@@ -99,7 +104,7 @@ export default function ApplicationBrandingManager({ applications = [] }) {
     try {
       const data = await api(`/admin/applications/${applicationId}/branding/draft`, {
         method: 'PUT',
-        body: JSON.stringify(Object.fromEntries(Object.entries(form).map(([key, value]) => [key, value.trim() || null]))),
+        body: JSON.stringify(draftBody(value)),
       })
       consume(data)
       if (!quiet) setMessage('Rascunho salvo. A identidade pública ainda não foi alterada.')
@@ -133,13 +138,36 @@ export default function ApplicationBrandingManager({ applications = [] }) {
     setBusy(true)
     setError('')
     setMessage('')
+
+    const palettePromise = asset === 'logo'
+      ? extractBrandPalette(file).catch(() => null)
+      : Promise.resolve(null)
+
     try {
       const body = new FormData()
       body.append('asset', asset)
       body.append('file', file)
-      const data = await api(`/admin/applications/${applicationId}/branding/assets`, { method: 'POST', body })
-      consume(data)
-      setMessage('Imagem adicionada ao rascunho. Publique quando terminar a revisão.')
+      const uploaded = await api(`/admin/applications/${applicationId}/branding/assets`, { method: 'POST', body })
+      const palette = await palettePromise
+
+      if (palette) {
+        const base = editableBranding(uploaded?.draft || uploaded?.published)
+        const suggested = {
+          ...base,
+          primary_color: palette.primary_color,
+          secondary_color: palette.secondary_color,
+          accent_color: palette.accent_color,
+        }
+        const saved = await api(`/admin/applications/${applicationId}/branding/draft`, {
+          method: 'PUT',
+          body: JSON.stringify(draftBody(suggested)),
+        })
+        consume(saved)
+        setMessage(`Logo enviada. Paleta sugerida automaticamente: ${palette.primary_color}, ${palette.secondary_color} e ${palette.accent_color}. Revise e publique.`)
+      } else {
+        consume(uploaded)
+        setMessage('Imagem adicionada ao rascunho. Publique quando terminar a revisão.')
+      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -200,11 +228,11 @@ export default function ApplicationBrandingManager({ applications = [] }) {
             <label className="wide">Descrição SEO<textarea rows="3" maxLength="320" value={form.seo_description} onChange={e => setForm({ ...form, seo_description: e.target.value })} /></label>
           </div></div>
           <div className="branding-card"><h3>Logos e imagens</h3><div className="branding-assets">{ASSETS.map(([key, label]) => <div className="branding-asset" key={key}>
-            <div><b>{label}</b><small>PNG, JPG ou WebP · até 5 MB</small></div>
+            <div><b>{label}</b><small>{key === 'logo' ? 'PNG, JPG ou WebP · até 5 MB · as cores serão sugeridas pela imagem' : 'PNG, JPG ou WebP · até 5 MB'}</small></div>
             <input aria-label={`${label} por URL`} placeholder="https://..." value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} />
             <label className="branding-upload">Enviar arquivo<input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => { uploadAsset(key, e.target.files?.[0]); e.target.value = '' }} /></label>
           </div>)}</div></div>
-          <div className="branding-card"><h3>Cores</h3><div className="branding-colors">{COLORS.map(([key, label]) => <label key={key}>{label}<span>
+          <div className="branding-card"><h3>Cores</h3><p className="branding-card__hint">Ao enviar a logo principal, o Admin Center analisa a imagem e pré-seleciona uma paleta. Você pode ajustar qualquer cor antes de publicar.</p><div className="branding-colors">{COLORS.map(([key, label]) => <label key={key}>{label}<span>
             <input type="color" value={/^#[0-9a-f]{6}$/i.test(form[key]) ? form[key] : '#000000'} onChange={e => setForm({ ...form, [key]: e.target.value })} />
             <input placeholder="#000000" value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} />
           </span></label>)}</div></div>
