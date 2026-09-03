@@ -4,3 +4,4 @@ Disallow: /login
 Disallow: /admin
 
 Sitemap: https://petertecnet.com.br/sitemap.xml
+Sitemap: https://api.petertecnet.com.br/api/v1/discovery/sitemap.xml?origin=https%3A%2F%2Fpetertecnet.com.br
