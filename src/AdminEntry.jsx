@@ -3,6 +3,7 @@ import LaoraAdminCenter from './LaoraAdminCenter.jsx'
 import EcosystemLauncherAdmin from './EcosystemLauncherAdmin.jsx'
 import ApplicationBrandingPage from './ApplicationBrandingPage.jsx'
 import ContentDiscoveryAdminPage from './ContentDiscoveryAdminPage.jsx'
+import IdentitySecurityCenter from './IdentitySecurityCenter.jsx'
 import AdminMobileNavigation from './components/AdminMobileNavigation.jsx'
 import AdminEstablishmentMediaBridge from './AdminEstablishmentMedia.jsx'
 import AdminProductivityBridge from './AdminProductivityBridge.jsx'
@@ -26,6 +27,7 @@ export default function AdminEntry() {
   const isLauncherAdmin = path === '/admin/ecosystem-launcher'
   const isBrandingAdmin = path === '/admin/branding'
   const isContentAdmin = path === '/admin/content'
+  const isIdentityAdmin = path === '/admin/identity' || path.startsWith('/admin/identity/')
   const isLaoraAdmin = path.startsWith('/admin/laora')
 
   let page
@@ -35,6 +37,8 @@ export default function AdminEntry() {
     page = <><ApplicationBrandingPage /><AdminMobileNavigation /></>
   } else if (isContentAdmin) {
     page = <><ContentDiscoveryAdminPage /><AdminMobileNavigation /></>
+  } else if (isIdentityAdmin) {
+    page = <><IdentitySecurityCenter /><AdminMobileNavigation /></>
   } else if (isLaoraAdmin) {
     page = <><LaoraAdminCenter /><AdminMobileNavigation /></>
   } else {
