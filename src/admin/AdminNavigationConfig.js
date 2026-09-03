@@ -4,7 +4,7 @@ export const ADMIN_TABS = [
   { key: 'activity', label: 'Atividade', icon: '⌁', path: '/admin/activity', group: 'Operação' },
   { key: 'financial', label: 'Financeiro', icon: '¤', path: '/admin/financial', group: 'Negócio' },
   { key: 'applications', label: 'Aplicações', icon: '◇', path: '/admin/applications', group: 'Ecossistema' },
-  { key: 'branding', label: 'Branding', icon: '✧', path: '/admin/branding', group: 'Ecossistema' },
+  { key: 'branding', label: 'Branding e logos', icon: '✧', path: '/admin/branding', group: 'Ecossistema' },
   { key: 'content', label: 'Conteúdo e SEO', icon: '◫', path: '/admin/content', group: 'Negócio' },
   { key: 'discovery', label: 'Discovery Intelligence', icon: '⌕', path: '/admin/discovery', group: 'Negócio' },
   { key: 'users', label: 'Usuários', icon: '◉', path: '/admin/users', group: 'Governança' },
