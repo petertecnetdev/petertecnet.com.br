@@ -1,39 +1,31 @@
 import { useEffect } from 'react'
-import { ADMIN_TABS } from './admin/AdminNavigationConfig.js'
+import { ADMIN_GROUP_ORDER, ADMIN_TABS, adminTabFromLocation } from './admin/AdminNavigationConfig.js'
+import { useAdminUi } from './admin/useAdminUi.js'
 import './AdminPersistentShell.css'
 
-const EXTRA_TABS = [
-  { key: 'visibility', label: 'Visibilidade e publicação', icon: '◐', path: '/admin/visibility', group: 'Negócio' },
-  { key: 'ecosystem-launcher', label: 'Navegação do ecossistema', icon: '⌘', path: '/admin/ecosystem-launcher', group: 'Ecossistema' },
-  { key: 'laora', label: 'Laora Safety Center', icon: '◉', path: '/admin/laora', group: 'Produtos' },
-]
-
-const GROUP_ORDER = ['Operação', 'Negócio', 'Ecossistema', 'Governança', 'Configurações', 'Produtos']
-const NAV_ITEMS = [...ADMIN_TABS, ...EXTRA_TABS]
-
-function goTo(path) {
-  const current = String(window.location.pathname || '/').replace(/\/+$/, '') || '/'
-  const next = String(path || '/').replace(/\/+$/, '') || '/'
-  if (current === next) return
-  window.location.assign(path)
-}
-
 export default function AdminPersistentShell({ activeKey, children }) {
-  const current = NAV_ITEMS.find(item => item.key === activeKey)
+  const { navigate } = useAdminUi()
+  const resolvedActiveKey = activeKey || adminTabFromLocation()
+  const current = ADMIN_TABS.find(item => item.key === resolvedActiveKey)
 
   useEffect(() => {
     if (current?.label) document.title = `${current.label} · Admin Center · Peter Tecnet`
   }, [current?.label])
 
-  const grouped = GROUP_ORDER.map(group => ({
+  const grouped = ADMIN_GROUP_ORDER.map(group => ({
     group,
-    items: NAV_ITEMS.filter(item => item.group === group),
+    items: ADMIN_TABS.filter(item => item.group === group),
   })).filter(section => section.items.length)
 
+  const go = (event, key) => {
+    event?.preventDefault?.()
+    navigate(key)
+  }
+
   return (
-    <main className="ecosystem-shell admin-persistent-shell">
+    <main className="ecosystem-shell admin-persistent-shell" data-admin-canonical-shell="true">
       <aside className="ecosystem-sidebar admin-persistent-sidebar">
-        <a className="admin-brand ecosystem-brand" href="/admin/mission-control" aria-label="Ir para a home do Admin Center">
+        <a className="admin-brand ecosystem-brand" href="/admin/mission-control" aria-label="Ir para a home do Admin Center" onClick={event => go(event, 'command')}>
           <img src="/petertecnetlogo.png" alt="" />
           <span><b>Peter Tecnet</b><small>Admin Center</small></span>
         </a>
@@ -46,12 +38,12 @@ export default function AdminPersistentShell({ activeKey, children }) {
                 <button
                   key={item.key}
                   type="button"
-                  className={activeKey === item.key ? 'active' : ''}
-                  aria-current={activeKey === item.key ? 'page' : undefined}
+                  className={resolvedActiveKey === item.key ? 'active' : ''}
+                  aria-current={resolvedActiveKey === item.key ? 'page' : undefined}
                   aria-label={item.label}
                   data-admin-aux-nav="persistent"
-                  data-admin-managed-route={item.key === 'branding' ? 'branding' : undefined}
-                  onClick={() => goTo(item.path)}
+                  data-admin-route={item.key}
+                  onClick={event => go(event, item.key)}
                 >
                   <span className="admin-persistent-nav-icon" aria-hidden="true">{item.icon || '•'}</span>
                   <span>{item.label}</span>
@@ -71,7 +63,7 @@ export default function AdminPersistentShell({ activeKey, children }) {
         </div>
       </aside>
 
-      <section className="ecosystem-main admin-persistent-main" data-admin-persistent-content>
+      <section className="ecosystem-main admin-persistent-main" data-admin-persistent-content data-admin-active-route={resolvedActiveKey}>
         {children}
       </section>
     </main>
