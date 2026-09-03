@@ -1,9 +1,9 @@
 (() => {
   'use strict'
 
-  const RUNTIME_VERSION = '1.3.0'
+  const RUNTIME_VERSION = '1.4.0'
   const DEFAULT_API = 'https://api.petertecnet.com.br/api'
-  const CACHE_PREFIX = 'peter.branding.v2:'
+  const CACHE_PREFIX = 'peter.branding.v3:'
   const script = document.currentScript
   let activeContext = null
   let focusListenerInstalled = false
@@ -16,6 +16,41 @@
     if (host === 'petertecnet.com.br' || host === 'www.petertecnet.com.br') return 'peter-tecnet'
     const label = host.split('.')[0]
     return ({ 'la-ora': 'laora' }[label] || label)
+  }
+
+  const normalizeHex = value => {
+    const raw = String(value || '').trim()
+    if (/^#[0-9a-f]{6}$/i.test(raw)) return raw.toLowerCase()
+    if (/^#[0-9a-f]{3}$/i.test(raw)) return `#${raw.slice(1).split('').map(char => char + char).join('')}`.toLowerCase()
+    return null
+  }
+
+  const hexToRgb = value => {
+    const hex = normalizeHex(value)
+    if (!hex) return null
+    return [
+      Number.parseInt(hex.slice(1, 3), 16),
+      Number.parseInt(hex.slice(3, 5), 16),
+      Number.parseInt(hex.slice(5, 7), 16),
+    ]
+  }
+
+  const mixHex = (value, target, amount) => {
+    const source = hexToRgb(value)
+    const destination = hexToRgb(target)
+    if (!source || !destination) return normalizeHex(value)
+    const mixed = source.map((channel, index) => Math.round(channel + (destination[index] - channel) * amount))
+    return `#${mixed.map(channel => channel.toString(16).padStart(2, '0')).join('')}`
+  }
+
+  const contrastFor = value => {
+    const rgb = hexToRgb(value)
+    if (!rgb) return '#ffffff'
+    const [r, g, b] = rgb.map(channel => {
+      const normalized = channel / 255
+      return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4
+    })
+    return ((0.2126 * r) + (0.7152 * g) + (0.0722 * b)) > 0.47 ? '#071018' : '#ffffff'
   }
 
   const readCache = slug => {
@@ -42,7 +77,10 @@
     if (!url || !(element instanceof HTMLImageElement)) return
     if (element.dataset.peterBrandingFailed === url) return
     if (!element.dataset.peterBrandingFallback) element.dataset.peterBrandingFallback = element.getAttribute('src') || ''
-    if (element.src === url || element.getAttribute('src') === url) return
+    if (element.src === url || element.getAttribute('src') === url) {
+      element.dataset.peterBrandingApplied = 'true'
+      return
+    }
 
     if (element.dataset.peterBrandingFailed && element.dataset.peterBrandingFailed !== url) {
       delete element.dataset.peterBrandingFailed
@@ -50,11 +88,25 @@
 
     element.src = url
     element.removeAttribute('srcset')
+    element.dataset.peterBrandingApplied = 'true'
     element.addEventListener('error', () => {
       element.dataset.peterBrandingFailed = url
+      delete element.dataset.peterBrandingApplied
       const fallback = element.dataset.peterBrandingFallback
       if (fallback && element.getAttribute('src') !== fallback) element.src = fallback
     }, { once: true })
+  }
+
+  const applyBackgroundAsset = (element, url) => {
+    if (!url || element instanceof HTMLImageElement) return
+    if (!element.dataset.peterBrandingBackgroundFallback) {
+      element.dataset.peterBrandingBackgroundFallback = element.style.backgroundImage || ''
+    }
+    element.style.setProperty('background-image', `url("${url}")`, 'important')
+    element.style.setProperty('background-size', 'contain', 'important')
+    element.style.setProperty('background-position', 'center', 'important')
+    element.style.setProperty('background-repeat', 'no-repeat', 'important')
+    element.dataset.peterBrandingApplied = 'true'
   }
 
   const semanticText = element => [
@@ -82,7 +134,7 @@
       const isSlugLogo = filename.includes('logo') && compactSlug && compactFilename.includes(compactSlug)
       const hasLogoSemantics = /(^|[\s_-])(logo|brand)([\s_-]|$)/.test(semantics)
       const isAppAssetDirectory = /^\/(images?|assets?|static\/media)\//.test(path)
-      const isEntityImage = /(establishment|empresa|company|business|produto|product|item|avatar|customer|cliente|employer|profissional)/.test(semantics)
+      const isEntityImage = /(establishment|empresa|company|business|produto|product|item|avatar|customer|cliente|employer|profissional|artist|artista|photo|foto)/.test(semantics)
 
       return isGenericLogo || isSlugLogo || (isAppAssetDirectory && hasLogoSemantics && !isEntityImage)
     } catch { return false }
@@ -109,6 +161,7 @@
     )
 
     candidates.forEach(element => {
+      if (element.hasAttribute('data-peter-branding')) return
       const semantics = semanticText(element)
       const background = element.style.backgroundImage || window.getComputedStyle(element).backgroundImage
       const currentMatch = background && background.match(/url\(["']?([^"')]+)["']?\)/i)
@@ -120,10 +173,7 @@
       )
 
       if (!isManagedBackground) return
-      if (!element.dataset.peterBrandingBackgroundFallback) {
-        element.dataset.peterBrandingBackgroundFallback = background
-      }
-      element.style.backgroundImage = `url("${branding.logo}")`
+      applyBackgroundAsset(element, branding.logo)
     })
   }
 
@@ -137,7 +187,9 @@
   const applyMarkedElements = (branding, slug) => {
     document.querySelectorAll('[data-peter-branding]').forEach(element => {
       const role = element.getAttribute('data-peter-branding') || 'logo'
-      if (element instanceof HTMLImageElement) return applyImage(element, assetFor(branding, role))
+      const asset = assetFor(branding, role)
+      if (element instanceof HTMLImageElement) return applyImage(element, asset)
+      if (['logo', 'logo-light', 'logo-dark', 'icon'].includes(role) && asset) return applyBackgroundAsset(element, asset)
       if (role === 'display-name' && branding.display_name) element.textContent = branding.display_name
       if (role === 'short-name' && branding.short_name) element.textContent = branding.short_name
     })
@@ -146,11 +198,62 @@
     applyLogoBackgrounds(branding, slug)
   }
 
+  const applyColorTokens = branding => {
+    const root = document.documentElement
+    const primary = normalizeHex(branding.primary_color)
+    const secondary = normalizeHex(branding.secondary_color) || primary
+    const accent = normalizeHex(branding.accent_color) || secondary || primary
+
+    const applyColor = (name, value) => {
+      if (!value) return
+      const rgb = hexToRgb(value)
+      root.style.setProperty(`--peter-brand-${name}`, value)
+      if (rgb) root.style.setProperty(`--peter-brand-${name}-rgb`, rgb.join(', '))
+    }
+
+    applyColor('primary', primary)
+    applyColor('secondary', secondary)
+    applyColor('accent', accent)
+
+    if (primary) {
+      root.style.setProperty('--peter-brand-primary-hover', mixHex(primary, '#ffffff', 0.14))
+      root.style.setProperty('--peter-brand-primary-dark', mixHex(primary, '#000000', 0.18))
+      root.style.setProperty('--peter-brand-primary-contrast', contrastFor(primary))
+      root.style.setProperty('--peter-brand-primary-soft', `rgba(${hexToRgb(primary).join(', ')}, .14)`)
+      root.style.setProperty('--bs-primary', primary)
+      root.style.setProperty('--bs-primary-rgb', hexToRgb(primary).join(', '))
+    }
+    if (secondary) {
+      root.style.setProperty('--peter-brand-secondary-soft', `rgba(${hexToRgb(secondary).join(', ')}, .14)`)
+      root.style.setProperty('--bs-secondary', secondary)
+      root.style.setProperty('--bs-secondary-rgb', hexToRgb(secondary).join(', '))
+    }
+    if (accent) {
+      root.style.setProperty('--peter-brand-accent-soft', `rgba(${hexToRgb(accent).join(', ')}, .14)`)
+      root.style.setProperty('--bs-info', accent)
+      root.style.setProperty('--bs-info-rgb', hexToRgb(accent).join(', '))
+    }
+    if (primary || secondary || accent) {
+      root.style.setProperty(
+        '--peter-brand-gradient',
+        `linear-gradient(135deg, ${secondary || primary} 0%, ${primary || secondary} 52%, ${accent || primary || secondary} 100%)`
+      )
+    }
+
+    if (primary) {
+      let themeColor = document.querySelector('meta[name="theme-color"]')
+      if (!themeColor) {
+        themeColor = document.createElement('meta')
+        themeColor.name = 'theme-color'
+        document.head.appendChild(themeColor)
+      }
+      themeColor.setAttribute('content', primary)
+    }
+  }
+
   const applyDocumentMetadata = branding => {
     const root = document.documentElement
-    if (branding.primary_color) root.style.setProperty('--peter-brand-primary', branding.primary_color)
-    if (branding.secondary_color) root.style.setProperty('--peter-brand-secondary', branding.secondary_color)
-    if (branding.accent_color) root.style.setProperty('--peter-brand-accent', branding.accent_color)
+    applyColorTokens(branding)
     if (branding.logo) root.style.setProperty('--peter-brand-logo-url', `url("${branding.logo}")`)
 
     const favicon = assetFor(branding, 'favicon')
@@ -165,7 +268,8 @@
       icons.forEach(link => { link.href = favicon })
     }
 
-    if (branding.social_image) document.querySelectorAll('meta[property="og:image"], meta[name="twitter:image"]').forEach(meta => meta.setAttribute('content', branding.social_image))
+    const socialImage = branding.social_image || branding.logo
+    if (socialImage) document.querySelectorAll('meta[property="og:image"], meta[name="twitter:image"]').forEach(meta => meta.setAttribute('content', socialImage))
     if (branding.seo_description) document.querySelector('meta[name="description"]')?.setAttribute('content', branding.seo_description)
   }
 
@@ -233,20 +337,19 @@
       observe(cached.branding, slug)
     }
 
-    // Always verify the published version. The cache is only an instant/offline fallback;
-    // it never blocks a freshly published logo from reaching the application.
     const branding = await refresh()
 
     if (!focusListenerInstalled) {
       focusListenerInstalled = true
       window.addEventListener('focus', () => { refresh() }, { passive: true })
       window.addEventListener('pageshow', event => { if (event.persisted) refresh() }, { passive: true })
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refresh() }, { passive: true })
     }
 
     return branding
   }
 
-  window.PeterTecnetBranding = { version: RUNTIME_VERSION, install, refresh, apply }
+  window.PeterTecnetBranding = { version: RUNTIME_VERSION, install, refresh, apply, applyColorTokens }
   if (script?.dataset?.auto !== 'false') {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => install(), { once: true })
     else install()
