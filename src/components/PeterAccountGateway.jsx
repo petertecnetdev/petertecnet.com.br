@@ -1,11 +1,14 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const SDK_VERSION = '2.0.0'
+const AUTH_VERSION = '2.0.0'
 const INSIGHTS_VERSION = '1.0.0'
 const SDK_URL = `https://petertecnet.com.br/ecosystem/peter-ecosystem.js?v=${SDK_VERSION}`
+const AUTH_URL = `https://petertecnet.com.br/ecosystem/peter-auth-session.js?v=${AUTH_VERSION}`
 const INSIGHTS_URL = `https://petertecnet.com.br/ecosystem/peter-insights.js?v=${INSIGHTS_VERSION}`
 let sdkPromise
+let authPromise
 let insightsPromise
 
 function loadScript({ selector, src, datasetKey, datasetValue, isReady, errorMessage }) {
@@ -39,6 +42,23 @@ function loadSdk() {
   return sdkPromise
 }
 
+function loadIdentity(apiBaseUrl, appSlug) {
+  const configure = () => window.PeterTecnetAuthSession?.configure({
+    apiBaseUrl: apiBaseUrl || 'https://api.petertecnet.com.br/api',
+    appSlug: appSlug || '',
+  })
+
+  if (window.PeterTecnetAuthSession?.version === AUTH_VERSION) return Promise.resolve(configure())
+
+  if (!authPromise) authPromise = loadScript({
+    selector: 'script[data-peter-auth-session]', src: AUTH_URL, datasetKey: 'peterAuthSession', datasetValue: AUTH_VERSION,
+    isReady: () => window.PeterTecnetAuthSession?.version === AUTH_VERSION,
+    errorMessage: 'Não foi possível carregar o Peter Identity SDK.',
+  })
+
+  return authPromise.then(configure)
+}
+
 function loadInsights() {
   if (window.PeterTecnetInsights?.version === INSIGHTS_VERSION && customElements.get('peter-insight-chart')) return Promise.resolve()
   if (!insightsPromise) insightsPromise = loadScript({
@@ -51,10 +71,17 @@ function loadInsights() {
 
 export default function PeterAccountGateway({ apiBaseUrl, appSlug, children }) {
   const hostRef = useRef(null)
+  const [identityReady, setIdentityReady] = useState(false)
 
   useEffect(() => {
     let active = true
     const host = hostRef.current
+
+    loadIdentity(apiBaseUrl, appSlug)
+      .catch(error => console.error('[Peter Identity]', error))
+      .finally(() => {
+        if (active) setIdentityReady(true)
+      })
 
     Promise.all([loadSdk(), loadInsights()]).then(() => {
       if (!active || !host) return
@@ -71,5 +98,5 @@ export default function PeterAccountGateway({ apiBaseUrl, appSlug, children }) {
     }
   }, [apiBaseUrl, appSlug])
 
-  return <>{children}<span ref={hostRef} style={{ display: 'contents' }} /></>
+  return <>{identityReady ? children : null}<span ref={hostRef} style={{ display: 'contents' }} /></>
 }
