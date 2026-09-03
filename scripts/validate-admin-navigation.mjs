@@ -51,6 +51,7 @@ check('persistent shell has no duplicated EXTRA_TABS catalog', !shell.includes('
 check('persistent shell delegates internal navigation to AdminUiProvider', shell.includes('navigate(item.key)') || shell.includes('navigate(key)'))
 check('AdminUiProvider does not hard reload module routes', !provider.includes('window.location.assign(') && !provider.includes('window.location.replace('))
 check('AdminUiProvider uses pushState/replaceState for route changes', provider.includes("'pushState'") && provider.includes("'replaceState'"))
+check('canonical router suppresses hidden legacy history mutations', provider.includes('originalPushState') && provider.includes('window.history.pushState = () => undefined'))
 check('legacy Admin.js no longer renders AdminModuleNav', !adminJs.includes('AdminModuleNav'))
 check('legacy Admin.js no longer owns visibility route', !adminJs.includes('AdminVisibilityPage'))
 check('canonical CSS hides nested legacy sidebar', shellCss.includes('.admin-persistent-main > .ecosystem-shell > .ecosystem-sidebar') && shellCss.includes('display: none !important'))
@@ -58,6 +59,8 @@ check('Laora sidebar becomes in-content subnavigation', shellCss.includes('.admi
 check('mobile drawer prioritizes canonical persistent sidebar', mobile.includes("document.querySelector('.admin-persistent-sidebar, .ecosystem-sidebar')"))
 check('state bridge only persists filter-oriented controls', stateBridge.includes('.filter-grid input') && stateBridge.includes('.la-filters input'))
 check('state bridge excludes password/file controls', stateBridge.includes("['password', 'file', 'hidden', 'submit', 'button']"))
+check('state bridge persists pagination state', stateBridge.includes('capturePagination') && stateBridge.includes('restorePagination'))
+check('state bridge persists module subnavigation state', stateBridge.includes('captureSubnavigation') && stateBridge.includes('restoreSubnavigation'))
 check('state bridge persists per normalized route in sessionStorage', stateBridge.includes('sessionStorage') && stateBridge.includes('normalizeAdminPath'))
 
 if (failures.length) {
