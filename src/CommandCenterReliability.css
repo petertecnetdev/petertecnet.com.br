@@ -1,0 +1,8 @@
+.cc-notice.warn{
+  border:1px solid rgba(255,188,74,.34);
+  background:rgba(255,188,74,.08);
+}
+
+.cc-notice.warn b{
+  color:#ffd58b;
+}
