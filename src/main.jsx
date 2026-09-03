@@ -11,6 +11,7 @@ import PeterAccountGateway from './components/PeterAccountGateway.jsx'
 import AdminMobileNavigation from './components/AdminMobileNavigation.jsx'
 import AdminEstablishmentMediaBridge from './AdminEstablishmentMedia.jsx'
 import AdminProductivityBridge from './AdminProductivityBridge.jsx'
+import AdminHomeBridge from './AdminHomeBridge.jsx'
 import './AdminMobileNavigation.css'
 import './AdminDesktop.css'
 import './AdminProductivityBridge.css'
@@ -43,6 +44,7 @@ const page = isLauncherAdmin ? (
     {isAdmin && <AdminEstablishmentMediaBridge />}
     {isAdmin && <AdminMobileNavigation />}
     {isAdmin && <AdminProductivityBridge />}
+    {isAdmin && <AdminHomeBridge />}
   </>
 )
 
