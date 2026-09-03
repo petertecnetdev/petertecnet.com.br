@@ -7,6 +7,7 @@ import App from './App.jsx'
 import LaoraAdminCenter from './LaoraAdminCenter.jsx'
 import AccountAccessPage from './AccountAccessPage.jsx'
 import EcosystemLauncherAdmin from './EcosystemLauncherAdmin.jsx'
+import IdentitySecurityCenter from './IdentitySecurityCenter.jsx'
 import PeterAccountGateway from './components/PeterAccountGateway.jsx'
 import AdminMobileNavigation from './components/AdminMobileNavigation.jsx'
 import AdminEstablishmentMediaBridge from './AdminEstablishmentMedia.jsx'
@@ -34,10 +35,13 @@ installGlobalImageFallbacks()
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 const isAccountAccess = path === '/account/activate' || path === '/account/password/reset'
 const isLauncherAdmin = path === '/admin/ecosystem-launcher'
+const isIdentitySecurity = path === '/admin/identity' || path.startsWith('/admin/identity/')
 const isLaoraAdmin = path.startsWith('/admin/laora')
 const isAdmin = path === '/admin' || path.startsWith('/admin/')
 const page = isLauncherAdmin ? (
   <EcosystemLauncherAdmin />
+) : isIdentitySecurity ? (
+  <IdentitySecurityCenter />
 ) : isLaoraAdmin ? (
   <>
     <LaoraAdminCenter />
