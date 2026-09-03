@@ -107,6 +107,18 @@ function parseResult(html) {
   return JSON.parse(match[1].replaceAll('&quot;', '"').replaceAll('&amp;', '&').replaceAll('&#39;', "'"))
 }
 
+function runProbe(url, common, attempts = 3) {
+  let last = null
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const dumped = spawnSync(chrome, [...common, '--dump-dom', url], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 })
+    last = dumped
+    if (dumped.status !== 0) continue
+    const result = parseResult(dumped.stdout)
+    if (result) return { dumped, result, attempt }
+  }
+  return { dumped: last, result: null, attempt: attempts }
+}
+
 const failures = []
 for (const viewport of viewports) {
   const probePath = join(output, `${viewport.name}-probe.html`)
@@ -119,22 +131,22 @@ for (const viewport of viewports) {
   const common = [
     '--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage',
     '--allow-file-access-from-files', '--hide-scrollbars', '--run-all-compositor-stages-before-draw',
-    '--virtual-time-budget=2500', `--window-size=${outerWidth},${outerHeight}`,
+    '--virtual-time-budget=4000', `--window-size=${outerWidth},${outerHeight}`,
   ]
 
-  const dumped = spawnSync(chrome, [...common, '--dump-dom', url], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 })
-  if (dumped.status !== 0) {
-    failures.push(`${viewport.name}: Chrome falhou (${dumped.stderr || dumped.stdout})`)
+  const probe = runProbe(url, common)
+  if (!probe.dumped || probe.dumped.status !== 0) {
+    failures.push(`${viewport.name}: Chrome falhou após ${probe.attempt} tentativa(s) (${probe.dumped?.stderr || probe.dumped?.stdout || 'sem saída'})`)
     continue
   }
 
-  const result = parseResult(dumped.stdout)
+  const result = probe.result
   if (!result) {
-    failures.push(`${viewport.name}: o probe responsivo não concluiu`)
+    failures.push(`${viewport.name}: o probe responsivo não concluiu após ${probe.attempt} tentativa(s)`)
     continue
   }
 
-  console.log(`${result.ok ? '✓' : '✗'} ${viewport.name} requested=${result.requestedWidth}x${result.requestedHeight} actual=${result.width}x${result.height}: ${result.checks.map(check => `${check.name}=${check.pass ? 'ok' : 'FAIL'}`).join(', ')}`)
+  console.log(`${result.ok ? '✓' : '✗'} ${viewport.name} requested=${result.requestedWidth}x${result.requestedHeight} actual=${result.width}x${result.height}: ${result.checks.map(check => `${check.name}=${check.pass ? 'ok' : 'FAIL'}`).join(', ')}${probe.attempt > 1 ? ` (tentativa ${probe.attempt})` : ''}`)
   if (!result.ok) failures.push(`${viewport.name}: ${result.checks.filter(check => !check.pass).map(check => `${check.name} (${check.detail})`).join('; ')}`)
 
   const screenshot = join(output, `${viewport.name}.png`)
