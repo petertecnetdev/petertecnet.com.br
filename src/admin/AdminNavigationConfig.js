@@ -6,10 +6,11 @@ export const ADMIN_TABS = [
   { key: 'applications', label: 'Aplicações', icon: '◇', path: '/admin/applications', group: 'Ecossistema' },
   { key: 'users', label: 'Usuários', icon: '◉', path: '/admin/users', group: 'Governança' },
   { key: 'profiles', label: 'Perfis e permissões', icon: '⌗', path: '/admin/profiles', group: 'Governança' },
+  { key: 'identity', label: 'Identidade e sessões', icon: '◎', path: '/admin/identity', group: 'Governança' },
   { key: 'establishments', label: 'Estabelecimentos', icon: '⌂', path: '/admin/establishments', group: 'Negócio' },
   { key: 'items', label: 'Itens', icon: '▣', path: '/admin/items', group: 'Negócio' },
   { key: 'site', label: 'Site institucional', icon: '✦', path: '/admin/site', group: 'Configurações' },
-  { key: 'audit', label: 'Auditoria', icon: '◎', path: '/admin/audit', group: 'Governança' },
+  { key: 'audit', label: 'Auditoria', icon: '◌', path: '/admin/audit', group: 'Governança' },
 ]
 
 export const ADMIN_TAB_BY_KEY = Object.fromEntries(ADMIN_TABS.map(tab => [tab.key, tab]))
@@ -24,6 +25,7 @@ export const ADMIN_ROUTE_ALIASES = {
   '/admin/applications': 'applications',
   '/admin/users': 'users',
   '/admin/profiles': 'profiles',
+  '/admin/identity': 'identity',
   '/admin/establishments': 'establishments',
   '/admin/items': 'items',
   '/admin/site': 'site',
