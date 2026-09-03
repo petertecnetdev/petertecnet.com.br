@@ -10,7 +10,7 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 16
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,6 +23,8 @@ jobs:
         run: npm run lint
       - name: Validate ecosystem SDK
         run: npm run test:ecosystem
+      - name: Validate Peter Identity cross-domain lifecycle
+        run: npm run test:identity-e2e
       - name: Production build
         run: npm run build
       - name: Validate Admin Center in real browser
@@ -45,6 +47,8 @@ jobs:
           test -f src/OperationalIssuesPanel.css
           test -f src/FinancialCenter.jsx
           test -f src/EcosystemLauncherAdmin.jsx
+          test -f src/IdentitySecurityCenter.jsx
+          test -f src/IdentitySecurityCenter.css
           test -f src/AdminEntry.jsx
           test -f src/AdminExperience.css
           test -f src/AdminVisualSystem.css
@@ -55,7 +59,14 @@ jobs:
           test -f src/admin/AdminFutureTheme.css
           test -f src/components/AdminMobileNavigation.css
           test -f scripts/validate-admin-browser.mjs
+          test -f scripts/validate-identity-cross-domain.mjs
           test -f public/ecosystem/peter-ecosystem.js
+          test -f public/ecosystem/peter-identity.js
+          grep -q "const VERSION = '3.0.0'" public/ecosystem/peter-identity.js
+          grep -q "window.PeterIdentity" public/ecosystem/peter-identity.js
+          grep -q "test:identity-e2e" package.json
+          grep -q "Identidade e sessões" src/admin/AdminNavigationConfig.js
+          grep -q "IdentitySecurityCenter" src/AdminEntry.jsx
           test ! -f src/AdminResponsive.css
           test ! -f src/AdminDesktop.css
           test ! -f src/AdminMobileNavigation.css
