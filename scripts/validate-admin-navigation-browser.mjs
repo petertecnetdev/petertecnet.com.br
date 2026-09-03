@@ -48,19 +48,32 @@ function parse(html) {
   return JSON.parse(match[1].replaceAll('&quot;', '"').replaceAll('&amp;', '&').replaceAll('&#39;', "'"))
 }
 
+function runProbe(url, common, attempts = 3) {
+  let last = null
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const run = spawnSync(chrome, [...common, '--dump-dom', url], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 })
+    last = run
+    if (run.status !== 0) continue
+    const result = parse(run.stdout)
+    if (result) return { result, attempt, run }
+  }
+  return { result: null, attempt: attempts, run: last }
+}
+
 const failures = []
 for (const route of routes) {
   for (const viewport of viewports) {
     const file = join(output, `${route.key}-${viewport.name}.html`)
     writeFileSync(file, documentFor(route, viewport))
     const common = ['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--allow-file-access-from-files','--virtual-time-budget=3000',`--window-size=${Math.max(500, viewport.width)},${Math.max(800, viewport.height)}`]
-    const run = spawnSync(chrome, [...common, '--dump-dom', pathToFileURL(file).href], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 })
-    const result = run.status === 0 ? parse(run.stdout) : null
+    const probe = runProbe(pathToFileURL(file).href, common)
+    const result = probe.result
     if (!result) {
-      failures.push(`${route.key}/${viewport.name}: Chromium não retornou o probe`)
+      const detail = probe.run?.stderr?.trim() || probe.run?.stdout?.trim()?.slice(-500) || 'sem saída do Chromium'
+      failures.push(`${route.key}/${viewport.name}: Chromium não retornou o probe após ${probe.attempt} tentativas (${detail})`)
       continue
     }
-    console.log(`${result.ok ? '✓' : '✗'} ${route.key}/${viewport.name}: ${result.checks.map(check => `${check.name}=${check.pass ? 'ok' : 'FAIL'}`).join(', ')}`)
+    console.log(`${result.ok ? '✓' : '✗'} ${route.key}/${viewport.name}: ${result.checks.map(check => `${check.name}=${check.pass ? 'ok' : 'FAIL'}`).join(', ')}${probe.attempt > 1 ? ` (tentativa ${probe.attempt})` : ''}`)
     if (!result.ok) failures.push(`${route.key}/${viewport.name}: ${result.checks.filter(check => !check.pass).map(check => `${check.name} (${check.detail})`).join('; ')}`)
   }
 }
