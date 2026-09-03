@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
-import { normalizeAdminPath } from './AdminNavigationConfig.js'
+import { adminTabFromLocation, adminTabPath, normalizeAdminPath } from './AdminNavigationConfig.js'
 import { ADMIN_BEFORE_NAVIGATE_EVENT, ADMIN_NAVIGATION_CHANGED_EVENT } from './AdminUiEvents.js'
 
-const STORAGE_KEY = 'petertecnet:admin-workspace-state:v2'
+const STORAGE_KEY = 'petertecnet:admin-workspace-state:v3'
 const FILTER_SELECTOR = [
   '.filter-grid input',
   '.filter-grid select',
@@ -17,6 +17,11 @@ const PAGINATION_SELECTOR = '.pagination, [data-admin-pagination]'
 const ACTIVE_PAGE_SELECTOR = '[aria-current="page"], button.active, a.active, [data-page].active'
 const PAGE_CONTROL_SELECTOR = 'button, a, [data-page]'
 const SUBNAV_SELECTOR = '.la-admin > aside nav, [data-admin-subnavigation]'
+
+function workspaceKey(pathname = window.location.pathname) {
+  const normalized = normalizeAdminPath(pathname)
+  return adminTabPath(adminTabFromLocation(normalized)) || normalized
+}
 
 function readStore() {
   try {
@@ -155,7 +160,7 @@ function restoreSubnavigation(savedItems = []) {
 }
 
 function savePath(pathname = window.location.pathname) {
-  const path = normalizeAdminPath(pathname)
+  const path = workspaceKey(pathname)
   const store = readStore()
   store[path] = {
     scrollY: Math.max(0, window.scrollY || 0),
@@ -169,7 +174,7 @@ function savePath(pathname = window.location.pathname) {
 }
 
 function restorePath(pathname = window.location.pathname) {
-  const path = normalizeAdminPath(pathname)
+  const path = workspaceKey(pathname)
   const state = readStore()[path]
   if (!state) return
 
