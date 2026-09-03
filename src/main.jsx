@@ -8,6 +8,7 @@ import { installGlobalImageFallbacks } from './utils/imageFallback.js'
 import { installPasswordVisibilityToggles } from './utils/passwordVisibility.js'
 
 const PublicExperienceRouter = lazy(() => import('./PublicExperienceRouter.jsx'))
+const PublicLearningOverlay = lazy(() => import('./PublicLearningOverlay.jsx'))
 const AdminEntry = lazy(() => import('./AdminEntry.jsx'))
 const LegacyApp = lazy(() => import('./App.jsx'))
 const AccountAccessPage = lazy(() => import('./AccountAccessPage.jsx'))
@@ -40,7 +41,7 @@ const lazyFallback = <main style={{ minHeight: '70vh', display: 'grid', placeIte
 const appPage = isAdmin
   ? <Suspense fallback={lazyFallback}><AdminEntry /></Suspense>
   : isMarketing
-    ? <Suspense fallback={lazyFallback}><PublicExperienceRouter /></Suspense>
+    ? <Suspense fallback={lazyFallback}><><PublicLearningOverlay /><PublicExperienceRouter /></></Suspense>
     : <Suspense fallback={lazyFallback}><LegacyApp /></Suspense>
 
 createRoot(document.getElementById('root')).render(
