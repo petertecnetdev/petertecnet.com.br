@@ -12,12 +12,15 @@ import AdminEstablishmentMediaBridge from './AdminEstablishmentMedia.jsx'
 import AdminProductivityBridge from './AdminProductivityBridge.jsx'
 import AdminHomeBridge from './AdminHomeBridge.jsx'
 import AdminDeepLinkBridge from './AdminDeepLinkBridge.jsx'
+import { AdminUiProvider } from './admin/AdminUiContext.jsx'
 import { installGlobalImageFallbacks } from './utils/imageFallback.js'
 import { installPasswordVisibilityToggles } from './utils/passwordVisibility.js'
+import './admin/AdminTokens.css'
 import './AdminProductivityBridge.css'
 import './AdminProductivityLayoutFix.css'
 import './AdminVisualSystem.css'
 import './AdminExperience.css'
+import './admin/AdminNavigationState.css'
 
 const API_BASE_URL = 'https://api.petertecnet.com.br/api'
 const APP_SLUG = 'peter-tecnet'
@@ -60,7 +63,7 @@ createRoot(document.getElementById('root')).render(
       <AccountAccessPage />
     ) : (
       <PeterAccountGateway apiBaseUrl={API_BASE_URL} appSlug={APP_SLUG}>
-        {page}
+        {isAdmin ? <AdminUiProvider>{page}</AdminUiProvider> : page}
       </PeterAccountGateway>
     )}
   </StrictMode>,
