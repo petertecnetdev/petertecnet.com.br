@@ -86,11 +86,22 @@ jobs:
           REMOTE
 
           for attempt in 1 2 3 4 5; do
-            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15 -o ConnectionAttempts=1 -o ServerAliveInterval=30 -o ServerAliveCountMax=8 -p "$port" "$VPS_USER@$VPS_HOST" 'bash -s' < "$RUNNER_TEMP/sync-locaio.sh"; then
+            set +e
+            ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15 -o ConnectionAttempts=1 -o ServerAliveInterval=30 -o ServerAliveCountMax=8 -p "$port" "$VPS_USER@$VPS_HOST" 'bash -s' < "$RUNNER_TEMP/sync-locaio.sh"
+            status=$?
+            set -e
+
+            if [[ "$status" -eq 0 ]]; then
               exit 0
             fi
-            status=$?
-            [[ "$status" -ne 255 ]] && exit "$status"
+            if [[ "$status" -ne 255 ]]; then
+              echo "Sincronização remota falhou com status $status; não é erro transitório de SSH." >&2
+              exit "$status"
+            fi
+
+            echo "SSH indisponível na tentativa $attempt/5; tentando novamente..." >&2
             sleep $((5 + attempt * 3))
           done
+
+          echo "Não foi possível conectar à VPS após 5 tentativas." >&2
           exit 255
