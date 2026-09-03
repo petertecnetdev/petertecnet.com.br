@@ -1,0 +1,130 @@
+.admin-persistent-shell {
+  min-height: 100vh;
+}
+
+.admin-persistent-sidebar nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-persistent-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.admin-persistent-nav-group + .admin-persistent-nav-group {
+  margin-top: 14px;
+}
+
+.admin-persistent-nav-label {
+  display: block;
+  padding: 0 10px 5px;
+  color: rgba(160, 196, 205, .58);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.admin-persistent-sidebar nav button {
+  grid-template-columns: 28px minmax(0, 1fr) 6px !important;
+}
+
+.admin-persistent-sidebar nav button::before,
+.admin-persistent-sidebar nav button::after {
+  display: none !important;
+}
+
+.admin-persistent-nav-icon {
+  width: 25px;
+  height: 25px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(116, 217, 234, .11);
+  border-radius: 8px;
+  background: rgba(116, 217, 234, .045);
+  color: rgba(203, 245, 250, .68);
+  font-size: 11px;
+}
+
+.admin-persistent-sidebar nav button.active .admin-persistent-nav-icon,
+.admin-persistent-sidebar nav button[aria-current="page"] .admin-persistent-nav-icon {
+  border-color: rgba(53, 223, 242, .32);
+  background: rgba(53, 223, 242, .12);
+  color: #dffcff;
+  box-shadow: 0 0 20px rgba(53, 223, 242, .08);
+}
+
+.admin-persistent-main {
+  min-width: 0;
+}
+
+.admin-persistent-main > .ecosystem-main {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding-inline: 0 !important;
+}
+
+.admin-persistent-main > .visibility-admin-shell {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.admin-persistent-main .admin-module-nav {
+  display: none !important;
+}
+
+/* Standalone modules used to look like centered popups because they owned their
+   own viewport-sized shell. Inside the persistent Admin shell they become normal
+   workspace content and inherit the main column instead. */
+.admin-persistent-main > main,
+.admin-persistent-main > section,
+.admin-persistent-main > div {
+  max-width: 100%;
+}
+
+@media (min-width: 761px) {
+  .admin-persistent-sidebar {
+    display: flex !important;
+    flex-direction: column !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .admin-persistent-main {
+    width: min(100%, var(--admin-content-max, 1540px)) !important;
+    max-width: var(--admin-content-max, 1540px) !important;
+    margin: 0 auto !important;
+    padding: 0 clamp(22px, 3vw, 48px) 64px !important;
+  }
+
+  .admin-persistent-main > .ecosystem-main {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-persistent-nav-group + .admin-persistent-nav-group {
+    margin-top: 10px;
+  }
+
+  .admin-persistent-nav-label {
+    padding-left: 8px;
+  }
+
+  .admin-persistent-main {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 14px 12px calc(30px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .admin-persistent-main > .ecosystem-main {
+    padding: 0 !important;
+  }
+}
