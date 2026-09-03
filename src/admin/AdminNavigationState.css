@@ -1,0 +1,23 @@
+.ecosystem-sidebar nav button[data-icon]::before {
+  content: attr(data-icon) !important;
+}
+
+.ecosystem-sidebar nav button[data-group-start]::after {
+  content: '';
+}
+
+.ecosystem-sidebar nav button:focus-visible,
+.admin-mobile-menu-button:focus-visible,
+.admin-mobile-backdrop:focus-visible,
+.ecosystem-sidebar a:focus-visible,
+.sidebar-foot button:focus-visible {
+  outline: 2px solid var(--pt-admin-accent);
+  outline-offset: 2px;
+  box-shadow: var(--admin-focus-ring);
+}
+
+@media (max-width: 760px) {
+  .admin-mobile-topbar { z-index: var(--admin-z-mobile-bar) !important; }
+  .admin-mobile-backdrop { z-index: var(--admin-z-backdrop) !important; }
+  .ecosystem-sidebar, .la-admin aside { z-index: var(--admin-z-drawer) !important; }
+}
