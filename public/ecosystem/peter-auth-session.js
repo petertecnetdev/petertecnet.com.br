@@ -18,8 +18,8 @@
     queued: false,
     lastToken: null,
     globalReady: false,
-    explicitLogout: false,
-    suppressLogout: false,
+    signedOut: false,
+    suppressStorageSync: false,
     lastRestoreAt: 0,
   }
 
@@ -50,6 +50,7 @@
 
   const persistToken = data => {
     if (!data?.access_token) return
+    state.signedOut = false
     state.lastToken = data.access_token
     state.globalReady = true
     localStorage.setItem('token', data.access_token)
@@ -60,25 +61,26 @@
   }
 
   const clearLocalSession = () => {
-    state.suppressLogout = true
+    state.suppressStorageSync = true
     state.lastToken = null
     state.globalReady = false
     try {
       TOKEN_KEYS.forEach(key => localStorage.removeItem(key))
       localStorage.removeItem('user')
     } finally {
-      state.suppressLogout = false
+      state.suppressStorageSync = false
     }
   }
 
   const establish = async currentToken => request('/account/sso/session', {
     method: 'POST',
+    keepalive: true,
     headers: { Authorization: `Bearer ${currentToken}` },
     body: '{}',
   })
 
   const restore = async (force = false) => {
-    if (!state.slug || hasIncomingHandoff()) return false
+    if (!state.slug || state.signedOut || hasIncomingHandoff()) return false
     const now = Date.now()
     if (!force && now - state.lastRestoreAt < RESTORE_THROTTLE_MS) return false
     state.lastRestoreAt = now
@@ -112,17 +114,10 @@
   const performSync = async (reason = 'sync') => {
     if (!state.configured || !state.slug) return
 
-    if (state.explicitLogout && !state.suppressLogout) {
-      state.explicitLogout = false
-      clearLocalSession()
-      await revoke()
-      dispatchAuthChanged('ecosystem-global-logout')
-      return
-    }
-
     const currentToken = token()
 
     if (currentToken) {
+      state.signedOut = false
       if (currentToken === state.lastToken && state.globalReady) return
       state.lastToken = currentToken
       state.globalReady = false
@@ -142,19 +137,22 @@
       return
     }
 
-    if (state.lastToken && !state.suppressLogout) {
-      state.lastToken = null
-      state.globalReady = false
-      await revoke()
-      return
-    }
-
     state.lastToken = null
     state.globalReady = false
-    await restore(reason === 'focus' || reason === 'pageshow')
+    if (state.signedOut) return
+
+    await restore(
+      reason === 'focus'
+      || reason === 'pageshow'
+      || reason === 'storage'
+      || reason === 'storage-mutation'
+      || reason === 'authChanged'
+      || reason === 'peter:auth-changed'
+    )
   }
 
   const scheduleSync = reason => {
+    if (state.suppressStorageSync) return
     if (state.queued) return
     state.queued = true
     queueMicrotask(() => {
@@ -211,14 +209,7 @@
     state.started = true
     patchStorage()
 
-    window.addEventListener(STORAGE_EVENT, event => {
-      const operation = event?.detail?.operation
-      if (!state.suppressLogout && (operation === 'remove' || operation === 'clear')) {
-        state.explicitLogout = true
-      }
-      scheduleSync('storage-mutation')
-    })
-
+    window.addEventListener(STORAGE_EVENT, () => scheduleSync('storage-mutation'))
     window.addEventListener('storage', event => {
       if (!event.key || TOKEN_KEYS.includes(event.key)) scheduleSync('storage')
     })
@@ -237,7 +228,7 @@
   }
 
   const logout = async () => {
-    state.explicitLogout = false
+    state.signedOut = true
     clearLocalSession()
     await revoke()
     dispatchAuthChanged('ecosystem-global-logout')
