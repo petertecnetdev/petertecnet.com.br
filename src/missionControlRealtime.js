@@ -1,5 +1,6 @@
 const API_ORIGIN = 'https://api.petertecnet.com.br'
 const API = `${API_ORIGIN}/api`
+const DEFAULT_EVENT = 'mission-control.updated'
 
 function parseData(value) {
   if (typeof value !== 'string') return value
@@ -62,6 +63,7 @@ export function connectMissionControlRealtime({ token, onUpdate, onState }) {
         state('fallback')
         return
       }
+      const eventName = config.event || DEFAULT_EVENT
 
       socket = new WebSocket(websocketUrl(config))
 
@@ -93,7 +95,7 @@ export function connectMissionControlRealtime({ token, onUpdate, onState }) {
           return
         }
 
-        if (envelope.event === config.event || envelope.event === `.${config.event}`) {
+        if (envelope.event === eventName || envelope.event === `.${eventName}`) {
           onUpdate?.(parseData(envelope.data))
         }
       }
