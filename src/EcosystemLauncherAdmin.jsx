@@ -32,11 +32,18 @@ const normalize = application => ({
   launcher_order: Number(application.launcher_order ?? 100),
   category: application.category || '',
   is_visible: application.is_visible !== false,
+  is_default: Boolean(application.is_default),
   self_service_access: Boolean(application.self_service_access),
   operational_status: application.operational_status || 'operational',
   maintenance_message: application.maintenance_message || '',
   ecosystem_sdk_version: application.ecosystem_sdk_version || '2.0.0',
 })
+
+const sortApplications = rows => [...rows].sort((a, b) =>
+  Number(Boolean(b.is_default)) - Number(Boolean(a.is_default)) ||
+  Number(a.launcher_order || 0) - Number(b.launcher_order || 0) ||
+  String(a.name || '').localeCompare(String(b.name || ''), 'pt-BR')
+)
 
 export default function EcosystemLauncherAdmin() {
   const [applications, setApplications] = useState([])
@@ -52,7 +59,7 @@ export default function EcosystemLauncherAdmin() {
     setError('')
     try {
       const payload = await request('/admin/applications')
-      const rows = (payload?.applications || []).map(normalize)
+      const rows = sortApplications((payload?.applications || []).map(normalize))
       setApplications(rows)
       setDrafts(Object.fromEntries(rows.map(app => [app.id, app])))
     } catch (err) {
@@ -73,13 +80,23 @@ export default function EcosystemLauncherAdmin() {
 
   const filtered = useMemo(() => {
     const query = search.trim().toLocaleLowerCase('pt-BR')
-    const rows = applications.map(app => drafts[app.id] || app)
+    const rows = sortApplications(applications.map(app => drafts[app.id] || app))
     if (!query) return rows
     return rows.filter(app => `${app.name} ${app.slug} ${app.category}`.toLocaleLowerCase('pt-BR').includes(query))
   }, [applications, drafts, search])
 
   function patch(id, field, value) {
-    setDrafts(current => ({ ...current, [id]: { ...current[id], [field]: value } }))
+    setDrafts(current => {
+      const next = { ...current }
+      if (field === 'is_default' && value) {
+        Object.keys(next).forEach(key => {
+          next[key] = { ...next[key], is_default: Number(key) === Number(id) }
+        })
+      } else {
+        next[id] = { ...next[id], [field]: value }
+      }
+      return next
+    })
   }
 
   async function save(id) {
@@ -100,6 +117,7 @@ export default function EcosystemLauncherAdmin() {
         launcher_order: Number(app.launcher_order || 0),
         category: app.category || null,
         is_visible: Boolean(app.is_visible),
+        is_default: Boolean(app.is_default),
         operational_status: app.operational_status,
         maintenance_message: app.maintenance_message || null,
         ecosystem_sdk_version: app.ecosystem_sdk_version || null,
@@ -109,8 +127,12 @@ export default function EcosystemLauncherAdmin() {
       }
       const payload = await request(`/admin/applications/${id}`, { method: 'PUT', body: JSON.stringify(body) })
       const saved = normalize(payload.application)
-      setApplications(current => current.map(item => item.id === id ? saved : item).sort((a, b) => a.launcher_order - b.launcher_order || a.name.localeCompare(b.name)))
-      setDrafts(current => ({ ...current, [id]: saved }))
+      const updated = sortApplications(applications.map(item => item.id === id
+        ? saved
+        : saved.is_default ? { ...item, is_default: false } : item
+      ))
+      setApplications(updated)
+      setDrafts(Object.fromEntries(updated.map(item => [item.id, item])))
       setMessage(`${saved.name} atualizado no ecossistema.`)
     } catch (err) {
       setError(err.message)
@@ -121,6 +143,7 @@ export default function EcosystemLauncherAdmin() {
 
   const operational = applications.filter(app => app.operational_status === 'operational').length
   const visible = applications.filter(app => app.is_visible).length
+  const defaultApp = applications.find(app => app.is_default)
 
   return <main className="ela-shell">
     <header className="ela-header">
@@ -142,6 +165,7 @@ export default function EcosystemLauncherAdmin() {
       <button onClick={load} disabled={loading}>Atualizar</button>
     </section>
 
+    {defaultApp && <div className="ela-notice success">Aplicação padrão atual: <strong>{defaultApp.name}</strong>.</div>}
     {error && <div className="ela-notice error" role="alert">{error}</div>}
     {message && <div className="ela-notice success">{message}</div>}
     {loading && <div className="ela-loading">Carregando configuração do ecossistema…</div>}
@@ -151,11 +175,11 @@ export default function EcosystemLauncherAdmin() {
         <div className="ela-card-head">
           <div className="ela-logo">{app.logo ? <img src={app.logo} alt="" onError={event => { event.currentTarget.style.display = 'none' }} /> : <b>{app.name?.[0] || 'P'}</b>}</div>
           <div><h2>{app.name}</h2><code>{app.slug}</code></div>
-          <span className="ela-status">{STATUS_OPTIONS.find(([value]) => value === app.operational_status)?.[1] || app.operational_status}</span>
+          <span className="ela-status">{app.is_default ? 'Padrão · ' : ''}{STATUS_OPTIONS.find(([value]) => value === app.operational_status)?.[1] || app.operational_status}</span>
         </div>
 
         <div className="ela-fields">
-          <label>Ordem no launcher<input type="number" min="0" value={app.launcher_order} onChange={event => patch(app.id, 'launcher_order', Number(event.target.value))} /></label>
+          <label>Ordem no launcher<input type="number" min="0" value={app.launcher_order} onChange={event => patch(app.id, 'launcher_order', Number(event.target.value))} disabled={app.is_default} /></label>
           <label>Categoria<input value={app.category} onChange={event => patch(app.id, 'category', event.target.value)} placeholder="Ex.: Negócios, Eventos, Gestão" /></label>
           <label>Status<select value={app.operational_status} onChange={event => patch(app.id, 'operational_status', event.target.value)}>{STATUS_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label>Versão do SDK<input value={app.ecosystem_sdk_version} onChange={event => patch(app.id, 'ecosystem_sdk_version', event.target.value)} placeholder="2.0.0" /></label>
@@ -165,8 +189,9 @@ export default function EcosystemLauncherAdmin() {
         </div>
 
         <div className="ela-switches">
-          <label><input type="checkbox" checked={Boolean(app.is_visible)} onChange={event => patch(app.id, 'is_visible', event.target.checked)} />Visível no launcher</label>
-          <label><input type="checkbox" checked={Boolean(app.is_active)} onChange={event => patch(app.id, 'is_active', event.target.checked)} />Aplicação ativa</label>
+          <label><input type="checkbox" checked={Boolean(app.is_default)} onChange={event => patch(app.id, 'is_default', event.target.checked)} />Aplicação padrão</label>
+          <label><input type="checkbox" checked={Boolean(app.is_visible)} onChange={event => patch(app.id, 'is_visible', event.target.checked)} disabled={app.is_default} />Visível no launcher</label>
+          <label><input type="checkbox" checked={Boolean(app.is_active)} onChange={event => patch(app.id, 'is_active', event.target.checked)} disabled={app.is_default} />Aplicação ativa</label>
           <label><input type="checkbox" checked={Boolean(app.self_service_access)} onChange={event => patch(app.id, 'self_service_access', event.target.checked)} />Acesso autoatendido</label>
         </div>
 
