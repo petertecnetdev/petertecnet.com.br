@@ -52,6 +52,7 @@ export default function SavedViewsPanel({ open, onClose, revision = 0 }) {
   const [asDefault, setAsDefault] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [pendingDelete, setPendingDelete] = useState(null)
 
   async function load(nextScope = scope) {
     setLoading(true); setError('')
@@ -65,6 +66,7 @@ export default function SavedViewsPanel({ open, onClose, revision = 0 }) {
     if (!open) return
     const nextScope = scopeFromPath()
     setScope(nextScope)
+    setPendingDelete(null)
     load(nextScope)
   }, [open, revision])
 
@@ -83,10 +85,12 @@ export default function SavedViewsPanel({ open, onClose, revision = 0 }) {
   }
 
   async function remove(view) {
-    if (!window.confirm(`Excluir a visualização “${view.name}”?`)) return
     setLoading(true); setError('')
-    try { await controlApi(`/v1/me/workspace/views/${view.id}`, { method: 'DELETE' }); await load(scope) }
-    catch (err) { setError(err.message) } finally { setLoading(false) }
+    try {
+      await controlApi(`/v1/me/workspace/views/${view.id}`, { method: 'DELETE' })
+      setPendingDelete(null)
+      await load(scope)
+    } catch (err) { setError(err.message) } finally { setLoading(false) }
   }
 
   if (!open) return null
@@ -97,7 +101,7 @@ export default function SavedViewsPanel({ open, onClose, revision = 0 }) {
       <div className="cp-drawer-content">
         {error && <div className="cp-error">{error}</div>}
         <form className="cp-save-view-form" onSubmit={save}><label>Nome da visão<input value={name} onChange={event => setName(event.target.value)} placeholder="Ex.: Usuários inativos 30d" maxLength="160" /></label><label className="cp-check"><input type="checkbox" checked={asDefault} onChange={event => setAsDefault(event.target.checked)} /><span>Tornar padrão para esta área</span></label><button type="submit" className="primary" disabled={loading}>Salvar estado atual</button></form>
-        <section className="cp-view-list"><h3>{scope}</h3>{loading && !views.length && <div className="cp-loading">Carregando visualizações…</div>}{views.length ? views.map(view => <article key={view.id}><div><b>{view.name}</b><small>{view.is_default ? 'Padrão · ' : ''}{new Date(view.updated_at).toLocaleString('pt-BR')}</small></div><div><button type="button" onClick={() => { applyConfiguration(view.configuration); onClose() }}>Aplicar</button><button type="button" className="danger" onClick={() => remove(view)}>Excluir</button></div></article>) : !loading && <p className="cp-empty">Nenhuma visualização salva nesta área.</p>}</section>
+        <section className="cp-view-list"><h3>{scope}</h3>{loading && !views.length && <div className="cp-loading">Carregando visualizações…</div>}{views.length ? views.map(view => <article key={view.id} className={pendingDelete?.id === view.id ? 'pending-delete' : ''}><div><b>{view.name}</b><small>{view.is_default ? 'Padrão · ' : ''}{new Date(view.updated_at).toLocaleString('pt-BR')}</small>{pendingDelete?.id === view.id && <small className="delete-warning">Confirme a exclusão desta visualização. Seus dados operacionais não serão alterados.</small>}</div><div><button type="button" onClick={() => { applyConfiguration(view.configuration); onClose() }}>Aplicar</button>{pendingDelete?.id === view.id ? <><button type="button" onClick={() => setPendingDelete(null)}>Cancelar</button><button type="button" className="danger" onClick={() => remove(view)} disabled={loading}>Confirmar exclusão</button></> : <button type="button" className="danger" onClick={() => setPendingDelete(view)}>Excluir</button>}</div></article>) : !loading && <p className="cp-empty">Nenhuma visualização salva nesta área.</p>}</section>
       </div>
     </aside>
   </div>
