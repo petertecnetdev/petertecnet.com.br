@@ -7,6 +7,8 @@ import App from './App.jsx'
 import LaoraAdminCenter from './LaoraAdminCenter.jsx'
 import AccountAccessPage from './AccountAccessPage.jsx'
 import PeterAccountGateway from './components/PeterAccountGateway.jsx'
+import AdminMobileNavigation from './components/AdminMobileNavigation.jsx'
+import './AdminMobileNavigation.css'
 
 const API_BASE_URL = 'https://api.petertecnet.com.br/api'
 const APP_SLUG = 'peter-tecnet'
@@ -21,7 +23,18 @@ const path = window.location.pathname.replace(/\/+$/, '') || '/'
 const isAccountAccess = path === '/account/activate' || path === '/account/password/reset'
 const isLaoraAdmin = path.startsWith('/admin/laora')
 const isAdmin = path === '/admin' || path.startsWith('/admin/')
-const page = isLaoraAdmin ? <LaoraAdminCenter /> : <><App />{isAdmin && <a className="la-safety-shortcut" href="/admin/laora">Laora Safety</a>}</>
+const page = isLaoraAdmin ? (
+  <>
+    <LaoraAdminCenter />
+    <AdminMobileNavigation />
+  </>
+) : (
+  <>
+    <App />
+    {isAdmin && <AdminMobileNavigation />}
+    {isAdmin && <a className="la-safety-shortcut" href="/admin/laora">Laora Safety</a>}
+  </>
+)
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
