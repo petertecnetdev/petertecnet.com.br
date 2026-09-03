@@ -13,6 +13,12 @@ function resolveAssetUrl(value) {
   return `${API_ORIGIN}${value.startsWith('/') ? '' : '/'}${value}`
 }
 
+function formatFileSize(bytes = 0) {
+  if (!bytes) return ''
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
 async function apiRequest(path, options = {}) {
   const token = localStorage.getItem(TOKEN_KEY)
   const controller = new AbortController()
@@ -60,9 +66,74 @@ function filesForRole(files, role) {
 function readEditorContext(formElement) {
   const labels = [...formElement.querySelectorAll('label')]
   const findLabel = prefix => labels.find(label => (label.childNodes?.[0]?.textContent || label.textContent || '').trim().startsWith(prefix))
-  const name = findLabel('Razão social / nome')?.querySelector('input')?.value || ''
+  const name = findLabel('Nome fantasia')?.querySelector('input')?.value
+    || findLabel('Razão social / nome')?.querySelector('input')?.value
+    || ''
+  const category = findLabel('Categoria')?.querySelector('input')?.value || ''
+  const city = findLabel('Cidade')?.querySelector('input')?.value || ''
+  const uf = findLabel('UF')?.querySelector('input')?.value || ''
   const appId = Number(findLabel('Aplicação principal')?.querySelector('select')?.value) || 0
-  return { name, appId }
+  return { name, category, city, uf, appId }
+}
+
+function ImageDropzone({ role, title, description, imageUrl, selectedFile, markedForRemoval, saving, onChoose, onRemove, onUndo }) {
+  const inputRef = useRef(null)
+  const [dragging, setDragging] = useState(false)
+  const isLogo = role === 'logo'
+
+  function acceptDrop(event) {
+    event.preventDefault()
+    setDragging(false)
+    const file = event.dataTransfer?.files?.[0]
+    if (file) onChoose(role, file)
+  }
+
+  return <article className={`media-control-card ${dragging ? 'is-dragging' : ''} ${markedForRemoval ? 'is-removing' : ''}`}>
+    <div className={`media-control-preview ${isLogo ? 'is-logo' : 'is-cover'}`}>
+      {imageUrl && !markedForRemoval
+        ? <img src={imageUrl} alt={`Prévia de ${title.toLowerCase()}`} />
+        : <div className="media-empty-state"><span>{isLogo ? 'L' : '▭'}</span><small>{markedForRemoval ? 'Será removida' : `Sem ${title.toLowerCase()}`}</small></div>}
+      {selectedFile && <span className="media-new-badge">Nova</span>}
+    </div>
+
+    <div className="media-control-content">
+      <div className="media-control-title"><div><b>{title}</b><p>{description}</p></div><span>{isLogo ? '1:1' : '16:9'}</span></div>
+
+      {selectedFile && <div className="media-file-selected"><span>Arquivo selecionado</span><b>{selectedFile.name}</b><small>{formatFileSize(selectedFile.size)}</small></div>}
+      {markedForRemoval && <div className="media-removal-message">Esta imagem será removida quando você salvar as alterações.</div>}
+
+      <div
+        className="media-dropzone"
+        onDragEnter={event => { event.preventDefault(); setDragging(true) }}
+        onDragOver={event => event.preventDefault()}
+        onDragLeave={() => setDragging(false)}
+        onDrop={acceptDrop}
+        onClick={() => inputRef.current?.click()}
+        role="button"
+        tabIndex={0}
+        onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') inputRef.current?.click() }}
+      >
+        <strong>{selectedFile ? 'Escolher outro arquivo' : imageUrl ? `Trocar ${title.toLowerCase()}` : `Adicionar ${title.toLowerCase()}`}</strong>
+        <small>Arraste uma imagem aqui ou clique para selecionar</small>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif"
+          onChange={event => {
+            const file = event.target.files?.[0]
+            if (file) onChoose(role, file)
+            event.target.value = ''
+          }}
+          disabled={saving}
+        />
+      </div>
+
+      <div className="media-control-actions">
+        {(selectedFile || markedForRemoval) && <button type="button" onClick={() => onUndo(role)} disabled={saving}>Desfazer alteração</button>}
+        {!selectedFile && imageUrl && !markedForRemoval && <button type="button" className="danger-text" onClick={() => onRemove(role)} disabled={saving}>Remover imagem</button>}
+      </div>
+    </div>
+  </article>
 }
 
 function EstablishmentMediaEditor({ establishmentId, formElement }) {
@@ -88,6 +159,7 @@ function EstablishmentMediaEditor({ establishmentId, formElement }) {
   const logoUrl = removeLogo ? '' : (logoPreview || resolveAssetUrl(currentLogo?.public_url))
   const backgroundUrl = removeBackground ? '' : (backgroundPreview || resolveAssetUrl(currentBackground?.public_url))
   const hasPendingMedia = !!logoFile || !!backgroundFile || removeLogo || removeBackground
+  const location = [context.city, context.uf].filter(Boolean).join(' / ')
 
   async function loadFiles() {
     setLoading(true)
@@ -120,24 +192,32 @@ function EstablishmentMediaEditor({ establishmentId, formElement }) {
     Object.values(previewUrls.current).forEach(url => { if (url) URL.revokeObjectURL(url) })
   }, [])
 
-  function chooseImage(role, event) {
-    const selected = event.target.files?.[0] || null
-    if (!selected) return
+  function clearPreview(role) {
+    const previousUrl = previewUrls.current[role]
+    if (previousUrl) URL.revokeObjectURL(previousUrl)
+    previewUrls.current[role] = ''
+    if (role === 'logo') {
+      setLogoFile(null)
+      setLogoPreview('')
+    } else {
+      setBackgroundFile(null)
+      setBackgroundPreview('')
+    }
+  }
+
+  function chooseImage(role, selected) {
     setError('')
     setSuccess('')
-    if (!selected.type.startsWith('image/')) {
-      setError('Selecione um arquivo de imagem para este campo.')
-      event.target.value = ''
+    if (!selected?.type?.startsWith('image/')) {
+      setError('Selecione um arquivo de imagem válido (PNG, JPG, WEBP ou GIF).')
       return
     }
     if (selected.size > MAX_IMAGE_SIZE) {
       setError('A imagem deve ter no máximo 20 MB.')
-      event.target.value = ''
       return
     }
 
-    const previousUrl = previewUrls.current[role]
-    if (previousUrl) URL.revokeObjectURL(previousUrl)
+    clearPreview(role)
     const previewUrl = URL.createObjectURL(selected)
     previewUrls.current[role] = previewUrl
 
@@ -152,29 +232,24 @@ function EstablishmentMediaEditor({ establishmentId, formElement }) {
     }
   }
 
-  function resetSelection(role) {
-    const previousUrl = previewUrls.current[role]
-    if (previousUrl) URL.revokeObjectURL(previousUrl)
-    previewUrls.current[role] = ''
-    if (role === 'logo') {
-      setLogoFile(null)
-      setLogoPreview('')
-    } else {
-      setBackgroundFile(null)
-      setBackgroundPreview('')
-    }
+  function markRemoval(role) {
+    clearPreview(role)
+    if (role === 'logo') setRemoveLogo(true)
+    else setRemoveBackground(true)
+    setError('')
+    setSuccess('')
   }
 
-  function toggleRemoval(role) {
-    resetSelection(role)
-    if (role === 'logo') setRemoveLogo(value => !value)
-    else setRemoveBackground(value => !value)
+  function undoChange(role) {
+    clearPreview(role)
+    if (role === 'logo') setRemoveLogo(false)
+    else setRemoveBackground(false)
     setError('')
     setSuccess('')
   }
 
   async function uploadImage(role, imageFile) {
-    if (!context.appId) throw new Error('Selecione uma aplicação principal antes de salvar a logo ou o background.')
+    if (!context.appId) throw new Error('Selecione uma aplicação principal antes de salvar as imagens.')
     const body = new FormData()
     body.append('app_id', String(context.appId))
     body.append('entity_id', String(establishmentId))
@@ -189,7 +264,7 @@ function EstablishmentMediaEditor({ establishmentId, formElement }) {
 
   async function removeFiles(roleFiles) {
     if (!roleFiles.length) return
-    await Promise.allSettled(roleFiles.map(file => apiRequest(`/file/${file.id}`, { method: 'DELETE' })))
+    await Promise.all(roleFiles.map(file => apiRequest(`/file/${file.id}`, { method: 'DELETE' })))
   }
 
   async function persistMedia() {
@@ -212,12 +287,12 @@ function EstablishmentMediaEditor({ establishmentId, formElement }) {
         await removeFiles(backgroundFiles)
       }
 
-      resetSelection('logo')
-      resetSelection('background')
+      clearPreview('logo')
+      clearPreview('background')
       setRemoveLogo(false)
       setRemoveBackground(false)
       await loadFiles()
-      setSuccess('Logo e background atualizados com sucesso.')
+      setSuccess('Identidade visual atualizada com sucesso.')
       return true
     } catch (saveError) {
       setError(saveError.message)
@@ -249,41 +324,72 @@ function EstablishmentMediaEditor({ establishmentId, formElement }) {
   }, [formElement, hasPendingMedia, saving, logoFile, backgroundFile, removeLogo, removeBackground, context.appId, files])
 
   return <section className="wide establishment-media-editor" aria-label="Identidade visual do estabelecimento">
-    <div className="establishment-media-heading">
-      <div><p className="subheading">Identidade visual</p><h3>Logo e imagem de background</h3></div>
-      <span>{loading ? 'Carregando imagens…' : hasPendingMedia ? 'Prévia não salva' : 'Imagens atuais'}</span>
-    </div>
+    <header className="media-editor-header">
+      <div>
+        <span className="media-editor-eyebrow">Identidade visual</span>
+        <h3>Logo e capa do estabelecimento</h3>
+        <p>Escolha as imagens e confira o resultado antes de salvar o cadastro.</p>
+      </div>
+      <div className={`media-editor-state ${hasPendingMedia ? 'pending' : loading ? 'loading' : 'saved'}`}>
+        <i />
+        {loading ? 'Carregando' : hasPendingMedia ? 'Alterações pendentes' : 'Tudo salvo'}
+      </div>
+    </header>
 
-    <div className="establishment-visual-preview" style={backgroundUrl ? { backgroundImage: `linear-gradient(rgba(2,8,13,.38),rgba(2,8,13,.78)), url("${backgroundUrl}")` } : undefined}>
-      <div className="establishment-visual-preview__content">
-        <div className="establishment-visual-preview__logo">{logoUrl ? <img src={logoUrl} alt="Prévia da logo" /> : <span>Sem logo</span>}</div>
-        <div><small>Prévia do estabelecimento</small><strong>{context.name || `Estabelecimento #${establishmentId}`}</strong></div>
+    <div className={`brand-live-preview ${!backgroundUrl ? 'without-cover' : ''}`} style={backgroundUrl ? { backgroundImage: `url("${backgroundUrl}")` } : undefined}>
+      <div className="brand-live-preview__shade" />
+      <div className="brand-live-preview__toolbar"><span>Prévia pública</span><small>Atualiza enquanto você edita</small></div>
+      <div className="brand-live-preview__identity">
+        <div className={`brand-live-preview__logo ${!logoUrl ? 'empty' : ''}`}>
+          {logoUrl ? <img src={logoUrl} alt="Prévia da logo" /> : <span>LOGO</span>}
+        </div>
+        <div className="brand-live-preview__text">
+          <small>{context.category || 'Estabelecimento'}</small>
+          <strong>{context.name || `Estabelecimento #${establishmentId}`}</strong>
+          {location && <span>{location}</span>}
+        </div>
       </div>
     </div>
 
-    <div className="establishment-media-grid">
-      <article className="establishment-media-card">
-        <div className="establishment-media-thumb logo">{logoUrl ? <img src={logoUrl} alt="Logo selecionada" /> : <span>Sem logo</span>}</div>
-        <div className="establishment-media-card__body"><b>Logo</b><small>PNG, JPG, WEBP ou GIF · até 20 MB. A prévia aparece antes do envio.</small></div>
-        <label className="establishment-file-button">Escolher nova logo<input type="file" accept="image/*" onChange={event=>chooseImage('logo',event)} disabled={saving}/></label>
-        {(currentLogo || logoFile) && <button type="button" onClick={()=>toggleRemoval('logo')} disabled={saving}>{removeLogo ? 'Manter logo atual' : 'Remover logo'}</button>}
-      </article>
+    <div className="media-guidance">
+      <div><b>Logo</b><span>Prefira imagem quadrada, com fundo transparente e boa margem interna.</span></div>
+      <div><b>Capa</b><span>Prefira imagem horizontal em alta resolução. O centro da imagem deve conter o assunto principal.</span></div>
+    </div>
 
-      <article className="establishment-media-card">
-        <div className="establishment-media-thumb background">{backgroundUrl ? <img src={backgroundUrl} alt="Background selecionado" /> : <span>Sem background</span>}</div>
-        <div className="establishment-media-card__body"><b>Background / capa</b><small>Use uma imagem horizontal de boa resolução. A composição acima mostra como ficará.</small></div>
-        <label className="establishment-file-button">Escolher novo background<input type="file" accept="image/*" onChange={event=>chooseImage('background',event)} disabled={saving}/></label>
-        {(currentBackground || backgroundFile) && <button type="button" onClick={()=>toggleRemoval('background')} disabled={saving}>{removeBackground ? 'Manter background atual' : 'Remover background'}</button>}
-      </article>
+    <div className="media-controls-grid">
+      <ImageDropzone
+        role="logo"
+        title="Logo"
+        description="Usada para identificar o estabelecimento em cartões, perfis e catálogos."
+        imageUrl={logoUrl}
+        selectedFile={logoFile}
+        markedForRemoval={removeLogo}
+        saving={saving}
+        onChoose={chooseImage}
+        onRemove={markRemoval}
+        onUndo={undoChange}
+      />
+      <ImageDropzone
+        role="background"
+        title="Capa"
+        description="Imagem de destaque exibida no topo da apresentação do estabelecimento."
+        imageUrl={backgroundUrl}
+        selectedFile={backgroundFile}
+        markedForRemoval={removeBackground}
+        saving={saving}
+        onChoose={chooseImage}
+        onRemove={markRemoval}
+        onUndo={undoChange}
+      />
     </div>
 
     {error && <div className="notice error establishment-media-notice">{error}</div>}
     {success && <div className="notice success establishment-media-notice">{success}</div>}
 
-    <div className="establishment-media-actions">
-      <button type="button" className="primary" disabled={saving || !hasPendingMedia} onClick={persistMedia}>{saving ? 'Enviando imagens…' : 'Aplicar imagens agora'}</button>
-      <small>{hasPendingMedia ? 'Você também pode usar “Salvar alterações”; as imagens serão enviadas antes dos demais dados.' : 'Escolha uma imagem para visualizar a alteração antes de salvar.'}</small>
-    </div>
+    <footer className={`media-save-hint ${hasPendingMedia ? 'visible' : ''}`}>
+      <div><i /><span><b>Há alterações de imagem ainda não salvas.</b><small>Use o botão “Salvar alterações” no final do formulário. As imagens serão enviadas primeiro e os demais dados logo em seguida.</small></span></div>
+      {saving && <strong>Enviando imagens…</strong>}
+    </footer>
   </section>
 }
 
