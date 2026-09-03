@@ -37,7 +37,7 @@ export default function AdminPersistentShell({ activeKey, children }) {
   return (
     <main className="ecosystem-shell admin-persistent-shell" data-admin-canonical-shell="true">
       <aside className="ecosystem-sidebar admin-persistent-sidebar">
-        <a className="admin-brand ecosystem-brand" href="/admin/mission-control" aria-label="Ir para a home do Admin Center" onClick={event => go(event, 'command')}>
+        <a className="admin-brand ecosystem-brand" href="/admin" aria-label="Ir para a home do Admin Center" onClick={event => go(event, 'home')}>
           <img src="/petertecnetlogo.png" alt="" />
           <span><b>Peter Tecnet</b><small>Admin Center</small></span>
         </a>
