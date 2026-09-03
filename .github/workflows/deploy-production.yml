@@ -22,3 +22,45 @@ jobs:
       VPS_PORT: ${{ secrets.VPS_PORT }}
       VPS_USER: ${{ secrets.VPS_USER }}
       VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+
+  verify-marketing:
+    name: Verify public marketing experience
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check commercial routes and live sitemap
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          urls=(
+            "https://petertecnet.com.br/"
+            "https://petertecnet.com.br/servicos/desenvolvimento-de-software"
+            "https://petertecnet.com.br/portfolio"
+            "https://petertecnet.com.br/sobre"
+            "https://petertecnet.com.br/orcamento"
+            "https://petertecnet.com.br/robots.txt"
+            "https://api.petertecnet.com.br/api/v1/discovery/sitemap.xml?origin=https%3A%2F%2Fpetertecnet.com.br"
+          )
+
+          for url in "${urls[@]}"; do
+            echo "Checking $url"
+            curl --fail --silent --show-error --location \
+              --retry 5 --retry-all-errors --retry-delay 2 --max-time 20 \
+              "$url" >/dev/null
+          done
+
+          service_html="$(curl --fail --silent --show-error --location --max-time 20 \
+            https://petertecnet.com.br/servicos/desenvolvimento-de-software)"
+          grep -Fq "Desenvolvimento de software" <<<"$service_html"
+
+          robots="$(curl --fail --silent --show-error --location --max-time 20 \
+            https://petertecnet.com.br/robots.txt)"
+          grep -Fq "api.petertecnet.com.br/api/v1/discovery/sitemap.xml" <<<"$robots"
+
+          sitemap="$(curl --fail --silent --show-error --location --max-time 20 \
+            'https://api.petertecnet.com.br/api/v1/discovery/sitemap.xml?origin=https%3A%2F%2Fpetertecnet.com.br')"
+          grep -Fq "<urlset" <<<"$sitemap"
+
+          echo "Public marketing verification passed."
