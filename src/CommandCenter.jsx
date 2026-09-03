@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import './CommandCenter.css'
+import './CommandCenterReliability.css'
 import CriticalEventsPanel from './CriticalEventsPanel'
 import OperationalIssuesPanel from './OperationalIssuesPanel'
 
@@ -18,6 +19,15 @@ async function api(path, options = {}) {
   return data
 }
 
+const MISSION_SOURCES = [
+  ['overview', 'Operações', '/admin/ecosystem/command/overview'],
+  ['security', 'Segurança', '/admin/ecosystem/command/security'],
+  ['queues', 'Filas e runtime', '/admin/ecosystem/command/queues'],
+  ['incidents', 'Incidentes', '/admin/ecosystem/command/incidents'],
+  ['issues', 'Problemas', '/admin/ecosystem/command/issues?status=all&per_page=100'],
+  ['intelligence', 'Inteligência operacional', '/admin/ecosystem/command/intelligence'],
+]
+
 export default function CommandCenter() {
   const [section, setSection] = useState('overview')
   const [focusTarget, setFocusTarget] = useState('')
@@ -30,6 +40,7 @@ export default function CommandCenter() {
   const [search, setSearch] = useState('')
   const [searchResult, setSearchResult] = useState(null)
   const [error, setError] = useState('')
+  const [warning, setWarning] = useState('')
   const [loading, setLoading] = useState(true)
   const [live, setLive] = useState(true)
   const [incidentForm, setIncidentForm] = useState({ title: '', description: '', severity: 'warning', application_id: '' })
@@ -37,17 +48,47 @@ export default function CommandCenter() {
   async function load(silent = false) {
     if (!silent) setLoading(true)
     setError('')
+
     try {
-      const [o, s, q, i, operationalIssues, operationalIntelligence] = await Promise.all([
-        api('/admin/ecosystem/command/overview'),
-        api('/admin/ecosystem/command/security'),
-        api('/admin/ecosystem/command/queues'),
-        api('/admin/ecosystem/command/incidents'),
-        api('/admin/ecosystem/command/issues?status=all&per_page=100'),
-        api('/admin/ecosystem/command/intelligence'),
-      ])
-      setOverview(o); setSecurity(s); setQueues(q); setIncidents(i); setIssues(operationalIssues); setIntelligence(operationalIntelligence)
-    } catch (e) { setError(e.message) } finally { if (!silent) setLoading(false) }
+      const results = await Promise.allSettled(MISSION_SOURCES.map(([, , path]) => api(path)))
+      const failures = []
+      let successes = 0
+
+      results.forEach((result, index) => {
+        const [key, label] = MISSION_SOURCES[index]
+        if (result.status === 'rejected') {
+          failures.push({ label, message: result.reason?.message || 'Falha temporária.' })
+          return
+        }
+
+        successes += 1
+        const payload = result.value
+        if (key === 'overview') setOverview(payload)
+        if (key === 'security') setSecurity(payload)
+        if (key === 'queues') setQueues(payload)
+        if (key === 'incidents') setIncidents(payload)
+        if (key === 'issues') setIssues(payload)
+        if (key === 'intelligence') setIntelligence(payload)
+      })
+
+      if (!successes) {
+        setWarning('')
+        setError(failures[0]?.message || 'Não foi possível carregar o Mission Control.')
+        return
+      }
+
+      if (failures.length) {
+        const unavailable = failures.map(item => item.label).join(', ')
+        setWarning(`Monitoramento parcial: ${unavailable}. As demais áreas continuam operacionais e uma nova tentativa será feita automaticamente.`)
+      } else {
+        setWarning('')
+      }
+    } catch (e) {
+      setWarning('')
+      setError(e.message)
+    } finally {
+      if (!silent) setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [])
@@ -164,6 +205,7 @@ export default function CommandCenter() {
 
     <form className="cc-global-search" onSubmit={runSearch}><span>⌕</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar usuário, e-mail, CPF, aplicação, estabelecimento, item, evento, pedido ou pagamento..."/><button>Buscar</button></form>
     {error && <div className="cc-notice bad"><b>Falha operacional</b><span>{error}</span></div>}
+    {!error && warning && <div className="cc-notice warn"><b>Monitoramento parcial</b><span>{warning}</span></div>}
     {loading && <div className="cc-loading">Sincronizando telemetria operacional…</div>}
 
     {section === 'overview' && <>
