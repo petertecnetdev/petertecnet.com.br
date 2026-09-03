@@ -27,7 +27,13 @@ jobs:
         shell: bash
         run: |
           test -f src/CommandCenter.jsx
+          test -f src/CriticalEventsPanel.jsx
+          test -f src/OperationalIssuesPanel.jsx
+          test -f src/OperationalIssuesPanel.css
           test -f src/FinancialCenter.jsx
           grep -q "Mission Control" src/Admin.jsx
           grep -q "command/overview" src/CommandCenter.jsx
+          grep -q "command/security" src/CommandCenter.jsx
+          grep -q "command/issues" src/CommandCenter.jsx
+          grep -q "OperationalIssuesPanel" src/CommandCenter.jsx
           grep -q "financial/orders" src/FinancialCenter.jsx
