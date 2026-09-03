@@ -3,11 +3,12 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import './seo.js'
 import PeterAccountGateway from './components/PeterAccountGateway.jsx'
-import { installWebVitals } from './discoveryApi.js'
+import { installAccessibilityAudit, installWebVitals } from './discoveryApi.js'
 import { installGlobalImageFallbacks } from './utils/imageFallback.js'
 import { installPasswordVisibilityToggles } from './utils/passwordVisibility.js'
 
 const PublicExperienceRouter = lazy(() => import('./PublicExperienceRouter.jsx'))
+const PublicLearningOverlay = lazy(() => import('./PublicLearningOverlay.jsx'))
 const AdminEntry = lazy(() => import('./AdminEntry.jsx'))
 const LegacyApp = lazy(() => import('./App.jsx'))
 const AccountAccessPage = lazy(() => import('./AccountAccessPage.jsx'))
@@ -30,14 +31,17 @@ const isAdmin = path === '/admin' || path.startsWith('/admin/')
 const isLogin = path === '/login'
 const isMarketing = !isAdmin && !isLogin && !isAccountAccess
 
-if (isMarketing) installWebVitals(APP_SLUG)
+if (isMarketing) {
+  installWebVitals(APP_SLUG)
+  installAccessibilityAudit(APP_SLUG)
+}
 
 const lazyFallback = <main style={{ minHeight: '70vh', display: 'grid', placeItems: 'center', background: '#02090d', color: '#e9fbff' }}><p>Carregando experiência…</p></main>
 
 const appPage = isAdmin
   ? <Suspense fallback={lazyFallback}><AdminEntry /></Suspense>
   : isMarketing
-    ? <Suspense fallback={lazyFallback}><PublicExperienceRouter /></Suspense>
+    ? <Suspense fallback={lazyFallback}><><PublicLearningOverlay /><PublicExperienceRouter /></></Suspense>
     : <Suspense fallback={lazyFallback}><LegacyApp /></Suspense>
 
 createRoot(document.getElementById('root')).render(

@@ -12,6 +12,7 @@ export const ADMIN_TABS = [
   { key: 'marketing', label: 'Landing e marketing', icon: '◈', path: '/admin/marketing', group: 'Negócio', surface: 'module' },
   { key: 'content', label: 'Conteúdo e SEO', icon: '◫', path: '/admin/content', group: 'Negócio', surface: 'module' },
   { key: 'discovery', label: 'Discovery Intelligence', icon: '⌕', path: '/admin/discovery', group: 'Negócio', surface: 'module' },
+  { key: 'growth', label: 'Growth Learning Loop', icon: '↗', path: '/admin/growth', group: 'Negócio', surface: 'module' },
   { key: 'applications', label: 'Aplicações', icon: '◇', path: '/admin/applications', group: 'Ecossistema', surface: 'legacy' },
   { key: 'branding', label: 'Branding e logos', icon: '✧', path: '/admin/branding', group: 'Ecossistema', surface: 'module' },
   { key: 'ecosystem-launcher', label: 'Navegação do ecossistema', icon: '⌘', path: '/admin/ecosystem-launcher', group: 'Ecossistema', surface: 'module' },
@@ -45,6 +46,7 @@ export function adminTabFromLocation(pathname = window.location.pathname) {
   if (path.startsWith('/admin/marketing/')) return 'marketing'
   if (path.startsWith('/admin/content/')) return 'content'
   if (path.startsWith('/admin/discovery/')) return 'discovery'
+  if (path.startsWith('/admin/growth/')) return 'growth'
   if (path.startsWith('/admin/branding/')) return 'branding'
   if (path.startsWith('/admin/visibility/')) return 'visibility'
   if (path.startsWith('/admin/ecosystem-launcher/')) return 'ecosystem-launcher'
