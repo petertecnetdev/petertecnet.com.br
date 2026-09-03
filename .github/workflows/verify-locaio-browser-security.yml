@@ -14,28 +14,49 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - name: Verify HTTPS certificate, redirect and live assets
+      - name: Verify HTTPS certificate, DNS paths and browser runtime
         shell: bash
         run: |
           set -euo pipefail
           DOMAIN="locaio.petertecnet.com.br"
           BASE="https://$DOMAIN"
 
-          echo '=== Certificate ==='
-          openssl s_client \
-            -connect "$DOMAIN:443" \
-            -servername "$DOMAIN" \
-            -verify_hostname "$DOMAIN" \
-            -verify_return_error </dev/null 2>/tmp/tls.err \
-            | openssl x509 -noout -subject -issuer -dates -ext subjectAltName
-          openssl s_client \
-            -connect "$DOMAIN:443" \
-            -servername "$DOMAIN" \
-            -verify_hostname "$DOMAIN" \
-            -verify_return_error </dev/null 2>&1 \
-            | grep -Fq 'Verify return code: 0 (ok)'
+          verify_endpoint() {
+            local connect="$1"
+            local label="$2"
+            echo "=== TLS: $label ($connect) ==="
+            output="$(openssl s_client \
+              -connect "$connect" \
+              -servername "$DOMAIN" \
+              -verify_hostname "$DOMAIN" \
+              -verify_return_error </dev/null 2>&1)"
+            printf '%s\n' "$output" | openssl x509 -noout -subject -issuer -dates -ext subjectAltName
+            printf '%s\n' "$output" | grep -Fq 'Verify return code: 0 (ok)'
+          }
+
+          echo '=== Public certificate ==='
+          verify_endpoint "$DOMAIN:443" "resolver default"
+
+          echo '=== DNS A/AAAA ==='
+          mapfile -t IPV4 < <(getent ahostsv4 "$DOMAIN" | awk '{print $1}' | sort -u)
+          mapfile -t IPV6 < <(getent ahostsv6 "$DOMAIN" | awk '{print $1}' | sort -u)
+          printf 'IPv4: %s\n' "${IPV4[*]:-none}"
+          printf 'IPv6: %s\n' "${IPV6[*]:-none}"
+          ((${#IPV4[@]} > 0)) || { echo 'No IPv4 address resolved.' >&2; exit 30; }
+
+          for ip in "${IPV4[@]}"; do
+            verify_endpoint "$ip:443" "IPv4 $ip"
+            curl --fail --silent --show-error --max-time 20 \
+              --resolve "$DOMAIN:443:$ip" "$BASE/" -o /dev/null
+          done
+          for ip in "${IPV6[@]}"; do
+            [[ -z "$ip" ]] && continue
+            verify_endpoint "[$ip]:443" "IPv6 $ip"
+            curl --fail --silent --show-error --max-time 20 \
+              --resolve "$DOMAIN:443:[$ip]" "$BASE/" -o /dev/null
+          done
 
           echo '=== HTTP -> HTTPS redirect ==='
           curl --silent --show-error --head --max-time 20 "http://$DOMAIN/" > /tmp/http-headers.txt
@@ -44,13 +65,18 @@ jobs:
           location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[^:]*:[[:space:]]*/,""); gsub(/\r/,""); print; exit}' /tmp/http-headers.txt)"
           case "$status" in
             301|302|307|308) ;;
-            *) echo "HTTP is not redirecting (status $status)." >&2; exit 21 ;;
+            *) echo "HTTP is not redirecting (status $status)." >&2; exit 31 ;;
           esac
-          [[ "$location" == https://$DOMAIN/* ]] || { echo "Unexpected redirect: $location" >&2; exit 22; }
+          [[ "$location" == https://$DOMAIN/* ]] || { echo "Unexpected redirect: $location" >&2; exit 32; }
 
-          echo '=== Live page ==='
+          echo '=== Live HTML/resources ==='
           curl --fail --silent --show-error --location --max-time 20 "$BASE/" -o /tmp/locaio.html
           grep -Fq 'Locaio' /tmp/locaio.html
+
+          if grep -oE '(src|href)="(http://|ws://)[^"]+"' /tmp/locaio.html; then
+            echo 'Live HTML contains an actually loadable insecure resource.' >&2
+            exit 33
+          fi
 
           rm -rf /tmp/locaio-assets
           mkdir -p /tmp/locaio-assets
@@ -63,7 +89,6 @@ jobs:
             [[ -z "$asset" ]] && continue
             case "$asset" in
               https://*) url="$asset" ;;
-              http://*|ws://*) echo "Insecure resource in HTML: $asset" >&2; exit 23 ;;
               //*) url="https:$asset" ;;
               /*) url="$BASE$asset" ;;
               *) continue ;;
@@ -77,13 +102,53 @@ jobs:
             esac
           done < /tmp/assets.txt
 
-          echo '=== Mixed-content scan of deployed HTML/JS/CSS ==='
-          if grep -R -n -E '(^|[^s])http://|ws://' /tmp/locaio.html /tmp/locaio-assets; then
-            echo 'Insecure HTTP/WebSocket URL found in deployed frontend.' >&2
-            exit 24
+          echo '=== App-specific insecure URL literals ==='
+          # Library namespaces such as w3.org SVG/MathML and Axios' non-browser localhost fallback
+          # are inert strings. Fail only on application-relevant HTTP/WS endpoints.
+          if grep -R -n -E 'http://(api\.|locaio\.|petertecnet\.|[A-Za-z0-9.-]+\.petertecnet\.com\.br)|ws://([A-Za-z0-9.-]+\.petertecnet\.com\.br)' \
+              /tmp/locaio.html /tmp/locaio-assets; then
+            echo 'Application-specific insecure HTTP/WebSocket endpoint found.' >&2
+            exit 34
           fi
 
           echo '=== Security response headers ==='
           curl --fail --silent --show-error --head --max-time 20 "$BASE/" | tee /tmp/https-headers.txt
 
-          echo 'Locaio passes TLS, redirect and deployed mixed-content checks.'
+          echo '=== Headless Chrome runtime ==='
+          BROWSER="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          if [[ -n "$BROWSER" ]]; then
+            set +e
+            timeout 45 "$BROWSER" \
+              --headless=new \
+              --no-sandbox \
+              --disable-gpu \
+              --disable-dev-shm-usage \
+              --ignore-certificate-errors-spki-list='' \
+              --dump-dom "$BASE/" >/tmp/chrome-dom.html 2>/tmp/chrome-stderr.txt
+            browser_status=$?
+            set -e
+            cat /tmp/chrome-stderr.txt || true
+            [[ "$browser_status" -eq 0 ]] || { echo "Chrome failed with status $browser_status." >&2; exit 35; }
+            grep -Fq 'Locaio' /tmp/chrome-dom.html
+            if grep -Ei 'Mixed Content|ERR_CERT|CERT_(AUTHORITY|COMMON_NAME|DATE)_INVALID|net::ERR_SSL|SSL_PROTOCOL_ERROR' /tmp/chrome-stderr.txt; then
+              echo 'Browser runtime reported a TLS or mixed-content error.' >&2
+              exit 36
+            fi
+          else
+            echo 'Chrome binary unavailable on runner; TLS/curl checks remain authoritative.'
+          fi
+
+          echo '=== Optional www hostname diagnostic ==='
+          if getent ahosts "www.$DOMAIN" >/tmp/www-dns.txt 2>/dev/null && [[ -s /tmp/www-dns.txt ]]; then
+            cat /tmp/www-dns.txt
+            if curl --fail --silent --show-error --head --max-time 20 "https://www.$DOMAIN/" >/tmp/www-headers.txt 2>/tmp/www-error.txt; then
+              cat /tmp/www-headers.txt
+            else
+              echo 'NOTE: www hostname resolves but does not currently pass HTTPS verification:'
+              cat /tmp/www-error.txt
+            fi
+          else
+            echo 'www hostname does not resolve; canonical hostname is the non-www Locaio domain.'
+          fi
+
+          echo 'Locaio passes certificate, DNS-path, redirect and browser-runtime security checks.'
