@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check commercial routes and live sitemap
+      - name: Check commercial routes, CRM intake and live sitemap
         shell: bash
         run: |
           set -euo pipefail
@@ -62,5 +62,17 @@ jobs:
           sitemap="$(curl --fail --silent --show-error --location --max-time 20 \
             'https://api.petertecnet.com.br/api/v1/discovery/sitemap.xml?origin=https%3A%2F%2Fpetertecnet.com.br')"
           grep -Fq "<urlset" <<<"$sitemap"
+
+          # Non-mutating CRM probe: an empty inquiry must reach validation and return 422.
+          # Any 401/403/404/5xx response means the public app context/capability route is broken.
+          inquiry_status="$(curl --silent --show-error --output /tmp/inquiry-validation.json \
+            --write-out '%{http_code}' --max-time 20 \
+            --request POST --header 'Accept: application/json' \
+            https://api.petertecnet.com.br/api/v1/apps/payflow/crm/inquiries)"
+          if [[ "$inquiry_status" != "422" ]]; then
+            echo "Expected CRM inquiry validation status 422, got $inquiry_status" >&2
+            cat /tmp/inquiry-validation.json >&2 || true
+            exit 1
+          fi
 
           echo "Public marketing verification passed."
