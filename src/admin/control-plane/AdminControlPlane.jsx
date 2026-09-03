@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { controlApi } from './api.js'
 import { connectAdminRealtime } from './realtime.js'
@@ -46,8 +46,6 @@ export default function AdminControlPlane() {
   const [history, setHistory] = useState([])
   const [favorites, setFavorites] = useState([])
   const [prefsReady, setPrefsReady] = useState(false)
-
-  const preferenceSnapshot = useMemo(() => ({ mode, history, favorites }), [mode, history, favorites])
 
   function openEntity(type, id) {
     if (!type || !id) return
@@ -168,18 +166,6 @@ export default function AdminControlPlane() {
     const id = window.setInterval(loadInsights, 60000)
     return () => window.clearInterval(id)
   }, [])
-
-  useEffect(() => {
-    if (!prefsReady) return
-    const defaultViews = ['users', 'establishments', 'activity', 'financial']
-    Promise.all(defaultViews.map(scope => controlApi(`/v1/me/workspace/views/admin.${scope}`).catch(() => null))).then(results => {
-      const defaultView = results.flatMap(result => result?.views || []).find(view => view.is_default)
-      if (!defaultView?.configuration?.path || sessionStorage.getItem('petertecnet_default_view_applied')) return
-      if (window.location.pathname === '/admin' || window.location.pathname === '/admin/mission-control') {
-        sessionStorage.setItem('petertecnet_default_view_applied', '1')
-      }
-    })
-  }, [prefsReady])
 
   const actions = actionsTarget ? createPortal(<div className="cp-top-actions">
     <button type="button" className="cp-mode-toggle" onClick={() => setMode(value => value === 'operations' ? 'executive' : 'operations')} title="Alternar workspace"><span>{mode === 'executive' ? 'EXEC' : 'OPS'}</span><i>{mode === 'executive' ? 'Executivo' : 'Operação'}</i></button>
