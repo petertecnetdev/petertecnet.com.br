@@ -20,6 +20,7 @@ const provider = read('src/admin/AdminUiProvider.jsx')
 const adminJs = read('src/Admin.js')
 const mobile = read('src/components/AdminMobileNavigation.jsx')
 const stateBridge = read('src/admin/AdminWorkspaceStateBridge.jsx')
+const deepLink = read('src/AdminDeepLinkBridge.jsx')
 
 const requiredRoutes = [
   '/admin/mission-control',
@@ -49,9 +50,11 @@ check('AdminEntry routes Laora inside the canonical shell', entry.includes("path
 check('AdminEntry includes workspace state persistence', entry.includes('<AdminWorkspaceStateBridge />'))
 check('persistent shell has no duplicated EXTRA_TABS catalog', !shell.includes('EXTRA_TABS'))
 check('persistent shell delegates internal navigation to AdminUiProvider', shell.includes('navigate(item.key)') || shell.includes('navigate(key)'))
+check('persistent shell keeps current item inside scrollable sidebar viewport', shell.includes('nav.scrollTo') && shellCss.includes('overflow-y: auto'))
 check('AdminUiProvider does not hard reload module routes', !provider.includes('window.location.assign(') && !provider.includes('window.location.replace('))
 check('AdminUiProvider uses pushState/replaceState for route changes', provider.includes("'pushState'") && provider.includes("'replaceState'"))
 check('canonical router suppresses hidden legacy history mutations', provider.includes('originalPushState') && provider.includes('window.history.pushState = () => undefined'))
+check('deep-link recovery delegates tab activation to canonical router', deepLink.includes('requestAdminNavigation(key, { preservePath: true })') && !deepLink.includes("if (button && !button.classList.contains('active')) button.click()"))
 check('legacy Admin.js no longer renders AdminModuleNav', !adminJs.includes('AdminModuleNav'))
 check('legacy Admin.js no longer owns visibility route', !adminJs.includes('AdminVisibilityPage'))
 check('canonical CSS hides nested legacy sidebar', shellCss.includes('.admin-persistent-main > .ecosystem-shell > .ecosystem-sidebar') && shellCss.includes('display: none !important'))
@@ -61,7 +64,8 @@ check('state bridge only persists filter-oriented controls', stateBridge.include
 check('state bridge excludes password/file controls', stateBridge.includes("['password', 'file', 'hidden', 'submit', 'button']"))
 check('state bridge persists pagination state', stateBridge.includes('capturePagination') && stateBridge.includes('restorePagination'))
 check('state bridge persists module subnavigation state', stateBridge.includes('captureSubnavigation') && stateBridge.includes('restoreSubnavigation'))
-check('state bridge persists per normalized route in sessionStorage', stateBridge.includes('sessionStorage') && stateBridge.includes('normalizeAdminPath'))
+check('state bridge keys detail routes by canonical module', stateBridge.includes('adminTabPath(adminTabFromLocation(normalized))'))
+check('state bridge persists in sessionStorage', stateBridge.includes('sessionStorage'))
 
 if (failures.length) {
   console.error(`\n${failures.length} regressão(ões) de navegação administrativa detectada(s).`)
