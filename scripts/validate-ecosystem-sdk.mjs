@@ -39,7 +39,6 @@ const authRequired = [
   "credentials: 'include'",
   "/account/sso/session",
   "/account/sso/session/exchange",
-  "peter_ecosystem_session",
   "X-Peter-Auth-Session",
   "PeterTecnetAuthSession",
 ]
