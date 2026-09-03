@@ -35,7 +35,6 @@ const page = isLaoraAdmin ? (
     <App />
     {isAdmin && <AdminEstablishmentMediaBridge />}
     {isAdmin && <AdminMobileNavigation />}
-    {isAdmin && <a className="la-safety-shortcut" href="/admin/laora">Laora Safety</a>}
   </>
 )
 
