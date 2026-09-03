@@ -1,0 +1,21 @@
+@media (min-width: 761px) {
+  .ecosystem-main .table-wrap,
+  .ecosystem-main .cc-table-wrap,
+  .ecosystem-main .finance-table-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ecosystem-main .admin-table-toolbar {
+    order: -1;
+    flex: 0 0 auto;
+  }
+
+  .ecosystem-main .table-wrap > table,
+  .ecosystem-main .cc-table-wrap > table,
+  .ecosystem-main .finance-table-wrap > table {
+    order: 0;
+    flex: 0 0 auto;
+  }
+}

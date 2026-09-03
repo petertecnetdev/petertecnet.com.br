@@ -9,8 +9,11 @@ import AccountAccessPage from './AccountAccessPage.jsx'
 import PeterAccountGateway from './components/PeterAccountGateway.jsx'
 import AdminMobileNavigation from './components/AdminMobileNavigation.jsx'
 import AdminEstablishmentMediaBridge from './AdminEstablishmentMedia.jsx'
+import AdminProductivityBridge from './AdminProductivityBridge.jsx'
 import './AdminMobileNavigation.css'
 import './AdminDesktop.css'
+import './AdminProductivityBridge.css'
+import './AdminProductivityLayoutFix.css'
 
 const API_BASE_URL = 'https://api.petertecnet.com.br/api'
 const APP_SLUG = 'peter-tecnet'
@@ -35,6 +38,7 @@ const page = isLaoraAdmin ? (
     <App />
     {isAdmin && <AdminEstablishmentMediaBridge />}
     {isAdmin && <AdminMobileNavigation />}
+    {isAdmin && <AdminProductivityBridge />}
   </>
 )
 
