@@ -101,6 +101,7 @@ jobs:
           DEPLOY_PATH="$1"
           DEPLOY_TYPE="$2"
           DEPLOY_BRANCH="$3"
+          DEPLOY_REPOSITORY="$4"
           BUILD_WORKTREE=""
 
           cleanup_worktree() {
@@ -128,10 +129,11 @@ jobs:
             echo "Unsupported deploy type: $DEPLOY_TYPE" >&2
             exit 22
           fi
+          if [[ ! "$DEPLOY_REPOSITORY" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+            echo "Invalid GitHub repository: $DEPLOY_REPOSITORY" >&2
+            exit 25
+          fi
 
-          # One global deployment queue protects the shared VPS from concurrent npm/composer
-          # builds. Waiting on the same flock descriptor keeps older jobs queued instead of
-          # reconnecting and being overtaken by newer releases.
           exec 9>/tmp/petertecnet-vps-deploy.lock
           echo "Waiting for Peter Tecnet VPS deployment slot..."
           if ! flock -w 2700 9; then
@@ -139,6 +141,17 @@ jobs:
             exit 75
           fi
           echo "Peter Tecnet VPS deployment slot acquired."
+
+          if [[ ! -d "$DEPLOY_PATH/.git" ]]; then
+            if [[ -d "$DEPLOY_PATH" && -n "$(ls -A "$DEPLOY_PATH" 2>/dev/null)" ]]; then
+              echo "$DEPLOY_PATH exists, is not a Git repository and is not empty." >&2
+              exit 23
+            fi
+            mkdir -p "$(dirname "$DEPLOY_PATH")"
+            rm -rf "$DEPLOY_PATH"
+            echo "Bootstrapping $DEPLOY_REPOSITORY into $DEPLOY_PATH..."
+            git clone --branch "$DEPLOY_BRANCH" --single-branch "https://github.com/$DEPLOY_REPOSITORY.git" "$DEPLOY_PATH"
+          fi
 
           cd "$DEPLOY_PATH"
           if [[ ! -d .git ]]; then
@@ -156,8 +169,6 @@ jobs:
 
           case "$DEPLOY_TYPE" in
             frontend)
-              # Build in an isolated Git worktree. The currently served build/dist is
-              # never removed or cleaned while npm installs and compiles the new release.
               safe_name="$(basename "$DEPLOY_PATH" | tr -c 'A-Za-z0-9._-' '-')"
               BUILD_WORKTREE="/tmp/petertecnet-build-${safe_name}-$$-$RANDOM"
               git worktree add --detach "$BUILD_WORKTREE" "$TARGET_SHA"
@@ -199,8 +210,6 @@ jobs:
                 exit 31
               fi
 
-              # Publish all assets while the old index is still live. Do not delete old
-              # fingerprinted assets: cached/open old pages can continue requesting them.
               mkdir -p "$LIVE_OUTPUT"
               (
                 cd "$NEW_OUTPUT"
@@ -210,8 +219,6 @@ jobs:
                 tar -xf -
               )
 
-              # index.html is the release switch. Atomic rename means users see either
-              # the complete previous release or the complete new release, never a missing index.
               cp -f "$NEW_OUTPUT/index.html" "$LIVE_OUTPUT/.index.html.next"
               chmod --reference="$LIVE_OUTPUT/index.html" "$LIVE_OUTPUT/.index.html.next" 2>/dev/null || true
               mv -f "$LIVE_OUTPUT/.index.html.next" "$LIVE_OUTPUT/index.html"
@@ -226,7 +233,6 @@ jobs:
               ;;
 
             laravel)
-              # Laravel remains online during the update; no maintenance mode is used.
               if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then
                 git checkout "$DEPLOY_BRANCH"
               else
@@ -256,9 +262,6 @@ jobs:
 
           chmod 600 "$REMOTE_SCRIPT_FILE"
 
-          # SSH may still fail transiently before the remote queue is reached. Retry only
-          # transport failures or an exceptionally long queue timeout; normal lock contention
-          # is handled inside the same SSH session by flock -w above.
           max_attempts=3
           for attempt in $(seq 1 "$max_attempts"); do
             echo "SSH deploy attempt $attempt/$max_attempts"
@@ -270,7 +273,7 @@ jobs:
               -o ServerAliveInterval=30 \
               -o ServerAliveCountMax=8 \
               -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
-              "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH'" \
+              "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH' '$DEPLOY_REPOSITORY'" \
               < "$REMOTE_SCRIPT_FILE"; then
               exit 0
             else
