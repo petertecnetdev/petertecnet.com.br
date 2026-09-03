@@ -3,6 +3,7 @@ import LaoraAdminCenter from './LaoraAdminCenter.jsx'
 import EcosystemLauncherAdmin from './EcosystemLauncherAdmin.jsx'
 import ApplicationBrandingPage from './ApplicationBrandingPage.jsx'
 import ContentDiscoveryAdminPage from './ContentDiscoveryAdminPage.jsx'
+import ContentApiMigrationBridge from './ContentApiMigrationBridge.jsx'
 import DiscoveryIntelligenceAdminPage from './DiscoveryIntelligenceAdminPage.jsx'
 import AdminMobileNavigation from './components/AdminMobileNavigation.jsx'
 import AdminEstablishmentMediaBridge from './AdminEstablishmentMedia.jsx'
@@ -35,7 +36,7 @@ export default function AdminEntry() {
   } else if (isBrandingAdmin) {
     page = <><ApplicationBrandingPage /><AdminMobileNavigation /></>
   } else if (isContentAdmin) {
-    page = <><ContentDiscoveryAdminPage /><AdminMobileNavigation /></>
+    page = <><ContentApiMigrationBridge /><ContentDiscoveryAdminPage /><AdminMobileNavigation /></>
   } else if (isDiscoveryAdmin) {
     page = <><DiscoveryIntelligenceAdminPage /><AdminMobileNavigation /></>
   } else if (isLaoraAdmin) {
