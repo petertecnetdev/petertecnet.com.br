@@ -7,6 +7,7 @@ import MarketingExperience from './MarketingExperience.jsx'
 import LaoraAdminCenter from './LaoraAdminCenter.jsx'
 import AccountAccessPage from './AccountAccessPage.jsx'
 import EcosystemLauncherAdmin from './EcosystemLauncherAdmin.jsx'
+import IdentitySecurityCenter from './IdentitySecurityCenter.jsx'
 import PeterAccountGateway from './components/PeterAccountGateway.jsx'
 import AdminMobileNavigation from './components/AdminMobileNavigation.jsx'
 import AdminEstablishmentMediaBridge from './AdminEstablishmentMedia.jsx'
@@ -38,6 +39,7 @@ installPasswordVisibilityToggles()
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 const isAccountAccess = path === '/account/activate' || path === '/account/password/reset'
 const isLauncherAdmin = path === '/admin/ecosystem-launcher'
+const isIdentityAdmin = path === '/admin/identity'
 const isLaoraAdmin = path.startsWith('/admin/laora')
 const isAdmin = path === '/admin' || path.startsWith('/admin/')
 const isLogin = path === '/login'
@@ -45,6 +47,11 @@ const isMarketing = !isAdmin && !isLogin && !isAccountAccess
 
 const page = isLauncherAdmin ? (
   <EcosystemLauncherAdmin />
+) : isIdentityAdmin ? (
+  <>
+    <IdentitySecurityCenter />
+    <AdminMobileNavigation />
+  </>
 ) : isLaoraAdmin ? (
   <>
     <LaoraAdminCenter />
