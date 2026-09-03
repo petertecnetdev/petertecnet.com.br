@@ -8,7 +8,7 @@
     "build": "vite build && node scripts/generate-seo-pages.mjs && node scripts/generate-discovery-pages.mjs && node scripts/generate-intent-pages.mjs && node scripts/generate-marketing-pages.mjs",
     "lint": "oxlint",
     "test:ecosystem": "node scripts/validate-ecosystem-sdk.mjs",
-    "test:admin-ui": "node scripts/validate-admin-browser.mjs",
+    "test:admin-ui": "node scripts/validate-admin-navigation.mjs && node scripts/validate-admin-browser.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
