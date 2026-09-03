@@ -8,6 +8,7 @@
     "build": "vite build && node scripts/generate-seo-pages.mjs && node scripts/generate-discovery-pages.mjs",
     "lint": "oxlint",
     "test:ecosystem": "node scripts/validate-ecosystem-sdk.mjs",
+    "test:identity-e2e": "node scripts/validate-identity-cross-domain.mjs",
     "test:admin-ui": "node scripts/validate-admin-browser.mjs",
     "preview": "vite preview"
   },
