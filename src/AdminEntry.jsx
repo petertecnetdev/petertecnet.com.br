@@ -6,6 +6,7 @@ import ContentDiscoveryAdminPage from './ContentDiscoveryAdminPage.jsx'
 import ContentApiMigrationBridge from './ContentApiMigrationBridge.jsx'
 import DiscoveryIntelligenceAdminPage from './DiscoveryIntelligenceAdminPage.jsx'
 import MarketingSettingsAdminPage from './MarketingSettingsAdminPage.jsx'
+import IdentitySecurityCenter from './IdentitySecurityCenter.jsx'
 import AdminMobileNavigation from './components/AdminMobileNavigation.jsx'
 import AdminEstablishmentMediaBridge from './AdminEstablishmentMedia.jsx'
 import AdminProductivityBridge from './AdminProductivityBridge.jsx'
@@ -32,6 +33,7 @@ export default function AdminEntry() {
   const isContentAdmin = path === '/admin/content'
   const isDiscoveryAdmin = path === '/admin/discovery'
   const isMarketingAdmin = path === '/admin/marketing'
+  const isIdentityAdmin = path === '/admin/identity' || path.startsWith('/admin/identity/')
   const isLaoraAdmin = path.startsWith('/admin/laora')
 
   let page
@@ -45,6 +47,8 @@ export default function AdminEntry() {
     page = <><DiscoveryIntelligenceAdminPage /><AdminMobileNavigation /></>
   } else if (isMarketingAdmin) {
     page = <><MarketingSettingsAdminPage /><AdminMobileNavigation /></>
+  } else if (isIdentityAdmin) {
+    page = <><IdentitySecurityCenter /><AdminMobileNavigation /></>
   } else if (isLaoraAdmin) {
     page = <><LaoraAdminCenter /><AdminMobileNavigation /></>
   } else {
