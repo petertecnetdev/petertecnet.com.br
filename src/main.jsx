@@ -1,9 +1,8 @@
-import { StrictMode } from 'react'
+import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import './seo.js'
 import App from './App.jsx'
-import MarketingExperience from './MarketingExperience.jsx'
 import LaoraAdminCenter from './LaoraAdminCenter.jsx'
 import AccountAccessPage from './AccountAccessPage.jsx'
 import EcosystemLauncherAdmin from './EcosystemLauncherAdmin.jsx'
@@ -24,6 +23,9 @@ import './AdminVisualSystem.css'
 import './AdminExperience.css'
 import './admin/AdminNavigationState.css'
 
+const PublicDiscoveryExperience = lazy(() => import('./PublicDiscoveryExperience.jsx'))
+const ContentDiscoveryAdminPage = lazy(() => import('./ContentDiscoveryAdminPage.jsx'))
+
 const API_BASE_URL = 'https://api.petertecnet.com.br/api'
 const APP_SLUG = 'peter-tecnet'
 
@@ -40,10 +42,13 @@ const path = window.location.pathname.replace(/\/+$/, '') || '/'
 const isAccountAccess = path === '/account/activate' || path === '/account/password/reset'
 const isLauncherAdmin = path === '/admin/ecosystem-launcher'
 const isBrandingAdmin = path === '/admin/branding'
+const isContentAdmin = path === '/admin/content'
 const isLaoraAdmin = path.startsWith('/admin/laora')
 const isAdmin = path === '/admin' || path.startsWith('/admin/')
 const isLogin = path === '/login'
 const isMarketing = !isAdmin && !isLogin && !isAccountAccess
+
+const lazyFallback = <main className="ecosystem-main" style={{ minHeight: '70vh', display: 'grid', placeItems: 'center' }}><p>Carregando experiência…</p></main>
 
 const page = isLauncherAdmin ? (
   <EcosystemLauncherAdmin />
@@ -52,13 +57,18 @@ const page = isLauncherAdmin ? (
     <ApplicationBrandingPage />
     <AdminMobileNavigation />
   </>
+) : isContentAdmin ? (
+  <>
+    <Suspense fallback={lazyFallback}><ContentDiscoveryAdminPage /></Suspense>
+    <AdminMobileNavigation />
+  </>
 ) : isLaoraAdmin ? (
   <>
     <LaoraAdminCenter />
     <AdminMobileNavigation />
   </>
 ) : isMarketing ? (
-  <MarketingExperience />
+  <Suspense fallback={lazyFallback}><PublicDiscoveryExperience /></Suspense>
 ) : (
   <>
     <App />

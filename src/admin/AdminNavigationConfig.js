@@ -5,6 +5,7 @@ export const ADMIN_TABS = [
   { key: 'financial', label: 'Financeiro', icon: '¤', path: '/admin/financial', group: 'Negócio' },
   { key: 'applications', label: 'Aplicações', icon: '◇', path: '/admin/applications', group: 'Ecossistema' },
   { key: 'branding', label: 'Branding', icon: '✧', path: '/admin/branding', group: 'Ecossistema' },
+  { key: 'content', label: 'Conteúdo e SEO', icon: '◫', path: '/admin/content', group: 'Negócio' },
   { key: 'users', label: 'Usuários', icon: '◉', path: '/admin/users', group: 'Governança' },
   { key: 'profiles', label: 'Perfis e permissões', icon: '⌗', path: '/admin/profiles', group: 'Governança' },
   { key: 'establishments', label: 'Estabelecimentos', icon: '⌂', path: '/admin/establishments', group: 'Negócio' },
@@ -24,6 +25,7 @@ export const ADMIN_ROUTE_ALIASES = {
   '/admin/financial': 'financial',
   '/admin/applications': 'applications',
   '/admin/branding': 'branding',
+  '/admin/content': 'content',
   '/admin/users': 'users',
   '/admin/profiles': 'profiles',
   '/admin/establishments': 'establishments',
@@ -42,6 +44,7 @@ export function adminTabFromLocation(pathname = window.location.pathname) {
   if (path.startsWith('/admin/users/')) return 'users'
   if (path.startsWith('/admin/establishments/')) return 'establishments'
   if (path.startsWith('/admin/items/')) return 'items'
+  if (path.startsWith('/admin/content/')) return 'content'
   if (path.startsWith('/admin/mission-control/')) return 'command'
   return 'command'
 }
