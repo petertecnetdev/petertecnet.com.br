@@ -6,6 +6,7 @@ import ApplicationBrandingPage from './ApplicationBrandingPage.jsx'
 import ContentDiscoveryAdminPage from './ContentDiscoveryAdminPage.jsx'
 import ContentApiMigrationBridge from './ContentApiMigrationBridge.jsx'
 import DiscoveryIntelligenceAdminPage from './DiscoveryIntelligenceAdminPage.jsx'
+import DiscoveryGrowthAdminPage from './DiscoveryGrowthAdminPage.jsx'
 import MarketingSettingsAdminPage from './MarketingSettingsAdminPage.jsx'
 import AdminVisibilityPage from './AdminVisibilityPage.jsx'
 import AdminPersistentShell from './AdminPersistentShell.jsx'
@@ -60,6 +61,7 @@ function adminRouteContent(path) {
   if (path === '/admin/branding') return <ApplicationBrandingPage />
   if (path === '/admin/content') return <><ContentApiMigrationBridge /><ContentDiscoveryAdminPage /></>
   if (path === '/admin/discovery') return <DiscoveryIntelligenceAdminPage />
+  if (path === '/admin/growth') return <DiscoveryGrowthAdminPage />
   if (path === '/admin/marketing') return <MarketingSettingsAdminPage />
   if (path === '/admin/visibility') return <AdminVisibilityPage />
   if (path.startsWith('/admin/laora')) return <LaoraAdminCenter />
