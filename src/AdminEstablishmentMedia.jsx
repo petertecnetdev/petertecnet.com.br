@@ -3,299 +3,317 @@ import { createPortal } from 'react-dom'
 import './AdminEstablishmentMedia.css'
 
 const API = 'https://api.petertecnet.com.br/api'
-const API_ORIGIN = 'https://api.petertecnet.com.br'
-const TOKEN_KEY = 'token'
-const MAX_IMAGE_SIZE = 20 * 1024 * 1024
-
-function resolveAssetUrl(value) {
-  if (!value) return ''
-  if (/^https?:\/\//i.test(value) || value.startsWith('blob:') || value.startsWith('data:')) return value
-  return `${API_ORIGIN}${value.startsWith('/') ? '' : '/'}${value}`
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024
+const ROLE_ALIASES = {
+  logo: new Set(['logo', 'avatar']),
+  background: new Set(['background', 'cover', 'banner']),
 }
 
-function formatFileSize(bytes = 0) {
-  if (!bytes) return ''
-  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+const normalize = value => String(value || '').trim().toLowerCase()
+const token = () => localStorage.getItem('token') || localStorage.getItem('petertecnet_admin_token')
+
+async function api(path, options = {}) {
+  const response = await fetch(`${API}${path}`, {
+    ...options,
+    headers: {
+      Accept: 'application/json',
+      ...(token() ? { Authorization: `Bearer ${token()}` } : {}),
+      ...options.headers,
+    },
+  })
+  const data = response.status === 204 ? null : await response.json().catch(() => ({}))
+  if (response.status === 401) {
+    localStorage.removeItem('token')
+    localStorage.removeItem('petertecnet_admin_token')
+  }
+  if (!response.ok) throw new Error(data?.message || data?.error || Object.values(data?.errors || {})?.flat()?.[0] || 'Não foi possível atualizar a identidade visual.')
+  return data
 }
 
-async function apiRequest(path, options = {}) {
-  const token = localStorage.getItem(TOKEN_KEY)
-  const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), options.body instanceof FormData ? 60000 : 20000)
-  const headers = {
-    Accept: 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...options.headers,
-  }
-  if (!(options.body instanceof FormData)) headers['Content-Type'] = 'application/json'
+function directLabelText(label) {
+  return [...label.childNodes]
+    .filter(node => node.nodeType === Node.TEXT_NODE)
+    .map(node => node.textContent)
+    .join(' ')
+    .trim()
+}
 
-  try {
-    const response = await fetch(`${API}${path}`, { ...options, signal: controller.signal, headers })
-    const data = response.status === 204 ? null : await response.json().catch(() => ({}))
-    if (response.status === 401) {
-      localStorage.removeItem(TOKEN_KEY)
-      window.location.href = '/login'
-    }
-    if (!response.ok) throw new Error(data?.error || data?.message || Object.values(data?.errors || {})?.flat()?.[0] || 'Não foi possível concluir a operação.')
-    return data
-  } catch (error) {
-    if (error.name === 'AbortError') throw new Error('A API demorou para responder. Tente novamente.')
-    throw error
-  } finally {
-    window.clearTimeout(timeout)
+function findLabel(form, name) {
+  const wanted = normalize(name)
+  return [...form.querySelectorAll('label')].find(label => normalize(directLabelText(label)).startsWith(wanted)) || null
+}
+
+function readContext(form) {
+  const value = (name, selector = 'input,textarea,select') => findLabel(form, name)?.querySelector(selector)?.value?.trim?.() || ''
+  return {
+    name: value('Nome fantasia') || value('Razão social') || value('Nome'),
+    category: value('Categoria'),
+    city: value('Cidade'),
+    uf: value('UF'),
+    phone: value('Telefone'),
+    website: value('Website'),
+    instagram: value('Instagram'),
+    description: value('Descrição', 'textarea'),
+    appId: Number(value('Aplicação principal', 'select')) || 0,
   }
+}
+
+function ensureMediaSlot(form, establishmentId) {
+  let slot = form.querySelector('.establishment-media-native-slot')
+  if (slot) return slot
+
+  slot = document.createElement('div')
+  slot.className = 'wide establishment-media-native-slot'
+  slot.dataset.establishmentMediaSlot = String(establishmentId)
+
+  const description = findLabel(form, 'Descrição')
+  if (description?.parentNode === form) description.insertAdjacentElement('afterend', slot)
+  else {
+    const actions = form.querySelector('.form-actions')
+    if (actions?.parentNode === form) form.insertBefore(slot, actions)
+    else form.appendChild(slot)
+  }
+  return slot
 }
 
 function locateEstablishmentEditor() {
-  const heading = [...document.querySelectorAll('.admin-panel .panel-title h2')]
-    .find(node => /^Editar estabelecimento #\d+/.test(node.textContent?.trim() || ''))
-  if (!heading) return null
-  const id = Number((heading.textContent || '').match(/#(\d+)/)?.[1])
-  const form = heading.closest('.admin-panel')?.querySelector('form.form-grid')
-  return id && form ? { id, form } : null
+  const forms = [...document.querySelectorAll('.ecosystem-main form.form-grid')]
+  for (const form of forms) {
+    if (!findLabel(form, 'Aplicação principal') || !findLabel(form, 'Nome fantasia')) continue
+    const panel = form.closest('.admin-panel, section')
+    const heading = panel?.querySelector('h2,h3,header b')?.textContent || ''
+    const id = Number(heading.match(/Editar estabelecimento\s*#?(\d+)/i)?.[1])
+    if (!id) continue
+    return { id, form, slot: ensureMediaSlot(form, id) }
+  }
+  return null
 }
 
-function filesForRole(files, role) {
-  const aliases = role === 'logo' ? ['logo', 'avatar'] : ['background', 'cover', 'banner']
-  return files
-    .filter(file => aliases.includes(String(file.group || file.type || '').toLowerCase()))
-    .sort((a, b) => Number(b.id) - Number(a.id))
+function roleOf(file) {
+  const group = normalize(file?.group)
+  if (ROLE_ALIASES.logo.has(group)) return 'logo'
+  if (ROLE_ALIASES.background.has(group)) return 'background'
+  return null
 }
 
-function readEditorContext(formElement) {
-  const labels = [...formElement.querySelectorAll('label')]
-  const findLabel = prefix => labels.find(label => (label.childNodes?.[0]?.textContent || label.textContent || '').trim().startsWith(prefix))
-  const name = findLabel('Nome fantasia')?.querySelector('input')?.value
-    || findLabel('Razão social / nome')?.querySelector('input')?.value
-    || ''
-  const category = findLabel('Categoria')?.querySelector('input')?.value || ''
-  const city = findLabel('Cidade')?.querySelector('input')?.value || ''
-  const uf = findLabel('UF')?.querySelector('input')?.value || ''
-  const appId = Number(findLabel('Aplicação principal')?.querySelector('select')?.value) || 0
-  return { name, category, city, uf, appId }
+function publicUrl(file) {
+  return file?.public_url || file?.url || file?.path || ''
 }
 
-function ImageDropzone({ role, title, description, imageUrl, selectedFile, markedForRemoval, saving, onChoose, onRemove, onUndo }) {
+function newestForRole(files, role) {
+  return [...files]
+    .filter(file => roleOf(file) === role)
+    .sort((a, b) => Number(b.id || 0) - Number(a.id || 0))[0] || null
+}
+
+function validateImage(file) {
+  if (!file) return ''
+  if (!String(file.type || '').startsWith('image/')) return 'Selecione um arquivo de imagem.'
+  if (file.size > MAX_IMAGE_BYTES) return 'A imagem deve ter no máximo 20 MB.'
+  return ''
+}
+
+function formatBytes(bytes) {
+  if (!bytes) return '0 KB'
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+}
+
+function Dropzone({ role, label, hint, currentUrl, file, objectUrl, removed, disabled, onFile, onRemove, onUndo }) {
   const inputRef = useRef(null)
-  const [dragging, setDragging] = useState(false)
-  const isLogo = role === 'logo'
+  const preview = removed ? '' : (objectUrl || currentUrl)
 
-  function acceptDrop(event) {
-    event.preventDefault()
-    setDragging(false)
-    const file = event.dataTransfer?.files?.[0]
-    if (file) onChoose(role, file)
+  function accept(files) {
+    const next = files?.[0]
+    if (next) onFile(next)
   }
 
-  return <article className={`media-control-card ${dragging ? 'is-dragging' : ''} ${markedForRemoval ? 'is-removing' : ''}`}>
-    <div className={`media-control-preview ${isLogo ? 'is-logo' : 'is-cover'}`}>
-      {imageUrl && !markedForRemoval
-        ? <img src={imageUrl} alt={`Prévia de ${title.toLowerCase()}`} />
-        : <div className="media-empty-state"><span>{isLogo ? 'L' : '▭'}</span><small>{markedForRemoval ? 'Será removida' : `Sem ${title.toLowerCase()}`}</small></div>}
-      {selectedFile && <span className="media-new-badge">Nova</span>}
-    </div>
+  return <article className={`establishment-media-card ${file ? 'has-new' : ''} ${removed ? 'is-removed' : ''}`}>
+    <header>
+      <div><span>{role === 'logo' ? 'LOGO' : 'CAPA'}</span><b>{label}</b></div>
+      {file && <em>Nova imagem</em>}
+      {removed && <em>Será removida</em>}
+    </header>
 
-    <div className="media-control-content">
-      <div className="media-control-title"><div><b>{title}</b><p>{description}</p></div><span>{isLogo ? '1:1' : '16:9'}</span></div>
+    <button
+      type="button"
+      className={`establishment-media-drop ${preview ? 'has-preview' : ''}`}
+      disabled={disabled}
+      onClick={() => inputRef.current?.click()}
+      onDragOver={event => event.preventDefault()}
+      onDrop={event => { event.preventDefault(); accept(event.dataTransfer.files) }}
+    >
+      {preview ? <img src={preview} alt={`Prévia da ${label.toLowerCase()}`} /> : <span><i>＋</i><b>Adicionar {label.toLowerCase()}</b><small>Arraste uma imagem ou toque para escolher</small></span>}
+    </button>
 
-      {selectedFile && <div className="media-file-selected"><span>Arquivo selecionado</span><b>{selectedFile.name}</b><small>{formatFileSize(selectedFile.size)}</small></div>}
-      {markedForRemoval && <div className="media-removal-message">Esta imagem será removida quando você salvar as alterações.</div>}
-
-      <div
-        className="media-dropzone"
-        onDragEnter={event => { event.preventDefault(); setDragging(true) }}
-        onDragOver={event => event.preventDefault()}
-        onDragLeave={() => setDragging(false)}
-        onDrop={acceptDrop}
-        onClick={() => inputRef.current?.click()}
-        role="button"
-        tabIndex={0}
-        onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') inputRef.current?.click() }}
-      >
-        <strong>{selectedFile ? 'Escolher outro arquivo' : imageUrl ? `Trocar ${title.toLowerCase()}` : `Adicionar ${title.toLowerCase()}`}</strong>
-        <small>Arraste uma imagem aqui ou clique para selecionar</small>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/png,image/jpeg,image/webp,image/gif"
-          onChange={event => {
-            const file = event.target.files?.[0]
-            if (file) onChoose(role, file)
-            event.target.value = ''
-          }}
-          disabled={saving}
-        />
-      </div>
-
-      <div className="media-control-actions">
-        {(selectedFile || markedForRemoval) && <button type="button" onClick={() => onUndo(role)} disabled={saving}>Desfazer alteração</button>}
-        {!selectedFile && imageUrl && !markedForRemoval && <button type="button" className="danger-text" onClick={() => onRemove(role)} disabled={saving}>Remover imagem</button>}
-      </div>
+    <input ref={inputRef} type="file" accept="image/*" hidden onChange={event => accept(event.target.files)} />
+    <p>{hint}</p>
+    {file && <small className="establishment-media-file">{file.name} · {formatBytes(file.size)}</small>}
+    <div className="establishment-media-card-actions">
+      {!removed && <button type="button" onClick={() => inputRef.current?.click()} disabled={disabled}>{preview ? 'Trocar imagem' : 'Escolher imagem'}</button>}
+      {(currentUrl || file) && !removed && <button type="button" className="danger-lite" onClick={onRemove} disabled={disabled}>Remover</button>}
+      {(file || removed) && <button type="button" onClick={onUndo} disabled={disabled}>Desfazer</button>}
     </div>
   </article>
+}
+
+function EstablishmentPublicPreview({ context, establishmentId, logoUrl, backgroundUrl }) {
+  const location = [context.city, context.uf].filter(Boolean).join(' / ')
+  return <section className="establishment-public-preview" aria-label="Prévia da página pública do estabelecimento">
+    <header className="establishment-public-preview__heading">
+      <div><span>PRÉVIA DA VIEW</span><h4>Como o cliente verá o estabelecimento</h4></div>
+      <small>Atualização em tempo real, antes de salvar</small>
+    </header>
+
+    <div className="establishment-public-preview__browser">
+      <div className="establishment-public-preview__browserbar"><i/><i/><i/><span>nexus.petertecnet.com.br/establishment/{establishmentId}</span></div>
+      <div className={`establishment-public-preview__cover ${backgroundUrl ? '' : 'empty'}`} style={backgroundUrl ? { backgroundImage: `url("${backgroundUrl}")` } : undefined}>
+        {!backgroundUrl && <span>CAPA DO ESTABELECIMENTO</span>}
+      </div>
+      <div className="establishment-public-preview__content">
+        <div className={`establishment-public-preview__logo ${logoUrl ? '' : 'empty'}`}>
+          {logoUrl ? <img src={logoUrl} alt="Logo do estabelecimento"/> : <span>LOGO</span>}
+        </div>
+        <div className="establishment-public-preview__identity">
+          <span>{context.category || 'Categoria do estabelecimento'}</span>
+          <h3>{context.name || `Estabelecimento #${establishmentId}`}</h3>
+          <p>{location || 'Cidade / UF'}</p>
+        </div>
+        <div className="establishment-public-preview__actions">
+          <button type="button" disabled={!context.phone}>Contato</button>
+          <button type="button" disabled={!context.website}>Site</button>
+          <button type="button" disabled={!context.instagram}>Instagram</button>
+        </div>
+        <section className="establishment-public-preview__about">
+          <b>Sobre</b>
+          <p>{context.description || 'A descrição do estabelecimento aparecerá aqui para apresentar a empresa, seus diferenciais e sua proposta ao cliente.'}</p>
+        </section>
+        <section className="establishment-public-preview__catalog">
+          <header><div><b>Produtos e serviços</b><span>Área do catálogo vinculada ao estabelecimento</span></div><button type="button">Ver catálogo</button></header>
+          <div><article><i/><span/><small/></article><article><i/><span/><small/></article><article><i/><span/><small/></article></div>
+        </section>
+      </div>
+    </div>
+  </section>
 }
 
 function EstablishmentMediaEditor({ establishmentId, formElement }) {
   const [files, setFiles] = useState([])
   const [logoFile, setLogoFile] = useState(null)
   const [backgroundFile, setBackgroundFile] = useState(null)
-  const [logoPreview, setLogoPreview] = useState('')
-  const [backgroundPreview, setBackgroundPreview] = useState('')
-  const [removeLogo, setRemoveLogo] = useState(false)
-  const [removeBackground, setRemoveBackground] = useState(false)
-  const [context, setContext] = useState(() => readEditorContext(formElement))
+  const [logoRemoved, setLogoRemoved] = useState(false)
+  const [backgroundRemoved, setBackgroundRemoved] = useState(false)
+  const [context, setContext] = useState(() => readContext(formElement))
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const previewUrls = useRef({ logo: '', background: '' })
-  const bypassNextSubmit = useRef(false)
+  const [message, setMessage] = useState('')
+  const bypassSubmit = useRef(false)
 
-  const logoFiles = useMemo(() => filesForRole(files, 'logo'), [files])
-  const backgroundFiles = useMemo(() => filesForRole(files, 'background'), [files])
-  const currentLogo = logoFiles[0] || null
-  const currentBackground = backgroundFiles[0] || null
-  const logoUrl = removeLogo ? '' : (logoPreview || resolveAssetUrl(currentLogo?.public_url))
-  const backgroundUrl = removeBackground ? '' : (backgroundPreview || resolveAssetUrl(currentBackground?.public_url))
-  const hasPendingMedia = !!logoFile || !!backgroundFile || removeLogo || removeBackground
-  const location = [context.city, context.uf].filter(Boolean).join(' / ')
+  const logoCurrent = useMemo(() => newestForRole(files, 'logo'), [files])
+  const backgroundCurrent = useMemo(() => newestForRole(files, 'background'), [files])
+  const logoObjectUrl = useMemo(() => logoFile ? URL.createObjectURL(logoFile) : '', [logoFile])
+  const backgroundObjectUrl = useMemo(() => backgroundFile ? URL.createObjectURL(backgroundFile) : '', [backgroundFile])
+  const logoUrl = logoRemoved ? '' : (logoObjectUrl || publicUrl(logoCurrent))
+  const backgroundUrl = backgroundRemoved ? '' : (backgroundObjectUrl || publicUrl(backgroundCurrent))
+  const dirty = !!logoFile || !!backgroundFile || logoRemoved || backgroundRemoved
 
-  async function loadFiles() {
-    setLoading(true)
-    try {
-      const data = await apiRequest(`/file/list-by-entity?entity_id=${establishmentId}&entity_name=establishment`)
-      setFiles(Array.isArray(data?.files) ? data.files : [])
-    } catch (loadError) {
-      setError(`Não foi possível carregar as imagens atuais: ${loadError.message}`)
-    } finally {
-      setLoading(false)
-    }
-  }
+  useEffect(() => () => {
+    if (logoObjectUrl) URL.revokeObjectURL(logoObjectUrl)
+    if (backgroundObjectUrl) URL.revokeObjectURL(backgroundObjectUrl)
+  }, [logoObjectUrl, backgroundObjectUrl])
 
   useEffect(() => {
-    loadFiles()
+    let active = true
+    setLoading(true)
+    api(`/file/list-by-entity?entity_id=${establishmentId}&entity_name=establishment`)
+      .then(data => { if (active) setFiles(Array.isArray(data) ? data : (data?.data || data?.files || [])) })
+      .catch(err => { if (active) setError(err.message) })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
   }, [establishmentId])
 
   useEffect(() => {
-    const syncContext = () => setContext(readEditorContext(formElement))
-    syncContext()
-    formElement.addEventListener('input', syncContext)
-    formElement.addEventListener('change', syncContext)
+    const sync = () => setContext(readContext(formElement))
+    formElement.addEventListener('input', sync)
+    formElement.addEventListener('change', sync)
+    sync()
     return () => {
-      formElement.removeEventListener('input', syncContext)
-      formElement.removeEventListener('change', syncContext)
+      formElement.removeEventListener('input', sync)
+      formElement.removeEventListener('change', sync)
     }
   }, [formElement])
 
-  useEffect(() => () => {
-    Object.values(previewUrls.current).forEach(url => { if (url) URL.revokeObjectURL(url) })
-  }, [])
-
-  function clearPreview(role) {
-    const previousUrl = previewUrls.current[role]
-    if (previousUrl) URL.revokeObjectURL(previousUrl)
-    previewUrls.current[role] = ''
-    if (role === 'logo') {
-      setLogoFile(null)
-      setLogoPreview('')
-    } else {
-      setBackgroundFile(null)
-      setBackgroundPreview('')
-    }
-  }
-
-  function chooseImage(role, selected) {
+  function choose(role, file) {
+    const validation = validateImage(file)
+    if (validation) { setError(validation); return }
     setError('')
-    setSuccess('')
-    if (!selected?.type?.startsWith('image/')) {
-      setError('Selecione um arquivo de imagem válido (PNG, JPG, WEBP ou GIF).')
-      return
-    }
-    if (selected.size > MAX_IMAGE_SIZE) {
-      setError('A imagem deve ter no máximo 20 MB.')
-      return
-    }
-
-    clearPreview(role)
-    const previewUrl = URL.createObjectURL(selected)
-    previewUrls.current[role] = previewUrl
-
-    if (role === 'logo') {
-      setLogoFile(selected)
-      setLogoPreview(previewUrl)
-      setRemoveLogo(false)
-    } else {
-      setBackgroundFile(selected)
-      setBackgroundPreview(previewUrl)
-      setRemoveBackground(false)
-    }
+    setMessage('')
+    if (role === 'logo') { setLogoFile(file); setLogoRemoved(false) }
+    else { setBackgroundFile(file); setBackgroundRemoved(false) }
   }
 
-  function markRemoval(role) {
-    clearPreview(role)
-    if (role === 'logo') setRemoveLogo(true)
-    else setRemoveBackground(true)
+  function undo(role) {
     setError('')
-    setSuccess('')
+    setMessage('')
+    if (role === 'logo') { setLogoFile(null); setLogoRemoved(false) }
+    else { setBackgroundFile(null); setBackgroundRemoved(false) }
   }
 
-  function undoChange(role) {
-    clearPreview(role)
-    if (role === 'logo') setRemoveLogo(false)
-    else setRemoveBackground(false)
+  function markRemove(role) {
     setError('')
-    setSuccess('')
+    setMessage('')
+    if (role === 'logo') { setLogoFile(null); setLogoRemoved(true) }
+    else { setBackgroundFile(null); setBackgroundRemoved(true) }
   }
 
-  async function uploadImage(role, imageFile) {
-    if (!context.appId) throw new Error('Selecione uma aplicação principal antes de salvar as imagens.')
+  async function deleteRole(role, exceptId = null) {
+    const roleFiles = files.filter(file => roleOf(file) === role && Number(file.id) !== Number(exceptId))
+    for (const file of roleFiles) await api(`/file/${file.id}`, { method: 'DELETE' })
+  }
+
+  async function uploadRole(role, file) {
+    if (!file) return null
+    const appId = Number(readContext(formElement).appId)
+    if (!appId) throw new Error('Selecione uma aplicação principal antes de salvar a logo ou a capa.')
     const body = new FormData()
-    body.append('app_id', String(context.appId))
+    body.append('app_id', String(appId))
     body.append('entity_id', String(establishmentId))
     body.append('entity_name', 'establishment')
     body.append('group', role)
     body.append('is_primary', '1')
     body.append('position', role === 'logo' ? '0' : '1')
     body.append('visibility', 'public')
-    body.append('file', imageFile)
-    return apiRequest('/file', { method: 'POST', body })
-  }
-
-  async function removeFiles(roleFiles) {
-    if (!roleFiles.length) return
-    await Promise.all(roleFiles.map(file => apiRequest(`/file/${file.id}`, { method: 'DELETE' })))
+    body.append('file', file)
+    return api('/file', { method: 'POST', body })
   }
 
   async function persistMedia() {
-    if (!hasPendingMedia) return true
+    if (!dirty) return true
     setSaving(true)
     setError('')
-    setSuccess('')
+    setMessage('')
     try {
-      if (logoFile) {
-        await uploadImage('logo', logoFile)
-        await removeFiles(logoFiles)
-      } else if (removeLogo) {
-        await removeFiles(logoFiles)
-      }
+      let newLogo = null
+      let newBackground = null
+      if (logoFile) newLogo = await uploadRole('logo', logoFile)
+      if (backgroundFile) newBackground = await uploadRole('background', backgroundFile)
 
-      if (backgroundFile) {
-        await uploadImage('background', backgroundFile)
-        await removeFiles(backgroundFiles)
-      } else if (removeBackground) {
-        await removeFiles(backgroundFiles)
-      }
+      if (logoRemoved) await deleteRole('logo')
+      else if (logoFile) await deleteRole('logo', newLogo?.id || newLogo?.data?.id)
+      if (backgroundRemoved) await deleteRole('background')
+      else if (backgroundFile) await deleteRole('background', newBackground?.id || newBackground?.data?.id)
 
-      clearPreview('logo')
-      clearPreview('background')
-      setRemoveLogo(false)
-      setRemoveBackground(false)
-      await loadFiles()
-      setSuccess('Identidade visual atualizada com sucesso.')
+      const fresh = await api(`/file/list-by-entity?entity_id=${establishmentId}&entity_name=establishment`)
+      setFiles(Array.isArray(fresh) ? fresh : (fresh?.data || fresh?.files || []))
+      setLogoFile(null)
+      setBackgroundFile(null)
+      setLogoRemoved(false)
+      setBackgroundRemoved(false)
+      setMessage('Identidade visual pronta. Salvando os demais dados do estabelecimento…')
       return true
-    } catch (saveError) {
-      setError(saveError.message)
+    } catch (err) {
+      setError(err.message)
       return false
     } finally {
       setSaving(false)
@@ -303,92 +321,39 @@ function EstablishmentMediaEditor({ establishmentId, formElement }) {
   }
 
   useEffect(() => {
-    const interceptSubmit = async event => {
-      if (bypassNextSubmit.current) {
-        bypassNextSubmit.current = false
-        return
-      }
-      if (!hasPendingMedia || saving) return
+    const onSubmit = async event => {
+      if (bypassSubmit.current) { bypassSubmit.current = false; return }
+      if (!dirty) return
       event.preventDefault()
-      event.stopPropagation()
-      event.stopImmediatePropagation?.()
-      const saved = await persistMedia()
-      if (saved) {
-        bypassNextSubmit.current = true
-        formElement.requestSubmit()
-      }
+      event.stopImmediatePropagation()
+      const ok = await persistMedia()
+      if (!ok) return
+      bypassSubmit.current = true
+      formElement.requestSubmit()
     }
+    formElement.addEventListener('submit', onSubmit, true)
+    return () => formElement.removeEventListener('submit', onSubmit, true)
+  })
 
-    formElement.addEventListener('submit', interceptSubmit, true)
-    return () => formElement.removeEventListener('submit', interceptSubmit, true)
-  }, [formElement, hasPendingMedia, saving, logoFile, backgroundFile, removeLogo, removeBackground, context.appId, files])
-
-  return <section className="wide establishment-media-editor" aria-label="Identidade visual do estabelecimento">
-    <header className="media-editor-header">
-      <div>
-        <span className="media-editor-eyebrow">Identidade visual</span>
-        <h3>Logo e capa do estabelecimento</h3>
-        <p>Escolha as imagens e confira o resultado antes de salvar o cadastro.</p>
-      </div>
-      <div className={`media-editor-state ${hasPendingMedia ? 'pending' : loading ? 'loading' : 'saved'}`}>
-        <i />
-        {loading ? 'Carregando' : hasPendingMedia ? 'Alterações pendentes' : 'Tudo salvo'}
-      </div>
+  return <section className="establishment-media-editor">
+    <header className="establishment-media-editor__title">
+      <div><span>IDENTIDADE VISUAL</span><h3>Logo, capa e prévia da página do estabelecimento</h3><p>Adicione as imagens e confira em tempo real como a apresentação ficará antes de salvar.</p></div>
+      <div className={`establishment-media-editor__state ${dirty ? 'pending' : ''}`}><i/>{dirty ? 'Alterações não salvas' : loading ? 'Carregando imagens…' : 'Sincronizado'}</div>
     </header>
 
-    <div className={`brand-live-preview ${!backgroundUrl ? 'without-cover' : ''}`} style={backgroundUrl ? { backgroundImage: `url("${backgroundUrl}")` } : undefined}>
-      <div className="brand-live-preview__shade" />
-      <div className="brand-live-preview__toolbar"><span>Prévia pública</span><small>Atualiza enquanto você edita</small></div>
-      <div className="brand-live-preview__identity">
-        <div className={`brand-live-preview__logo ${!logoUrl ? 'empty' : ''}`}>
-          {logoUrl ? <img src={logoUrl} alt="Prévia da logo" /> : <span>LOGO</span>}
-        </div>
-        <div className="brand-live-preview__text">
-          <small>{context.category || 'Estabelecimento'}</small>
-          <strong>{context.name || `Estabelecimento #${establishmentId}`}</strong>
-          {location && <span>{location}</span>}
-        </div>
-      </div>
+    {error && <div className="establishment-media-notice error" role="alert">{error}</div>}
+    {message && <div className="establishment-media-notice success">{message}</div>}
+
+    <div className="establishment-media-grid">
+      <Dropzone role="logo" label="Logo" hint="Recomendado: imagem quadrada 1:1, preferencialmente PNG ou WebP." currentUrl={publicUrl(logoCurrent)} file={logoFile} objectUrl={logoObjectUrl} removed={logoRemoved} disabled={loading || saving} onFile={file => choose('logo', file)} onRemove={() => markRemove('logo')} onUndo={() => undo('logo')} />
+      <Dropzone role="background" label="Capa" hint="Recomendado: imagem horizontal 16:9, com boa leitura no centro da composição." currentUrl={publicUrl(backgroundCurrent)} file={backgroundFile} objectUrl={backgroundObjectUrl} removed={backgroundRemoved} disabled={loading || saving} onFile={file => choose('background', file)} onRemove={() => markRemove('background')} onUndo={() => undo('background')} />
     </div>
 
-    <div className="media-guidance">
-      <div><b>Logo</b><span>Prefira imagem quadrada, com fundo transparente e boa margem interna.</span></div>
-      <div><b>Capa</b><span>Prefira imagem horizontal em alta resolução. O centro da imagem deve conter o assunto principal.</span></div>
-    </div>
+    <EstablishmentPublicPreview context={context} establishmentId={establishmentId} logoUrl={logoUrl} backgroundUrl={backgroundUrl} />
 
-    <div className="media-controls-grid">
-      <ImageDropzone
-        role="logo"
-        title="Logo"
-        description="Usada para identificar o estabelecimento em cartões, perfis e catálogos."
-        imageUrl={logoUrl}
-        selectedFile={logoFile}
-        markedForRemoval={removeLogo}
-        saving={saving}
-        onChoose={chooseImage}
-        onRemove={markRemoval}
-        onUndo={undoChange}
-      />
-      <ImageDropzone
-        role="background"
-        title="Capa"
-        description="Imagem de destaque exibida no topo da apresentação do estabelecimento."
-        imageUrl={backgroundUrl}
-        selectedFile={backgroundFile}
-        markedForRemoval={removeBackground}
-        saving={saving}
-        onChoose={chooseImage}
-        onRemove={markRemoval}
-        onUndo={undoChange}
-      />
-    </div>
-
-    {error && <div className="notice error establishment-media-notice">{error}</div>}
-    {success && <div className="notice success establishment-media-notice">{success}</div>}
-
-    <footer className={`media-save-hint ${hasPendingMedia ? 'visible' : ''}`}>
-      <div><i /><span><b>Há alterações de imagem ainda não salvas.</b><small>Use o botão “Salvar alterações” no final do formulário. As imagens serão enviadas primeiro e os demais dados logo em seguida.</small></span></div>
-      {saving && <strong>Enviando imagens…</strong>}
+    <footer className="establishment-media-editor__footer">
+      <div><b>{dirty ? 'Prévia ainda não publicada' : 'Identidade visual atual'}</b><span>{dirty ? 'Ao clicar em “Salvar alterações”, as imagens e os dados serão persistidos juntos.' : 'Troque a logo ou a capa acima para visualizar a nova composição.'}</span></div>
+      {saving && <strong>Salvando imagens…</strong>}
     </footer>
   </section>
 }
@@ -397,29 +362,25 @@ export default function AdminEstablishmentMediaBridge() {
   const [editor, setEditor] = useState(null)
 
   useEffect(() => {
-    let animationFrame = 0
+    let currentKey = ''
     const sync = () => {
-      const next = locateEstablishmentEditor()
-      setEditor(current => {
-        if (!next && !current) return current
-        if (next && current && next.id === current.id && next.form === current.form) return current
-        return next
-      })
+      const found = locateEstablishmentEditor()
+      const key = found ? `${found.id}:${found.slot.dataset.establishmentMediaSlot}` : ''
+      if (key !== currentKey) {
+        currentKey = key
+        setEditor(found)
+      }
     }
-    const scheduleSync = () => {
-      window.cancelAnimationFrame(animationFrame)
-      animationFrame = window.requestAnimationFrame(sync)
-    }
-
     sync()
-    const observer = new MutationObserver(scheduleSync)
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] })
+    const observer = new MutationObserver(sync)
+    observer.observe(document.body, { childList: true, subtree: true })
+    window.addEventListener('popstate', sync)
     return () => {
       observer.disconnect()
-      window.cancelAnimationFrame(animationFrame)
+      window.removeEventListener('popstate', sync)
     }
   }, [])
 
-  if (!editor) return null
-  return createPortal(<EstablishmentMediaEditor key={editor.id} establishmentId={editor.id} formElement={editor.form} />, editor.form)
+  if (!editor?.slot?.isConnected) return null
+  return createPortal(<EstablishmentMediaEditor key={editor.id} establishmentId={editor.id} formElement={editor.form} />, editor.slot)
 }
