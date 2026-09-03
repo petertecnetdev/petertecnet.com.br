@@ -1,7 +1,13 @@
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 
-if (path === '/') {
-  import('./PeterLandingApp.jsx')
+const isMarketingHub = path === '/'
+  || path === '/sobre'
+  || path === '/portfolio'
+  || path === '/orcamento'
+  || path.startsWith('/servicos/')
+
+if (isMarketingHub) {
+  import('./MarketingHubApp.jsx')
 } else {
   import('./main.jsx')
 }
