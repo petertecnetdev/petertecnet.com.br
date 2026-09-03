@@ -1,0 +1,970 @@
+/* Responsive hardening for the Peter Tecnet Admin Center.
+   This layer intentionally overrides legacy desktop-first rules without
+   changing the domain components or API behavior. */
+
+.ecosystem-shell,
+.ecosystem-main,
+.admin-stack,
+.admin-panel,
+.cc-stack,
+.finance-stack,
+.la-admin,
+.la-admin-main {
+  min-width: 0;
+}
+
+.ecosystem-shell,
+.cc-stack,
+.finance-stack,
+.la-admin {
+  overflow-x: clip;
+}
+
+.table-wrap,
+.cc-table-wrap,
+.finance-table-wrap {
+  max-width: 100%;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-wrap table,
+.cc-table-wrap table,
+.finance-table-wrap table {
+  margin: 0;
+}
+
+.ecosystem-sidebar nav,
+.finance-tabs,
+.cc-toolbar nav {
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ecosystem-sidebar nav::-webkit-scrollbar,
+.finance-tabs::-webkit-scrollbar,
+.cc-toolbar nav::-webkit-scrollbar {
+  display: none;
+}
+
+.admin-panel button,
+.form-actions button,
+.menu-editor button,
+.row-actions button,
+.top-actions button,
+.ecosystem-sidebar nav button,
+.sidebar-foot button,
+.sidebar-foot a,
+.cc-toolbar button,
+.cc-panel button,
+.cc-global-search button,
+.cc-form button,
+.cc-job button,
+.cc-incident-actions button,
+.finance-tabs button,
+.finance-live button,
+.finance-panel header button,
+.la-admin button {
+  min-height: 42px;
+  touch-action: manipulation;
+}
+
+@media (max-width: 1100px) {
+  .ecosystem-main {
+    padding-inline: clamp(16px, 3vw, 30px);
+  }
+
+  .metric-card,
+  .admin-panel,
+  .cc-panel,
+  .finance-panel,
+  .la-panel {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  html,
+  body,
+  #root {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Admin navigation becomes a compact sticky command bar instead of a
+     two-column wall of buttons. This keeps every destination accessible
+     without consuming the whole first screen. */
+  .ecosystem-shell {
+    display: block;
+    min-height: 100dvh;
+  }
+
+  .ecosystem-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 120;
+    width: 100%;
+    height: auto;
+    box-sizing: border-box;
+    padding: max(9px, env(safe-area-inset-top)) 12px 9px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(128,220,235,.14);
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    align-items: center;
+    gap: 8px 10px;
+    background: rgba(3,14,21,.96);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 14px 35px rgba(0,0,0,.22);
+  }
+
+  .ecosystem-brand {
+    min-width: 0;
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  .ecosystem-brand img {
+    width: 34px;
+    height: 34px;
+  }
+
+  .ecosystem-brand span {
+    min-width: 0;
+  }
+
+  .ecosystem-brand b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ecosystem-brand small {
+    font-size: 8px;
+    letter-spacing: .12em;
+  }
+
+  .ecosystem-sidebar nav {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: row;
+    gap: 7px;
+    width: 100%;
+    padding: 3px 0 1px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+
+  .ecosystem-sidebar nav button {
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 38px;
+    padding: 8px 12px;
+    border: 1px solid rgba(115,210,225,.1);
+    border-radius: 999px;
+    text-align: center;
+    white-space: nowrap;
+    scroll-snap-align: start;
+    background: rgba(255,255,255,.018);
+  }
+
+  .ecosystem-sidebar nav button:hover,
+  .ecosystem-sidebar nav button.active {
+    box-shadow: none;
+    border-color: rgba(33,213,239,.35);
+    background: linear-gradient(135deg,rgba(20,206,235,.18),rgba(20,206,235,.06));
+  }
+
+  .sidebar-foot {
+    margin: 0;
+    padding: 0;
+    border-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .sidebar-foot a,
+  .sidebar-foot button {
+    width: auto;
+    min-height: 36px;
+    padding: 7px 9px;
+    border-radius: 9px;
+    text-align: center;
+    font-size: 11px;
+  }
+
+  .sidebar-foot a {
+    max-width: 92px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ecosystem-main {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 20px 12px calc(44px + env(safe-area-inset-bottom));
+  }
+
+  .ecosystem-top {
+    align-items: flex-start;
+    margin-bottom: 18px;
+    gap: 12px;
+  }
+
+  .ecosystem-top > div:first-child {
+    min-width: 0;
+  }
+
+  .ecosystem-top .admin-kicker {
+    margin-bottom: 5px;
+  }
+
+  .ecosystem-top h1 {
+    max-width: 100%;
+    font-size: clamp(25px, 8vw, 34px);
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+  }
+
+  .top-actions {
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .top-actions button {
+    min-height: 38px;
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+
+  .admin-stack {
+    gap: 14px;
+  }
+
+  .admin-grid {
+    gap: 14px;
+  }
+
+  .metric-grid,
+  .metric-grid.three {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 10px;
+  }
+
+  .metric-card {
+    min-width: 0;
+    padding: 15px;
+    border-radius: 14px;
+  }
+
+  .metric-card strong {
+    margin: 7px 0 4px;
+    font-size: clamp(25px, 8vw, 31px);
+  }
+
+  .metric-card span,
+  .metric-card small {
+    overflow-wrap: anywhere;
+  }
+
+  .admin-panel {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 16px;
+    border-radius: 15px;
+  }
+
+  .panel-title {
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .panel-title h2 {
+    font-size: 18px;
+    overflow-wrap: anywhere;
+  }
+
+  .form-grid,
+  .filter-grid {
+    grid-template-columns: minmax(0,1fr);
+    gap: 11px;
+  }
+
+  .form-grid .wide,
+  .admin-panel form > .wide {
+    grid-column: auto;
+  }
+
+  .admin-panel input,
+  .admin-panel textarea,
+  .admin-panel select,
+  .cc-form input,
+  .cc-form select,
+  .cc-form textarea,
+  .cc-global-search input,
+  .finance-filters input,
+  .finance-filters select,
+  .la-panel input,
+  .la-panel select {
+    font-size: 16px;
+  }
+
+  .form-actions,
+  .row-actions {
+    flex-wrap: wrap;
+  }
+
+  .form-actions button,
+  .row-actions button {
+    flex: 1 1 130px;
+  }
+
+  .save-site,
+  .primary.compact {
+    width: 100%;
+  }
+
+  .entity-row {
+    grid-template-columns: 38px minmax(0,1fr);
+    gap: 8px 10px;
+    align-items: center;
+  }
+
+  .entity-row > .status,
+  .entity-row > button,
+  .entity-row > .row-actions {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .entity-row > button {
+    width: 100%;
+  }
+
+  .user-head {
+    gap: 10px;
+  }
+
+  .user-head > div:last-child {
+    width: 100%;
+  }
+
+  .user-head > div:last-child button {
+    flex: 1 1 110px;
+  }
+
+  .user-hero {
+    padding: 17px;
+    gap: 13px;
+  }
+
+  .user-hero h2 {
+    font-size: 23px;
+    overflow-wrap: anywhere;
+  }
+
+  .user-hero p,
+  .user-hero small {
+    overflow-wrap: anywhere;
+  }
+
+  .avatar-large {
+    width: 58px;
+    height: 58px;
+    flex-basis: 58px;
+    border-radius: 15px;
+  }
+
+  .access-grid {
+    gap: 8px;
+  }
+
+  .profile-row,
+  .person-row,
+  .detail-app,
+  .resource-row,
+  .stat-row,
+  .info-row {
+    min-width: 0;
+  }
+
+  .person-row {
+    gap: 8px;
+  }
+
+  .person-row span {
+    min-width: 0;
+  }
+
+  .person-row b,
+  .person-row small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .table-wrap {
+    margin-inline: -4px;
+    padding: 0 4px 4px;
+  }
+
+  .table-wrap table {
+    min-width: 640px;
+  }
+
+  .table-wrap th,
+  .table-wrap td {
+    padding: 10px 8px;
+  }
+
+  .timeline-row {
+    grid-template-columns: 15px minmax(0,1fr);
+    gap: 8px;
+  }
+
+  .timeline-row p,
+  .timeline-row small,
+  .timeline-title {
+    overflow-wrap: anywhere;
+  }
+
+  .notice {
+    margin: -4px 0 14px;
+  }
+
+  /* Mission Control */
+  .cc-stack {
+    gap: 13px;
+  }
+
+  .cc-hero {
+    padding: 18px;
+    border-radius: 18px;
+    gap: 13px;
+  }
+
+  .cc-hero h2 {
+    font-size: clamp(23px, 7vw, 28px);
+  }
+
+  .cc-toolbar {
+    padding: 8px;
+    border-radius: 15px;
+  }
+
+  .cc-toolbar nav {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .cc-toolbar nav button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .cc-live {
+    width: 100%;
+    white-space: normal;
+  }
+
+  .cc-global-search {
+    min-width: 0;
+    padding-left: 10px;
+  }
+
+  .cc-global-search input {
+    min-width: 0;
+  }
+
+  .cc-kpis,
+  .cc-kpis.three {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 9px;
+  }
+
+  .cc-kpi {
+    padding: 14px;
+  }
+
+  .cc-panel {
+    padding: 15px;
+    border-radius: 17px;
+  }
+
+  .cc-panel > header {
+    align-items: flex-start;
+  }
+
+  .cc-app dl {
+    gap: 6px;
+  }
+
+  .cc-info {
+    gap: 12px;
+  }
+
+  .cc-info b {
+    overflow-wrap: anywhere;
+  }
+
+  .cc-job {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cc-job p {
+    max-width: 100%;
+    white-space: normal;
+    overflow: visible;
+  }
+
+  .cc-table-wrap {
+    margin-inline: -3px;
+    padding-inline: 3px;
+  }
+
+  .cc-table-wrap table {
+    min-width: 620px;
+  }
+
+  /* Financial Center */
+  .finance-stack {
+    gap: 13px;
+  }
+
+  .finance-hero,
+  .finance-health-full {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .finance-hero h2,
+  .finance-health-full h2 {
+    font-size: clamp(23px, 7vw, 28px);
+  }
+
+  .finance-live {
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  .finance-tabs {
+    position: sticky;
+    top: 102px;
+    z-index: 45;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 5px;
+    overflow-x: auto;
+    background: rgba(7,16,30,.94);
+    backdrop-filter: blur(12px);
+  }
+
+  .finance-tabs button {
+    flex: 0 0 auto;
+  }
+
+  .finance-kpis {
+    gap: 9px;
+  }
+
+  .finance-kpi {
+    padding: 14px;
+    border-radius: 15px;
+  }
+
+  .finance-panel {
+    padding: 15px;
+    border-radius: 17px;
+  }
+
+  .finance-panel > header {
+    align-items: flex-start;
+  }
+
+  .finance-filters {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 8px;
+  }
+
+  .finance-table-wrap {
+    margin-inline: -3px;
+    padding-inline: 3px;
+  }
+
+  .finance-table-wrap table {
+    min-width: 760px;
+  }
+
+  .finance-alerts,
+  .commerce-grid,
+  .ops-grid {
+    gap: 8px;
+  }
+
+  .health-list > div {
+    align-items: flex-start;
+  }
+
+  .finance-modal {
+    align-items: end;
+    padding: 10px max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+
+  .finance-modal article {
+    width: 100%;
+    max-height: min(92dvh, 900px);
+    box-sizing: border-box;
+    padding: 17px;
+    border-radius: 20px;
+  }
+
+  .finance-modal header {
+    gap: 10px;
+  }
+
+  .finance-modal header h3 {
+    font-size: 23px;
+    overflow-wrap: anywhere;
+  }
+
+  /* Laora safety administration */
+  .la-admin {
+    grid-template-columns: 1fr;
+  }
+
+  .la-admin aside {
+    position: sticky;
+    top: 0;
+    z-index: 110;
+    height: auto;
+    padding: max(10px, env(safe-area-inset-top)) 12px 9px;
+    gap: 8px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    background: rgba(9,20,38,.96);
+    backdrop-filter: blur(16px);
+  }
+
+  .la-admin aside nav {
+    display: flex;
+    grid-template-columns: none;
+    gap: 7px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .la-admin aside nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .la-admin aside nav button {
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding: 8px 11px;
+    white-space: nowrap;
+  }
+
+  .la-admin aside > a:last-child {
+    display: none;
+  }
+
+  .la-admin-main {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 20px 12px calc(48px + env(safe-area-inset-bottom));
+  }
+
+  .la-admin-main > header {
+    gap: 12px;
+  }
+
+  .la-admin-main > header h1 {
+    font-size: clamp(26px, 8vw, 34px);
+    overflow-wrap: anywhere;
+  }
+
+  .la-panel {
+    padding: 16px;
+  }
+
+  .la-panel-head {
+    gap: 12px;
+  }
+
+  .la-filters {
+    width: 100%;
+  }
+
+  .la-filters input,
+  .la-filters select {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .la-report,
+  .la-panel,
+  .la-user-grid > div {
+    min-width: 0;
+  }
+
+  .la-report-top,
+  .la-people {
+    gap: 8px;
+  }
+
+  .la-report blockquote {
+    margin-inline: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .la-actions button {
+    flex: 1 1 120px;
+  }
+
+  .la-loading {
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .la-safety-shortcut {
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    max-width: calc(100vw - 24px);
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 520px) {
+  .ecosystem-sidebar {
+    padding-inline: 10px;
+  }
+
+  .ecosystem-brand small {
+    display: none;
+  }
+
+  .sidebar-foot a {
+    display: none;
+  }
+
+  .ecosystem-main {
+    padding-inline: 10px;
+  }
+
+  .ecosystem-top {
+    flex-direction: column;
+  }
+
+  .top-actions {
+    width: 100%;
+    flex-direction: row;
+  }
+
+  .top-actions button {
+    flex: 1 1 0;
+  }
+
+  .metric-grid,
+  .metric-grid.three,
+  .cc-kpis,
+  .cc-kpis.three,
+  .finance-kpis,
+  .finance-filters,
+  .ops-grid,
+  .commerce-grid,
+  .la-metrics {
+    grid-template-columns: minmax(0,1fr);
+  }
+
+  .metric-card {
+    padding: 14px 15px;
+  }
+
+  .metric-card strong {
+    font-size: 28px;
+  }
+
+  .admin-panel,
+  .cc-panel,
+  .finance-panel,
+  .la-panel {
+    padding: 14px;
+  }
+
+  .panel-title,
+  .cc-panel > header,
+  .finance-panel > header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .row-actions,
+  .form-actions {
+    width: 100%;
+  }
+
+  .user-hero {
+    flex-direction: column;
+  }
+
+  .access-grid {
+    grid-template-columns: minmax(0,1fr);
+  }
+
+  .person-row,
+  .stat-row,
+  .info-row,
+  .detail-app,
+  .resource-row,
+  .cc-info,
+  .health-list > div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .person-row i,
+  .cc-info b {
+    text-align: left;
+  }
+
+  .menu-editor > div {
+    grid-template-columns: minmax(0,1fr);
+  }
+
+  .cc-global-search {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+  }
+
+  .cc-global-search input {
+    width: 100%;
+  }
+
+  .cc-app dl {
+    grid-template-columns: minmax(0,1fr);
+  }
+
+  .cc-app footer {
+    flex-direction: column;
+  }
+
+  .finance-live {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto minmax(0,1fr);
+  }
+
+  .finance-live button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .finance-alerts,
+  .checklist {
+    grid-template-columns: minmax(0,1fr);
+  }
+
+  .finance-health-full {
+    gap: 15px;
+  }
+
+  .health-orbit {
+    width: 96px;
+    height: 96px;
+    flex-basis: 96px;
+  }
+
+  .health-orbit strong {
+    font-size: 31px;
+  }
+
+  .finance-modal {
+    padding: 0;
+  }
+
+  .finance-modal article {
+    max-height: 100dvh;
+    min-height: 55dvh;
+    border-radius: 20px 20px 0 0;
+    border-bottom: 0;
+    padding-bottom: calc(17px + env(safe-area-inset-bottom));
+  }
+
+  .finance-modal dl {
+    grid-template-columns: minmax(0,1fr);
+  }
+
+  .la-admin-main {
+    padding-inline: 10px;
+  }
+
+  .la-admin-main > header {
+    flex-direction: column;
+  }
+
+  .la-admin-main > header button {
+    width: 100%;
+  }
+
+  .la-photo-grid {
+    grid-template-columns: minmax(0,1fr);
+  }
+
+  .la-user-grid {
+    gap: 12px;
+  }
+
+  .la-mini-photos {
+    grid-template-columns: repeat(3,minmax(0,1fr));
+  }
+}
+
+@media (max-width: 390px) {
+  .ecosystem-brand b {
+    font-size: 13px;
+  }
+
+  .sidebar-foot button {
+    padding-inline: 8px;
+  }
+
+  .ecosystem-sidebar nav button,
+  .finance-tabs button,
+  .cc-toolbar nav button,
+  .la-admin aside nav button {
+    font-size: 11px;
+  }
+
+  .ecosystem-main,
+  .la-admin-main {
+    padding-inline: 8px;
+  }
+
+  .admin-panel,
+  .cc-panel,
+  .finance-panel,
+  .la-panel {
+    border-radius: 13px;
+    padding-inline: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ecosystem-sidebar nav button,
+  .admin-panel button,
+  .cc-toolbar button,
+  .finance-tabs button,
+  .la-admin button {
+    transition: none !important;
+  }
+}
