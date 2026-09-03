@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ADMIN_TABS, adminTabFromLocation, normalizeAdminPath } from './admin/AdminNavigationConfig.js'
 import { ADMIN_NAVIGATION_CHANGED_EVENT } from './admin/AdminUiEvents.js'
@@ -16,16 +16,6 @@ async function api(path) {
   const data = await response.json().catch(() => ({}))
   if (!response.ok) throw new Error(data?.message || data?.error || 'Não foi possível carregar a Home administrativa.')
   return data
-}
-
-function HomeNavButton({ target, active, onHome }) {
-  if (!target) return null
-  return createPortal(
-    <button type="button" className={`admin-home-nav-button ${active ? 'active' : ''}`} onClick={onHome} aria-current={active ? 'page' : undefined}>
-      <span className="admin-home-nav-icon">⌂</span> Início
-    </button>,
-    target,
-  )
 }
 
 function EcosystemSwitcher({ target, applications }) {
@@ -122,56 +112,54 @@ function HomeContent({ target, dashboard, applications, loading, error, lastPath
 
 export default function AdminHomeBridge() {
   const { navigate: navigateTab } = useAdminUi()
-  const initialPath = useRef(normalizeAdminPath(window.location.pathname))
-  const userNavigated = useRef(false)
-  const [home, setHome] = useState(initialPath.current === '/admin')
+  const [home, setHome] = useState(() => normalizeAdminPath(window.location.pathname) === '/admin')
   const [mainTarget, setMainTarget] = useState(null)
-  const [navTarget, setNavTarget] = useState(null)
   const [actionsTarget, setActionsTarget] = useState(null)
   const [dashboard, setDashboard] = useState(null)
   const [applications, setApplications] = useState([])
-  const [loading, setLoading] = useState(initialPath.current === '/admin')
+  const [loading, setLoading] = useState(() => normalizeAdminPath(window.location.pathname) === '/admin')
   const [error, setError] = useState('')
   const [lastPath, setLastPath] = useState(() => localStorage.getItem(LAST_PATH_KEY) || '')
 
   const activeApplicationUrls = useMemo(() => new Set(applications.map(app => app?.url).filter(Boolean)), [applications])
 
   function syncTargets() {
-    setMainTarget(current => current?.isConnected ? current : document.querySelector('.ecosystem-main'))
-    setNavTarget(current => current?.isConnected ? current : document.querySelector('.ecosystem-sidebar nav'))
-    setActionsTarget(current => current?.isConnected ? current : document.querySelector('.ecosystem-top .top-actions'))
+    const legacyMain = document.querySelector('.admin-persistent-main > .ecosystem-shell > .ecosystem-main')
+    setMainTarget(current => current?.isConnected ? current : legacyMain)
+    setActionsTarget(current => current?.isConnected ? current : legacyMain?.querySelector('.ecosystem-top .top-actions') || null)
   }
 
   function rememberPath(path) {
-    if (!path.startsWith('/admin/') || path === '/admin/') return
-    localStorage.setItem(LAST_PATH_KEY, path)
-    setLastPath(path)
+    const normalized = normalizeAdminPath(path)
+    if (!normalized.startsWith('/admin/') || normalized === '/admin/') return
+    localStorage.setItem(LAST_PATH_KEY, normalized)
+    setLastPath(normalized)
   }
 
   function goHome({ replace = false } = {}) {
-    const method = replace ? 'replaceState' : 'pushState'
-    if (normalizeAdminPath(window.location.pathname) !== '/admin') window.history[method]({ adminHome: true }, '', '/admin')
+    navigateTab('home', { replace })
     setHome(true)
   }
 
   function navigate(destination) {
     if (typeof destination === 'string' && destination.startsWith('/admin/')) {
-      const exactBaseTab = ADMIN_TABS.find(item => normalizeAdminPath(item.path) === normalizeAdminPath(destination))
+      const normalized = normalizeAdminPath(destination)
+      const exactBaseTab = ADMIN_TABS.find(item => normalizeAdminPath(item.path) === normalized)
       if (exactBaseTab) {
         navigateTab(exactBaseTab.key)
       } else {
-        const key = adminTabFromLocation(destination)
-        window.history.pushState({ adminTab: key }, '', destination)
+        const key = adminTabFromLocation(normalized)
+        window.history.pushState({ adminTab: key }, '', normalized)
         navigateTab(key, { preservePath: true })
       }
-      rememberPath(destination)
+      rememberPath(normalized)
       setHome(false)
       return
     }
     if (!ADMIN_TABS.some(item => item.key === destination)) return
     navigateTab(destination)
     rememberPath(ADMIN_TABS.find(item => item.key === destination)?.path || '')
-    setHome(false)
+    setHome(destination === 'home')
   }
 
   useEffect(() => {
@@ -188,41 +176,12 @@ export default function AdminHomeBridge() {
       setHome(nextHome)
       if (!nextHome) rememberPath(path)
     }
-    const onPop = () => {
-      const path = normalizeAdminPath(window.location.pathname)
-      setHome(path === '/admin')
-      if (path !== '/admin') rememberPath(path)
-    }
     window.addEventListener(ADMIN_NAVIGATION_CHANGED_EVENT, syncRoute)
-    window.addEventListener('popstate', onPop)
-
-    const initialWasHome = initialPath.current === '/admin'
-    const keepHome = window.setTimeout(() => {
-      if (initialWasHome && !userNavigated.current) goHome({ replace: true })
-    }, 90)
-
+    window.addEventListener('popstate', syncRoute)
     return () => {
-      window.clearTimeout(keepHome)
       window.removeEventListener(ADMIN_NAVIGATION_CHANGED_EVENT, syncRoute)
-      window.removeEventListener('popstate', onPop)
+      window.removeEventListener('popstate', syncRoute)
     }
-  }, [])
-
-  useEffect(() => {
-    const onCapture = event => {
-      const brand = event.target.closest?.('.ecosystem-brand')
-      if (brand) {
-        event.preventDefault()
-        event.stopPropagation()
-        userNavigated.current = false
-        goHome()
-        return
-      }
-      const navButton = event.target.closest?.('.ecosystem-sidebar nav button[data-admin-tab]')
-      if (navButton) userNavigated.current = true
-    }
-    document.addEventListener('click', onCapture, true)
-    return () => document.removeEventListener('click', onCapture, true)
   }, [])
 
   useEffect(() => {
@@ -258,12 +217,7 @@ export default function AdminHomeBridge() {
     }
   }, [home, mainTarget])
 
-  useEffect(() => {
-    if (!home) userNavigated.current = false
-  }, [home])
-
   return <>
-    <HomeNavButton target={navTarget} active={home} onHome={() => { userNavigated.current = false; goHome() }} />
     <EcosystemSwitcher target={actionsTarget} applications={applications.filter(app => !activeApplicationUrls.has('https://petertecnet.com.br/'))} />
     {home && <HomeContent target={mainTarget} dashboard={dashboard} applications={applications} loading={loading} error={error} lastPath={lastPath} onNavigate={navigate} />}
   </>
