@@ -83,7 +83,7 @@ export default function AdminMobileNavigation() {
           <span />
         </button>
 
-        <a className="admin-mobile-identity" href="/" aria-label="Peter Tecnet">
+        <a className="admin-mobile-identity" href="/admin" aria-label="Ir para a home do Admin Center">
           <img src="/petertecnetlogo.png" alt="" />
           <span>
             <small>Admin Center</small>
