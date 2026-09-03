@@ -1,0 +1,886 @@
+/* Peter Tecnet Admin Center — futuristic visual layer.
+   AdminExperience.css keeps ownership of layout/breakpoints.
+   This file is imported last and owns visual polish, readability and micro-interactions. */
+
+:root {
+  --admin-future-bg: #02070c;
+  --admin-future-bg-2: #05121a;
+  --admin-future-sidebar: rgba(3, 15, 22, .985);
+  --admin-future-surface: rgba(8, 27, 37, .88);
+  --admin-future-surface-strong: rgba(10, 34, 46, .96);
+  --admin-future-surface-hover: rgba(15, 46, 59, .92);
+  --admin-future-text: #effdff;
+  --admin-future-text-soft: #c7e4e9;
+  --admin-future-muted: #8aaab2;
+  --admin-future-muted-2: #66858d;
+  --admin-future-accent: #48e4f5;
+  --admin-future-accent-2: #6ef7d0;
+  --admin-future-blue: #77a9ff;
+  --admin-future-danger: #ff7f91;
+  --admin-future-line: rgba(115, 222, 239, .14);
+  --admin-future-line-strong: rgba(72, 228, 245, .34);
+  --admin-future-radius: 18px;
+  --admin-future-shadow: 0 20px 50px rgba(0, 0, 0, .22);
+  --admin-future-shadow-soft: 0 10px 28px rgba(0, 0, 0, .16);
+  --admin-future-glow: 0 0 0 1px rgba(72, 228, 245, .06), 0 12px 34px rgba(20, 142, 162, .08);
+}
+
+.ecosystem-shell {
+  color: var(--admin-future-text) !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background:
+    radial-gradient(900px 460px at 86% -10%, rgba(72, 228, 245, .09), transparent 62%),
+    radial-gradient(680px 420px at 30% 108%, rgba(76, 119, 255, .045), transparent 68%),
+    linear-gradient(135deg, var(--admin-future-bg), var(--admin-future-bg-2) 54%, #02080d) !important;
+}
+
+.ecosystem-shell::before {
+  opacity: .28 !important;
+  background-size: 72px 72px !important;
+}
+
+.ecosystem-shell button,
+.ecosystem-shell a,
+.ecosystem-shell input,
+.ecosystem-shell textarea,
+.ecosystem-shell select {
+  font: inherit;
+}
+
+.ecosystem-shell button,
+.ecosystem-shell a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ========================= SIDEBAR ========================= */
+@media (min-width: 761px) {
+  .ecosystem-shell {
+    --admin-sidebar-width: clamp(264px, 18vw, 292px) !important;
+  }
+
+  .ecosystem-sidebar {
+    padding: 18px 15px 15px !important;
+    border-right: 1px solid rgba(109, 221, 239, .14) !important;
+    background:
+      radial-gradient(330px 230px at 12% -4%, rgba(72, 228, 245, .09), transparent 70%),
+      linear-gradient(180deg, rgba(4, 18, 26, .995), rgba(2, 10, 15, .997)) !important;
+    box-shadow: 18px 0 50px rgba(0, 0, 0, .2) !important;
+    backdrop-filter: blur(20px) saturate(120%);
+    -webkit-backdrop-filter: blur(20px) saturate(120%);
+  }
+
+  .ecosystem-brand {
+    min-height: 66px !important;
+    padding: 5px 8px 16px !important;
+    border-bottom: 1px solid rgba(118, 218, 235, .10);
+  }
+
+  .ecosystem-brand img {
+    width: 42px !important;
+    height: 42px !important;
+    padding: 5px !important;
+    border: 1px solid rgba(84, 230, 246, .23) !important;
+    border-radius: 13px !important;
+    background: linear-gradient(145deg, rgba(35, 195, 219, .13), rgba(255, 255, 255, .025)) !important;
+    box-shadow: 0 0 0 4px rgba(72, 228, 245, .035), 0 10px 24px rgba(0, 0, 0, .25);
+  }
+
+  .ecosystem-brand b {
+    color: #f3fdff !important;
+    font-size: 13.5px !important;
+    font-weight: 780 !important;
+    letter-spacing: .01em !important;
+  }
+
+  .ecosystem-brand small {
+    margin-top: 2px;
+    color: #6f9aa3 !important;
+    font-size: 7.5px !important;
+    font-weight: 850 !important;
+    letter-spacing: .17em !important;
+  }
+
+  .ecosystem-sidebar nav {
+    gap: 4px !important;
+    padding: 22px 2px 12px !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(71, 184, 202, .26) transparent;
+  }
+
+  .ecosystem-sidebar nav::before {
+    display: none !important;
+  }
+
+  .ecosystem-sidebar nav button {
+    position: relative;
+    display: grid !important;
+    grid-template-columns: 34px minmax(0, 1fr) 8px !important;
+    align-items: center !important;
+    column-gap: 10px !important;
+    min-height: 46px !important;
+    width: 100%;
+    padding: 7px 10px !important;
+    overflow: visible !important;
+    border: 1px solid transparent !important;
+    border-radius: 13px !important;
+    background: transparent !important;
+    color: #b7d1d6 !important;
+    font-size: 12.6px !important;
+    font-weight: 650 !important;
+    line-height: 1.2 !important;
+    letter-spacing: -.005em;
+    text-align: left;
+    white-space: nowrap;
+    transition: background-color .16s ease, border-color .16s ease, color .16s ease, transform .16s ease, box-shadow .16s ease !important;
+  }
+
+  .ecosystem-sidebar nav button[data-group-start] {
+    margin-top: 25px !important;
+  }
+
+  .ecosystem-sidebar nav button[data-group-start]::after {
+    content: attr(data-group-start) !important;
+    position: absolute !important;
+    left: 9px !important;
+    top: -18px !important;
+    width: auto !important;
+    height: auto !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #587982 !important;
+    font-size: 7.2px !important;
+    font-weight: 900 !important;
+    letter-spacing: .16em !important;
+    line-height: 1 !important;
+    text-transform: uppercase;
+  }
+
+  .ecosystem-sidebar nav button:not([data-group-start])::after {
+    content: '' !important;
+    width: 5px !important;
+    height: 5px !important;
+    justify-self: end;
+    border-radius: 50% !important;
+    background: #31505a !important;
+    box-shadow: none !important;
+  }
+
+  .ecosystem-sidebar nav button[data-icon]::before {
+    content: attr(data-icon) !important;
+    display: grid !important;
+    place-items: center;
+    width: 32px !important;
+    height: 32px !important;
+    border: 1px solid rgba(114, 218, 235, .11) !important;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, .018) !important;
+    color: #83a9b1 !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    transition: border-color .16s ease, color .16s ease, background-color .16s ease, transform .16s ease !important;
+  }
+
+  .ecosystem-sidebar nav button:hover {
+    transform: translateX(2px) !important;
+    border-color: rgba(91, 216, 235, .16) !important;
+    background: linear-gradient(90deg, rgba(46, 180, 200, .105), rgba(255, 255, 255, .014)) !important;
+    color: #edfbfd !important;
+  }
+
+  .ecosystem-sidebar nav button:hover::before {
+    border-color: rgba(91, 225, 242, .23) !important;
+    color: #cdf8fc !important;
+  }
+
+  .ecosystem-sidebar nav button.active {
+    transform: none !important;
+    border-color: rgba(72, 228, 245, .31) !important;
+    background:
+      linear-gradient(90deg, rgba(30, 191, 215, .23), rgba(25, 104, 120, .10) 58%, rgba(255, 255, 255, .018)) !important;
+    color: #ffffff !important;
+    box-shadow: inset 3px 0 0 var(--admin-future-accent), inset 0 1px rgba(255, 255, 255, .05), 0 10px 28px rgba(0, 0, 0, .18) !important;
+  }
+
+  .ecosystem-sidebar nav button.active::before {
+    border-color: rgba(72, 228, 245, .45) !important;
+    background: linear-gradient(145deg, rgba(48, 215, 236, .24), rgba(16, 75, 90, .18)) !important;
+    color: #f3ffff !important;
+    box-shadow: 0 0 18px rgba(72, 228, 245, .11);
+  }
+
+  .ecosystem-sidebar nav button.active:not([data-group-start])::after {
+    background: var(--admin-future-accent) !important;
+    box-shadow: 0 0 0 4px rgba(72, 228, 245, .07), 0 0 14px rgba(72, 228, 245, .46) !important;
+  }
+
+  /* Home is an auxiliary action. Keep it visually first without letting it corrupt tab indexes. */
+  .ecosystem-sidebar nav .admin-home-nav-button {
+    order: -999 !important;
+    display: grid !important;
+    grid-template-columns: 34px minmax(0, 1fr) 8px !important;
+    gap: 10px !important;
+    margin: 0 0 14px !important;
+    min-height: 48px !important;
+    padding: 7px 10px !important;
+    border-color: rgba(104, 227, 243, .12) !important;
+    background: linear-gradient(90deg, rgba(17, 79, 92, .18), rgba(255, 255, 255, .012)) !important;
+    color: #c9e5e9 !important;
+  }
+
+  .ecosystem-sidebar nav .admin-home-nav-button::before {
+    display: none !important;
+  }
+
+  .ecosystem-sidebar nav .admin-home-nav-button::after {
+    content: '' !important;
+    width: 6px !important;
+    height: 6px !important;
+    justify-self: end;
+    border-radius: 50% !important;
+    background: #3e6972 !important;
+  }
+
+  .ecosystem-sidebar nav .admin-home-nav-button.active {
+    color: #fff !important;
+    border-color: rgba(72, 228, 245, .38) !important;
+    background: linear-gradient(90deg, rgba(32, 198, 220, .25), rgba(16, 75, 88, .12)) !important;
+  }
+
+  .ecosystem-sidebar nav .admin-home-nav-button.active::after {
+    background: var(--admin-future-accent) !important;
+    box-shadow: 0 0 12px rgba(72, 228, 245, .55) !important;
+  }
+
+  .admin-home-nav-icon {
+    display: grid !important;
+    place-items: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    border: 1px solid rgba(92, 225, 242, .19) !important;
+    border-radius: 10px !important;
+    background: rgba(30, 174, 195, .09) !important;
+    color: #bff8fd !important;
+    font-size: 12px !important;
+  }
+
+  /* Legacy onboarding remains available, but looks like a deliberate quick action. */
+  .ecosystem-sidebar nav button.pto-sidebar-button {
+    display: grid !important;
+    grid-template-columns: 34px minmax(0, 1fr) auto !important;
+    gap: 10px !important;
+    margin: 5px 0 14px !important;
+    border-color: rgba(110, 247, 208, .15) !important;
+    background: linear-gradient(90deg, rgba(50, 170, 139, .10), rgba(255, 255, 255, .01)) !important;
+    color: #c6ece2 !important;
+  }
+
+  .ecosystem-sidebar nav button.pto-sidebar-button::before {
+    content: '+' !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    border: 1px solid rgba(110, 247, 208, .20) !important;
+    border-radius: 10px !important;
+    background: rgba(48, 176, 144, .08) !important;
+    color: #aaf0da !important;
+    font-size: 15px !important;
+  }
+
+  .ecosystem-sidebar nav button.pto-sidebar-button::after {
+    content: 'NOVO' !important;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 3px 6px !important;
+    border: 1px solid rgba(110, 247, 208, .20) !important;
+    border-radius: 6px !important;
+    background: rgba(58, 185, 153, .12) !important;
+    box-shadow: none !important;
+    color: #9be6cf !important;
+    font-size: 7px !important;
+    font-weight: 900 !important;
+    letter-spacing: .08em !important;
+  }
+
+  .sidebar-foot {
+    padding-top: 12px !important;
+    border-top: 1px solid rgba(112, 214, 232, .08);
+  }
+
+  .sidebar-foot a,
+  .sidebar-foot button {
+    min-height: 38px !important;
+    border-radius: 10px !important;
+    color: #8eafb6 !important;
+    font-size: 10.5px !important;
+  }
+
+  .sidebar-foot a:hover,
+  .sidebar-foot button:hover {
+    color: #eefcff !important;
+    background: rgba(72, 228, 245, .055) !important;
+  }
+}
+
+/* ========================= HEADER / CONTENT ========================= */
+.ecosystem-main {
+  color: var(--admin-future-text-soft) !important;
+}
+
+.ecosystem-top {
+  backdrop-filter: blur(16px) saturate(125%);
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+}
+
+.ecosystem-top .admin-kicker,
+.admin-kicker {
+  color: #62c9d7 !important;
+  font-weight: 900 !important;
+  letter-spacing: .18em !important;
+}
+
+.ecosystem-top h1 {
+  color: #f5fdff !important;
+  text-wrap: balance;
+  text-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+}
+
+.top-actions button,
+.ecosystem-top > button,
+.admin-context-button,
+.admin-command-trigger {
+  border: 1px solid rgba(111, 217, 234, .16) !important;
+  background: linear-gradient(145deg, rgba(13, 39, 51, .94), rgba(5, 20, 28, .96)) !important;
+  color: #d3edf1 !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .035), var(--admin-future-shadow-soft) !important;
+}
+
+.top-actions button:hover,
+.ecosystem-top > button:hover,
+.admin-context-button:hover,
+.admin-command-trigger:hover {
+  border-color: rgba(72, 228, 245, .35) !important;
+  background: linear-gradient(145deg, rgba(18, 58, 71, .96), rgba(8, 29, 38, .97)) !important;
+  color: #fff !important;
+}
+
+.admin-panel,
+.metric-card,
+.cc-panel,
+.cc-kpi,
+.finance-panel,
+.finance-kpi,
+.admin-home-quick,
+.admin-home-panel,
+.admin-home-apps {
+  border: 1px solid var(--admin-future-line) !important;
+  background:
+    linear-gradient(145deg, rgba(12, 36, 47, .91), rgba(4, 17, 24, .965)) !important;
+  box-shadow: var(--admin-future-shadow-soft) !important;
+}
+
+.admin-panel,
+.cc-panel,
+.finance-panel,
+.admin-home-quick,
+.admin-home-panel,
+.admin-home-apps {
+  overflow: clip;
+}
+
+.metric-card {
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease !important;
+}
+
+.metric-card:hover {
+  transform: translateY(-3px) !important;
+  border-color: rgba(72, 228, 245, .26) !important;
+  box-shadow: var(--admin-future-glow), 0 18px 42px rgba(0, 0, 0, .2) !important;
+}
+
+.metric-card span,
+.metric-card small,
+.cc-kpi span,
+.finance-kpi span {
+  color: var(--admin-future-muted) !important;
+}
+
+.metric-card strong,
+.cc-kpi strong,
+.finance-kpi strong {
+  color: #f6feff !important;
+}
+
+.panel-title {
+  border-bottom-color: rgba(111, 211, 227, .10) !important;
+}
+
+.panel-title h2,
+.admin-home-quick h3,
+.admin-home-apps h3,
+.admin-home-panel header b {
+  color: #e8f8fb !important;
+  font-weight: 760 !important;
+}
+
+.admin-panel p,
+.admin-panel small,
+.helper,
+.admin-empty,
+.info-row span,
+.timeline-row p,
+.timeline-row small {
+  color: var(--admin-future-muted) !important;
+}
+
+.admin-panel label,
+.form-grid label,
+.filter-grid label {
+  color: #b9d4d9 !important;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.admin-panel input,
+.admin-panel textarea,
+.admin-panel select,
+.filter-grid input,
+.filter-grid select,
+.form-grid input,
+.form-grid textarea,
+.form-grid select {
+  min-height: 42px;
+  border: 1px solid rgba(111, 211, 228, .16) !important;
+  border-radius: 11px !important;
+  background: linear-gradient(180deg, rgba(2, 13, 19, .96), rgba(4, 20, 27, .92)) !important;
+  color: #eefcff !important;
+  caret-color: var(--admin-future-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .018);
+}
+
+.admin-panel input::placeholder,
+.admin-panel textarea::placeholder {
+  color: #58767e !important;
+}
+
+.admin-panel input:focus,
+.admin-panel textarea:focus,
+.admin-panel select:focus,
+.filter-grid input:focus,
+.filter-grid select:focus,
+.form-grid input:focus,
+.form-grid textarea:focus,
+.form-grid select:focus {
+  border-color: rgba(72, 228, 245, .62) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(72, 228, 245, .08), inset 0 1px rgba(255, 255, 255, .025) !important;
+}
+
+.primary,
+.admin-primary {
+  border-color: transparent !important;
+  background: linear-gradient(135deg, #8af6ff 0%, #45deef 48%, #20adc4 100%) !important;
+  color: #021015 !important;
+  font-weight: 850 !important;
+  box-shadow: 0 10px 24px rgba(38, 204, 226, .14), inset 0 1px rgba(255, 255, 255, .35) !important;
+}
+
+.primary:hover,
+.admin-primary:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.table-wrap,
+.cc-table-wrap,
+.finance-table-wrap {
+  border: 1px solid rgba(113, 211, 228, .10) !important;
+  background: rgba(1, 10, 15, .45) !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(72, 228, 245, .24) transparent;
+}
+
+.table-wrap table,
+.cc-table-wrap table,
+.finance-table-wrap table {
+  color: #bdd8dd !important;
+}
+
+.table-wrap th,
+.cc-table-wrap th,
+.finance-table-wrap th {
+  color: #8fb4bc !important;
+  background: linear-gradient(180deg, rgba(12, 36, 47, .99), rgba(7, 25, 34, .99)) !important;
+  font-size: 9.5px !important;
+  font-weight: 900 !important;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.table-wrap td,
+.cc-table-wrap td,
+.finance-table-wrap td {
+  border-bottom-color: rgba(103, 192, 207, .07) !important;
+  color: #b9d4d9 !important;
+}
+
+.table-wrap td b,
+.cc-table-wrap td b,
+.finance-table-wrap td b {
+  color: #e5f7fa !important;
+}
+
+.table-wrap tbody tr:hover,
+.cc-table-wrap tbody tr:hover,
+.finance-table-wrap tbody tr:hover {
+  background: linear-gradient(90deg, rgba(72, 228, 245, .06), rgba(72, 228, 245, .012)) !important;
+  box-shadow: inset 2px 0 var(--admin-future-accent);
+}
+
+.status {
+  border-color: rgba(140, 171, 180, .14) !important;
+  color: #9bb7bd !important;
+  background: rgba(77, 100, 108, .10) !important;
+}
+
+.status.on,
+.status.success {
+  border-color: rgba(110, 247, 208, .20) !important;
+  color: #aef1dc !important;
+  background: rgba(57, 171, 141, .10) !important;
+}
+
+.notice {
+  border-radius: 13px !important;
+  box-shadow: var(--admin-future-shadow-soft);
+}
+
+.notice.success {
+  border-color: rgba(110, 247, 208, .24) !important;
+  background: rgba(26, 96, 78, .22) !important;
+  color: #bdf3e2 !important;
+}
+
+.notice.error {
+  border-color: rgba(255, 127, 145, .25) !important;
+  background: rgba(119, 31, 44, .24) !important;
+  color: #ffc1cb !important;
+}
+
+/* ========================= HOME ========================= */
+.admin-home-hero {
+  border-color: rgba(72, 228, 245, .20) !important;
+  background:
+    radial-gradient(520px 260px at 92% 0%, rgba(72, 228, 245, .14), transparent 64%),
+    linear-gradient(135deg, rgba(9, 38, 49, .97), rgba(4, 18, 25, .98)) !important;
+  box-shadow: var(--admin-future-shadow) !important;
+}
+
+.admin-home-hero h2 {
+  color: #f1fdff !important;
+}
+
+.admin-home-hero p,
+.admin-home-quick>header small,
+.admin-home-list article span,
+.admin-home-list article small,
+.admin-home-apps a small {
+  color: var(--admin-future-muted) !important;
+}
+
+.admin-home-metrics>button,
+.admin-home-quick>div>button,
+.admin-home-apps a {
+  border-color: rgba(108, 210, 227, .12) !important;
+  background: linear-gradient(145deg, rgba(9, 31, 40, .93), rgba(4, 18, 25, .94)) !important;
+  color: #c7e2e6 !important;
+  transition: transform .16s ease, border-color .16s ease, background-color .16s ease !important;
+}
+
+.admin-home-metrics>button:hover,
+.admin-home-quick>div>button:hover,
+.admin-home-apps a:hover {
+  transform: translateY(-2px);
+  border-color: rgba(72, 228, 245, .29) !important;
+  background: linear-gradient(145deg, rgba(13, 43, 54, .95), rgba(5, 23, 31, .96)) !important;
+}
+
+/* ========================= ACCESSIBILITY ========================= */
+.ecosystem-shell ::selection {
+  background: rgba(72, 228, 245, .26);
+  color: #fff;
+}
+
+.ecosystem-shell button:focus-visible,
+.ecosystem-shell a:focus-visible,
+.ecosystem-shell input:focus-visible,
+.ecosystem-shell select:focus-visible,
+.ecosystem-shell textarea:focus-visible {
+  outline: 2px solid rgba(104, 239, 252, .88) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 5px rgba(72, 228, 245, .08) !important;
+}
+
+/* ========================= MOBILE ========================= */
+@media (max-width: 760px) {
+  .ecosystem-shell {
+    background:
+      radial-gradient(520px 280px at 100% -5%, rgba(72, 228, 245, .08), transparent 68%),
+      #02080d !important;
+  }
+
+  .admin-mobile-topbar {
+    background: rgba(3, 15, 22, .96) !important;
+    border-bottom: 1px solid rgba(110, 218, 235, .13) !important;
+    backdrop-filter: blur(14px) saturate(120%);
+    -webkit-backdrop-filter: blur(14px) saturate(120%);
+  }
+
+  .admin-mobile-identity strong {
+    color: #f2fdff !important;
+    font-size: 12.5px !important;
+    font-weight: 760 !important;
+  }
+
+  .admin-mobile-identity small {
+    color: #78a2aa !important;
+  }
+
+  .admin-mobile-menu-button {
+    border-color: rgba(88, 219, 236, .18) !important;
+    background: rgba(72, 228, 245, .045) !important;
+  }
+
+  .admin-mobile-menu-button span {
+    background: #a9e9f0 !important;
+  }
+
+  .ecosystem-sidebar {
+    width: min(92vw, 342px) !important;
+    padding: 16px 13px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+    border-right-color: rgba(109, 220, 238, .18) !important;
+    background:
+      radial-gradient(360px 220px at 10% 0%, rgba(72, 228, 245, .10), transparent 68%),
+      linear-gradient(180deg, rgba(4, 19, 27, .998), rgba(2, 10, 15, .999)) !important;
+    box-shadow: 28px 0 70px rgba(0, 0, 0, .52) !important;
+  }
+
+  .ecosystem-sidebar nav {
+    gap: 5px !important;
+    padding: 16px 0 12px !important;
+  }
+
+  .ecosystem-sidebar nav::before {
+    display: none !important;
+  }
+
+  .ecosystem-sidebar nav button {
+    position: relative;
+    display: grid !important;
+    grid-template-columns: 38px minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-height: 50px !important;
+    padding: 7px 10px !important;
+    overflow: visible !important;
+    border: 1px solid transparent !important;
+    border-radius: 13px !important;
+    color: #c2dce1 !important;
+    font-size: 13.5px !important;
+    font-weight: 670 !important;
+    white-space: nowrap;
+  }
+
+  .ecosystem-sidebar nav button[data-group-start] {
+    margin-top: 27px !important;
+  }
+
+  .ecosystem-sidebar nav button[data-group-start]::after {
+    content: attr(data-group-start) !important;
+    position: absolute !important;
+    left: 9px !important;
+    top: -18px !important;
+    width: auto !important;
+    height: auto !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #668991 !important;
+    font-size: 7.5px !important;
+    font-weight: 900 !important;
+    letter-spacing: .16em !important;
+    text-transform: uppercase;
+  }
+
+  .ecosystem-sidebar nav button[data-icon]::before {
+    content: attr(data-icon) !important;
+    display: grid !important;
+    place-items: center;
+    width: 36px !important;
+    height: 36px !important;
+    border: 1px solid rgba(110, 217, 234, .13) !important;
+    border-radius: 11px !important;
+    background: rgba(255, 255, 255, .018) !important;
+    color: #91b5bc !important;
+    font-size: 13px !important;
+  }
+
+  .ecosystem-sidebar nav button.active {
+    border-color: rgba(72, 228, 245, .32) !important;
+    background: linear-gradient(90deg, rgba(37, 198, 220, .24), rgba(16, 77, 91, .10)) !important;
+    color: #fff !important;
+    box-shadow: inset 3px 0 var(--admin-future-accent), 0 8px 22px rgba(0, 0, 0, .18) !important;
+  }
+
+  .ecosystem-sidebar nav .admin-home-nav-button {
+    order: -999 !important;
+    display: grid !important;
+    grid-template-columns: 38px minmax(0, 1fr) 8px !important;
+    gap: 10px !important;
+    margin-bottom: 16px !important;
+    border-color: rgba(72, 228, 245, .14) !important;
+    background: rgba(72, 228, 245, .045) !important;
+  }
+
+  .ecosystem-sidebar nav .admin-home-nav-button::before {
+    display: none !important;
+  }
+
+  .ecosystem-sidebar nav .admin-home-nav-button::after {
+    content: '' !important;
+    position: static !important;
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 50% !important;
+    background: var(--admin-future-accent) !important;
+  }
+
+  .admin-home-nav-icon {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 11px !important;
+  }
+
+  .ecosystem-sidebar nav button.pto-sidebar-button {
+    display: grid !important;
+    grid-template-columns: 38px minmax(0, 1fr) auto !important;
+    margin: 5px 0 15px !important;
+    border-color: rgba(110, 247, 208, .14) !important;
+    background: rgba(65, 188, 155, .055) !important;
+    color: #c5e7df !important;
+  }
+
+  .ecosystem-sidebar nav button.pto-sidebar-button::before {
+    content: '+' !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    border: 1px solid rgba(110, 247, 208, .20) !important;
+    border-radius: 11px !important;
+    background: rgba(58, 185, 153, .09) !important;
+    color: #a8ead6 !important;
+    font-size: 16px !important;
+  }
+
+  .ecosystem-sidebar nav button.pto-sidebar-button::after {
+    content: 'NOVO' !important;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 3px 6px !important;
+    border: 1px solid rgba(110, 247, 208, .18) !important;
+    border-radius: 6px !important;
+    background: rgba(58, 185, 153, .10) !important;
+    color: #9fe3cf !important;
+    font-size: 7px !important;
+    font-weight: 900 !important;
+  }
+
+  .ecosystem-main {
+    padding-inline: 14px !important;
+  }
+
+  .ecosystem-top {
+    margin-bottom: 16px !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .ecosystem-top h1 {
+    font-size: clamp(26px, 8vw, 34px) !important;
+  }
+
+  .admin-panel,
+  .metric-card,
+  .cc-panel,
+  .cc-kpi,
+  .finance-panel,
+  .finance-kpi,
+  .admin-home-hero,
+  .admin-home-quick,
+  .admin-home-panel,
+  .admin-home-apps {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .16) !important;
+  }
+
+  .admin-panel,
+  .cc-panel,
+  .finance-panel {
+    padding: 16px !important;
+    border-radius: 15px !important;
+  }
+
+  .metric-card {
+    min-height: 108px !important;
+    padding: 16px !important;
+  }
+
+  .table-wrap th,
+  .table-wrap td,
+  .cc-table-wrap th,
+  .cc-table-wrap td,
+  .finance-table-wrap th,
+  .finance-table-wrap td {
+    font-size: 10px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .ecosystem-main {
+    padding-inline: 11px !important;
+  }
+
+  .ecosystem-top h1 {
+    font-size: 27px !important;
+  }
+
+  .admin-panel,
+  .cc-panel,
+  .finance-panel,
+  .admin-home-hero,
+  .admin-home-quick,
+  .admin-home-panel,
+  .admin-home-apps {
+    border-radius: 14px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ecosystem-shell *,
+  .ecosystem-shell *::before,
+  .ecosystem-shell *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
