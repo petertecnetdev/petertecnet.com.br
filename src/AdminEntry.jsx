@@ -18,6 +18,7 @@ import AdminHomeBridge from './AdminHomeBridge.jsx'
 import AdminDeepLinkBridge from './AdminDeepLinkBridge.jsx'
 import AdminUiProvider from './admin/AdminUiProvider.jsx'
 import AdminWorkspaceStateBridge from './admin/AdminWorkspaceStateBridge.jsx'
+import AdminRealtimeBridge from './admin/AdminRealtimeBridge.jsx'
 import { adminTabFromLocation, normalizeAdminPath } from './admin/AdminNavigationConfig.js'
 import { ADMIN_NAVIGATION_CHANGED_EVENT } from './admin/AdminUiEvents.js'
 import './admin/AdminTokens.css'
@@ -79,6 +80,7 @@ export default function AdminEntry() {
       </AdminPersistentShell>
       <AdminMobileNavigation />
       <AdminWorkspaceStateBridge />
+      <AdminRealtimeBridge />
     </AdminUiProvider>
   )
 }
