@@ -56,7 +56,7 @@ export default function PeterAccountGateway({ apiBaseUrl, appSlug, children }) {
     let active = true
     const host = hostRef.current
 
-    Promise.all([loadSdk(), loadInsights()]).then(() => {
+    loadSdk().then(() => {
       if (!active || !host) return
       const launcher = document.createElement('peter-ecosystem-launcher')
       launcher.setAttribute('api-base', apiBaseUrl || 'https://api.petertecnet.com.br/api')
@@ -64,6 +64,8 @@ export default function PeterAccountGateway({ apiBaseUrl, appSlug, children }) {
       launcher.setAttribute('sdk-version', SDK_VERSION)
       host.replaceChildren(launcher)
     }).catch(error => console.error('[Peter Tecnet Ecosystem]', error))
+
+    loadInsights().catch(error => console.error('[Peter Tecnet Insights]', error))
 
     return () => {
       active = false
