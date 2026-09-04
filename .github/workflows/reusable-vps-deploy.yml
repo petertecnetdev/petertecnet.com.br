@@ -260,6 +260,11 @@ jobs:
               php artisan migrate --force
               php artisan config:cache
               php artisan view:cache
+
+              if [[ -f config/cognition.php ]]; then
+                php -r 'require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class); $kernel->bootstrap(); echo "Cognitive core: ".(config("cognition.enabled") ? "enabled" : "disabled").PHP_EOL; echo "Cognitive auto-learn: ".(config("cognition.auto_learn") ? "enabled" : "disabled").PHP_EOL; echo "Cognitive queue connection: ".config("cognition.queue_connection", "default").PHP_EOL;'
+              fi
+
               php artisan queue:restart || true
               php artisan reverb:restart || true
               ;;

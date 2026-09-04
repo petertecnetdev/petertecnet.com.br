@@ -36,6 +36,7 @@ jobs:
 
           urls=(
             "https://petertecnet.com.br/"
+            "https://petertecnet.com.br/admin/cognition"
             "https://petertecnet.com.br/blog"
             "https://petertecnet.com.br/blog/como-criar-catalogo-digital-para-empresa"
             "https://petertecnet.com.br/servicos/desenvolvimento-de-software"
