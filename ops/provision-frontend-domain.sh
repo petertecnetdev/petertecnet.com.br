@@ -1,6 +1,33 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+on_error() {
+  local rc=$?
+  local line="${BASH_LINENO[0]:-unknown}"
+  local command="${BASH_COMMAND:-unknown}"
+  echo "Provisioning failed at line ${line}: ${command} (exit ${rc})" >&2
+  if command -v systemctl >/dev/null 2>&1; then
+    systemctl --no-pager --full status nginx 2>/dev/null | tail -n 40 >&2 || true
+  fi
+  exit "$rc"
+}
+trap on_error ERR
+
+reload_nginx() {
+  if systemctl is-active --quiet nginx; then
+    if ! systemctl reload nginx; then
+      echo "systemctl reload nginx failed; falling back to nginx -s reload." >&2
+      nginx -s reload
+    fi
+  else
+    echo "nginx service is not active; starting it." >&2
+    if ! systemctl start nginx; then
+      echo "systemctl start nginx failed; falling back to direct nginx start." >&2
+      nginx
+    fi
+  fi
+}
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -174,11 +201,28 @@ NGINX_HTTP
 
 ln -sfn "$SITE" "$ENABLED"
 nginx -t
-systemctl reload nginx
+reload_nginx
 
-LOCAL_HTML="$(curl --fail --silent --show-error -H "Host: $DOMAIN" http://127.0.0.1/)"
-if [[ -n "$HEALTH_MARKER" ]]; then
-  grep -Fq "$HEALTH_MARKER" <<<"$LOCAL_HTML"
+LOCAL_HTML=""
+for attempt in {1..10}; do
+  if LOCAL_HTML="$(curl --fail --silent --show-error --max-time 5 -H "Host: $DOMAIN" http://127.0.0.1/)"; then
+    break
+  fi
+  echo "Local HTTP health check attempt ${attempt}/10 failed; retrying..." >&2
+  sleep 1
+done
+
+if [[ -z "$LOCAL_HTML" ]]; then
+  echo "Local HTTP vhost did not return HTML for $DOMAIN." >&2
+  curl --silent --show-error --include --max-time 5 -H "Host: $DOMAIN" http://127.0.0.1/ >&2 || true
+  exit 10
+fi
+
+if [[ -n "$HEALTH_MARKER" ]] && ! grep -Fq "$HEALTH_MARKER" <<<"$LOCAL_HTML"; then
+  echo "Local HTTP vhost responded, but the expected health marker was not found: $HEALTH_MARKER" >&2
+  echo "$LOCAL_HTML" | head -c 1000 >&2
+  echo >&2
+  exit 11
 fi
 
 echo "HTTP vhost is healthy locally."
@@ -216,7 +260,7 @@ if [[ "${SKIP_CERTBOT:-0}" != "1" ]]; then
 
     "${CERTBOT_ARGS[@]}"
     nginx -t
-    systemctl reload nginx
+    reload_nginx
   fi
 fi
 
