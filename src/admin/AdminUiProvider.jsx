@@ -61,41 +61,15 @@ function annotateNavigation() {
 function clickLegacyTabButton(key) {
   annotateNavigation()
   const button = document.querySelector(`nav[data-admin-legacy-navigation="true"] button[data-admin-tab="${key}"]`)
-  if (!button || button.classList.contains('active')) return Boolean(button)
+  if (!button) return { found: false, clicked: false }
+  if (button.classList.contains('active')) return { found: true, clicked: false }
 
-  // Admin.jsx still implements the legacy business workspace and historically
-  // pushed /admin from its now-hidden sidebar. The canonical router owns browser
-  // history, so suppress only that synchronous legacy push while retaining the
-  // React tab transition. A guarded fallback restores the current URL if a browser
-  // does not allow shadowing History.pushState.
-  const originalPushState = window.history.pushState
-  const originalUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`
-  const originalState = window.history.state
-  let suppressed = false
-
-  try {
-    window.history.pushState = () => undefined
-    suppressed = window.history.pushState !== originalPushState
-  } catch {
-    suppressed = false
-  }
-
-  try {
-    button.click()
-  } finally {
-    if (suppressed) {
-      try {
-        window.history.pushState = originalPushState
-      } catch {
-        // The canonical navigation below still keeps the visible route correct.
-      }
-    } else {
-      const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`
-      if (currentUrl !== originalUrl) window.history.replaceState(originalState, '', originalUrl)
-    }
-  }
-
-  return true
+  // The hidden legacy workspace still owns its React tab state. Trigger that
+  // state transition normally, then let the canonical router normalize the URL.
+  // Avoid replacing History.pushState at runtime: browsers/extensions may reject
+  // that mutation and leave the Admin Center navigation in a broken state.
+  button.click()
+  return { found: true, clicked: true }
 }
 
 function announceNavigation(item, source = 'programmatic') {
@@ -112,7 +86,15 @@ export default function AdminUiProvider({ children }) {
     const key = adminTabFromLocation()
     const item = ADMIN_TAB_BY_KEY[key] || ADMIN_TABS[0]
     setActiveTab(item.key)
-    if (isLegacyAdminTab(item.key)) window.requestAnimationFrame(() => clickLegacyTabButton(item.key))
+    if (isLegacyAdminTab(item.key)) {
+      window.requestAnimationFrame(() => {
+        const transition = clickLegacyTabButton(item.key)
+        const targetPath = normalizeAdminPath(adminTabPath(item.key))
+        if (transition.clicked && normalizeAdminPath(window.location.pathname) !== targetPath) {
+          window.history.replaceState({ adminTab: item.key }, '', targetPath)
+        }
+      })
+    }
     announceNavigation(item, source)
     return item.key
   }, [])
@@ -126,11 +108,15 @@ export default function AdminUiProvider({ children }) {
       detail: { from: currentPath, to: nextPath, key: item.key },
     }))
 
-    if (isLegacyAdminTab(item.key)) clickLegacyTabButton(item.key)
+    const legacyTransition = isLegacyAdminTab(item.key)
+      ? clickLegacyTabButton(item.key)
+      : { found: false, clicked: false }
 
     if (!preservePath && currentPath !== nextPath) {
-      const method = replace ? 'replaceState' : 'pushState'
+      const method = legacyTransition.clicked ? 'replaceState' : replace ? 'replaceState' : 'pushState'
       window.history[method]({ adminTab: item.key }, '', nextPath)
+    } else if (!preservePath && legacyTransition.clicked && normalizeAdminPath(window.location.pathname) !== nextPath) {
+      window.history.replaceState({ adminTab: item.key }, '', nextPath)
     }
 
     setActiveTab(item.key)
