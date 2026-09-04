@@ -8,6 +8,7 @@ export const ADMIN_TABS = [
   { key: 'cognition', label: 'Centro Cognitivo', icon: '◌', path: '/admin/cognition', group: 'Operação', surface: 'module' },
   { key: 'financial', label: 'Financeiro', icon: '¤', path: '/admin/financial', group: 'Negócio', surface: 'legacy' },
   { key: 'establishments', label: 'Estabelecimentos', icon: '⌂', path: '/admin/establishments', group: 'Negócio', surface: 'legacy' },
+  { key: 'events', label: 'Eventos', icon: '◇', path: '/admin/events', group: 'Negócio', surface: 'module' },
   { key: 'items', label: 'Itens', icon: '▣', path: '/admin/items', group: 'Negócio', surface: 'legacy' },
   { key: 'visibility', label: 'Visibilidade e publicação', icon: '◐', path: '/admin/visibility', group: 'Negócio', surface: 'module' },
   { key: 'marketing', label: 'Landing e marketing', icon: '◈', path: '/admin/marketing', group: 'Negócio', surface: 'module' },
@@ -42,6 +43,7 @@ export function adminTabFromLocation(pathname = window.location.pathname) {
   if (ADMIN_ROUTE_ALIASES[path]) return ADMIN_ROUTE_ALIASES[path]
   if (path.startsWith('/admin/users/')) return 'users'
   if (path.startsWith('/admin/establishments/')) return 'establishments'
+  if (path.startsWith('/admin/events/')) return 'events'
   if (path.startsWith('/admin/items/')) return 'items'
   if (path.startsWith('/admin/marketing/')) return 'marketing'
   if (path.startsWith('/admin/content/')) return 'content'
