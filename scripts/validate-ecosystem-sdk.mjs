@@ -4,11 +4,14 @@ import { resolve } from 'node:path'
 
 const sdkPath = resolve('public/ecosystem/peter-ecosystem.js')
 const insightsPath = resolve('public/ecosystem/peter-insights.js')
+const accessPath = resolve('public/ecosystem/peter-access.js')
 const source = readFileSync(sdkPath, 'utf8')
 const insights = readFileSync(insightsPath, 'utf8')
+const access = readFileSync(accessPath, 'utf8')
 
 execFileSync(process.execPath, ['--check', sdkPath], { stdio: 'inherit' })
 execFileSync(process.execPath, ['--check', insightsPath], { stdio: 'inherit' })
+execFileSync(process.execPath, ['--check', accessPath], { stdio: 'inherit' })
 
 const required = [
   "const SDK_VERSION = '2.0.0'",
@@ -43,9 +46,23 @@ const insightMarkers = [
   "Intl.NumberFormat('pt-BR'",
   "prefers-reduced-motion",
 ]
-
 for (const marker of insightMarkers) {
   if (!insights.includes(marker)) throw new Error(`Insights contract marker missing: ${marker}`)
+}
+
+const accessMarkers = [
+  "window.PeterTecnetAccess",
+  "function AccessProvider",
+  "function useAccess",
+  "function usePermission",
+  "function useRelationship",
+  "/me/relationships",
+  "/authorize",
+  "relationshipsFor",
+  "relationship_summary",
+]
+for (const marker of accessMarkers) {
+  if (!access.includes(marker)) throw new Error(`Access SDK contract marker missing: ${marker}`)
 }
 
 if (/APP_LOGOS\s*=/.test(source)) throw new Error('The centralized SDK must not contain a hardcoded application logo registry.')
@@ -53,4 +70,4 @@ if (/searchParams\.set\(['\"](?:token|access_token|auth_token)['\"]/.test(source
 if (!/searchParams\.set\(['\"]peter_sso['\"]/.test(source)) throw new Error('SSO navigation must use the one-time peter_sso handoff code.')
 if (!source.includes("host.endsWith('.petertecnet.com.br')")) throw new Error('Cross-app navigation must remain restricted to Peter Tecnet HTTPS domains.')
 
-console.log('Peter Tecnet Ecosystem + Insights SDK contracts OK')
+console.log('Peter Tecnet Ecosystem + Insights + Contextual Access SDK contracts OK')
