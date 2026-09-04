@@ -72,7 +72,7 @@ export function connectMissionControlRealtime({ token, onUpdate, onState, events
       if (!response.ok) throw new Error(`Realtime config HTTP ${response.status}`)
       const config = await response.json()
       if (!config?.enabled || !config?.key || !config?.host) {
-        state('fallback')
+        scheduleReconnect()
         return
       }
       const eventNames = configuredEvents(config, events)
