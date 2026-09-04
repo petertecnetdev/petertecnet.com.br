@@ -19,6 +19,15 @@ function configuredEvents(config, extraEvents = []) {
   return new Set([...advertised, ...extras].filter(Boolean).map(normalizeEventName))
 }
 
+function resolveToken(token) {
+  if (typeof token === 'function') return token() || null
+  try {
+    return localStorage.getItem('token') || token || null
+  } catch {
+    return token || null
+  }
+}
+
 function websocketUrl(config) {
   const secure = String(config.scheme || 'https').toLowerCase() === 'https'
   const scheme = secure ? 'wss' : 'ws'
@@ -66,8 +75,9 @@ export function connectMissionControlRealtime({ token, onUpdate, onState, events
     if (disposed) return
     state('connecting')
     try {
+      const currentToken = resolveToken(token)
       const response = await fetch(`${API}/admin/ecosystem/command/realtime-config`, {
-        headers: { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        headers: { Accept: 'application/json', ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {}) },
       })
       if (!response.ok) throw new Error(`Realtime config HTTP ${response.status}`)
       const config = await response.json()
@@ -90,7 +100,7 @@ export function connectMissionControlRealtime({ token, onUpdate, onState, events
         if (envelope.event === 'pusher:connection_established') {
           try {
             const connection = parseData(envelope.data)
-            const auth = await authorize(config, token, connection.socket_id)
+            const auth = await authorize(config, resolveToken(token), connection.socket_id)
             socket?.send(JSON.stringify({
               event: 'pusher:subscribe',
               data: { auth: auth.auth, channel: config.channel, channel_data: auth.channel_data },
