@@ -46,15 +46,17 @@ if (isMarketing) installWebVitals(APP_SLUG)
 
 const lazyFallback = <main style={{ minHeight: '70vh', display: 'grid', placeItems: 'center', background: '#02090d', color: '#e9fbff' }}><p>Carregando experiência…</p></main>
 
-const appPage = isAdmin
-  ? <Suspense fallback={lazyFallback}><AdminEntry /></Suspense>
-  : isBlogIndex
-    ? <PublicBlogIndex />
-    : blogArticleSlug
-      ? <PublicBlogArticle slug={blogArticleSlug} />
-      : isMarketing
-        ? <Suspense fallback={lazyFallback}><PublicExperienceRouter /></Suspense>
-        : <Suspense fallback={lazyFallback}><LegacyApp /></Suspense>
+const appPage = isAccountAccess
+  ? <Suspense fallback={lazyFallback}><AccountAccessPage /></Suspense>
+  : isAdmin
+    ? <Suspense fallback={lazyFallback}><AdminEntry /></Suspense>
+    : isBlogIndex
+      ? <PublicBlogIndex />
+      : blogArticleSlug
+        ? <PublicBlogArticle slug={blogArticleSlug} />
+        : isMarketing
+          ? <Suspense fallback={lazyFallback}><PublicExperienceRouter /></Suspense>
+          : <Suspense fallback={lazyFallback}><LegacyApp /></Suspense>
 
 const ecosystemExperience = (
   <PeterAccountGateway apiBaseUrl={API_BASE_URL} appSlug={APP_SLUG}>
@@ -64,9 +66,7 @@ const ecosystemExperience = (
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    {isAccountAccess ? (
-      <Suspense fallback={lazyFallback}><AccountAccessPage /></Suspense>
-    ) : isMarketing ? (
+    {isMarketing ? (
       <PublicErrorBoundary>{ecosystemExperience}</PublicErrorBoundary>
     ) : (
       ecosystemExperience
