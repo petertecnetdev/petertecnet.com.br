@@ -41,6 +41,54 @@ jobs:
           install -d -m 700 "$HOME/.ssh"
           printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
           chmod 600 "$HOME/.ssh/id_ed25519"
+          : > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Inspect hosting prerequisites
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ steps.config.outputs.port }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          ssh \
+            -o StrictHostKeyChecking=accept-new \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            -o ConnectTimeout=20 \
+            -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" 'bash -s' <<'REMOTE'
+          set -u
+          DOMAIN="kryvion.petertecnet.com.br"
+
+          echo "=== identity ==="
+          id
+
+          echo "=== DNS ==="
+          echo "Kryvion:"
+          getent ahostsv4 "$DOMAIN" | awk '{print $1}' | sort -u || true
+          echo "Locaio reference:"
+          getent ahostsv4 locaio.petertecnet.com.br | awk '{print $1}' | sort -u || true
+          echo "Peter Tecnet reference:"
+          getent ahostsv4 petertecnet.com.br | awk '{print $1}' | sort -u || true
+
+          echo "=== /var/www permissions ==="
+          ls -ld /var/www /var/www/* 2>/dev/null || true
+          echo "Writable app roots for this user:"
+          for d in /var/www /var/www/*; do
+            [[ -e "$d" ]] || continue
+            [[ -w "$d" ]] && echo "$d"
+          done
+
+          echo "=== enabled Nginx sites ==="
+          ls -l /etc/nginx/sites-enabled 2>/dev/null || true
+          echo "=== server_name/root directives ==="
+          grep -R -n -E '^[[:space:]]*(server_name|root)[[:space:]]' /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null || true
+          echo "=== Kryvion vhost matches ==="
+          grep -R -n -F "$DOMAIN" /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null || true
+
+          echo "=== current loopback response for Kryvion Host header ==="
+          curl -sS -I -H "Host: $DOMAIN" --max-time 5 http://127.0.0.1/ 2>&1 | head -n 20 || true
+          REMOTE
 
       - name: Clone, build and stage Kryvion
         shell: bash
@@ -50,7 +98,10 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           set -euo pipefail
-          ssh -o StrictHostKeyChecking=accept-new -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" 'bash -s' <<'REMOTE'
+          ssh \
+            -o StrictHostKeyChecking=accept-new \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" 'bash -s' <<'REMOTE'
           set -Eeuo pipefail
           APP_DIR="/var/www/kryvion.petertecnet.com.br"
           REPOSITORY="https://github.com/petertecnetdev/kryvion.petertecnet.com.br.git"

@@ -5,6 +5,7 @@ import './seo.js'
 import PeterAccountGateway from './components/PeterAccountGateway.jsx'
 import PublicBlogIndex from './PublicBlogIndex.jsx'
 import PublicBlogArticle from './PublicBlogArticle.jsx'
+import PetriniaCutinappStory from './PetriniaCutinappStory.jsx'
 import PublicErrorBoundary from './PublicErrorBoundary.jsx'
 import { installWebVitals } from './discoveryApi.js'
 import { installGlobalImageFallbacks } from './utils/imageFallback.js'
@@ -17,6 +18,7 @@ const AccountAccessPage = lazy(() => import('./AccountAccessPage.jsx'))
 
 const API_BASE_URL = 'https://api.petertecnet.com.br/api'
 const APP_SLUG = 'peter-tecnet'
+const PETRINIA_STORY_SLUG = 'petrinia-cutinapp-persistencia-tecnologia'
 
 const adminToken = localStorage.getItem('petertecnet_admin_token')
 const ecosystemToken = localStorage.getItem('token')
@@ -40,6 +42,7 @@ const blogArticleSlug = blogArticleMatch ? (() => {
     return blogArticleMatch[1]
   }
 })() : null
+const isPetriniaStory = blogArticleSlug === PETRINIA_STORY_SLUG
 const isMarketing = !isAdmin && !isLogin && !isAccountAccess
 
 if (isMarketing) installWebVitals(APP_SLUG)
@@ -52,11 +55,13 @@ const appPage = isAccountAccess
     ? <Suspense fallback={lazyFallback}><AdminEntry /></Suspense>
     : isBlogIndex
       ? <PublicBlogIndex />
-      : blogArticleSlug
-        ? <PublicBlogArticle slug={blogArticleSlug} />
-        : isMarketing
-          ? <Suspense fallback={lazyFallback}><PublicExperienceRouter /></Suspense>
-          : <Suspense fallback={lazyFallback}><LegacyApp /></Suspense>
+      : isPetriniaStory
+        ? <PetriniaCutinappStory />
+        : blogArticleSlug
+          ? <PublicBlogArticle slug={blogArticleSlug} />
+          : isMarketing
+            ? <Suspense fallback={lazyFallback}><PublicExperienceRouter /></Suspense>
+            : <Suspense fallback={lazyFallback}><LegacyApp /></Suspense>
 
 const ecosystemExperience = (
   <PeterAccountGateway apiBaseUrl={API_BASE_URL} appSlug={APP_SLUG}>
