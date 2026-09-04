@@ -81,11 +81,9 @@ function parseSegments(text) {
   return { fields, firstMarkerStart: matches[0]?.start ?? -1 }
 }
 
-function leadingName(text, entityMatch, firstMarkerStart) {
-  if (!entityMatch) return ''
-  const start = entityMatch.index + entityMatch[0].length
-  const end = firstMarkerStart >= start ? firstMarkerStart : text.length
-  return normalizeSpaces(text.slice(start, end)
+function leadingName(entityTail, firstMarkerStart) {
+  const end = firstMarkerStart >= 0 ? firstMarkerStart : entityTail.length
+  return normalizeSpaces(entityTail.slice(0, end)
     .replace(/^(novo|nova|chamado|chamada|de nome|com nome)\s+/i, '')
     .replace(/^[,;:\-\s]+|[,;:\-\s]+$/g, ''))
 }
@@ -163,8 +161,9 @@ export function parseAdminCommand(input) {
     return { status: 'incomplete', intent: 'create', missing: ['tipo de recurso'], raw: text }
   }
 
-  const { fields, firstMarkerStart } = parseSegments(text)
-  if (!fields.name) fields.name = leadingName(text, entityInfo.match, firstMarkerStart)
+  const entityTail = text.slice(entityInfo.match.index + entityInfo.match[0].length)
+  const { fields, firstMarkerStart } = parseSegments(entityTail)
+  if (!fields.name) fields.name = leadingName(entityTail, firstMarkerStart)
   if (!fields.email) fields.email = extractEmail(text)
   if (entityInfo.entity === 'item' && !fields.type) fields.type = entityInfo.type || 'item'
   if (fields.price !== undefined) fields.price = normalizeMoney(fields.price)
