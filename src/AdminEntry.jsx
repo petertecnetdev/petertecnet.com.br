@@ -1,15 +1,4 @@
-import { useEffect, useState } from 'react'
-import App from './App.jsx'
-import LaoraAdminCenter from './LaoraAdminCenter.jsx'
-import EcosystemLauncherAdmin from './EcosystemLauncherAdmin.jsx'
-import ApplicationBrandingPage from './ApplicationBrandingPage.jsx'
-import ContentDiscoveryAdminPage from './ContentDiscoveryAdminPage.jsx'
-import ContentApiMigrationBridge from './ContentApiMigrationBridge.jsx'
-import DiscoveryIntelligenceAdminPage from './DiscoveryIntelligenceAdminPage.jsx'
-import MarketingSettingsAdminPage from './MarketingSettingsAdminPage.jsx'
-import AdminVisibilityPage from './AdminVisibilityPage.jsx'
-import AdminEventsPage from './AdminEventsPage.jsx'
-import CognitiveControlCenter from './CognitiveControlCenter.jsx'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import AdminPersistentShell from './AdminPersistentShell.jsx'
 import AdminRouteSync from './AdminRouteSync.jsx'
 import AdminMobileNavigation from './components/AdminMobileNavigation.jsx'
@@ -31,6 +20,18 @@ import './admin/AdminFutureTheme.css'
 import './admin/AdminNavigationState.css'
 import './admin/AdminSidebarRefinement.css'
 
+const App = lazy(() => import('./App.jsx'))
+const LaoraAdminCenter = lazy(() => import('./LaoraAdminCenter.jsx'))
+const EcosystemLauncherAdmin = lazy(() => import('./EcosystemLauncherAdmin.jsx'))
+const ApplicationBrandingPage = lazy(() => import('./ApplicationBrandingPage.jsx'))
+const ContentDiscoveryAdminPage = lazy(() => import('./ContentDiscoveryAdminPage.jsx'))
+const ContentApiMigrationBridge = lazy(() => import('./ContentApiMigrationBridge.jsx'))
+const DiscoveryIntelligenceAdminPage = lazy(() => import('./DiscoveryIntelligenceAdminPage.jsx'))
+const MarketingSettingsAdminPage = lazy(() => import('./MarketingSettingsAdminPage.jsx'))
+const AdminVisibilityPage = lazy(() => import('./AdminVisibilityPage.jsx'))
+const AdminEventsPage = lazy(() => import('./AdminEventsPage.jsx'))
+const CognitiveControlCenter = lazy(() => import('./CognitiveControlCenter.jsx'))
+
 function useAdminPath() {
   const [path, setPath] = useState(() => normalizeAdminPath(window.location.pathname))
 
@@ -45,6 +46,16 @@ function useAdminPath() {
   }, [])
 
   return path
+}
+
+function AdminRouteLoading() {
+  return (
+    <div className="admin-stack" role="status" aria-live="polite" aria-busy="true">
+      <div className="panel">
+        <strong>Carregando módulo...</strong>
+      </div>
+    </div>
+  )
 }
 
 function legacyWorkspace() {
@@ -78,7 +89,9 @@ export default function AdminEntry() {
   return (
     <AdminUiProvider>
       <AdminPersistentShell activeKey={activeKey}>
-        {adminRouteContent(path)}
+        <Suspense fallback={<AdminRouteLoading />}>
+          {adminRouteContent(path)}
+        </Suspense>
       </AdminPersistentShell>
       <AdminMobileNavigation />
       <AdminWorkspaceStateBridge />
