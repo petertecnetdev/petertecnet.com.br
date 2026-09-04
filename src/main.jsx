@@ -4,6 +4,7 @@ import './index.css'
 import './seo.js'
 import PeterAccountGateway from './components/PeterAccountGateway.jsx'
 import PublicBlogIndex from './PublicBlogIndex.jsx'
+import PublicBlogArticle from './PublicBlogArticle.jsx'
 import PublicErrorBoundary from './PublicErrorBoundary.jsx'
 import { installWebVitals } from './discoveryApi.js'
 import { installGlobalImageFallbacks } from './utils/imageFallback.js'
@@ -31,6 +32,14 @@ const isAccountAccess = path === '/account/activate' || path === '/account/passw
 const isAdmin = path === '/admin' || path.startsWith('/admin/')
 const isLogin = path === '/login'
 const isBlogIndex = path === '/blog'
+const blogArticleMatch = path.match(/^\/blog\/([^/]+)$/)
+const blogArticleSlug = blogArticleMatch ? (() => {
+  try {
+    return decodeURIComponent(blogArticleMatch[1])
+  } catch {
+    return blogArticleMatch[1]
+  }
+})() : null
 const isMarketing = !isAdmin && !isLogin && !isAccountAccess
 
 if (isMarketing) installWebVitals(APP_SLUG)
@@ -41,9 +50,11 @@ const appPage = isAdmin
   ? <Suspense fallback={lazyFallback}><AdminEntry /></Suspense>
   : isBlogIndex
     ? <PublicBlogIndex />
-    : isMarketing
-      ? <Suspense fallback={lazyFallback}><PublicExperienceRouter /></Suspense>
-      : <Suspense fallback={lazyFallback}><LegacyApp /></Suspense>
+    : blogArticleSlug
+      ? <PublicBlogArticle slug={blogArticleSlug} />
+      : isMarketing
+        ? <Suspense fallback={lazyFallback}><PublicExperienceRouter /></Suspense>
+        : <Suspense fallback={lazyFallback}><LegacyApp /></Suspense>
 
 const ecosystemExperience = (
   <PeterAccountGateway apiBaseUrl={API_BASE_URL} appSlug={APP_SLUG}>
