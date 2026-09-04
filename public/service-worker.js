@@ -1,5 +1,10 @@
-const CACHE_VERSION = 'petertecnet-admin-pwa-v2';
-const APP_SHELL = ['/admin', '/manifest.json', '/pwa-admin-192.svg', '/pwa-admin-512.svg'];
+const CACHE_VERSION = 'petertecnet-admin-pwa-v3';
+const APP_SHELL = [
+  '/admin/',
+  '/manifest.webmanifest',
+  '/pwa-admin-192.svg',
+  '/pwa-admin-512.svg',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -13,7 +18,11 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_VERSION).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(
+        keys
+          .filter((key) => key !== CACHE_VERSION)
+          .map((key) => caches.delete(key))
+      ))
       .then(() => self.clients.claim())
   );
 });
@@ -27,7 +36,9 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request).catch(() => caches.match('/admin').then((response) => response || Response.error()))
+      fetch(request).catch(() =>
+        caches.match('/admin/').then((response) => response || Response.error())
+      )
     );
     return;
   }
