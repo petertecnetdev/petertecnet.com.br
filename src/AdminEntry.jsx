@@ -20,7 +20,7 @@ import './admin/AdminFutureTheme.css'
 import './admin/AdminNavigationState.css'
 import './admin/AdminSidebarRefinement.css'
 
-const App = lazy(() => import('./App.jsx'))
+const LegacyAdminPage = lazy(() => import('./Admin.js').then(module => ({ default: module.AdminPage })))
 const LaoraAdminCenter = lazy(() => import('./LaoraAdminCenter.jsx'))
 const EcosystemLauncherAdmin = lazy(() => import('./EcosystemLauncherAdmin.jsx'))
 const ApplicationBrandingPage = lazy(() => import('./ApplicationBrandingPage.jsx'))
@@ -60,7 +60,7 @@ function AdminRouteLoading() {
 
 function legacyWorkspace() {
   return <>
-    <App />
+    <LegacyAdminPage />
     <AdminEstablishmentMediaBridge />
     <AdminProductivityBridge />
     <AdminHomeBridge />
