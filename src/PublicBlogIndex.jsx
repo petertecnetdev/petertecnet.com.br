@@ -7,6 +7,17 @@ import { updatePageSeo } from './seo.js'
 
 const safeText = value => String(value ?? '').trim()
 
+const petriniaCutinappArticle = {
+  slug: 'petrinia-cutinapp-persistencia-tecnologia',
+  title: 'Petrínia e a Cutinapp: quando persistência transforma uma ideia em tecnologia',
+  description: 'Conheça Petrínia, uma garota determinada que enfrentou erros, dúvidas e um grande desafio técnico até transformar uma ideia na Cutinapp.',
+  category: 'Histórias de tecnologia',
+  date: '2026-09-04',
+  readTime: '6 min',
+  relatedPlatform: 'cutinapp',
+  cluster: 'Cutinapp',
+}
+
 function safeDate(value) {
   if (!value) return 'Peter Tecnet'
   const date = new Date(value)
@@ -106,7 +117,7 @@ export default function PublicBlogIndex() {
   const entries = useMemo(() => {
     const merged = new Map()
 
-    blogArticles
+    ;[petriniaCutinappArticle, ...blogArticles]
       .filter(article => article && safeText(article.slug) && safeText(article.title))
       .forEach(article => merged.set(safeText(article.slug), normalizeStatic(article)))
 
