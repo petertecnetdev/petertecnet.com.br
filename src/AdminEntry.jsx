@@ -8,6 +8,7 @@ import ContentApiMigrationBridge from './ContentApiMigrationBridge.jsx'
 import DiscoveryIntelligenceAdminPage from './DiscoveryIntelligenceAdminPage.jsx'
 import MarketingSettingsAdminPage from './MarketingSettingsAdminPage.jsx'
 import AdminVisibilityPage from './AdminVisibilityPage.jsx'
+import AdminEventsPage from './AdminEventsPage.jsx'
 import CognitiveControlCenter from './CognitiveControlCenter.jsx'
 import AdminPersistentShell from './AdminPersistentShell.jsx'
 import AdminRouteSync from './AdminRouteSync.jsx'
@@ -64,6 +65,7 @@ function adminRouteContent(path) {
   if (path === '/admin/discovery') return <DiscoveryIntelligenceAdminPage />
   if (path === '/admin/marketing') return <MarketingSettingsAdminPage />
   if (path === '/admin/visibility') return <AdminVisibilityPage />
+  if (path === '/admin/events') return <AdminEventsPage />
   if (path === '/admin/cognition') return <CognitiveControlCenter />
   if (path.startsWith('/admin/laora')) return <LaoraAdminCenter />
   return legacyWorkspace()
