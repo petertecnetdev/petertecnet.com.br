@@ -29,13 +29,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check commercial routes, CRM intake and live sitemap
+      - name: Check commercial routes, content, CRM intake and live sitemap
         shell: bash
         run: |
           set -euo pipefail
 
           urls=(
             "https://petertecnet.com.br/"
+            "https://petertecnet.com.br/blog"
             "https://petertecnet.com.br/servicos/desenvolvimento-de-software"
             "https://petertecnet.com.br/portfolio"
             "https://petertecnet.com.br/sobre"
@@ -50,6 +51,11 @@ jobs:
               --retry 5 --retry-all-errors --retry-delay 2 --max-time 20 \
               "$url" >/dev/null
           done
+
+          blog_html="$(curl --fail --silent --show-error --location --max-time 20 \
+            https://petertecnet.com.br/blog)"
+          grep -Fq "Blog Peter Tecnet" <<<"$blog_html"
+          grep -Fq "como-criar-catalogo-digital-para-empresa" <<<"$blog_html"
 
           service_html="$(curl --fail --silent --show-error --location --max-time 20 \
             https://petertecnet.com.br/servicos/desenvolvimento-de-software)"
