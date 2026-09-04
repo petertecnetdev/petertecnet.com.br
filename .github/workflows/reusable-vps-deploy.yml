@@ -163,28 +163,52 @@ jobs:
             exit 24
           fi
 
-          # Never destroy source work that was edited directly on the VPS.
-          # Runtime/generated paths are intentionally ignored; application source,
-          # migrations, routes, workflow files and other meaningful changes block deploy.
-          LOCAL_SOURCE_CHANGES="$(git status --porcelain=v1 --untracked-files=all | awk '
-            {
-              path = substr($0, 4)
-              if (path ~ /^(storage\/|bootstrap\/cache\/|node_modules\/|vendor\/|dist\/|build\/|artifacts\/)/) next
-              if (path ~ /^\.env($|\.)/) next
-              if (path ~ /\.bak\.[0-9]{8}-[0-9]{6}-[0-9]+$/) next
-              print
-            }
-          ')"
-          if [[ -n "$LOCAL_SOURCE_CHANGES" ]]; then
-            echo "Refusing deploy: uncommitted source work exists in $DEPLOY_PATH." >&2
-            echo "Commit, stash, or move this work to a dedicated worktree before deploying:" >&2
-            printf '%s\n' "$LOCAL_SOURCE_CHANGES" >&2
-            exit 26
-          fi
-
           OLD_SHA="$(git rev-parse HEAD)"
           git fetch --prune origin "$DEPLOY_BRANCH"
           TARGET_SHA="$(git rev-parse "origin/$DEPLOY_BRANCH")"
+
+          # Never destroy source work that was edited directly on the VPS.
+          # Runtime/generated paths are ignored. A source change is allowed to
+          # converge only when its working-tree bytes are already present in the
+          # exact target commit, proving the work was preserved before reset.
+          UNPRESERVED_SOURCE_CHANGES=""
+          while IFS= read -r -d '' change; do
+            path="${change:3}"
+
+            case "$path" in
+              storage/*|bootstrap/cache/*|node_modules/*|vendor/*|dist/*|build/*|artifacts/*) continue ;;
+              .env|.env.*) continue ;;
+            esac
+            if [[ "$path" =~ \.bak\.[0-9]{8}-[0-9]{6}-[0-9]+$ ]]; then
+              continue
+            fi
+
+            preserved=false
+            if [[ -f "$path" && ! -L "$path" ]]; then
+              if git cat-file -e "$TARGET_SHA:$path" 2>/dev/null \
+                && git show "$TARGET_SHA:$path" | cmp -s - "$path"; then
+                preserved=true
+              fi
+            elif [[ ! -e "$path" && ! -L "$path" ]]; then
+              if ! git cat-file -e "$TARGET_SHA:$path" 2>/dev/null; then
+                preserved=true
+              fi
+            fi
+
+            if [[ "$preserved" == "true" ]]; then
+              echo "Local source change already preserved in target: $path"
+              continue
+            fi
+
+            UNPRESERVED_SOURCE_CHANGES+="${change}"$'\n'
+          done < <(git status --porcelain=v1 -z --untracked-files=all --no-renames)
+
+          if [[ -n "$UNPRESERVED_SOURCE_CHANGES" ]]; then
+            echo "Refusing deploy: unpreserved source work exists in $DEPLOY_PATH." >&2
+            echo "Commit, stash, or move this work to a dedicated worktree before deploying:" >&2
+            printf '%s' "$UNPRESERVED_SOURCE_CHANGES" >&2
+            exit 26
+          fi
 
           # A hard reset is safe only when the currently deployed commit is already
           # an ancestor of the target. If the VPS contains local commits that do not
