@@ -58,7 +58,7 @@ check('persistent shell brand routes to canonical home', shell.includes('href="/
 check('persistent shell keeps current item inside scrollable sidebar viewport', shell.includes('nav.scrollTo') && shellCss.includes('overflow-y: auto'))
 check('AdminUiProvider does not hard reload module routes', !provider.includes('window.location.assign(') && !provider.includes('window.location.replace('))
 check('AdminUiProvider uses pushState/replaceState for route changes', provider.includes("'pushState'") && provider.includes("'replaceState'"))
-check('canonical router suppresses hidden legacy history mutations', provider.includes('originalPushState') && provider.includes('window.history.pushState = () => undefined'))
+check('canonical router keeps legacy tab sync without mutating History.pushState', provider.includes('clickLegacyTabButton') && provider.includes('transition.clicked') && !provider.includes('window.history.pushState = () => undefined'))
 check('deep-link recovery delegates tab activation to canonical router', deepLink.includes('requestAdminNavigation(key, { preservePath: true })') && !deepLink.includes("if (button && !button.classList.contains('active')) button.click()"))
 check('legacy Admin.js no longer renders AdminModuleNav', !adminJs.includes('AdminModuleNav'))
 check('legacy Admin.js no longer owns visibility route', !adminJs.includes('AdminVisibilityPage'))
