@@ -169,7 +169,7 @@ jobs:
           LOCAL_SOURCE_CHANGES="$(git status --porcelain=v1 --untracked-files=all | awk '
             {
               path = substr($0, 4)
-              if (path ~ /^(storage\/|bootstrap\/cache\/|node_modules\/|vendor\/|dist\/|build\/)/) next
+              if (path ~ /^(storage\/|bootstrap\/cache\/|node_modules\/|vendor\/|dist\/|build\/|artifacts\/)/) next
               if (path ~ /^\.env($|\.)/) next
               if (path ~ /\.bak\.[0-9]{8}-[0-9]{6}-[0-9]+$/) next
               print
@@ -185,6 +185,16 @@ jobs:
           OLD_SHA="$(git rev-parse HEAD)"
           git fetch --prune origin "$DEPLOY_BRANCH"
           TARGET_SHA="$(git rev-parse "origin/$DEPLOY_BRANCH")"
+
+          # A hard reset is safe only when the currently deployed commit is already
+          # an ancestor of the target. If the VPS contains local commits that do not
+          # exist in the target branch, stop before checkout/reset so nothing is lost.
+          if ! git merge-base --is-ancestor "$OLD_SHA" "$TARGET_SHA"; then
+            echo "Refusing deploy: local commits would be discarded in $DEPLOY_PATH." >&2
+            echo "Preserve these commits in GitHub before deploying:" >&2
+            git log --oneline --decorate "$TARGET_SHA..$OLD_SHA" >&2 || true
+            exit 27
+          fi
 
           case "$DEPLOY_TYPE" in
             frontend)
