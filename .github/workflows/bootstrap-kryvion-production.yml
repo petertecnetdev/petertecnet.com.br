@@ -1,0 +1,173 @@
+name: Bootstrap Kryvion Production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/bootstrap-kryvion-production.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  provision:
+    name: Provision Kryvion on VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check VPS configuration
+        id: config
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${VPS_HOST}" || -z "${VPS_USER}" || -z "${VPS_SSH_KEY}" ]]; then
+            echo "Missing VPS deployment secrets." >&2
+            exit 1
+          fi
+          echo "port=${VPS_PORT:-22}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure SSH
+        shell: bash
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          : > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Deploy frontend and configure Nginx
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ steps.config.outputs.port }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          REMOTE_SCRIPT="$RUNNER_TEMP/bootstrap-kryvion.sh"
+          cat > "$REMOTE_SCRIPT" <<'REMOTE'
+          set -Eeuo pipefail
+
+          DOMAIN="kryvion.petertecnet.com.br"
+          APP_DIR="/var/www/kryvion.petertecnet.com.br"
+          REPOSITORY="https://github.com/petertecnetdev/kryvion.petertecnet.com.br.git"
+          NGINX_SITE="/etc/nginx/sites-available/kryvion.petertecnet.com.br"
+          NGINX_ENABLED="/etc/nginx/sites-enabled/kryvion.petertecnet.com.br"
+
+          if [[ "$(id -u)" -eq 0 ]]; then
+            SUDO=""
+          elif command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
+            SUDO="sudo"
+          else
+            echo "Deploy user needs root or passwordless sudo to configure Nginx/Certbot." >&2
+            exit 10
+          fi
+
+          exec 9>/tmp/petertecnet-vps-deploy.lock
+          flock -w 1800 9
+
+          if [[ -d "$APP_DIR/.git" ]]; then
+            current_remote="$(git -C "$APP_DIR" remote get-url origin 2>/dev/null || true)"
+            if [[ "$current_remote" != "$REPOSITORY" && "$current_remote" != "git@github.com:petertecnetdev/kryvion.petertecnet.com.br.git" ]]; then
+              backup="${APP_DIR}.backup-$(date +%Y%m%d%H%M%S)"
+              mv "$APP_DIR" "$backup"
+              echo "Existing mismatched application directory moved to $backup"
+            fi
+          elif [[ -d "$APP_DIR" && -n "$(find "$APP_DIR" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
+            backup="${APP_DIR}.backup-$(date +%Y%m%d%H%M%S)"
+            mv "$APP_DIR" "$backup"
+            echo "Existing non-Git application directory moved to $backup"
+          fi
+
+          if [[ ! -d "$APP_DIR/.git" ]]; then
+            mkdir -p "$(dirname "$APP_DIR")"
+            git clone --branch main --single-branch "$REPOSITORY" "$APP_DIR"
+          fi
+
+          git -C "$APP_DIR" fetch --prune origin main
+          git -C "$APP_DIR" checkout main
+          git -C "$APP_DIR" reset --hard origin/main
+
+          cd "$APP_DIR"
+          export CI=true
+          export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=4096}"
+          if [[ -f package-lock.json ]]; then
+            npm ci --no-audit --no-fund || npm install --no-audit --no-fund --package-lock=false
+          else
+            npm install --no-audit --no-fund --package-lock=false
+          fi
+          npm run build
+          test -f "$APP_DIR/dist/index.html"
+          grep -Fq "Kryvion | Market Intelligence by Peter Tecnet" "$APP_DIR/dist/index.html"
+
+          $SUDO tee "$NGINX_SITE" >/dev/null <<NGINX
+          server {
+              listen 80;
+              listen [::]:80;
+              server_name $DOMAIN;
+
+              root $APP_DIR/dist;
+              index index.html;
+
+              location / {
+                  try_files \$uri \$uri/ /index.html;
+              }
+
+              location ~* \\.(?:js|css|png|jpg|jpeg|gif|svg|ico|webp|woff2?)$ {
+                  try_files \$uri =404;
+                  expires 7d;
+                  add_header Cache-Control "public, max-age=604800, immutable";
+              }
+
+              add_header X-Content-Type-Options nosniff always;
+              add_header Referrer-Policy strict-origin-when-cross-origin always;
+              add_header X-Frame-Options SAMEORIGIN always;
+          }
+          NGINX
+
+          $SUDO ln -sfn "$NGINX_SITE" "$NGINX_ENABLED"
+          $SUDO nginx -t
+          $SUDO systemctl reload nginx
+
+          if command -v certbot >/dev/null 2>&1; then
+            $SUDO certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --register-unsafely-without-email --redirect
+            $SUDO nginx -t
+            $SUDO systemctl reload nginx
+          fi
+
+          if [[ -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]]; then
+            curl --fail --silent --show-error --location --insecure \
+              --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/" | grep -Fq "Kryvion | Market Intelligence by Peter Tecnet"
+          else
+            curl --fail --silent --show-error -H "Host: $DOMAIN" http://127.0.0.1/ | grep -Fq "Kryvion | Market Intelligence by Peter Tecnet"
+          fi
+
+          echo "Kryvion provisioned from $(git -C "$APP_DIR" rev-parse HEAD)"
+          REMOTE
+
+          chmod 600 "$REMOTE_SCRIPT"
+          ssh \
+            -o StrictHostKeyChecking=accept-new \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            -o ConnectTimeout=20 \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=8 \
+            -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
+            'bash -s' < "$REMOTE_SCRIPT"
+
+      - name: Verify public Kryvion
+        shell: bash
+        run: |
+          set -euo pipefail
+          html="$(curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 20 https://kryvion.petertecnet.com.br/)"
+          grep -Fq "Kryvion | Market Intelligence by Peter Tecnet" <<<"$html"
+          echo "Kryvion frontend is healthy."
