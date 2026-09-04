@@ -38,7 +38,9 @@ jobs:
       - name: Synchronize frontend when main changes
         shell: bash
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
+          # Locaio's DNS is the stable production entrypoint. Avoid coupling this
+          # workflow to a potentially stale residential/dynamic IP secret.
+          VPS_HOST: locaio.petertecnet.com.br
           VPS_PORT: ${{ secrets.VPS_PORT }}
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
