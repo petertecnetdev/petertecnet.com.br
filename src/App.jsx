@@ -48,6 +48,13 @@ const solutionPaths = [
     slugs: ['rasoio'],
   },
   {
+    id: 'crypto',
+    label: 'Crypto e inteligência de mercado',
+    title: 'Quero acompanhar o mercado cripto com mais inteligência',
+    description: 'Use dados, monitoramento, análise de cenário, gestão de risco e automações para acompanhar ativos digitais com mais contexto e disciplina, sem promessas de retorno.',
+    slugs: ['kryvion'],
+  },
+  {
     id: 'conexoes',
     label: 'Comunidade e conexões',
     title: 'Quero criar conexões e experiências sociais',
@@ -59,6 +66,7 @@ const solutionPaths = [
 const capabilities = [
   ['Produto digital', 'Da ideia à operação', 'Estratégia, experiência, engenharia e evolução contínua no mesmo ciclo.'],
   ['Integrações', 'Sistemas que conversam', 'APIs, autenticação, pagamentos, dados e automações conectados sem criar ilhas.'],
+  ['Dados e inteligência', 'Informação para decidir melhor', 'IA, análise de dados, monitoramento e automações aplicadas a operações, produtos e mercados digitais.'],
   ['Software sob medida', 'Tecnologia para um problema real', 'Quando o produto pronto não resolve, construímos a solução certa para a operação.'],
 ]
 
@@ -131,9 +139,10 @@ function LandingPage() {
 
   useEffect(() => {
     updatePageSeo({
-      title: 'Peter Tecnet | Tecnologia para transformar operações em produtos digitais',
-      description: 'Conheça o ecossistema Peter Tecnet, encontre a plataforma ideal para sua necessidade e explore soluções, produtos e serviços do nosso catálogo digital.',
+      title: 'Peter Tecnet | Software, IA, automações e tecnologia para o mercado crypto',
+      description: 'Conheça o ecossistema Peter Tecnet: plataformas, software, IA, automações, integrações, produtos digitais e tecnologia para análise e inteligência no mercado cripto.',
       path: '/',
+      keywords: ['Peter Tecnet', 'software', 'aplicativos', 'inteligência artificial', 'automação', 'APIs', 'integrações', 'crypto', 'cripto', 'criptomoedas', 'análise de mercado', 'ativos digitais', 'Kryvion'],
     })
   }, [])
 
@@ -191,7 +200,6 @@ function LandingPage() {
   const visibleCatalog = showAllCatalog ? filteredCatalog : filteredCatalog.slice(0, 8)
   const activePath = solutionPaths.find(path => path.id === selectedPath) || solutionPaths[0]
   const recommendedApps = applications.filter(application => activePath.slugs.includes(String(application.slug || '').toLowerCase()))
-  const fallbackRecommendedApps = recommendedApps.length ? recommendedApps : applications.slice(0, 2)
 
   return <div className="marketing-shell">
     <div className="scroll-progress" aria-hidden="true" />
@@ -205,13 +213,13 @@ function LandingPage() {
         <div className="hero-layout pt-container">
           <div className="hero-copy-block" data-reveal>
             <p className="eyebrow"><span /> Tecnologia para problemas reais</p>
-            <h1>Encontre tecnologia para <em>vender, organizar e crescer.</em></h1>
-            <p className="hero-lead">A Peter Tecnet cria e opera um ecossistema de plataformas, aplicativos e soluções digitais. Você pode começar por uma necessidade específica e evoluir usando outras ferramentas conectadas ao mesmo ecossistema.</p>
+            <h1>Encontre tecnologia para <em>vender, organizar, analisar e crescer.</em></h1>
+            <p className="hero-lead">A Peter Tecnet cria e opera um ecossistema de plataformas, aplicativos e soluções digitais para negócios, operações e mercados digitais — agora também com tecnologia voltada a dados, inteligência e acompanhamento do mercado cripto.</p>
             <div className="hero-actions">
               <a className="pt-button pt-button-primary" href="#comece">Encontrar minha solução <span>↘</span></a>
               <a className="pt-button pt-button-secondary" href="#catalogo">Explorar catálogo <span>↗</span></a>
             </div>
-            <div className="hero-trust"><span>CNPJ 42.595.409/0001-48</span><i /> <span>Produtos próprios + soluções empresariais</span></div>
+            <div className="hero-trust"><span>CNPJ 42.595.409/0001-48</span><i /> <span>Produtos próprios + soluções empresariais + crypto</span></div>
           </div>
 
           <aside className="hero-console" data-reveal data-tilt aria-label="Ecossistema Peter Tecnet em tempo real">
@@ -224,12 +232,12 @@ function LandingPage() {
             <div className="console-stream"><span>01</span><p>Descubra a ferramenta certa</p><span>02</span><p>Ative e coloque em operação</p><span>03</span><p>Expanda dentro do ecossistema</p></div>
           </aside>
         </div>
-        <div className="hero-marquee" aria-hidden="true"><div>PLATAFORMAS • APLICATIVOS • CATÁLOGOS • AUTOMAÇÕES • APIs • INTEGRAÇÕES • PRODUTOS DIGITAIS • </div><div>PLATAFORMAS • APLICATIVOS • CATÁLOGOS • AUTOMAÇÕES • APIs • INTEGRAÇÕES • PRODUTOS DIGITAIS • </div></div>
+        <div className="hero-marquee" aria-hidden="true"><div>PLATAFORMAS • APLICATIVOS • CRYPTO • IA • DADOS DE MERCADO • AUTOMAÇÕES • APIs • INTEGRAÇÕES • PRODUTOS DIGITAIS • </div><div>PLATAFORMAS • APLICATIVOS • CRYPTO • IA • DADOS DE MERCADO • AUTOMAÇÕES • APIs • INTEGRAÇÕES • PRODUTOS DIGITAIS • </div></div>
       </section>
 
       <section className="path-section" id="comece">
         <div className="pt-container">
-          <div className="section-heading" data-reveal><p className="kicker">Comece pelo seu objetivo</p><h2>Você não precisa conhecer nossas ferramentas. <span>Conte o que quer resolver.</span></h2><p>Escolha uma necessidade e mostramos os produtos do ecossistema mais próximos dela.</p></div>
+          <div className="section-heading" data-reveal><p className="kicker">Áreas de atuação e objetivos</p><h2>Você não precisa conhecer nossas ferramentas. <span>Conte o que quer resolver.</span></h2><p>Escolha uma necessidade — de operações e vendas a dados e mercado cripto — e mostramos os produtos do ecossistema mais próximos dela.</p></div>
           <div className="path-layout" data-reveal>
             <div className="path-selector" role="tablist" aria-label="Objetivos">
               {solutionPaths.map(path => <button key={path.id} className={selectedPath === path.id ? 'path-option is-active' : 'path-option'} type="button" onClick={() => setSelectedPath(path.id)}><span>{path.label}</span><b>↗</b></button>)}
@@ -240,7 +248,8 @@ function LandingPage() {
               <p>{activePath.description}</p>
               <div className="recommended-apps">
                 {appsStatus === 'loading' && <span className="mini-loading">Buscando produtos do ecossistema…</span>}
-                {fallbackRecommendedApps.map(application => <a key={application.id || application.slug} href={application.url || '#ecossistema'} target={application.url ? '_blank' : undefined} rel={application.url ? 'noreferrer' : undefined}><img src={resolveAssetUrl(application.logo) || '/petertecnetlogo.png'} alt="" /><span><strong>{application.name}</strong><small>{application.description || 'Produto Peter Tecnet'}</small></span><b>↗</b></a>)}
+                {appsStatus === 'success' && recommendedApps.length === 0 && <span className="mini-loading">Produto desta área em integração ao ecossistema.</span>}
+                {recommendedApps.map(application => <a key={application.id || application.slug} href={application.url || '#ecossistema'} target={application.url ? '_blank' : undefined} rel={application.url ? 'noreferrer' : undefined}><img src={resolveAssetUrl(application.logo) || '/petertecnetlogo.png'} alt="" /><span><strong>{application.name}</strong><small>{application.description || 'Produto Peter Tecnet'}</small></span><b>↗</b></a>)}
               </div>
               <a className="text-link path-contact" href={`mailto:${contact.email}?subject=${encodeURIComponent(`Quero resolver: ${activePath.label}`)}`}>Quero conversar sobre esse objetivo <span>↗</span></a>
             </div>
@@ -250,7 +259,7 @@ function LandingPage() {
 
       <section className="ecosystem-section" id="ecossistema">
         <div className="pt-container">
-          <div className="section-heading section-heading-split" data-reveal><div><p className="kicker">Ecossistema Peter Tecnet</p><h2>Produtos feitos para entrar em operação, <span>não para ficar em apresentação.</span></h2></div><p>Cada produto resolve uma parte do dia a dia. Juntos, formam um ecossistema que pode acompanhar o usuário em diferentes necessidades sem obrigá-lo a recomeçar do zero.</p></div>
+          <div className="section-heading section-heading-split" data-reveal><div><p className="kicker">Ecossistema Peter Tecnet</p><h2>Produtos feitos para entrar em operação, <span>não para ficar em apresentação.</span></h2></div><p>Cada produto resolve uma parte do dia a dia. Juntos, formam um ecossistema que acompanha diferentes necessidades — incluindo negócios, serviços, experiências digitais e inteligência para mercados como crypto.</p></div>
           {appsStatus === 'loading' && <div className="app-grid">{[1,2,3,4].map(value => <div className="app-card loading-card" key={value} />)}</div>}
           {appsStatus === 'success' && applications.length > 0 && <div className="app-grid">{applications.map((application, index) => <ApplicationCard application={application} index={index} key={application.id || application.slug} />)}</div>}
           {appsStatus === 'error' && <div className="state-panel">Não foi possível consultar o ecossistema agora. As plataformas continuam acessíveis por seus domínios Peter Tecnet.</div>}
@@ -286,7 +295,7 @@ function LandingPage() {
 
       <section className="company-section" id="empresa">
         <div className="pt-container">
-          <div className="company-intro" data-reveal><p className="kicker">Tecnologia para empresas</p><h2>Produto próprio quando existe. <span>Solução sob medida quando precisa.</span></h2><p>A experiência de construir e operar nossas próprias plataformas também é aplicada em projetos empresariais: sistemas, integrações, automações, APIs e produtos digitais específicos.</p></div>
+          <div className="company-intro" data-reveal><p className="kicker">Tecnologia para empresas e mercados digitais</p><h2>Produto próprio quando existe. <span>Solução sob medida quando precisa.</span></h2><p>A experiência de construir e operar nossas próprias plataformas também é aplicada em projetos empresariais e novas verticais: sistemas, integrações, automações, APIs, IA, análise de dados e tecnologia para o ecossistema crypto.</p></div>
           <div className="capability-grid">{capabilities.map(([label, title, description], index) => <article key={label} data-reveal><div><span>0{index + 1}</span><small>{label}</small></div><h3>{title}</h3><p>{description}</p></article>)}</div>
         </div>
       </section>
