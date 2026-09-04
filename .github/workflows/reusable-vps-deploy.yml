@@ -163,6 +163,24 @@ jobs:
             exit 24
           fi
 
+          # Never destroy source work that was edited directly on the VPS.
+          # Runtime/generated paths are intentionally ignored; application source,
+          # migrations, routes, workflow files and other meaningful changes block deploy.
+          LOCAL_SOURCE_CHANGES="$(git status --porcelain=v1 --untracked-files=all | awk '
+            {
+              path = substr($0, 4)
+              if (path ~ /^(storage\/|bootstrap\/cache\/|node_modules\/|vendor\/|dist\/|build\/)/) next
+              if (path ~ /^\.env($|\.)/) next
+              print
+            }
+          ')"
+          if [[ -n "$LOCAL_SOURCE_CHANGES" ]]; then
+            echo "Refusing deploy: uncommitted source work exists in $DEPLOY_PATH." >&2
+            echo "Commit, stash, or move this work to a dedicated worktree before deploying:" >&2
+            printf '%s\n' "$LOCAL_SOURCE_CHANGES" >&2
+            exit 26
+          fi
+
           OLD_SHA="$(git rev-parse HEAD)"
           git fetch --prune origin "$DEPLOY_BRANCH"
           TARGET_SHA="$(git rev-parse "origin/$DEPLOY_BRANCH")"
