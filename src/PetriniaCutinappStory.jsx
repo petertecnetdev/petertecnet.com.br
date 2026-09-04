@@ -8,6 +8,7 @@ import { updatePageSeo } from './seo.js'
 const SLUG = 'petrinia-cutinapp-persistencia-tecnologia'
 const PATH = `/blog/${SLUG}`
 const COVER = 'https://petertecnet.com.br/blog/petrinia-cutinapp-cover.svg'
+const SOCIAL_IMAGE = 'https://cutinapp.petertecnet.com.br/images/cutinapp.png'
 
 const sections = [
   {
@@ -72,7 +73,7 @@ export default function PetriniaCutinappStory() {
       title: 'Petrínia e a Cutinapp: persistência, tecnologia e inovação | Peter Tecnet',
       description: 'A história de Petrínia e da criação da Cutinapp: desafios técnicos, persistência, desenvolvimento de software e a transformação de uma ideia em uma plataforma para eventos.',
       path: PATH,
-      image: COVER,
+      image: SOCIAL_IMAGE,
       type: 'article',
       schema: [{
         '@context': 'https://schema.org',
@@ -84,15 +85,19 @@ export default function PetriniaCutinappStory() {
         mainEntityOfPage: `https://petertecnet.com.br${PATH}`,
         author: { '@type': 'Organization', name: 'Peter Tecnet' },
         publisher: { '@type': 'Organization', name: 'Peter Tecnet', url: 'https://petertecnet.com.br' },
-        image: COVER,
+        image: SOCIAL_IMAGE,
       }],
     })
 
-    trackDiscoveryEvent('content_view', {
-      entityType: 'content',
-      entityId: SLUG,
-      application: 'cutinapp',
-    })
+    try {
+      trackDiscoveryEvent('content_view', {
+        entityType: 'content',
+        entityId: SLUG,
+        application: 'cutinapp',
+      })
+    } catch {
+      // Telemetria nunca deve impedir a leitura da história.
+    }
   }, [])
 
   return <div className="mkt-shell discovery-shell petrinia-story-shell">
@@ -124,7 +129,7 @@ export default function PetriniaCutinappStory() {
         </header>
 
         <div className="mkt-container petrinia-story-cover-wrap">
-          <img className="petrinia-story-cover" src="/blog/petrinia-cutinapp-cover.svg" alt="Petrínia e a Cutinapp: da dificuldade ao lançamento" width="1600" height="900" fetchPriority="high" />
+          <img className="petrinia-story-cover" src={COVER} alt="Petrínia e a Cutinapp: da dificuldade ao lançamento" width="1600" height="900" fetchPriority="high" />
         </div>
 
         <div className="mkt-container mkt-article-layout petrinia-story-layout">
