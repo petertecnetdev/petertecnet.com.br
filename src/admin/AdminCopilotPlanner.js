@@ -53,6 +53,10 @@ function clean(value = '') {
   return String(value).replace(/\s+/g, ' ').trim()
 }
 
+function stripJoiner(value = '') {
+  return clean(String(value).replace(/\s+(?:e|depois|então|entao|em seguida)\s*$/i, ''))
+}
+
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
@@ -76,7 +80,7 @@ function parseFields(text) {
   const fields = {}
   found.forEach((marker, index) => {
     const end = found[index + 1]?.start ?? text.length
-    const value = clean(text.slice(marker.valueStart, end).replace(/^[,;:\-\s]+|[,;:\-\s]+$/g, ''))
+    const value = stripJoiner(text.slice(marker.valueStart, end).replace(/^[,;:\-\s]+|[,;:\-\s]+$/g, ''))
     if (value) fields[marker.key] = value
   })
   return { fields, firstMarker: found[0]?.start ?? -1 }
@@ -113,8 +117,11 @@ function actionStartIndexes(text) {
 
 function splitActions(text) {
   const starts = actionStartIndexes(text)
-  if (starts.length <= 1) return [clean(text)]
-  return starts.map((start, index) => clean(text.slice(start, starts[index + 1] ?? text.length).replace(/^(e|depois|então|entao|em seguida)\s+/i, ''))).filter(Boolean)
+  if (starts.length <= 1) return [stripJoiner(text)]
+  return starts
+    .map((start, index) => stripJoiner(text.slice(start, starts[index + 1] ?? text.length)).replace(/^(e|depois|então|entao|em seguida)\s+/i, ''))
+    .map(clean)
+    .filter(Boolean)
 }
 
 function requiredFor(key) {
@@ -128,7 +135,7 @@ function requiredFor(key) {
 
 function leadingName(tail, firstMarker) {
   const end = firstMarker >= 0 ? firstMarker : tail.length
-  return clean(tail.slice(0, end)
+  return stripJoiner(tail.slice(0, end)
     .replace(/^(novo|nova|chamado|chamada|de nome|com nome|dele|dela|para ele|para ela)\s+/i, '')
     .replace(/^[,;:\-\s]+|[,;:\-\s]+$/g, ''))
 }
