@@ -45,6 +45,41 @@ const blogArticleSlug = blogArticleMatch ? (() => {
 const isPetriniaStory = blogArticleSlug === PETRINIA_STORY_SLUG
 const isMarketing = !isAdmin && !isLogin && !isAccountAccess
 
+function installAdminPwa() {
+  let manifestLink = document.querySelector('link[rel="manifest"]')
+  if (!manifestLink) {
+    manifestLink = document.createElement('link')
+    manifestLink.rel = 'manifest'
+    document.head.appendChild(manifestLink)
+  }
+  manifestLink.href = '/manifest.webmanifest'
+
+  let appleCapable = document.querySelector('meta[name="apple-mobile-web-app-capable"]')
+  if (!appleCapable) {
+    appleCapable = document.createElement('meta')
+    appleCapable.name = 'apple-mobile-web-app-capable'
+    document.head.appendChild(appleCapable)
+  }
+  appleCapable.content = 'yes'
+
+  let appleStatusBar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')
+  if (!appleStatusBar) {
+    appleStatusBar = document.createElement('meta')
+    appleStatusBar.name = 'apple-mobile-web-app-status-bar-style'
+    document.head.appendChild(appleStatusBar)
+  }
+  appleStatusBar.content = 'black-translucent'
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js', { scope: '/' }).catch((error) => {
+        console.warn('[Admin PWA] Falha ao registrar service worker:', error)
+      })
+    }, { once: true })
+  }
+}
+
+if (isAdmin) installAdminPwa()
 if (isMarketing) installWebVitals(APP_SLUG)
 
 const lazyFallback = <main style={{ minHeight: '70vh', display: 'grid', placeItems: 'center', background: '#02090d', color: '#e9fbff' }}><p>Carregando experiência…</p></main>
