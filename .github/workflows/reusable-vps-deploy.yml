@@ -171,6 +171,7 @@ jobs:
               path = substr($0, 4)
               if (path ~ /^(storage\/|bootstrap\/cache\/|node_modules\/|vendor\/|dist\/|build\/)/) next
               if (path ~ /^\.env($|\.)/) next
+              if (path ~ /\.bak\.[0-9]{8}-[0-9]{6}-[0-9]+$/) next
               print
             }
           ')"
