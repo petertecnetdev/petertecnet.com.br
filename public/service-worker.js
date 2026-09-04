@@ -1,5 +1,5 @@
-const CACHE_VERSION = 'petertecnet-admin-pwa-v1';
-const APP_SHELL = ['/admin', '/manifest.webmanifest', '/pwa-admin-192.svg', '/pwa-admin-512.svg'];
+const CACHE_VERSION = 'petertecnet-admin-pwa-v2';
+const APP_SHELL = ['/admin', '/manifest.json', '/pwa-admin-192.svg', '/pwa-admin-512.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
