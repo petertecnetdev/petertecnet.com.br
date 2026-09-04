@@ -5,6 +5,7 @@ export const ADMIN_TABS = [
   { key: 'command', label: 'Mission Control', icon: '⌘', path: '/admin/mission-control', group: 'Operação', surface: 'legacy' },
   { key: 'dashboard', label: 'Visão geral', icon: '▦', path: '/admin/overview', group: 'Operação', surface: 'legacy' },
   { key: 'activity', label: 'Atividade', icon: '⌁', path: '/admin/activity', group: 'Operação', surface: 'legacy' },
+  { key: 'cognition', label: 'Centro Cognitivo', icon: '◌', path: '/admin/cognition', group: 'Operação', surface: 'module' },
   { key: 'financial', label: 'Financeiro', icon: '¤', path: '/admin/financial', group: 'Negócio', surface: 'legacy' },
   { key: 'establishments', label: 'Estabelecimentos', icon: '⌂', path: '/admin/establishments', group: 'Negócio', surface: 'legacy' },
   { key: 'items', label: 'Itens', icon: '▣', path: '/admin/items', group: 'Negócio', surface: 'legacy' },
@@ -48,6 +49,7 @@ export function adminTabFromLocation(pathname = window.location.pathname) {
   if (path.startsWith('/admin/branding/')) return 'branding'
   if (path.startsWith('/admin/visibility/')) return 'visibility'
   if (path.startsWith('/admin/ecosystem-launcher/')) return 'ecosystem-launcher'
+  if (path.startsWith('/admin/cognition/')) return 'cognition'
   if (path.startsWith('/admin/laora')) return 'laora'
   if (path.startsWith('/admin/mission-control/')) return 'command'
   return 'home'
