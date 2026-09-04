@@ -169,6 +169,16 @@ jobs:
 
           case "$DEPLOY_TYPE" in
             frontend)
+              # Put the source checkout on the target commit BEFORE publishing build assets.
+              # Some legacy frontends still track build/ or dist/. Resetting after the copy
+              # would silently restore stale committed assets and undo the deployment.
+              if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then
+                git checkout "$DEPLOY_BRANCH"
+              else
+                git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"
+              fi
+              git reset --hard "$TARGET_SHA"
+
               safe_name="$(basename "$DEPLOY_PATH" | tr -c 'A-Za-z0-9._-' '-')"
               BUILD_WORKTREE="/tmp/petertecnet-build-${safe_name}-$$-$RANDOM"
               git worktree add --detach "$BUILD_WORKTREE" "$TARGET_SHA"
@@ -223,13 +233,12 @@ jobs:
               chmod --reference="$LIVE_OUTPUT/index.html" "$LIVE_OUTPUT/.index.html.next" 2>/dev/null || true
               mv -f "$LIVE_OUTPUT/.index.html.next" "$LIVE_OUTPUT/index.html"
 
-              cd "$DEPLOY_PATH"
-              if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then
-                git checkout "$DEPLOY_BRANCH"
-              else
-                git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"
+              if ! cmp -s "$NEW_OUTPUT/index.html" "$LIVE_OUTPUT/index.html"; then
+                echo "Published frontend index.html differs from the freshly built release." >&2
+                exit 32
               fi
-              git reset --hard "$TARGET_SHA"
+
+              echo "Frontend release assets preserved after source reset."
               ;;
 
             laravel)
@@ -256,6 +265,7 @@ jobs:
               ;;
           esac
 
+          cd "$DEPLOY_PATH"
           NEW_SHA="$(git rev-parse HEAD)"
           echo "Deployment completed: $OLD_SHA -> $NEW_SHA"
           REMOTE_SCRIPT
