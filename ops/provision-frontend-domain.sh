@@ -17,7 +17,9 @@ Environment overrides:
   DEPLOY_USER       Linux user that owns application checkouts.
   DEPLOY_GROUP      Web group. Defaults to www-data.
   CERTBOT_EMAIL     Optional Let's Encrypt account email.
+  KEY_FILE          Dedicated GitHub Actions SSH key. Defaults to /root/petertecnet-actions-deploy.
   SKIP_CERTBOT=1    Configure HTTP only.
+  SKIP_GITHUB=1     Do not configure repository deploy secrets.
 EOF
 }
 
@@ -75,6 +77,9 @@ SITE="/etc/nginx/sites-available/$DOMAIN"
 ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
 CERT_DIR="/etc/letsencrypt/live/$DOMAIN"
 LOCK_FILE="/tmp/petertecnet-vps-deploy.lock"
+KEY_FILE="${KEY_FILE:-/root/petertecnet-actions-deploy}"
+REPO_SLUG="${REPOSITORY#https://github.com/}"
+REPO_SLUG="${REPO_SLUG%.git}"
 
 exec 9>"$LOCK_FILE"
 flock -w 1800 9
@@ -217,6 +222,31 @@ else
     grep -Fq "$HEALTH_MARKER" <<<"$HTTP_HTML"
   fi
   echo "Provisioning completed without a local TLS certificate."
+fi
+
+if [[ "${SKIP_GITHUB:-0}" != "1" ]]; then
+  if command -v gh >/dev/null 2>&1 && [[ -f "$KEY_FILE" ]] && gh auth status >/dev/null 2>&1; then
+    ACTIONS_HOST="${PUBLIC_IPV4:-$DNS_IPV4}"
+    SSH_PORT="$(sshd -T 2>/dev/null | awk '$1 == "port" {print $2; exit}' || true)"
+    SSH_PORT="${SSH_PORT:-22}"
+
+    if [[ -n "$ACTIONS_HOST" ]]; then
+      echo "Configuring repository-level VPS deployment secrets for $REPO_SLUG"
+      gh secret set VPS_HOST --body "$ACTIONS_HOST" --repo "$REPO_SLUG"
+      gh secret set VPS_PORT --body "$SSH_PORT" --repo "$REPO_SLUG"
+      gh secret set VPS_USER --body "$DEPLOY_USER" --repo "$REPO_SLUG"
+      gh secret set VPS_SSH_KEY --repo "$REPO_SLUG" < "$KEY_FILE"
+
+      if gh workflow view deploy-vps.yml --repo "$REPO_SLUG" >/dev/null 2>&1; then
+        gh workflow run deploy-vps.yml --repo "$REPO_SLUG" --ref main || true
+      fi
+      echo "Automatic GitHub Actions deploy is configured for $REPO_SLUG."
+    else
+      echo "Could not determine a VPS host for GitHub Actions; repository secrets were not changed." >&2
+    fi
+  else
+    echo "GitHub CLI authentication or the dedicated Actions key is unavailable; domain provisioning succeeded, but repository secrets were not changed." >&2
+  fi
 fi
 
 echo "Deployed commit: $(git -C "$APP_DIR" rev-parse HEAD)"
