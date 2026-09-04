@@ -18,6 +18,7 @@ Environment overrides:
   DEPLOY_GROUP      Web group. Defaults to www-data.
   CERTBOT_EMAIL     Optional Let's Encrypt account email.
   KEY_FILE          Dedicated GitHub Actions SSH key. Defaults to /root/petertecnet-actions-deploy.
+  LOCK_FILE         Root-safe provisioning lock. Defaults to /run/lock/petertecnet-frontend-provision.lock.
   SKIP_CERTBOT=1    Configure HTTP only.
   SKIP_GITHUB=1     Do not configure repository deploy secrets.
 EOF
@@ -76,18 +77,30 @@ APP_DIR="/var/www/$DOMAIN"
 SITE="/etc/nginx/sites-available/$DOMAIN"
 ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
 CERT_DIR="/etc/letsencrypt/live/$DOMAIN"
-LOCK_FILE="/tmp/petertecnet-vps-deploy.lock"
+LOCK_FILE="${LOCK_FILE:-/run/lock/petertecnet-frontend-provision.lock}"
 KEY_FILE="${KEY_FILE:-/root/petertecnet-actions-deploy}"
 REPO_SLUG="${REPOSITORY#https://github.com/}"
 REPO_SLUG="${REPO_SLUG%.git}"
 
+LOCK_DIR="$(dirname "$LOCK_FILE")"
+install -d -m 0755 "$LOCK_DIR"
+if [[ -e "$LOCK_FILE" && ! -f "$LOCK_FILE" ]]; then
+  echo "Provisioning lock exists but is not a regular file: $LOCK_FILE" >&2
+  exit 9
+fi
+touch "$LOCK_FILE"
+chmod 0644 "$LOCK_FILE"
 exec 9>"$LOCK_FILE"
-flock -w 1800 9
+if ! flock -w 1800 9; then
+  echo "Timed out waiting for the frontend provisioning lock: $LOCK_FILE" >&2
+  exit 75
+fi
 
 printf 'Provisioning %s\n' "$DOMAIN"
 printf 'Repository: %s\n' "$REPOSITORY"
 printf 'Application root: %s\n' "$APP_DIR"
 printf 'Deploy owner: %s:%s\n' "$DEPLOY_USER" "$DEPLOY_GROUP"
+printf 'Provision lock: %s\n' "$LOCK_FILE"
 
 install -d -m 2775 -o "$DEPLOY_USER" -g "$DEPLOY_GROUP" "$APP_DIR"
 
