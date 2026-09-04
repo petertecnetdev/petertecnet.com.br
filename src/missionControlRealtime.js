@@ -7,6 +7,18 @@ function parseData(value) {
   try { return JSON.parse(value) } catch { return value }
 }
 
+function normalizeEventName(value) {
+  return String(value || '').replace(/^\./, '')
+}
+
+function configuredEvents(config, extraEvents = []) {
+  const advertised = Array.isArray(config?.events)
+    ? config.events
+    : [config?.event || DEFAULT_EVENT]
+  const extras = Array.isArray(extraEvents) ? extraEvents : [extraEvents]
+  return new Set([...advertised, ...extras].filter(Boolean).map(normalizeEventName))
+}
+
 function websocketUrl(config) {
   const secure = String(config.scheme || 'https').toLowerCase() === 'https'
   const scheme = secure ? 'wss' : 'ws'
@@ -32,7 +44,7 @@ async function authorize(config, token, socketId) {
   return response.json()
 }
 
-export function connectMissionControlRealtime({ token, onUpdate, onState }) {
+export function connectMissionControlRealtime({ token, onUpdate, onState, events = [] }) {
   let disposed = false
   let socket = null
   let retryTimer = null
@@ -63,7 +75,7 @@ export function connectMissionControlRealtime({ token, onUpdate, onState }) {
         state('fallback')
         return
       }
-      const eventName = config.event || DEFAULT_EVENT
+      const eventNames = configuredEvents(config, events)
 
       socket = new WebSocket(websocketUrl(config))
 
@@ -95,8 +107,9 @@ export function connectMissionControlRealtime({ token, onUpdate, onState }) {
           return
         }
 
-        if (envelope.event === eventName || envelope.event === `.${eventName}`) {
-          onUpdate?.(parseData(envelope.data))
+        const eventName = normalizeEventName(envelope.event)
+        if (eventNames.has(eventName)) {
+          onUpdate?.(parseData(envelope.data), eventName)
         }
       }
     } catch {
