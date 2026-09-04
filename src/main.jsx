@@ -52,7 +52,7 @@ function installAdminPwa() {
     manifestLink.rel = 'manifest'
     document.head.appendChild(manifestLink)
   }
-  manifestLink.href = '/manifest.webmanifest'
+  manifestLink.href = '/manifest.json'
 
   let appleCapable = document.querySelector('meta[name="apple-mobile-web-app-capable"]')
   if (!appleCapable) {
