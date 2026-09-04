@@ -45,6 +45,16 @@ const blogArticleSlug = blogArticleMatch ? (() => {
 const isPetriniaStory = blogArticleSlug === PETRINIA_STORY_SLUG
 const isMarketing = !isAdmin && !isLogin && !isAccountAccess
 
+function upsertMeta(name, content) {
+  let meta = document.querySelector(`meta[name="${name}"]`)
+  if (!meta) {
+    meta = document.createElement('meta')
+    meta.name = name
+    document.head.appendChild(meta)
+  }
+  meta.content = content
+}
+
 function installAdminPwa() {
   let manifestLink = document.querySelector('link[rel="manifest"]')
   if (!manifestLink) {
@@ -52,30 +62,33 @@ function installAdminPwa() {
     manifestLink.rel = 'manifest'
     document.head.appendChild(manifestLink)
   }
-  manifestLink.href = '/manifest.json'
 
-  let appleCapable = document.querySelector('meta[name="apple-mobile-web-app-capable"]')
-  if (!appleCapable) {
-    appleCapable = document.createElement('meta')
-    appleCapable.name = 'apple-mobile-web-app-capable'
-    document.head.appendChild(appleCapable)
+  // Keep the manifest URL stable and explicit so Chrome can recognize the
+  // Admin Center as an installable web app instead of falling back to a shortcut.
+  manifestLink.href = '/manifest.webmanifest'
+  manifestLink.crossOrigin = 'use-credentials'
+
+  upsertMeta('application-name', 'Peter Tecnet Admin Center')
+  upsertMeta('mobile-web-app-capable', 'yes')
+  upsertMeta('apple-mobile-web-app-capable', 'yes')
+  upsertMeta('apple-mobile-web-app-status-bar-style', 'black-translucent')
+  upsertMeta('apple-mobile-web-app-title', 'Admin Center')
+
+  if (!('serviceWorker' in navigator)) return
+
+  const registerServiceWorker = async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+      await registration.update()
+    } catch (error) {
+      console.warn('[Admin PWA] Falha ao registrar service worker:', error)
+    }
   }
-  appleCapable.content = 'yes'
 
-  let appleStatusBar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')
-  if (!appleStatusBar) {
-    appleStatusBar = document.createElement('meta')
-    appleStatusBar.name = 'apple-mobile-web-app-status-bar-style'
-    document.head.appendChild(appleStatusBar)
-  }
-  appleStatusBar.content = 'black-translucent'
-
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js', { scope: '/' }).catch((error) => {
-        console.warn('[Admin PWA] Falha ao registrar service worker:', error)
-      })
-    }, { once: true })
+  if (document.readyState === 'complete') {
+    registerServiceWorker()
+  } else {
+    window.addEventListener('load', registerServiceWorker, { once: true })
   }
 }
 
