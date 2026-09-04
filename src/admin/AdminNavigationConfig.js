@@ -16,7 +16,7 @@ export const ADMIN_TABS = [
   { key: 'branding', label: 'Branding e logos', icon: '✧', path: '/admin/branding', group: 'Ecossistema', surface: 'module' },
   { key: 'ecosystem-launcher', label: 'Navegação do ecossistema', icon: '⌘', path: '/admin/ecosystem-launcher', group: 'Ecossistema', surface: 'module' },
   { key: 'users', label: 'Usuários', icon: '◉', path: '/admin/users', group: 'Governança', surface: 'legacy' },
-  { key: 'profiles', label: 'Perfis e permissões', icon: '⌗', path: '/admin/profiles', group: 'Governança', surface: 'legacy' },
+  { key: 'profiles', label: 'Acessos e permissões', icon: '⌗', path: '/admin/profiles', group: 'Governança', surface: 'module' },
   { key: 'audit', label: 'Auditoria', icon: '◎', path: '/admin/audit', group: 'Governança', surface: 'legacy' },
   { key: 'site', label: 'Site institucional', icon: '✦', path: '/admin/site', group: 'Configurações', surface: 'legacy' },
   { key: 'laora', label: 'Laora Safety Center', icon: '◉', path: '/admin/laora', group: 'Produtos', surface: 'module' },
@@ -25,7 +25,7 @@ export const ADMIN_TABS = [
 export const ADMIN_TAB_BY_KEY = Object.fromEntries(ADMIN_TABS.map(tab => [tab.key, tab]))
 export const ADMIN_LEGACY_TAB_KEYS = ADMIN_TABS.filter(tab => tab.surface === 'legacy').map(tab => tab.key)
 export const ADMIN_MODULE_TAB_KEYS = ADMIN_TABS.filter(tab => tab.surface === 'module').map(tab => tab.key)
-export const ADMIN_LEGACY_DOM_ORDER = ['command', 'dashboard', 'activity', 'financial', 'applications', 'users', 'profiles', 'establishments', 'items', 'site', 'audit']
+export const ADMIN_LEGACY_DOM_ORDER = ['command', 'dashboard', 'activity', 'financial', 'applications', 'users', 'establishments', 'items', 'site', 'audit']
 
 export const ADMIN_ROUTE_ALIASES = Object.fromEntries([
   ...ADMIN_TABS.map(tab => [tab.path, tab.key]),
