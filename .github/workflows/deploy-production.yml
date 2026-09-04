@@ -37,6 +37,7 @@ jobs:
           urls=(
             "https://petertecnet.com.br/"
             "https://petertecnet.com.br/blog"
+            "https://petertecnet.com.br/blog/como-criar-catalogo-digital-para-empresa"
             "https://petertecnet.com.br/servicos/desenvolvimento-de-software"
             "https://petertecnet.com.br/portfolio"
             "https://petertecnet.com.br/sobre"
@@ -56,6 +57,11 @@ jobs:
             https://petertecnet.com.br/blog)"
           grep -Fq "Blog Peter Tecnet" <<<"$blog_html"
           grep -Fq "como-criar-catalogo-digital-para-empresa" <<<"$blog_html"
+
+          article_html="$(curl --fail --silent --show-error --location --max-time 20 \
+            https://petertecnet.com.br/blog/como-criar-catalogo-digital-para-empresa)"
+          grep -Fq "Como criar um catálogo digital para sua empresa" <<<"$article_html"
+          grep -Fq "petertecnetlogo.png" <<<"$article_html"
 
           service_html="$(curl --fail --silent --show-error --location --max-time 20 \
             https://petertecnet.com.br/servicos/desenvolvimento-de-software)"
