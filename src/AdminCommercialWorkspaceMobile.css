@@ -1,5 +1,110 @@
 /* Mobile-first management layout for Cadastro e edição assistidos.
    Keeps the record browser compact and gives the editor most of the viewport. */
+
+/* Desktop/tablet-landscape containment for the assisted commercial workspace.
+   The dialog must own the viewport while open so the persistent admin sidebar,
+   floating voice command and legacy shell never steal horizontal space from it. */
+@media (min-width: 981px) {
+  .aco-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    box-sizing: border-box !important;
+    padding: 18px !important;
+    overflow: hidden !important;
+    z-index: 2147483000 !important;
+    isolation: isolate;
+  }
+
+  .aco-workspace {
+    width: min(1540px, 100%) !important;
+    max-width: calc(100vw - 36px) !important;
+    height: calc(100dvh - 36px) !important;
+    max-height: calc(100dvh - 36px) !important;
+    min-width: 0 !important;
+    margin: auto !important;
+  }
+
+  .aco-header,
+  .aco-tabs,
+  .aco-notice,
+  .aco-content,
+  .aco-records,
+  .aco-editor,
+  .aco-editor-title,
+  .aco-completeness,
+  .aco-editor form,
+  .aco-form-section,
+  .aco-form-grid {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .aco-header > div:first-child,
+  .aco-tabs > button,
+  .aco-tabs > button span,
+  .aco-records-head > div,
+  .aco-record,
+  .aco-record > span:nth-child(2) {
+    min-width: 0;
+  }
+
+  .aco-content {
+    width: 100%;
+    grid-template-columns: clamp(270px, 21vw, 340px) minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .aco-records {
+    width: auto;
+    overflow: hidden;
+  }
+
+  .aco-editor {
+    width: 100%;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+  }
+
+  .aco-editor-title,
+  .aco-completeness,
+  .aco-editor form {
+    width: 100%;
+  }
+
+  .aco-form-grid > *,
+  .aco-choice-grid > *,
+  .aco-toggle-grid > * {
+    min-width: 0;
+  }
+
+  .aco-savebar {
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+@media (min-width: 981px) and (max-width: 1260px) {
+  .aco-content { grid-template-columns: 280px minmax(0, 1fr); }
+  .aco-editor { padding-inline: 22px; }
+  .aco-editor-title h2 { font-size: clamp(24px, 2.6vw, 31px); }
+  .aco-form-grid { gap: 13px; }
+}
+
+@media (min-width: 981px) and (max-width: 1120px) {
+  .aco-content { grid-template-columns: 250px minmax(0, 1fr); }
+  .aco-editor { padding-inline: 18px; }
+  .aco-form-grid { grid-template-columns: 1fr; }
+  .aco-wide { grid-column: auto; }
+  .aco-choice-grid,
+  .aco-toggle-grid { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 980px) {
   .aco-backdrop { overflow: hidden; }
   .aco-workspace {
