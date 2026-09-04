@@ -127,6 +127,10 @@ function AdminEstablishmentsPage() {
   const [apps, setApps] = useState([])
   const [query, setQuery] = useState('')
   const [ownerQuery, setOwnerQuery] = useState('')
+  const [ownerSnapshot, setOwnerSnapshot] = useState(null)
+  const [ownerResults, setOwnerResults] = useState([])
+  const [ownerSearched, setOwnerSearched] = useState(false)
+  const [ownerBusy, setOwnerBusy] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(emptyForm)
   const [loading, setLoading] = useState(true)
@@ -176,10 +180,15 @@ function AdminEstablishmentsPage() {
     return Math.round((checks.filter(Boolean).length / checks.length) * 100)
   }, [form])
 
+  const ownerCandidates = ownerSearched ? ownerResults : (editingId ? [] : ownerOptions)
+
   function startNew() {
     setEditingId(null)
     setForm(emptyForm)
     setOwnerQuery('')
+    setOwnerSnapshot(null)
+    setOwnerResults([])
+    setOwnerSearched(false)
     setError('')
     setSuccess('')
     setCepStatus('')
@@ -188,7 +197,10 @@ function AdminEstablishmentsPage() {
   function edit(row) {
     setEditingId(row.id)
     setForm(normalizeEstablishment(row))
-    setOwnerQuery(row?.user?.email || fullName(row?.user || {}))
+    setOwnerQuery('')
+    setOwnerSnapshot(row?.user || null)
+    setOwnerResults([])
+    setOwnerSearched(false)
     setError('')
     setSuccess('')
     setCepStatus('')
@@ -203,6 +215,127 @@ function AdminEstablishmentsPage() {
       const primary = next.includes(Number(current.app_id)) ? Number(current.app_id) : next[0] || ''
       return { ...current, app_ids: next, app_id: primary }
     })
+  }
+
+  async function searchOwner() {
+    const term = ownerQuery.trim()
+    if (!term) {
+      setError('Informe o e-mail, nome ou usuário do novo proprietário.')
+      return
+    }
+
+    setOwnerBusy(true)
+    setOwnerSearched(true)
+    setError('')
+    setSuccess('')
+    try {
+      const result = await api(`/admin/ecosystem/users?search=${encodeURIComponent(term)}`)
+      setOwnerResults(result?.users || result?.data || [])
+    } catch (requestError) {
+      setOwnerResults([])
+      setError(requestError.message)
+    } finally {
+      setOwnerBusy(false)
+    }
+  }
+
+  function rememberOwner(user) {
+    if (!user?.id) return
+    setUsers(current => current.some(item => Number(item.id) === Number(user.id)) ? current : [user, ...current])
+    setOwnerSnapshot(user)
+    setForm(current => ({ ...current, user_id: Number(user.id) }))
+  }
+
+  async function transferOwner(user, invitation = null, skipConfirm = false) {
+    if (!editingId || !user?.id) return false
+    if (Number(user.id) === Number(form.user_id)) {
+      setError('Este usuário já é o proprietário do estabelecimento.')
+      return false
+    }
+
+    const label = form.fantasy || form.name || `#${editingId}`
+    if (!skipConfirm && !window.confirm(`Transferir a propriedade de ${label} para ${user.email}?`)) return false
+
+    setOwnerBusy(true)
+    setError('')
+    setSuccess('')
+    try {
+      const result = await api(`/admin/ecosystem/establishments/${editingId}/owner`, {
+        method: 'PUT',
+        body: JSON.stringify({ user_id: Number(user.id) }),
+      })
+      const fresh = result?.establishment || {}
+      const nextOwner = fresh?.user || user
+      rememberOwner(nextOwner)
+      setRows(current => current.map(row => Number(row.id) === Number(editingId) ? { ...row, ...fresh, user_id: nextOwner.id, user: nextOwner } : row))
+      setOwnerQuery('')
+      setOwnerResults([])
+      setOwnerSearched(false)
+      const invitationMessage = invitation
+        ? invitation.mail_sent === false
+          ? ' O usuário foi criado, mas o e-mail de ativação não pôde ser enviado; reenvie o convite pelo onboarding.'
+          : ' O usuário recebeu um convite para ativar a conta e criar a própria senha.'
+        : ''
+      setSuccess(`Propriedade transferida para ${nextOwner.email}.${invitationMessage}`)
+      return true
+    } catch (requestError) {
+      setError(requestError.message)
+      return false
+    } finally {
+      setOwnerBusy(false)
+    }
+  }
+
+  async function chooseOwner(user) {
+    if (editingId) return transferOwner(user)
+    rememberOwner(user)
+    setOwnerQuery(user?.email || fullName(user))
+    setOwnerResults([])
+    setOwnerSearched(false)
+    setSuccess(`Responsável selecionado: ${user?.email || fullName(user)}.`)
+    return true
+  }
+
+  async function inviteOwner() {
+    const email = ownerQuery.trim().toLowerCase()
+    if (!email || !email.includes('@')) {
+      setError('Informe um e-mail válido para criar e convidar o novo proprietário.')
+      return
+    }
+    const appId = Number(form.app_id) || Number(form.app_ids?.[0]) || null
+    if (!appId) {
+      setError('Selecione pelo menos uma aplicação antes de criar e convidar o novo proprietário.')
+      return
+    }
+    const action = editingId ? 'transferir este estabelecimento' : 'selecionar como responsável'
+    if (!window.confirm(`Criar ou reutilizar a conta ${email}, enviar o convite e ${action}?`)) return
+
+    setOwnerBusy(true)
+    setError('')
+    setSuccess('')
+    try {
+      const invitation = await api('/admin/ecosystem/onboarding', {
+        method: 'POST',
+        body: JSON.stringify({ email, app_id: appId }),
+      })
+      const user = invitation?.user
+      if (!user?.id) throw new Error('A API não retornou o usuário necessário para concluir a operação.')
+      setOwnerBusy(false)
+      if (editingId) {
+        await transferOwner(user, invitation, true)
+      } else {
+        rememberOwner(user)
+        setOwnerResults([])
+        setOwnerSearched(false)
+        setOwnerQuery(user.email || email)
+        setSuccess(invitation.mail_sent === false
+          ? `Usuário ${user.email} criado e selecionado, mas o e-mail de ativação não pôde ser enviado.`
+          : `Usuário ${user.email} criado, selecionado e convidado para ativar a conta.`)
+      }
+    } catch (requestError) {
+      setError(requestError.message)
+      setOwnerBusy(false)
+    }
   }
 
   async function lookupCep() {
@@ -238,7 +371,7 @@ function AdminEstablishmentsPage() {
       name: form.name.trim(), fantasy: clean(form.fantasy), cnpj: clean(form.cnpj), type: clean(form.type), category: clean(form.category),
       phone: clean(form.phone), email: clean(form.email), description: clean(form.description), city: clean(form.city), uf: clean(form.uf)?.toUpperCase() || null,
       cep: clean(form.cep), address: clean(form.address), website_url: clean(form.website_url), instagram_url: clean(form.instagram_url),
-      user_id: Number(form.user_id), app_id: appId, app_ids: appIds, is_published: !!form.is_published, is_approved: !!form.is_approved,
+      ...(!editingId ? { user_id: Number(form.user_id) } : {}), app_id: appId, app_ids: appIds, is_published: !!form.is_published, is_approved: !!form.is_approved,
       is_featured: !!form.is_featured, is_cancelled: !!form.is_cancelled,
     }
     setSaving(true)
@@ -249,6 +382,8 @@ function AdminEstablishmentsPage() {
       if (saved?.id) {
         setEditingId(saved.id)
         setForm(normalizeEstablishment(saved))
+        const savedOwner = saved?.user || users.find(user => Number(user.id) === Number(saved?.user_id || form.user_id)) || ownerSnapshot
+        setOwnerSnapshot(savedOwner || null)
       }
       setSuccess(editingId ? 'Estabelecimento atualizado com sucesso.' : 'Estabelecimento cadastrado com sucesso.')
     } catch (requestError) {
@@ -285,9 +420,11 @@ function AdminEstablishmentsPage() {
             <Field label="Categoria" value={form.category} onChange={value => setValue('category', value)} placeholder="Ex.: Eventos" />
           </div></section>
 
-          <section className="est-section"><div className="est-section-title"><h3>Responsável e aplicações</h3><p>Troque o proprietário aqui quando o cadastro tiver sido criado por outro usuário.</p></div><div className="est-grid">
-            <label className="est-field est-wide"><span>Buscar responsável</span><input value={ownerQuery} onChange={event => setOwnerQuery(event.target.value)} placeholder="Nome ou e-mail do usuário" /></label>
-            <div className="est-owner-results est-wide">{ownerOptions.map(user => <button type="button" key={user.id} className={Number(form.user_id) === Number(user.id) ? 'is-selected' : ''} onClick={() => { setValue('user_id', Number(user.id)); setOwnerQuery(user.email || fullName(user)) }}><b>{fullName(user)}</b><span>{user.email}</span>{Number(form.user_id) === Number(user.id) && <em>Responsável atual</em>}</button>)}</div>
+          <section className="est-section"><div className="est-section-title"><h3>Proprietário e aplicações</h3><p>{editingId ? 'A troca de proprietário é uma operação explícita e auditada, separada das demais alterações.' : 'Escolha quem será o proprietário deste estabelecimento.'}</p></div><div className="est-grid">
+            {editingId && <div className="est-owner-current est-wide"><span>Proprietário atual</span><b>{ownerSnapshot ? fullName(ownerSnapshot) : 'Usuário não identificado'}</b><small>{ownerSnapshot?.email || `Usuário #${form.user_id || '—'}`}</small></div>}
+            <div className="est-owner-searchbar est-wide"><input value={ownerQuery} onChange={event => { setOwnerQuery(event.target.value); setOwnerSearched(false); setOwnerResults([]) }} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); searchOwner() } }} placeholder="E-mail, nome ou usuário do novo proprietário" /><button type="button" onClick={searchOwner} disabled={ownerBusy}>{ownerBusy ? 'Buscando…' : 'Buscar usuário'}</button></div>
+            {ownerCandidates.length > 0 && <div className="est-owner-results est-wide">{ownerCandidates.map(user => <button type="button" key={user.id} className={Number(form.user_id) === Number(user.id) ? 'is-selected' : ''} disabled={ownerBusy || (editingId && Number(form.user_id) === Number(user.id))} onClick={() => chooseOwner(user)}><b>{fullName(user)}</b><span>{user.email}</span>{Number(form.user_id) === Number(user.id) && <em>Proprietário atual</em>}{editingId && Number(form.user_id) !== Number(user.id) && <em>Transferir propriedade</em>}</button>)}</div>}
+            {ownerSearched && !ownerBusy && ownerCandidates.length === 0 && <div className="est-owner-empty est-wide"><div><b>Usuário não encontrado</b><span>Se o cliente ainda não tiver conta, crie pelo e-mail e envie o convite de ativação agora.</span></div><button type="button" onClick={inviteOwner} disabled={ownerBusy}>{editingId ? 'Criar usuário, convidar e transferir' : 'Criar usuário, convidar e selecionar'}</button></div>}
             <div className="est-app-grid est-wide">{apps.map(app => { const checked = form.app_ids.includes(Number(app.id)); return <label key={app.id} className={checked ? 'est-app is-selected' : 'est-app'}><input type="checkbox" checked={checked} onChange={event => toggleApp(app.id, event.target.checked)} /><span><b>{app.name}</b><small>{checked ? 'Vinculada' : 'Disponível'}</small></span></label> })}</div>
           </div></section>
 
