@@ -47,6 +47,7 @@ export const fetchCognitiveLearningEvents = (agentId, params = {}, signal) => {
   return request(`/cognition/agents/${agentId}/learning-events${query ? `?${query}` : ''}`, { signal })
 }
 export const fetchCognitiveExperiments = signal => request('/cognition/research/experiments', { signal })
+export const bootstrapCognitiveExperiments = () => request('/cognition/research/bootstrap', { method: 'POST' })
 export const fetchCognitiveExperimentRuns = (agentId, signal) => request(`/cognition/agents/${agentId}/research/runs?per_page=20`, { signal })
 export const captureCognitiveState = agentId => request(`/cognition/agents/${agentId}/state`, { method: 'POST' })
 export const updateCognitiveAgent = (agentId, payload) => request(`/cognition/agents/${agentId}`, { method: 'PUT', body: payload })
