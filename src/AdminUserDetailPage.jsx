@@ -50,6 +50,15 @@ function tone(value) {
   return 'neutral'
 }
 
+function normalizeResourceToken(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('pt-BR')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+}
+
 function activityQuery(filters, page = 1) {
   const params = new URLSearchParams()
   Object.entries(filters).forEach(([key, value]) => {
@@ -249,7 +258,22 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
     scrollToDetail(sectionId)
   }
 
-  function openResourceDetail(resource) {
+  function resolveResourceKey(candidates) {
+    const candidateTokens = (Array.isArray(candidates) ? candidates : [candidates]).map(normalizeResourceToken)
+
+    const exact = resourceFilterGroups.find(group => candidateTokens.includes(normalizeResourceToken(group.key)))
+    if (exact) return exact.key
+
+    const byLabel = resourceFilterGroups.find(group => {
+      const labelToken = normalizeResourceToken(group.label)
+      return candidateTokens.some(candidate => labelToken === candidate || labelToken.includes(candidate) || candidate.includes(labelToken))
+    })
+
+    return byLabel?.key || (Array.isArray(candidates) ? candidates[0] : candidates)
+  }
+
+  function openResourceDetail(candidates) {
+    const resource = resolveResourceKey(candidates)
     setResourceFilters({ q: '', app_id: '', resource })
     setTab('resources')
     scrollToDetail('aud-resources')
@@ -297,12 +321,12 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
     <div className="aud-metrics">
       <Metric label="Interações" value={compact(summary.total_interactions)} detail={`${compact(summary.interactions_30d)} nos últimos 30 dias`} onClick={() => openTabDetail('activity', 'aud-activity')}/>
       <Metric label="Aplicações" value={summary.applications || 0} detail="vínculos de acesso" onClick={() => openTabDetail('overview', 'aud-applications')}/>
-      <Metric label="Estabelecimentos" value={summary.establishments || 0} detail={`${summary.productions || 0} produção(ões)`} onClick={() => openResourceDetail('establishments')}/>
-      <Metric label="Itens" value={summary.items || 0} detail="diretos ou dos estabelecimentos" onClick={() => openResourceDetail('items')}/>
-      <Metric label="Employers" value={summary.employments || 0} detail={`${summary.team_members || 0} membros na equipe`} onClick={() => openResourceDetail('employments')}/>
-      <Metric label="Eventos" value={summary.events || 0} detail="das produções vinculadas" onClick={() => openResourceDetail('events')}/>
-      <Metric label="Pedidos" value={summary.orders || 0} detail="compras, vendas e agendamentos" onClick={() => openResourceDetail('orders')}/>
-      <Metric label="Ingressos" value={summary.event_passes || 0} detail="participações do usuário" onClick={() => openResourceDetail('event_passes')}/>
+      <Metric label="Estabelecimentos" value={summary.establishments || 0} detail={`${summary.productions || 0} produção(ões)`} onClick={() => openResourceDetail(['establishments', 'establishment', 'estabelecimentos', 'estabelecimento'])}/>
+      <Metric label="Itens" value={summary.items || 0} detail="diretos ou dos estabelecimentos" onClick={() => openResourceDetail(['items', 'item', 'itens'])}/>
+      <Metric label="Employers" value={summary.employments || 0} detail={`${summary.team_members || 0} membros na equipe`} onClick={() => openResourceDetail(['employments', 'employers', 'employer', 'equipe', 'membros'])}/>
+      <Metric label="Eventos" value={summary.events || 0} detail="das produções vinculadas" onClick={() => openResourceDetail(['events', 'event', 'eventos', 'evento'])}/>
+      <Metric label="Pedidos" value={summary.orders || 0} detail="compras, vendas e agendamentos" onClick={() => openResourceDetail(['orders', 'order', 'pedidos', 'pedido', 'agendamentos', 'vendas', 'compras'])}/>
+      <Metric label="Ingressos" value={summary.event_passes || 0} detail="participações do usuário" onClick={() => openResourceDetail(['event_passes', 'passes', 'tickets', 'ingressos', 'participacoes'])}/>
     </div>
 
     <nav className="aud-tabs" aria-label="Seções do usuário">
