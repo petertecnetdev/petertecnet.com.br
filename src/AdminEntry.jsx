@@ -10,6 +10,7 @@ import AdminDeepLinkBridge from './AdminDeepLinkBridge.jsx'
 import AdminUiProvider from './admin/AdminUiProvider.jsx'
 import AdminWorkspaceStateBridge from './admin/AdminWorkspaceStateBridge.jsx'
 import AdminRealtimeBridge from './admin/AdminRealtimeBridge.jsx'
+import AdminInteractionGuard from './admin/AdminInteractionGuard.jsx'
 import { adminTabFromLocation, normalizeAdminPath } from './admin/AdminNavigationConfig.js'
 import { ADMIN_NAVIGATION_CHANGED_EVENT } from './admin/AdminUiEvents.js'
 import './admin/AdminTokens.css'
@@ -90,6 +91,7 @@ export default function AdminEntry() {
 
   return (
     <AdminUiProvider>
+      <AdminInteractionGuard />
       <AdminPersistentShell activeKey={activeKey}>
         <AdminRouteErrorBoundary key={path}>
           <Suspense fallback={<AdminRouteLoading />}>
