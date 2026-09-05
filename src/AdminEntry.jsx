@@ -20,6 +20,7 @@ import './AdminExperience.css'
 import './admin/AdminFutureTheme.css'
 import './admin/AdminNavigationState.css'
 import './admin/AdminSidebarRefinement.css'
+import './admin/AdminMobileHardening.css'
 
 const LegacyAdminPage = lazy(() => import('./Admin.js').then(module => ({ default: module.AdminPage })))
 const LaoraAdminCenter = lazy(() => import('./LaoraAdminCenter.jsx'))
