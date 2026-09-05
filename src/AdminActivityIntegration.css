@@ -1,0 +1,19 @@
+#activity.activity-center-enhanced > :not(#activity-center-portal-root) {
+  display: none !important;
+}
+
+#activity.activity-center-enhanced {
+  scroll-margin-top: 92px;
+}
+
+.activity-center-portal-root {
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  #activity.activity-center-enhanced {
+    scroll-margin-top: 72px;
+  }
+}

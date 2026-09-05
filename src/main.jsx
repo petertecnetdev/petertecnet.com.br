@@ -5,6 +5,7 @@ import AdminAppNavigation from './AdminAppNavigation.jsx'
 import AdminGlobalSearch from './AdminGlobalSearch.jsx'
 import AdminEstablishmentsIntegration from './AdminEstablishmentsIntegration.jsx'
 import AdminItemsIntegration from './AdminItemsIntegration.jsx'
+import AdminActivityIntegration from './AdminActivityIntegration.jsx'
 import './App.css'
 import './AdminEstablishmentsFeedback.css'
 import './AdminResponsive.css'
@@ -17,6 +18,7 @@ createRoot(document.getElementById('root')).render(
     <AdminGlobalSearch />
     <AdminEstablishmentsIntegration />
     <AdminItemsIntegration />
+    <AdminActivityIntegration />
     <AdminAppNavigation />
   </StrictMode>,
 )
