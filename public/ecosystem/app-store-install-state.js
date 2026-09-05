@@ -73,6 +73,10 @@
     }
   };
 
+  const setButtonText = (button, text) => {
+    if (safeText(button.textContent) !== text) button.textContent = text;
+  };
+
   const apply = () => {
     scheduled = false;
 
@@ -96,15 +100,16 @@
       const openUrl = directAppUrl(installIntentUrl);
 
       if (isInstalled) {
-        button.textContent = 'Abrir';
+        setButtonText(button, 'Abrir');
         button.dataset.installState = 'installed';
         button.dataset.installUrl = openUrl;
         button.setAttribute('aria-label', `Abrir ${slug || 'aplicativo'}`);
         return;
       }
 
+      const label = mobile ? 'Instalar' : 'Abrir aplicativo';
       button.dataset.installState = 'not-installed';
-      button.textContent = mobile ? 'Instalar' : 'Abrir aplicativo';
+      setButtonText(button, label);
       button.dataset.installUrl = mobile ? installIntentUrl : openUrl;
       button.setAttribute('aria-label', mobile ? `Instalar ${slug || 'aplicativo'}` : `Abrir ${slug || 'aplicativo'}`);
     });
