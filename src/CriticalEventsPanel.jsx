@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { showTextDialog } from './utils/uiDialog.js'
 import './CriticalEventsPanel.css'
 
 const fmt = value => value ? new Date(value).toLocaleString('pt-BR') : '—'
@@ -163,7 +164,14 @@ export default function CriticalEventsPanel({ security, onOpenIssues }) {
       setCopied(event.fingerprint)
       window.setTimeout(() => setCopied(''), 1800)
     } catch {
-      window.prompt('Copie o diagnóstico:', payload)
+      await showTextDialog({
+        title: 'Copiar diagnóstico',
+        message: 'O navegador não liberou a área de transferência automaticamente. O diagnóstico está selecionável abaixo para cópia manual.',
+        textLabel: 'Diagnóstico técnico',
+        textValue: payload,
+        textRows: 12,
+        confirmLabel: 'Fechar',
+      })
     }
   }
 
