@@ -48,7 +48,7 @@ function parse(html) {
   return JSON.parse(match[1].replaceAll('&quot;', '"').replaceAll('&amp;', '&').replaceAll('&#39;', "'"))
 }
 
-function runProbe(url, common, attempts = 3) {
+function runProbe(url, common, attempts = 6) {
   let last = null
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     const run = spawnSync(chrome, [...common, '--dump-dom', url], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 })

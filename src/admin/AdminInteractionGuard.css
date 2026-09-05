@@ -1,0 +1,77 @@
+/*
+ * Admin interaction safety layer.
+ *
+ * The legacy loading indicator used to cover the complete viewport with a
+ * high-z-index fixed layer. A slow request therefore made a healthy React
+ * application look frozen because every pointer event landed on the loader.
+ * In the Admin Center the indicator is now a passive status toast: requests
+ * remain visible, but navigation and recovery actions stay available.
+ */
+body.admin-interaction-guard-active .peter-processing,
+body:has(.admin-persistent-shell) .peter-processing {
+  inset: auto clamp(14px, 2vw, 26px) clamp(14px, 2vw, 26px) auto !important;
+  width: min(360px, calc(100vw - 28px)) !important;
+  min-height: 70px !important;
+  padding: 12px 14px !important;
+  display: flex !important;
+  place-items: initial !important;
+  align-content: initial !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  border: 1px solid rgba(88, 222, 240, .2) !important;
+  border-radius: 16px !important;
+  background: rgba(4, 20, 28, .94) !important;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, .34) !important;
+  backdrop-filter: blur(16px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(125%) !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+body.admin-interaction-guard-active .peter-processing__visual,
+body:has(.admin-persistent-shell) .peter-processing__visual {
+  width: 42px !important;
+  height: 42px !important;
+  flex: 0 0 42px !important;
+}
+
+body.admin-interaction-guard-active .peter-processing__visual img,
+body:has(.admin-persistent-shell) .peter-processing__visual img {
+  width: 25px !important;
+  height: 25px !important;
+}
+
+body.admin-interaction-guard-active .peter-processing strong,
+body:has(.admin-persistent-shell) .peter-processing strong {
+  min-width: 0 !important;
+  margin: 0 !important;
+  color: #c9eef3 !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+}
+
+/* An aria-hidden fixed layer must never receive pointer input. This rule is
+   deliberately narrow and mirrors the runtime watchdog repair. */
+body.admin-interaction-guard-active [aria-hidden="true"][data-admin-auto-unblocked] {
+  pointer-events: none !important;
+}
+
+@media (max-width: 760px) {
+  body.admin-interaction-guard-active .peter-processing,
+  body:has(.admin-persistent-shell) .peter-processing {
+    right: 10px !important;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+    width: min(330px, calc(100vw - 20px)) !important;
+    min-height: 58px !important;
+    padding: 9px 11px !important;
+    border-radius: 14px !important;
+  }
+
+  body.admin-interaction-guard-active .peter-processing__visual,
+  body:has(.admin-persistent-shell) .peter-processing__visual {
+    width: 34px !important;
+    height: 34px !important;
+    flex-basis: 34px !important;
+  }
+}
