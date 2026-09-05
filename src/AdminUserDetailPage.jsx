@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import './AdminUserDetailPage.css'
+import './AdminUserDetailPage.actions.css'
 
 const EMPTY_ACTIVITY_FILTERS = {
   q: '', app_id: '', type: '', outcome: '', severity: '', environment: '', entity_type: '', from: '', to: '', sort: 'newest', per_page: '50',
@@ -58,8 +59,19 @@ function activityQuery(filters, page = 1) {
   return params.toString()
 }
 
-function Metric({ label, value, detail }) {
-  return <div className="aud-metric"><span>{label}</span><strong>{value ?? 0}</strong><small>{detail}</small></div>
+function Metric({ label, value, detail, onClick }) {
+  const content = <>
+    <span>{label}</span>
+    <strong>{value ?? 0}</strong>
+    <small>{detail}</small>
+    {onClick && <span className="aud-metric-link">Ver detalhes →</span>}
+  </>
+
+  if (onClick) {
+    return <button type="button" className="aud-metric aud-metric-button" onClick={onClick} aria-label={`Ver detalhes de ${label}`}>{content}</button>
+  }
+
+  return <div className="aud-metric">{content}</div>
 }
 
 function Empty({ children = 'Nenhum dado disponível neste recorte.' }) {
@@ -169,15 +181,17 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
     return all.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'pt-BR'))
   }, [applications, platforms])
 
-  const resourceGroups = useMemo(() => Object.entries(resources)
-    .filter(([, group]) => Number(group?.total || 0) > 0)
+  const resourceFilterGroups = useMemo(() => Object.entries(resources)
     .map(([key, group]) => ({ key, ...group })), [resources])
+
+  const resourceGroups = useMemo(() => resourceFilterGroups
+    .filter(group => Number(group?.total || 0) > 0), [resourceFilterGroups])
 
   const filteredResources = useMemo(() => {
     const query = resourceFilters.q.trim().toLocaleLowerCase('pt-BR')
     const groups = resourceFilters.resource === 'all'
       ? resourceGroups
-      : resourceGroups.filter(group => group.key === resourceFilters.resource)
+      : resourceFilterGroups.filter(group => group.key === resourceFilters.resource)
 
     return groups.map(group => ({
       ...group,
@@ -192,7 +206,7 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
         return haystack.includes(query)
       }),
     })).filter(group => group.data.length > 0)
-  }, [resourceFilters, resourceGroups])
+  }, [resourceFilters, resourceFilterGroups, resourceGroups])
 
   async function toggleAccess(application) {
     const platform = platforms.find(item => Number(item.application?.id) === Number(application.id))
@@ -222,6 +236,23 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
     const next = { ...EMPTY_ACTIVITY_FILTERS }
     setActivityFilters(next)
     await loadActivity(1, next)
+  }
+
+  function scrollToDetail(sectionId) {
+    window.setTimeout(() => {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 0)
+  }
+
+  function openTabDetail(nextTab, sectionId) {
+    setTab(nextTab)
+    scrollToDetail(sectionId)
+  }
+
+  function openResourceDetail(resource) {
+    setResourceFilters({ q: '', app_id: '', resource })
+    setTab('resources')
+    scrollToDetail('aud-resources')
   }
 
   if (loading) return <div className="aud-page aud-loading"><div className="aud-loader"/><p>Montando a visão 360° do usuário…</p></div>
@@ -264,14 +295,14 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
     </section>
 
     <div className="aud-metrics">
-      <Metric label="Interações" value={compact(summary.total_interactions)} detail={`${compact(summary.interactions_30d)} nos últimos 30 dias`}/>
-      <Metric label="Aplicações" value={summary.applications || 0} detail="vínculos de acesso"/>
-      <Metric label="Estabelecimentos" value={summary.establishments || 0} detail={`${summary.productions || 0} produção(ões)`}/>
-      <Metric label="Itens" value={summary.items || 0} detail="diretos ou dos estabelecimentos"/>
-      <Metric label="Employers" value={summary.employments || 0} detail={`${summary.team_members || 0} membros na equipe`}/>
-      <Metric label="Eventos" value={summary.events || 0} detail="das produções vinculadas"/>
-      <Metric label="Pedidos" value={summary.orders || 0} detail="compras, vendas e agendamentos"/>
-      <Metric label="Ingressos" value={summary.event_passes || 0} detail="participações do usuário"/>
+      <Metric label="Interações" value={compact(summary.total_interactions)} detail={`${compact(summary.interactions_30d)} nos últimos 30 dias`} onClick={() => openTabDetail('activity', 'aud-activity')}/>
+      <Metric label="Aplicações" value={summary.applications || 0} detail="vínculos de acesso" onClick={() => openTabDetail('overview', 'aud-applications')}/>
+      <Metric label="Estabelecimentos" value={summary.establishments || 0} detail={`${summary.productions || 0} produção(ões)`} onClick={() => openResourceDetail('establishments')}/>
+      <Metric label="Itens" value={summary.items || 0} detail="diretos ou dos estabelecimentos" onClick={() => openResourceDetail('items')}/>
+      <Metric label="Employers" value={summary.employments || 0} detail={`${summary.team_members || 0} membros na equipe`} onClick={() => openResourceDetail('employments')}/>
+      <Metric label="Eventos" value={summary.events || 0} detail="das produções vinculadas" onClick={() => openResourceDetail('events')}/>
+      <Metric label="Pedidos" value={summary.orders || 0} detail="compras, vendas e agendamentos" onClick={() => openResourceDetail('orders')}/>
+      <Metric label="Ingressos" value={summary.event_passes || 0} detail="participações do usuário" onClick={() => openResourceDetail('event_passes')}/>
     </div>
 
     <nav className="aud-tabs" aria-label="Seções do usuário">
@@ -291,7 +322,7 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
         {user.about && <div className="aud-about"><span>Sobre</span><p>{user.about}</p></div>}
       </section>
 
-      <section className="aud-card">
+      <section className="aud-card" id="aud-applications">
         <header><div><span>PLATAFORMAS</span><h3>Uso e acesso por aplicação</h3><p>A mesma ficha acompanha o usuário em todo o ecossistema.</p></div></header>
         <div className="aud-platform-grid">
           {platforms.length ? platforms.map(platform => {
@@ -319,13 +350,13 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
       </section>
     </div>}
 
-    {tab === 'resources' && <div className="aud-section-stack">
+    {tab === 'resources' && <div className="aud-section-stack" id="aud-resources">
       <section className="aud-card aud-filter-card">
         <header><div><span>FILTROS</span><h3>Vínculos e recursos do ecossistema</h3></div><button className="aud-secondary" onClick={() => setResourceFilters({ q: '', app_id: '', resource: 'all' })}>Limpar</button></header>
         <div className="aud-resource-filters">
           <label className="aud-filter-wide">Buscar<input value={resourceFilters.q} onChange={event => setResourceFilters({ ...resourceFilters, q: event.target.value })} placeholder="Nome, categoria, estabelecimento, evento, função…"/></label>
           <label>Plataforma<select value={resourceFilters.app_id} onChange={event => setResourceFilters({ ...resourceFilters, app_id: event.target.value })}><option value="">Todas</option>{applicationOptions.map(app => <option key={app.id} value={app.id}>{app.name}</option>)}</select></label>
-          <label>Tipo de vínculo<select value={resourceFilters.resource} onChange={event => setResourceFilters({ ...resourceFilters, resource: event.target.value })}><option value="all">Todos</option>{resourceGroups.map(group => <option key={group.key} value={group.key}>{group.label} ({group.total})</option>)}</select></label>
+          <label>Tipo de vínculo<select value={resourceFilters.resource} onChange={event => setResourceFilters({ ...resourceFilters, resource: event.target.value })}><option value="all">Todos</option>{resourceFilterGroups.map(group => <option key={group.key} value={group.key}>{group.label} ({group.total})</option>)}</select></label>
         </div>
       </section>
 
@@ -335,7 +366,7 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
       </section>) : <section className="aud-card"><Empty>Nenhum vínculo corresponde aos filtros atuais.</Empty></section>}
     </div>}
 
-    {tab === 'activity' && <div className="aud-section-stack">
+    {tab === 'activity' && <div className="aud-section-stack" id="aud-activity">
       <section className="aud-card aud-filter-card">
         <header><div><span>TELEMETRIA</span><h3>Filtros avançados de atividade</h3><p>Consulte a linha do tempo do usuário diretamente na API central.</p></div></header>
         <form className="aud-activity-filters" onSubmit={submitActivityFilters}>
