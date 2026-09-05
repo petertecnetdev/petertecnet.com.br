@@ -6,8 +6,10 @@
   const appName = script?.dataset?.appName || document.title || 'Aplicativo';
   const swPath = script?.dataset?.sw || '';
   const manifestPath = script?.dataset?.manifest || '';
+  const detectInstalledRelatedApp = script?.dataset?.detectInstalled === 'related-app';
   const searchParams = new URLSearchParams(window.location.search);
   const installIntent = searchParams.get('install') === '1';
+  const installStateKey = `pt:pwa-installed:${window.location.origin}:${appName}`;
 
   if (manifestPath && !document.querySelector('link[rel="manifest"]')) {
     const link = document.createElement('link');
@@ -28,11 +30,21 @@
     return /Android|iPhone|iPad|iPod|Mobile|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
       (navigator.maxTouchPoints > 1 && window.matchMedia('(max-width: 820px)').matches);
   };
+  const readInstalledState = () => {
+    try { return window.localStorage.getItem(installStateKey) === '1'; } catch (_) { return false; }
+  };
+  const writeInstalledState = value => {
+    try {
+      if (value) window.localStorage.setItem(installStateKey, '1');
+      else window.localStorage.removeItem(installStateKey);
+    } catch (_) {}
+  };
 
-  if (isStandalone() || !isMobileDevice()) return;
+  if (!isMobileDevice()) return;
 
   let deferredPrompt = null;
-  let installed = false;
+  let installed = isStandalone() || readInstalledState();
+  if (isStandalone()) writeInstalledState(true);
 
   const clearInstallIntent = () => {
     if (!installIntent || !window.history?.replaceState) return;
@@ -84,12 +96,15 @@
   window.addEventListener('beforeinstallprompt', event => {
     event.preventDefault();
     deferredPrompt = event;
+    installed = false;
+    writeInstalledState(false);
     button.dataset.ready = 'true';
     ensureMounted();
   });
 
   window.addEventListener('appinstalled', () => {
     installed = true;
+    writeInstalledState(true);
     deferredPrompt = null;
     clearInstallIntent();
     button.remove();
@@ -97,28 +112,54 @@
 
   window.PeterTecnetInstall = {
     isReady: () => Boolean(deferredPrompt),
+    isInstalled: () => installed || isStandalone(),
     open: () => button.click(),
   };
 
   function ensureMounted() {
     if (installed || isStandalone() || !isMobileDevice()) {
+      if (isStandalone()) {
+        installed = true;
+        writeInstalledState(true);
+      }
       button.remove();
       return;
     }
     if (document.body && !button.isConnected) document.body.appendChild(button);
   }
 
+  async function refreshInstalledState() {
+    if (isStandalone()) {
+      installed = true;
+      writeInstalledState(true);
+      ensureMounted();
+      return;
+    }
+
+    if (detectInstalledRelatedApp && typeof navigator.getInstalledRelatedApps === 'function') {
+      try {
+        const relatedApps = await navigator.getInstalledRelatedApps();
+        const hasInstalledPwa = relatedApps.some(app => app && app.platform === 'webapp');
+        installed = hasInstalledPwa;
+        writeInstalledState(hasInstalledPwa);
+      } catch (_) {}
+    }
+
+    ensureMounted();
+  }
+
   const observer = new MutationObserver(() => ensureMounted());
   const startPersistence = () => {
     ensureMounted();
+    refreshInstalledState();
     if (document.body) observer.observe(document.body, { childList: true });
   };
 
-  window.addEventListener('pageshow', ensureMounted);
+  window.addEventListener('pageshow', refreshInstalledState);
   window.addEventListener('popstate', ensureMounted);
   window.addEventListener('hashchange', ensureMounted);
   window.addEventListener('orientationchange', ensureMounted);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) ensureMounted(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshInstalledState(); });
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startPersistence, { once: true });
   else startPersistence();
