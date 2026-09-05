@@ -8,6 +8,7 @@ import './AdminSessionGuard.css'
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
 const OWNER_EMAIL = 'petertecnet@gmail.com'
+const VALIDATION_TIMEOUT_MS = 8000
 
 const ECOSYSTEM_LINKS = [
   { name: 'Cutinapp', description: 'Eventos, produtores e participantes', url: 'https://cutinapp.petertecnet.com.br/' },
@@ -29,9 +30,13 @@ function userDisplayName(user) {
 async function revokeSession(token) {
   if (!token) return
 
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), 5000)
+
   try {
     await fetch(`${API}/auth/logout`, {
       method: 'POST',
+      signal: controller.signal,
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
@@ -40,6 +45,8 @@ async function revokeSession(token) {
     })
   } catch {
     // A revogação remota é best-effort. A sessão local é sempre removida.
+  } finally {
+    window.clearTimeout(timeout)
   }
 }
 
@@ -51,6 +58,7 @@ export default function AdminSessionGuard() {
   const authorizedRef = useRef(false)
   const validatedTokenRef = useRef('')
   const rejectedTokenRef = useRef('')
+  const observedTokenRef = useRef(localStorage.getItem(TOKEN_KEY) || '')
   const validationSequenceRef = useRef(0)
 
   const setAuthorization = useCallback(value => {
@@ -58,10 +66,11 @@ export default function AdminSessionGuard() {
     setAuthorized(value)
   }, [])
 
-  const invalidateSession = useCallback(async (token, message, currentUser = null) => {
+  const invalidateSession = useCallback((token, message, currentUser = null) => {
     validationSequenceRef.current += 1
     validatedTokenRef.current = ''
     rejectedTokenRef.current = token || rejectedTokenRef.current
+    observedTokenRef.current = ''
     localStorage.removeItem(TOKEN_KEY)
     setAuthorization(false)
     setBlockedAccount(currentUser ? {
@@ -69,12 +78,13 @@ export default function AdminSessionGuard() {
       name: userDisplayName(currentUser),
     } : {})
     setNotice(message)
-    window.dispatchEvent(new Event('admin-session-expired'))
-    await revokeSession(token)
+    window.dispatchEvent(new CustomEvent('admin-session-expired', { detail: { message } }))
+    void revokeSession(token)
   }, [setAuthorization])
 
   const validateSession = useCallback(async () => {
-    const token = localStorage.getItem(TOKEN_KEY)
+    const token = localStorage.getItem(TOKEN_KEY) || ''
+    observedTokenRef.current = token
 
     if (!token) {
       validatedTokenRef.current = ''
@@ -85,9 +95,12 @@ export default function AdminSessionGuard() {
     if (authorizedRef.current && validatedTokenRef.current === token) return
 
     const sequence = ++validationSequenceRef.current
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => controller.abort(), VALIDATION_TIMEOUT_MS)
 
     try {
       const response = await fetch(`${API}/auth/me`, {
+        signal: controller.signal,
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -97,7 +110,7 @@ export default function AdminSessionGuard() {
       if (sequence !== validationSequenceRef.current) return
 
       if (response.status === 401 || response.status === 403) {
-        await invalidateSession(
+        invalidateSession(
           token,
           'A sessão encontrada não pode acessar o Admin Center. Faça logout e entre novamente com a conta administrativa correta.',
         )
@@ -106,6 +119,8 @@ export default function AdminSessionGuard() {
 
       if (!response.ok) {
         setAuthorization(false)
+        setBlockedAccount({})
+        setNotice('Não foi possível validar a sessão administrativa agora. Faça logout e entre novamente com a conta correta.')
         return
       }
 
@@ -114,7 +129,7 @@ export default function AdminSessionGuard() {
       const email = String(currentUser?.email || '').trim().toLowerCase()
 
       if (email !== OWNER_EMAIL) {
-        await invalidateSession(
+        invalidateSession(
           token,
           `Você está conectado como ${email || 'outro usuário'}. O Admin Center aceita somente ${OWNER_EMAIL}.`,
           currentUser,
@@ -127,8 +142,17 @@ export default function AdminSessionGuard() {
       setBlockedAccount(null)
       setNotice('')
       setAuthorization(true)
-    } catch {
-      if (sequence === validationSequenceRef.current) setAuthorization(false)
+    } catch (error) {
+      if (sequence !== validationSequenceRef.current) return
+      setAuthorization(false)
+      setBlockedAccount({})
+      setNotice(
+        error?.name === 'AbortError'
+          ? 'A validação da sessão demorou além do esperado. Faça logout e entre novamente com a conta correta.'
+          : 'Não foi possível validar sua sessão administrativa. Verifique a API ou entre novamente.',
+      )
+    } finally {
+      window.clearTimeout(timeout)
     }
   }, [invalidateSession, setAuthorization])
 
@@ -138,6 +162,7 @@ export default function AdminSessionGuard() {
 
     const token = localStorage.getItem(TOKEN_KEY) || rejectedTokenRef.current
     localStorage.removeItem(TOKEN_KEY)
+    observedTokenRef.current = ''
     validatedTokenRef.current = ''
     rejectedTokenRef.current = ''
     setAuthorization(false)
@@ -157,21 +182,31 @@ export default function AdminSessionGuard() {
     void validateSession()
 
     const root = document.getElementById('root')
+    let mutationFrame = 0
     const observer = new MutationObserver(() => {
-      void validateSession()
+      window.cancelAnimationFrame(mutationFrame)
+      mutationFrame = window.requestAnimationFrame(() => {
+        const currentToken = localStorage.getItem(TOKEN_KEY) || ''
+        if (currentToken === observedTokenRef.current) return
+        observedTokenRef.current = currentToken
+        void validateSession()
+      })
     })
 
     if (root) observer.observe(root, { childList: true, subtree: true })
 
-    const handleExpired = () => {
+    const handleExpired = event => {
       validatedTokenRef.current = ''
+      observedTokenRef.current = localStorage.getItem(TOKEN_KEY) || ''
       setAuthorization(false)
       setBlockedAccount(current => current || {})
-      setNotice(current => current || `Sua sessão administrativa expirou. Entre novamente com ${OWNER_EMAIL}.`)
+      setNotice(current => event?.detail?.message || current || `Sua sessão administrativa expirou. Entre novamente com ${OWNER_EMAIL}.`)
     }
 
     const handleStorage = event => {
-      if (event.key === TOKEN_KEY) void validateSession()
+      if (event.key !== TOKEN_KEY) return
+      observedTokenRef.current = event.newValue || ''
+      void validateSession()
     }
 
     window.addEventListener('admin-session-expired', handleExpired)
@@ -179,10 +214,11 @@ export default function AdminSessionGuard() {
 
     return () => {
       observer.disconnect()
+      window.cancelAnimationFrame(mutationFrame)
       window.removeEventListener('admin-session-expired', handleExpired)
       window.removeEventListener('storage', handleStorage)
     }
-  }, [setAuthorization, validateSession])
+  }, [validateSession])
 
   const showBlockedState = !authorized && Boolean(notice) && blockedAccount !== null
 
