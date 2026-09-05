@@ -10,6 +10,8 @@ import PublicErrorBoundary from './PublicErrorBoundary.jsx'
 import PeterAccountGateway from './components/PeterAccountGateway.jsx'
 import { installWebVitals } from './discoveryApi.js'
 import { installGlobalImageFallbacks } from './utils/imageFallback.js'
+import { installPasswordVisibilityToggles } from './utils/passwordVisibility.js'
+import { installPeterWhatsappFallback } from './utils/peterWhatsappFallback.js'
 import installSeoFaqSection from './installSeoFaqSection.jsx'
 
 const PublicExperienceRouter = lazy(() => import('./PublicExperienceRouter.jsx'))
@@ -18,6 +20,7 @@ const APP_SLUG = 'peter-tecnet'
 const PETRINIA_STORY_SLUG = 'petrinia-cutinapp-persistencia-tecnologia'
 
 installGlobalImageFallbacks()
+installPeterWhatsappFallback()
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 const isBlogIndex = path === '/blog'
