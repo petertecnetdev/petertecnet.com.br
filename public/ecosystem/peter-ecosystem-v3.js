@@ -9,8 +9,8 @@
   const SYNC_INTERVAL_MS = 1500
   const API_FALLBACK = 'https://api.petertecnet.com.br/api'
   const PORTAL_URL = 'https://petertecnet.com.br'
-  const TELEMETRY_SCHEMA = '2'
-  const SENSITIVE_KEY_PATTERN = /password|token|secret|cookie|card|cpf|document|authorization|code/i
+  const TELEMETRY_VERSION = '3.1.0'
+  const TELEMETRY_URL = `${PORTAL_URL}/ecosystem/peter-telemetry-v3.js?v=${TELEMETRY_VERSION}`
 
   if (window.PeterTecnetEcosystem?.version === SDK_VERSION && customElements.get(ELEMENT_NAME)) return
 
@@ -71,208 +71,58 @@
     return id
   }
 
+  let telemetryPromise = null
+
   const startGlobalTelemetry = ({ apiBaseUrl, appSlug }) => {
-    if (typeof window === 'undefined' || window.__peterTelemetryStarted) return
-
     const normalizedSlug = cleanSlug(appSlug)
-    if (!normalizedSlug) return
+    const api = String(apiBaseUrl || API_FALLBACK).replace(/\/+$/, '')
+    if (!normalizedSlug) return Promise.resolve(null)
 
-    window.__peterTelemetryStarted = true
+    const start = () => {
+      if (window.PeterTecnetTelemetry?.version !== TELEMETRY_VERSION) return null
+      return window.PeterTecnetTelemetry.start({ apiBaseUrl: api, appSlug: normalizedSlug })
+    }
 
-    const endpoint = `${String(apiBaseUrl || API_FALLBACK).replace(/\/+$/, '')}/interactions/batch`
-    const telemetrySessionKey = `peter_telemetry_session_${normalizedSlug}`
-    const telemetrySessionId = sessionStorage.getItem(telemetrySessionKey) || uid()
-    try { sessionStorage.setItem(telemetrySessionKey, telemetrySessionId) } catch {}
+    if (window.PeterTecnetTelemetry?.version === TELEMETRY_VERSION) {
+      return Promise.resolve(start())
+    }
+    if (telemetryPromise) return telemetryPromise.then(() => start())
 
-    let queue = []
-    let lastPath = window.location.pathname
-    let scrollMilestones = new Set()
-    let flushing = false
-    let sessionEnded = false
+    telemetryPromise = new Promise((resolve, reject) => {
+      const ready = () => resolve(start())
+      const failed = () => reject(new Error('Não foi possível carregar a telemetria Peter Tecnet.'))
+      let existing = Array.from(document.scripts).find(script => script.src?.includes('/ecosystem/peter-telemetry-v3.js'))
 
-    const clean = (value, limit = 200) => String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, limit)
-    const currentPage = () => window.location.pathname
-    const safeUrl = (value, relativeForSameOrigin = true) => {
-      if (!value) return ''
-      try {
-        const url = new URL(String(value), window.location.origin)
-        if (relativeForSameOrigin && url.origin === window.location.origin) return url.pathname
-        return `${url.origin}${url.pathname}`
-      } catch {
-        return clean(String(value).split(/[?#]/, 1)[0], 500)
+      if (existing && window.PeterTecnetTelemetry && window.PeterTecnetTelemetry.version !== TELEMETRY_VERSION) {
+        existing.remove()
+        existing = null
       }
-    }
 
-    const safeLabel = element => {
-      const explicit = element?.dataset?.track || element?.getAttribute?.('aria-label') || element?.name || element?.id
-      if (explicit) return clean(explicit)
-      const text = clean(element?.textContent || '', 100)
-      if (!text || /@|\b\d{8,}\b/.test(text)) return clean(element?.tagName || 'elemento')
-      return text
-    }
-
-    const enqueue = (type, details = {}) => {
-      const metadata = {}
-      for (const [key, value] of Object.entries(details.metadata || {})) {
-        if (!SENSITIVE_KEY_PATTERN.test(key) && value !== undefined && value !== null) {
-          metadata[key] = clean(value, 500)
+      if (existing) {
+        if (window.PeterTecnetTelemetry?.version === TELEMETRY_VERSION) ready()
+        else {
+          existing.addEventListener('load', ready, { once: true })
+          existing.addEventListener('error', failed, { once: true })
         }
+        return
       }
 
-      queue.push({
-        id: uid(),
-        type,
-        timestamp: new Date().toISOString(),
-        page: currentPage(),
-        label: clean(details.label),
-        target: clean(details.target),
-        metadata,
-      })
-
-      if (queue.length >= 20) flush()
-    }
-
-    const flush = async (force = false) => {
-      if ((!force && flushing) || !queue.length) return
-      if (!force) flushing = true
-
-      const events = queue.splice(0, 50)
-      const token = getToken()
-
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          keepalive: true,
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'X-Peter-App': normalizedSlug,
-            'X-App-Slug': normalizedSlug,
-            'X-Peter-Ecosystem-SDK': SDK_VERSION,
-            'X-Telemetry-Schema': TELEMETRY_SCHEMA,
-            'X-Frontend-Page': safeUrl(window.location.href),
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({ session_id: telemetrySessionId, events }),
-        })
-
-        if (response.status === 429 || response.status >= 500) queue.unshift(...events.slice(-20))
-      } catch {
-        queue.unshift(...events.slice(-20))
-      } finally {
-        if (!force) flushing = false
-      }
-    }
-
-    const recordNavigation = source => {
-      const current = currentPage()
-      if (current === lastPath) return
-      enqueue('navigation', { label: current, metadata: { from: lastPath, source } })
-      lastPath = current
-      scrollMilestones = new Set()
-    }
-
-    const deferNavigation = source => {
-      const callback = () => recordNavigation(source)
-      if (typeof window.queueMicrotask === 'function') window.queueMicrotask(callback)
-      else window.setTimeout(callback, 0)
-    }
-
-    const onClick = event => {
-      const element = event.target?.closest?.("a,button,[role='button'],[data-track]")
-      if (!element || element.closest?.('[data-telemetry-ignore]')) return
-      const destination = safeUrl(element.getAttribute('href'))
-      enqueue('click', {
-        label: safeLabel(element),
-        target: destination || element.id || element.name || element.tagName,
-        metadata: { tag: element.tagName, destination },
-      })
-    }
-
-    const onSubmit = event => {
-      const form = event.target
-      if (form?.closest?.('[data-telemetry-ignore]')) return
-      const identity = form?.getAttribute?.('aria-label') || form?.name || form?.id || 'formulário'
-      const searchForm = /search|busca|pesquisa/i.test(identity)
-      enqueue(searchForm ? 'search' : 'form_submit', {
-        label: identity,
-        target: safeUrl(form?.action) || currentPage(),
-        metadata: { method: form?.method || 'GET' },
-      })
-    }
-
-    const onChange = event => {
-      const element = event.target
-      if (!element?.matches?.("select,input[type='checkbox'],input[type='radio']") || element.closest?.('[data-telemetry-ignore]')) return
-      enqueue(element.matches('select') ? 'filter' : 'field_change', {
-        label: element.getAttribute('aria-label') || element.name || element.id || element.type,
-        target: element.id || element.name || element.tagName,
-        metadata: { control: element.type || element.tagName, checked: element.checked },
-      })
-    }
-
-    const onScroll = () => {
-      const documentHeight = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1)
-      const percentage = Math.min(100, Math.round((window.scrollY / documentHeight) * 100))
-      for (const milestone of [25, 50, 75, 100]) {
-        if (percentage >= milestone && !scrollMilestones.has(milestone)) {
-          scrollMilestones.add(milestone)
-          enqueue('scroll', { label: `${milestone}% da página`, metadata: { milestone } })
-        }
-      }
-    }
-
-    const onError = event => enqueue('frontend_error', {
-      label: event.message || 'Erro JavaScript',
-      metadata: { source: safeUrl(event.filename, false), line: event.lineno, column: event.colno },
-    })
-    const onRejection = event => enqueue('frontend_error', {
-      label: event.reason?.message || 'Promise rejeitada',
-      metadata: { kind: 'unhandledrejection' },
-    })
-    const onPageHide = () => {
-      if (!sessionEnded) {
-        sessionEnded = true
-        enqueue('session_end', { label: 'Sessão encerrada' })
-      }
-      flush(true)
-    }
-
-    const originalPush = window.history.pushState
-    const originalReplace = window.history.replaceState
-    window.history.pushState = function (...args) {
-      const result = originalPush.apply(this, args)
-      deferNavigation('pushState')
-      return result
-    }
-    window.history.replaceState = function (...args) {
-      const result = originalReplace.apply(this, args)
-      deferNavigation('replaceState')
-      return result
-    }
-
-    document.addEventListener('click', onClick, true)
-    document.addEventListener('submit', onSubmit, true)
-    document.addEventListener('change', onChange, true)
-    window.addEventListener('popstate', () => recordNavigation('popstate'))
-    window.addEventListener('error', onError)
-    window.addEventListener('unhandledrejection', onRejection)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('pagehide', onPageHide)
-
-    enqueue('session_start', {
-      label: 'Sessão iniciada',
-      metadata: {
-        referrer: safeUrl(document.referrer, false),
-        language: navigator.language,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        viewport: `${window.innerWidth}x${window.innerHeight}`,
-        telemetry_schema: TELEMETRY_SCHEMA,
-      },
+      const script = document.createElement('script')
+      script.src = TELEMETRY_URL
+      script.async = true
+      script.dataset.peterTelemetrySdk = TELEMETRY_VERSION
+      script.dataset.appSlug = normalizedSlug
+      script.dataset.apiBase = api
+      script.addEventListener('load', ready, { once: true })
+      script.addEventListener('error', failed, { once: true })
+      document.head.appendChild(script)
+    }).catch(error => {
+      telemetryPromise = null
+      console.warn('[Peter Tecnet Telemetry]', error)
+      return null
     })
 
-    flush()
-    window.setInterval(flush, 5000)
+    return telemetryPromise
   }
 
   class PeterEcosystemLauncher extends HTMLElement {
@@ -543,26 +393,24 @@
 
     telemetry(type, eventName, targetApp = null, metadata = {}) {
       if (!this.api) return
-      const token = getToken() || this.token
-      fetch(`${this.api}/interactions/batch`, {
-        method: 'POST', keepalive: true,
-        headers: {
-          Accept: 'application/json', 'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          'X-Peter-App': this.slug || 'ecosystem',
-          'X-Peter-Ecosystem-SDK': SDK_VERSION,
-          'X-Telemetry-Schema': '2',
+      const details = {
+        label: eventName,
+        target: targetApp || 'ecosystem-launcher',
+        metadata: {
+          ecosystem_event: eventName,
+          source_app: this.slug,
+          target_app: targetApp,
+          sdk_version: SDK_VERSION,
+          ...metadata,
         },
-        body: JSON.stringify({
-          session_id: sessionId(),
-          events: [{
-            id: uid(), type, timestamp: new Date().toISOString(),
-            page: `${window.location.pathname}${window.location.search}`.slice(0, 1000),
-            label: eventName, target: targetApp || 'ecosystem-launcher',
-            metadata: { ecosystem_event: eventName, source_app: this.slug, target_app: targetApp, sdk_version: SDK_VERSION, ...metadata },
-          }],
-        }),
-      }).catch(() => {})
+      }
+      const track = () => {
+        if (window.PeterTecnetTelemetry?.version !== TELEMETRY_VERSION) return false
+        window.PeterTecnetTelemetry.track(type, details)
+        return true
+      }
+      if (track()) return
+      startGlobalTelemetry({ apiBaseUrl: this.api, appSlug: this.slug }).then(() => track()).catch(() => {})
     }
 
     filteredApps() {
