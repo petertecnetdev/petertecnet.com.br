@@ -91,6 +91,11 @@ export default function NotificationsCenter({ request, applications = [] }) {
     exclusion_match: exclusions.exclusion_match || 'any',
   }), [form.audience_type, form.app_id, selectedUsers, exclusions])
 
+  useEffect(() => {
+    setPreview(null)
+    setSuccess('')
+  }, [exclusions])
+
   async function loadCampaigns(targetPage = page) {
     setLoading(true)
     setError('')
