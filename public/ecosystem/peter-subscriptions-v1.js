@@ -30,6 +30,7 @@
       this.error = ''
       this.interval = null
       this.boundSync = () => this.sync()
+      this.boundFocus = () => this.sync(true)
     }
 
     connectedCallback() {
@@ -57,7 +58,7 @@
       window.addEventListener('storage', this.boundSync)
       window.addEventListener('authChanged', this.boundSync)
       window.addEventListener('peter:auth-changed', this.boundSync)
-      window.addEventListener('focus', this.boundSync)
+      window.addEventListener('focus', this.boundFocus)
       this.interval = window.setInterval(this.boundSync, SYNC_MS)
     }
 
@@ -65,7 +66,7 @@
       window.removeEventListener('storage', this.boundSync)
       window.removeEventListener('authChanged', this.boundSync)
       window.removeEventListener('peter:auth-changed', this.boundSync)
-      window.removeEventListener('focus', this.boundSync)
+      window.removeEventListener('focus', this.boundFocus)
       if (this.interval) window.clearInterval(this.interval)
     }
 
@@ -196,9 +197,10 @@
 
       const optional = this.access?.access_mode === 'optional'
       const hasAccess = this.access?.has_access === true
-      const shouldShowPlans = !hasAccess || this.open
+      const hasSubscription = Boolean(this.access?.subscription)
+      const shouldShowPlans = optional ? (this.open && !hasSubscription) : !hasAccess
 
-      if (hasAccess && !optional) {
+      if ((!optional && hasAccess) || (optional && hasSubscription)) {
         this.shadowRoot.innerHTML = ''
         return
       }
@@ -210,8 +212,7 @@
       const ordered = [monthly, semiannual, annual].filter(Boolean)
 
       this.shadowRoot.innerHTML = `${this.styles()}
-        ${optional && hasAccess && !this.open ? '<button class="premium-pill" type="button">Premium</button>' : ''}
-        ${optional && !hasAccess && !this.open ? '<button class="premium-pill" type="button">Conhecer Premium</button>' : ''}
+        ${optional && !hasSubscription && !this.open ? '<button class="premium-pill" type="button">Conhecer Premium</button>' : ''}
         ${shouldShowPlans ? `<div class="backdrop ${optional ? 'optional' : 'required'}">
           <section class="card" role="dialog" aria-modal="${optional ? 'false' : 'true'}" aria-label="Planos Peter Tecnet">
             ${optional ? '<button class="close" type="button" aria-label="Fechar">×</button>' : ''}
