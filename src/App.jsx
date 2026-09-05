@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import NotificationsCenter from './NotificationsCenter'
 import AdminUsersCenter from './AdminUsersCenter.jsx'
+import InteractionCleanup from './InteractionCleanup.jsx'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
@@ -417,13 +418,16 @@ function Dashboard({ user, onLogout }) {
           <section id="notifications" className="section-anchor">
             <NotificationsCenter request={request} applications={applications}/>
           </section>
-
           <section id="activity" className="section-anchor">
             <SectionHeading kicker="ATIVIDADE" title="Linha do tempo recente" text="Últimas ações registradas pela telemetria do ecossistema."/>
             <Panel title="Atividade recente" subtitle={`${compactNumber(activity?.summary?.total ?? summary.interactions_30d)} interações no recorte atual`}>
-              <div className="timeline">
-                {activityRows.length ? activityRows.slice(0, 16).map((row, index) => <div className="timeline-row" key={row.id || `${row.created_at}-${index}`}><span className="timeline-dot"/><div><b>{row.name || row.interaction_type || row.type || 'Interação'}</b><small>{row.user_email || row.email || row.application_name || row.app_name || 'Ecossistema Peter Tecnet'}</small></div><time>{dateTime(row.created_at || row.occurred_at)}</time></div>) : <Empty text="Nenhuma interação recente retornada pela API."/>}
-              </div>
+              <InteractionCleanup
+                rows={activityRows.slice(0, 16)}
+                total={activity?.summary?.total ?? summary.interactions_30d ?? activityRows.length}
+                request={request}
+                onChanged={() => loadAll({ quiet: true })}
+                formatDate={dateTime}
+              />
             </Panel>
           </section>
         </>}
