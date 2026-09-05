@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import NotificationsCenter from './NotificationsCenter'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
@@ -9,6 +10,7 @@ const navItems = [
   ['operations', 'Operações', '◈'],
   ['financial', 'Financeiro', '◒'],
   ['applications', 'Aplicações', '◇'],
+  ['notifications', 'Notificações', '✦'],
   ['activity', 'Atividade', '↯'],
 ]
 
@@ -403,6 +405,10 @@ function Dashboard({ user, onLogout }) {
                 {app.url && <a href={app.url} target="_blank" rel="noreferrer">Abrir aplicação ↗</a>}
               </article>) : <Empty text="Nenhuma aplicação disponível na leitura atual."/>}
             </div>
+          </section>
+
+          <section id="notifications" className="section-anchor">
+            <NotificationsCenter request={request} applications={applications}/>
           </section>
 
           <section id="activity" className="section-anchor">
