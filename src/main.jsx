@@ -9,6 +9,7 @@ import './AdminEstablishmentsFeedback.css'
 import './AdminResponsive.css'
 import './AdminNavigationStandard.css'
 import './AdminHamburgerPolish.css'
+import './SupportAdminResponsiveFix.css'
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 
