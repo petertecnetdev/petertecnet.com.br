@@ -345,7 +345,10 @@ function EstablishmentsManager() {
     }
   }, [])
 
-  useEffect(() => { loadOptions() }, [loadOptions])
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void loadOptions() }, 0)
+    return () => window.clearTimeout(timer)
+  }, [loadOptions])
   useEffect(() => {
     const timer = window.setTimeout(() => loadEstablishments(filters), 300)
     return () => window.clearTimeout(timer)
