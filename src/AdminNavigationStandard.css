@@ -1,7 +1,7 @@
 /*
  * Admin Center canonical application navigation.
- * This layer intentionally loads after AdminResponsive.css so the shell behaves
- * like the other Peter Tecnet applications instead of a long landing page.
+ * The Admin Center uses a hamburger-first, full-screen application menu on every viewport.
+ * This file loads after AdminResponsive.css and therefore owns the final navigation behavior.
  */
 
 .admin-shell {
@@ -9,72 +9,165 @@
   min-height: 100dvh;
 }
 
+/*
+ * Full-screen application launcher.
+ * The old persistent desktop sidebar is intentionally removed: the workspace always receives
+ * the full viewport width and the menu only appears after the hamburger is activated.
+ */
 .sidebar {
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100dvh;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1200 !important;
+  display: flex !important;
+  width: 100vw !important;
+  max-width: none !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  margin: 0 !important;
+  padding:
+    max(22px, env(safe-area-inset-top))
+    clamp(18px, 4vw, 64px)
+    max(20px, env(safe-area-inset-bottom)) !important;
+  flex-direction: column;
   overflow: hidden;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background:
+    radial-gradient(circle at 14% 12%, rgba(45, 197, 221, .13), transparent 34%),
+    radial-gradient(circle at 88% 86%, rgba(83, 114, 255, .10), transparent 38%),
+    linear-gradient(145deg, rgba(4, 14, 23, .995), rgba(6, 20, 31, .995)) !important;
+  box-shadow: none !important;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-14px) scale(.992);
+  transform-origin: 50% 0;
+  transition:
+    opacity .22s ease,
+    transform .24s cubic-bezier(.2, .8, .2, 1),
+    visibility 0s linear .24s;
+}
+
+.sidebar.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  transition-delay: 0s;
+}
+
+.sidebar-backdrop,
+.sidebar-backdrop.visible {
+  display: none !important;
+}
+
+.sidebar > .brand {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  width: fit-content;
+  max-width: calc(100% - 72px);
+  margin: 0;
 }
 
 .sidebar nav {
-  display: flex;
+  position: relative;
+  z-index: 1;
+  display: grid !important;
   flex: 1 1 auto;
+  width: min(100%, 1280px);
   min-height: 0;
-  flex-direction: column;
-  gap: 5px;
+  margin: clamp(28px, 5vh, 64px) auto 22px;
+  padding: 0 4px 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  align-content: start;
+  gap: clamp(10px, 1.5vw, 18px);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
-  padding: 24px 4px 16px;
+}
+
+.sidebar nav > p {
+  grid-column: 1 / -1;
+  margin: 0 0 4px;
+  color: rgba(190, 220, 230, .62);
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .18em;
+  text-transform: uppercase;
 }
 
 .sidebar nav button {
   position: relative;
-  flex: 0 0 auto;
-  grid-template-columns: 28px minmax(0, 1fr);
-  gap: 4px;
+  display: grid !important;
   width: 100%;
-  min-height: 44px;
-  border: 1px solid transparent;
-  padding: 0 11px;
+  min-width: 0;
+  min-height: 96px;
+  grid-template-columns: 42px minmax(0, 1fr) auto !important;
+  align-items: center;
+  gap: 14px !important;
+  padding: 18px !important;
   overflow: hidden;
+  border: 1px solid rgba(126, 198, 215, .10) !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, .025) !important;
+  color: rgba(226, 245, 249, .86);
+  font-size: clamp(.88rem, 1.2vw, 1rem);
+  font-weight: 700;
+  text-align: left;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform .18s ease, border-color .18s ease, background .18s ease, color .18s ease;
 }
 
 .sidebar nav button > span:first-child {
   display: grid;
-  width: 26px;
-  height: 26px;
+  width: 42px;
+  height: 42px;
   place-items: center;
-  border-radius: 8px;
-  background: rgba(128, 205, 220, .035);
+  border-radius: 13px;
+  background: rgba(80, 211, 234, .075);
+  color: #7fe8f7;
+  font-size: 1.08rem;
 }
 
 .sidebar nav button > i {
-  display: none;
+  display: inline-grid !important;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 9px;
+  color: rgba(157, 204, 214, .55);
+  font-size: .78rem;
+  font-style: normal;
 }
 
 .sidebar nav button:hover,
 .sidebar nav button:focus-visible {
-  border-color: rgba(85, 210, 232, .09);
-  background: rgba(76, 211, 234, .055);
+  border-color: rgba(85, 210, 232, .24) !important;
+  background: rgba(76, 211, 234, .07) !important;
+  color: #f0fdff;
+  transform: translateY(-2px);
 }
 
 .sidebar nav button:focus-visible {
-  outline: 2px solid rgba(64, 214, 239, .38);
-  outline-offset: 2px;
+  outline: 2px solid rgba(64, 214, 239, .42);
+  outline-offset: 3px;
 }
 
 .sidebar nav button.active {
-  border-color: rgba(75, 215, 238, .16);
-  background: linear-gradient(90deg, rgba(45, 197, 221, .12), rgba(45, 197, 221, .035));
-  color: #e7fbff;
+  border-color: rgba(75, 215, 238, .30) !important;
+  background: linear-gradient(135deg, rgba(45, 197, 221, .14), rgba(45, 197, 221, .04)) !important;
+  color: #eaffff;
+  box-shadow: inset 0 0 0 1px rgba(85, 218, 239, .04), 0 14px 36px rgba(0, 0, 0, .10);
 }
 
 .sidebar nav button.active::after {
   content: '';
   position: absolute;
-  top: 9px;
-  bottom: 9px;
+  top: 18px;
+  bottom: 18px;
   left: 0;
   width: 3px;
   border-radius: 0 4px 4px 0;
@@ -83,26 +176,80 @@
 }
 
 .sidebar nav button.active > span:first-child {
-  background: rgba(64, 214, 239, .1);
-  color: #79e8f8;
+  background: rgba(64, 214, 239, .14);
+  color: #91effb;
+}
+
+.sidebar-status,
+.sidebar-user {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
 }
 
 .sidebar-status {
-  flex: 0 0 auto;
-  margin-top: 10px;
+  width: min(100%, 1280px);
+  margin: 0 auto 10px;
 }
 
 .sidebar-user {
-  flex: 0 0 auto;
+  width: min(100%, 1280px);
+  margin-inline: auto;
 }
 
+/* The application canvas never reserves horizontal space for navigation. */
 .workspace {
+  width: 100% !important;
+  max-width: 100vw !important;
   min-height: 100vh;
   min-height: 100dvh;
+  margin-left: 0 !important;
 }
 
 .topbar {
   isolation: isolate;
+}
+
+/* Hamburger is the canonical menu trigger on desktop and mobile. */
+.hamburger {
+  display: inline-grid !important;
+  flex: 0 0 auto;
+  place-items: center;
+  cursor: pointer;
+}
+
+.sidebar.open ~ .workspace .hamburger {
+  position: fixed !important;
+  top: max(20px, env(safe-area-inset-top)) !important;
+  right: max(20px, env(safe-area-inset-right)) !important;
+  left: auto !important;
+  z-index: 1301 !important;
+  width: 46px !important;
+  height: 46px !important;
+  border: 1px solid rgba(125, 214, 230, .18) !important;
+  border-radius: 14px !important;
+  background: rgba(9, 25, 36, .88) !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .22);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.sidebar.open ~ .workspace .hamburger span {
+  position: absolute;
+  width: 20px;
+  transition: transform .2s ease, opacity .15s ease;
+}
+
+.sidebar.open ~ .workspace .hamburger span:nth-child(1) {
+  transform: rotate(45deg);
+}
+
+.sidebar.open ~ .workspace .hamburger span:nth-child(2) {
+  opacity: 0;
+}
+
+.sidebar.open ~ .workspace .hamburger span:nth-child(3) {
+  transform: rotate(-45deg);
 }
 
 .content {
@@ -161,30 +308,17 @@
   overscroll-behavior-inline: contain;
 }
 
-@media (max-width: 1180px) {
-  .sidebar nav button {
-    min-height: 43px;
-  }
-}
-
 @media (max-width: 980px) {
   .sidebar {
-    width: min(320px, 88vw);
-    max-width: 88vw;
-    height: 100dvh;
-    max-height: 100dvh;
-    padding-top: max(18px, env(safe-area-inset-top));
-    padding-bottom: max(14px, env(safe-area-inset-bottom));
+    padding:
+      max(18px, env(safe-area-inset-top))
+      clamp(16px, 4vw, 32px)
+      max(16px, env(safe-area-inset-bottom)) !important;
   }
 
   .sidebar nav {
-    padding-bottom: 10px;
-  }
-
-  .workspace {
-    width: 100%;
-    max-width: 100vw;
-    margin-left: 0;
+    margin-top: clamp(24px, 4vh, 44px);
+    grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
   }
 
   .topbar {
@@ -217,17 +351,31 @@
     flex: 0 0 auto;
   }
 
+  .sidebar nav {
+    grid-template-columns: 1fr;
+    gap: 9px;
+    margin-top: 24px;
+  }
+
+  .sidebar nav button {
+    min-height: 68px;
+    padding: 12px 14px !important;
+    border-radius: 14px !important;
+    font-size: .86rem;
+  }
+
+  .sidebar nav button > span:first-child {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+  }
+
   .admin-shell[data-admin-page]:not([data-admin-page="dashboard"]) .content {
     padding-top: 22px;
   }
 
   .admin-shell[data-admin-page] .section-anchor[data-admin-page-key] {
     padding-top: 0;
-  }
-
-  .sidebar nav button {
-    min-height: 46px;
-    font-size: .82rem;
   }
 }
 
@@ -237,49 +385,74 @@
   }
 
   .sidebar {
-    width: min(300px, 90vw);
-    max-width: 90vw;
+    padding-inline: 14px !important;
+  }
+
+  .sidebar > .brand {
+    max-width: calc(100% - 62px);
   }
 
   .sidebar nav {
-    padding-top: 18px;
+    padding-inline: 0;
   }
 
-  .sidebar nav button {
-    min-height: 48px;
-    border-radius: 11px;
+  .sidebar-status,
+  .sidebar-user {
+    width: 100%;
+  }
+
+  .sidebar.open ~ .workspace .hamburger {
+    top: max(14px, env(safe-area-inset-top)) !important;
+    right: max(14px, env(safe-area-inset-right)) !important;
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 12px !important;
   }
 }
 
 @media (max-width: 420px) {
-  .sidebar {
-    width: min(286px, 92vw);
-    max-width: 92vw;
-  }
-
   .admin-shell[data-admin-page]:not([data-admin-page="dashboard"]) .content {
     padding-top: 18px;
   }
 }
 
 @media (max-height: 620px) and (orientation: landscape) {
+  .sidebar {
+    padding-top: max(12px, env(safe-area-inset-top)) !important;
+    padding-bottom: max(10px, env(safe-area-inset-bottom)) !important;
+  }
+
   .sidebar nav {
-    padding-top: 14px;
+    margin-top: 14px;
     padding-bottom: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  }
+
+  .sidebar nav button {
+    min-height: 62px;
+    padding-block: 10px !important;
   }
 
   .sidebar-status {
-    margin-top: 8px;
+    margin-bottom: 6px;
   }
 
   .sidebar-user {
-    margin-top: 6px;
-    padding-top: 8px;
+    margin-top: 4px;
+    padding-top: 6px;
   }
 }
 
 @media (hover: none), (pointer: coarse) {
   .sidebar nav button {
-    min-height: 46px;
+    min-height: 68px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .sidebar nav button,
+  .sidebar.open ~ .workspace .hamburger span {
+    transition: none !important;
   }
 }
