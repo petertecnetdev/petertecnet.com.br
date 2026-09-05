@@ -1,6 +1,7 @@
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 
 import('./MarketingConversionBridge.js')
+import('./SupportLinkBridge.js')
 
 const isMarketingHub = path === '/'
   || path === '/sobre'
@@ -8,7 +9,9 @@ const isMarketingHub = path === '/'
   || path === '/orcamento'
   || path.startsWith('/servicos/')
 
-if (isMarketingHub) {
+if (path === '/suporte') {
+  import('./SupportPublicApp.jsx')
+} else if (isMarketingHub) {
   Promise.all([
     import('./MarketingHubApp.jsx'),
     import('./MarketingRuntimeConfig.js'),
