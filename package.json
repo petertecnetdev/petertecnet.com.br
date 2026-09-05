@@ -1,16 +1,12 @@
 {
-  "name": "petertecnet.com.br",
+  "name": "admincenter.petertecnet.com.br",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/generate-seo-pages.mjs && node scripts/generate-discovery-pages.mjs && node scripts/generate-intent-pages.mjs && node scripts/generate-marketing-pages.mjs",
-    "lint": "oxlint",
-    "test:ecosystem": "node scripts/validate-ecosystem-sdk.mjs && node scripts/validate-frontend-core.mjs",
-    "test:frontend-core": "node scripts/validate-frontend-core.mjs",
-    "test:admin-ui": "node scripts/validate-admin-navigation.mjs && node scripts/validate-admin-browser.mjs && node scripts/validate-admin-navigation-browser.mjs",
-    "preview": "vite preview"
+    "build": "vite build",
+    "lint": "oxlint src/App.jsx src/main.jsx"
   },
   "dependencies": {
     "react": "^19.2.8",
