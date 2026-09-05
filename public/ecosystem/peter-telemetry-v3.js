@@ -1,7 +1,7 @@
 (() => {
   'use strict'
 
-  const VERSION = '3.1.0'
+  const VERSION = '3.2.0'
   const SCHEMA = '3'
   const API_FALLBACK = 'https://api.petertecnet.com.br/api'
   const TOKEN_KEYS = ['petertecnet_admin_token', 'petertecnet_token', 'token', 'access_token', 'auth_token']

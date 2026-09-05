@@ -4,11 +4,17 @@ import { resolve } from 'node:path'
 
 const sdkPath = resolve('public/ecosystem/peter-ecosystem.js')
 const insightsPath = resolve('public/ecosystem/peter-insights.js')
+const ecosystemV3Path = resolve('public/ecosystem/peter-ecosystem-v3.js')
+const telemetryV3Path = resolve('public/ecosystem/peter-telemetry-v3.js')
 const source = readFileSync(sdkPath, 'utf8')
 const insights = readFileSync(insightsPath, 'utf8')
+const ecosystemV3 = readFileSync(ecosystemV3Path, 'utf8')
+const telemetryV3 = readFileSync(telemetryV3Path, 'utf8')
 
 execFileSync(process.execPath, ['--check', sdkPath], { stdio: 'inherit' })
 execFileSync(process.execPath, ['--check', insightsPath], { stdio: 'inherit' })
+execFileSync(process.execPath, ['--check', ecosystemV3Path], { stdio: 'inherit' })
+execFileSync(process.execPath, ['--check', telemetryV3Path], { stdio: 'inherit' })
 
 const required = [
   "const SDK_VERSION = '2.0.0'",
@@ -52,5 +58,15 @@ if (/APP_LOGOS\s*=/.test(source)) throw new Error('The centralized SDK must not 
 if (/searchParams\.set\(['\"](?:token|access_token|auth_token)['\"]/.test(source)) throw new Error('JWT-like tokens must never be written to cross-application URLs.')
 if (!/searchParams\.set\(['\"]peter_sso['\"]/.test(source)) throw new Error('SSO navigation must use the one-time peter_sso handoff code.')
 if (!source.includes("host.endsWith('.petertecnet.com.br')")) throw new Error('Cross-app navigation must remain restricted to Peter Tecnet HTTPS domains.')
+
+const telemetryVersion = telemetryV3.match(/const VERSION = '([^']+)'/)?.[1]
+const launcherTelemetryVersion = ecosystemV3.match(/const TELEMETRY_VERSION = '([^']+)'/)?.[1]
+
+if (!telemetryVersion) throw new Error('Telemetry SDK version marker is missing.')
+if (!launcherTelemetryVersion) throw new Error('Ecosystem v3 telemetry version marker is missing.')
+if (telemetryVersion !== launcherTelemetryVersion) {
+  throw new Error(`Telemetry version drift: runtime ${telemetryVersion} != launcher ${launcherTelemetryVersion}`)
+}
+if (!telemetryV3.includes("const SCHEMA = '3'")) throw new Error('Telemetry v3 must continue emitting schema 3.')
 
 console.log('Peter Tecnet Ecosystem + Insights SDK contracts OK')
