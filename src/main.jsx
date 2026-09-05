@@ -11,6 +11,7 @@ import PublicErrorBoundary from './PublicErrorBoundary.jsx'
 import { installWebVitals } from './discoveryApi.js'
 import { installGlobalImageFallbacks } from './utils/imageFallback.js'
 import { installPasswordVisibilityToggles } from './utils/passwordVisibility.js'
+import installSeoFaqSection from './installSeoFaqSection.jsx'
 
 const PublicExperienceRouter = lazy(() => import('./PublicExperienceRouter.jsx'))
 const AdminEntry = lazy(() => import('./AdminEntry.jsx'))
@@ -127,3 +128,5 @@ createRoot(document.getElementById('root')).render(
     )}
   </StrictMode>,
 )
+
+if (path === '/') installSeoFaqSection()
