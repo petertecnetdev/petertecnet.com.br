@@ -7,7 +7,7 @@
     "dev": "vite",
     "validate:responsive": "node scripts/validate-admin-responsive.mjs",
     "build": "npm run validate:responsive && vite build",
-    "lint": "oxlint src/App.jsx src/main.jsx src/AdminAppNavigation.jsx src/AdminEstablishmentsIntegration.jsx src/AdminItemsIntegration.jsx src/NotificationsCenter.jsx scripts/validate-admin-responsive.mjs"
+    "lint": "oxlint src/App.jsx src/main.jsx src/AdminAppNavigation.jsx src/AdminGlobalSearch.jsx src/AdminEstablishmentsIntegration.jsx src/AdminItemsIntegration.jsx src/NotificationsCenter.jsx scripts/validate-admin-responsive.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",
