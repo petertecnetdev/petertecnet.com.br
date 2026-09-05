@@ -86,11 +86,7 @@ export default function NotificationAudienceExclusions({ request, onChange }) {
   useEffect(() => {
     window.clearTimeout(searchTimer.current)
     const term = search.trim()
-    if (term.length < 2) {
-      setResults([])
-      setSearching(false)
-      return undefined
-    }
+    if (term.length < 2) return undefined
 
     searchTimer.current = window.setTimeout(async () => {
       setSearching(true)
@@ -106,6 +102,14 @@ export default function NotificationAudienceExclusions({ request, onChange }) {
 
     return () => window.clearTimeout(searchTimer.current)
   }, [search, request])
+
+  function changeSearch(value) {
+    setSearch(value)
+    if (value.trim().length < 2) {
+      setResults([])
+      setSearching(false)
+    }
+  }
 
   function toggleUser(user) {
     setExcludedUsers(current => current.some(item => Number(item.id) === Number(user.id))
@@ -141,7 +145,7 @@ export default function NotificationAudienceExclusions({ request, onChange }) {
     </header>
 
     <div className="notification-exclusion-user-search">
-      <label className="notification-field"><span>Excluir usuário específico <small>busque por nome, e-mail, username ou ID</small></span><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Pesquisar usuário para excluir"/></label>
+      <label className="notification-field"><span>Excluir usuário específico <small>busque por nome, e-mail, username ou ID</small></span><input value={search} onChange={event => changeSearch(event.target.value)} placeholder="Pesquisar usuário para excluir"/></label>
       {excludedUsers.length > 0 && <div className="notification-excluded-users">{excludedUsers.map(user => <button key={user.id} type="button" onClick={() => toggleUser(user)} title="Remover da exclusão"><span>− {nameOf(user)}</span><i>×</i></button>)}</div>}
       {(searching || results.length > 0) && <div className="notification-exclusion-results">
         {searching ? <div className="notification-exclusion-searching">Buscando usuários…</div> : results.map(user => {
