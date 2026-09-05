@@ -24,6 +24,7 @@ const stateBridge = read('src/admin/AdminWorkspaceStateBridge.jsx')
 const deepLink = read('src/AdminDeepLinkBridge.jsx')
 const homeBridge = read('src/AdminHomeBridge.jsx')
 const homeCss = read('src/AdminHomeBridge.css')
+const serviceWorker = read('public/service-worker.js')
 
 const requiredRoutes = [
   '/admin',
@@ -68,6 +69,8 @@ check('Laora sidebar becomes in-content subnavigation', shellCss.includes('.admi
 check('mobile drawer prioritizes canonical persistent sidebar', mobile.includes("document.querySelector('.admin-persistent-sidebar, .ecosystem-sidebar')"))
 check('mobile identity routes to canonical home', mobile.includes("navigate('home')") && mobile.includes('href="/admin"'))
 check('mobile interaction breakpoint matches drawer layout', mobile.includes("(max-width: 760px)") && mobileCss.includes('@media (max-width: 760px)') && !mobile.includes('(max-width: 900px)'))
+check('Admin PWA never falls back to stale executable dashboard HTML', serviceWorker.includes("fetch(request, { cache: 'no-store' })") && serviceWorker.includes('OFFLINE_HTML') && !serviceWorker.includes("caches.match('/admin") && !serviceWorker.includes("'/admin/',"))
+check('Admin PWA purges only its own legacy cache namespace', serviceWorker.includes('key.startsWith(ADMIN_CACHE_PREFIX)') && serviceWorker.includes('key !== CACHE_VERSION'))
 check('home bridge targets nested legacy workspace rather than canonical main', homeBridge.includes(".admin-persistent-main > .ecosystem-shell > .ecosystem-main") && !homeBridge.includes("document.querySelector('.ecosystem-main')"))
 check('home bridge no longer injects parallel navigation button', !homeBridge.includes('HomeNavButton') && !homeCss.includes('.admin-home-nav-button'))
 check('home styling no longer suppresses canonical active route', !homeCss.includes('.admin-home-active .ecosystem-sidebar nav button.active'))
