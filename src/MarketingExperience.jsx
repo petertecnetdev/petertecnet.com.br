@@ -68,6 +68,13 @@ function useMarketingData({ withCatalog = false } = {}) {
 
   useEffect(() => {
     const controller = new AbortController()
+    let active = true
+    const watchdog = window.setTimeout(() => {
+      if (!active) return
+      controller.abort()
+      setStatus('error')
+    }, 9000)
+
     const load = async () => {
       try {
         const [appsPayload, sitePayload] = await Promise.all([
@@ -75,6 +82,8 @@ function useMarketingData({ withCatalog = false } = {}) {
           fetchSite(controller.signal).catch(() => null),
         ])
         const apps = Array.isArray(appsPayload?.applications) ? appsPayload.applications : []
+        window.__PETERTECNET_APPLICATIONS__ = apps
+        window.dispatchEvent(new CustomEvent('petertecnet:applications', { detail: { applications: apps } }))
         setApplications(apps)
         if (sitePayload?.site?.contact) setContact(current => ({ ...current, ...sitePayload.site.contact }))
 
@@ -83,13 +92,19 @@ function useMarketingData({ withCatalog = false } = {}) {
           setCatalog(Array.isArray(catalogPayload?.items) ? catalogPayload.items : [])
           setEstablishment(catalogPayload?.establishment || null)
         }
-        setStatus('success')
-      } catch (error) {
-        if (error?.name !== 'AbortError') setStatus('error')
+        if (active) setStatus('success')
+      } catch {
+        if (active) setStatus('error')
+      } finally {
+        window.clearTimeout(watchdog)
       }
     }
     load()
-    return () => controller.abort()
+    return () => {
+      active = false
+      window.clearTimeout(watchdog)
+      controller.abort()
+    }
   }, [withCatalog])
 
   return { applications, catalog, establishment, contact, status }
