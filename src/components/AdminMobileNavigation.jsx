@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAdminUi } from '../admin/useAdminUi.js'
 import './AdminMobileNavigation.css'
 
-const MOBILE_QUERY = '(max-width: 900px)'
+const MOBILE_QUERY = '(max-width: 760px)'
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
 
 function findDrawer() {
