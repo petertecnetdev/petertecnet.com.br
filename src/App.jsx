@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
@@ -214,7 +214,11 @@ function Dashboard({ user, onLogout }) {
   const searchTimer = useRef(null)
 
   async function loadAll({ quiet = false } = {}) {
-    quiet ? setRefreshing(true) : setLoading(true)
+    if (quiet) {
+      setRefreshing(true)
+    } else {
+      setLoading(true)
+    }
     setLoadError('')
     const endpoints = [
       ['/admin/ecosystem/dashboard', setDashboard],
@@ -235,7 +239,10 @@ function Dashboard({ user, onLogout }) {
     setRefreshing(false)
   }
 
-  useEffect(() => { loadAll() }, [])
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void loadAll() }, 0)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     function shortcut(event) {
@@ -251,8 +258,7 @@ function Dashboard({ user, onLogout }) {
   useEffect(() => {
     window.clearTimeout(searchTimer.current)
     const trimmed = query.trim()
-    if (trimmed.length < 2) { setSearchResult(null); setSearching(false); return }
-    setSearching(true)
+    if (trimmed.length < 2) return undefined
     searchTimer.current = window.setTimeout(async () => {
       try { setSearchResult(await request(`/admin/ecosystem/command/search?q=${encodeURIComponent(trimmed)}`)) }
       catch (error) { setSearchResult({ error: error.message, groups: {}, total: 0 }) }
@@ -280,7 +286,7 @@ function Dashboard({ user, onLogout }) {
   const status = statusTone(operationalStatus)
   const activeApps = summary.active_applications ?? appRows.filter(app => app.is_active !== false).length
 
-  const highestApp = useMemo(() => [...appRows].sort((a, b) => number(b.activity_count_30d) - number(a.activity_count_30d))[0], [appRows])
+  const highestApp = [...appRows].sort((a, b) => number(b.activity_count_30d) - number(a.activity_count_30d))[0]
 
   return <div className="admin-shell">
     <div className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)}/>
@@ -307,7 +313,16 @@ function Dashboard({ user, onLogout }) {
       <header className="topbar">
         <button className="hamburger" onClick={() => setSidebarOpen(value => !value)} aria-label="Abrir menu" aria-expanded={sidebarOpen}><span/><span/><span/></button>
         <div className="top-search">
-          <span>⌕</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Pesquisar em todo o ecossistema…" aria-label="Pesquisar no ecossistema"/><kbd>Ctrl K</kbd>
+          <span>⌕</span><input value={query} onChange={event => {
+            const value = event.target.value
+            setQuery(value)
+            if (value.trim().length < 2) {
+              setSearchResult(null)
+              setSearching(false)
+            } else {
+              setSearching(true)
+            }
+          }} placeholder="Pesquisar em todo o ecossistema…" aria-label="Pesquisar no ecossistema"/><kbd>Ctrl K</kbd>
           {(searchResult || searching) && <SearchPopover result={searchResult} searching={searching} onClose={() => { setQuery(''); setSearchResult(null) }}/>} 
         </div>
         <div className="top-actions">
