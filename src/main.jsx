@@ -7,6 +7,7 @@ import PublicBlogIndex from './PublicBlogIndex.jsx'
 import PublicBlogArticle from './PublicBlogArticle.jsx'
 import PetriniaCutinappStory from './PetriniaCutinappStory.jsx'
 import PublicErrorBoundary from './PublicErrorBoundary.jsx'
+import PeterAccountGateway from './components/PeterAccountGateway.jsx'
 import { installWebVitals } from './discoveryApi.js'
 import { installGlobalImageFallbacks } from './utils/imageFallback.js'
 import installSeoFaqSection from './installSeoFaqSection.jsx'
@@ -44,7 +45,11 @@ const appPage = isBlogIndex
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <PublicErrorBoundary>{appPage}</PublicErrorBoundary>
+    <PublicErrorBoundary>
+      <PeterAccountGateway apiBaseUrl={API_BASE_URL} appSlug={APP_SLUG}>
+        {appPage}
+      </PeterAccountGateway>
+    </PublicErrorBoundary>
   </StrictMode>,
 )
 
