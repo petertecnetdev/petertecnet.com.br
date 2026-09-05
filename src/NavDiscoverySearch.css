@@ -59,6 +59,15 @@
   transform: translateX(-50%);
 }
 
+/* A busca global já vive na navegação. Na landing, o catálogo mantém apenas os filtros de categoria. */
+.mkt-catalog-tools {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.mkt-catalog-tools > label {
+  display: none;
+}
+
 @media (max-width: 1080px) {
   .mkt-discovery-search {
     width: clamp(190px, 20vw, 230px);
