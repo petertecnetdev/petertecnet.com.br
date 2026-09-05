@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { confirmAction, confirmTypedAction } from './utils/uiDialog.js'
 import './interaction-cleanup.css'
 
 const PURGE_CONFIRMATION = 'LIMPAR TODAS AS INTERAÇÕES'
@@ -52,9 +53,13 @@ export default function InteractionCleanup({ rows = [], total = 0, request, onCh
     if (!selectedVisibleIds.length || busy) return
 
     const quantity = selectedVisibleIds.length
-    const confirmed = window.confirm(
-      `Excluir permanentemente ${quantity} ${quantity === 1 ? 'interação selecionada' : 'interações selecionadas'}?\n\nEssa ação não pode ser desfeita.`,
-    )
+    const confirmed = await confirmAction({
+      tone: 'danger',
+      title: `Excluir ${quantity} ${quantity === 1 ? 'interação selecionada' : 'interações selecionadas'}?`,
+      message: 'Os registros selecionados serão removidos permanentemente. Essa ação não pode ser desfeita.',
+      confirmLabel: quantity === 1 ? 'Excluir interação' : `Excluir ${quantity} interações`,
+      cancelLabel: 'Manter registros',
+    })
     if (!confirmed) return
 
     setBusy('selected')
@@ -81,15 +86,18 @@ export default function InteractionCleanup({ rows = [], total = 0, request, onCh
   async function purgeAll() {
     if (busy || !Number(total)) return
 
-    const confirmation = window.prompt(
-      `Esta ação excluirá TODAS as interações armazenadas e não pode ser desfeita.\n\nPara confirmar, digite exatamente:\n${PURGE_CONFIRMATION}`,
-    )
-    if (confirmation === null) return
-
-    if (confirmation.trim() !== PURGE_CONFIRMATION) {
-      setFeedback({ tone: 'danger', text: 'A frase de confirmação não confere. Nenhuma interação foi excluída.' })
-      return
-    }
+    const confirmed = await confirmTypedAction({
+      tone: 'danger',
+      eyebrow: 'AÇÃO IRREVERSÍVEL',
+      title: 'Limpar todo o histórico de interações?',
+      message: `Esta ação excluirá todas as ${Number(total).toLocaleString('pt-BR')} interações armazenadas. Para proteger o histórico operacional, confirme digitando exatamente a frase indicada.`,
+      requiredText: PURGE_CONFIRMATION,
+      requiredTextLabel: 'Confirmação de segurança',
+      confirmLabel: 'Limpar todas as interações',
+      cancelLabel: 'Cancelar limpeza',
+      dismissOnBackdrop: false,
+    })
+    if (!confirmed) return
 
     setBusy('all')
     setFeedback(null)
