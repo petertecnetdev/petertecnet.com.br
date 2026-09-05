@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import ActivityCenter from './ActivityCenter.jsx'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
@@ -9,7 +10,7 @@ const navItems = [
   ['operations', 'Operações', '◈'],
   ['financial', 'Financeiro', '◒'],
   ['applications', 'Aplicações', '◇'],
-  ['activity', 'Atividade', '↯'],
+  ['activity', 'Atividades', '↯'],
 ]
 
 const groupLabels = {
@@ -201,7 +202,6 @@ function Dashboard({ user, onLogout }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [launcherOpen, setLauncherOpen] = useState(false)
   const [dashboard, setDashboard] = useState(null)
-  const [activity, setActivity] = useState(null)
   const [financial, setFinancial] = useState(null)
   const [command, setCommand] = useState(null)
   const [applications, setApplications] = useState([])
@@ -218,7 +218,6 @@ function Dashboard({ user, onLogout }) {
     setLoadError('')
     const endpoints = [
       ['/admin/ecosystem/dashboard', setDashboard],
-      ['/admin/ecosystem/activity', setActivity],
       ['/admin/ecosystem/financial/dashboard', setFinancial],
       ['/admin/ecosystem/command/overview', setCommand],
       ['/admin/applications', payload => setApplications(payload?.applications || payload?.data || (Array.isArray(payload) ? payload : []))],
@@ -273,7 +272,6 @@ function Dashboard({ user, onLogout }) {
   const failed = financialSummary?.failed || {}
   const pending = financialSummary?.pending || {}
   const appRows = dashboard?.applications || applications || []
-  const activityRows = activity?.activity || dashboard?.recent_activity || []
   const issueRows = command?.issues?.data || command?.issues || []
   const financialAlerts = financial?.alerts || []
   const operationalStatus = command?.overall_status || command?.status || command?.health?.status || (issueRows.some(issue => statusTone(issue.severity) === 'danger') ? 'Atenção' : 'Operacional')
@@ -391,12 +389,8 @@ function Dashboard({ user, onLogout }) {
           </section>
 
           <section id="activity" className="section-anchor">
-            <SectionHeading kicker="ATIVIDADE" title="Linha do tempo recente" text="Últimas ações registradas pela telemetria do ecossistema."/>
-            <Panel title="Atividade recente" subtitle={`${compactNumber(activity?.summary?.total ?? summary.interactions_30d)} interações no recorte atual`}>
-              <div className="timeline">
-                {activityRows.length ? activityRows.slice(0, 16).map((row, index) => <div className="timeline-row" key={row.id || `${row.created_at}-${index}`}><span className="timeline-dot"/><div><b>{row.name || row.interaction_type || row.type || 'Interação'}</b><small>{row.user_email || row.email || row.application_name || row.app_name || 'Ecossistema Peter Tecnet'}</small></div><time>{dateTime(row.created_at || row.occurred_at)}</time></div>) : <Empty text="Nenhuma interação recente retornada pela API."/>}
-              </div>
-            </Panel>
+            <SectionHeading kicker="ATIVIDADES" title="Central operacional do ecossistema" text="Acompanhe tudo que usuários e aplicações fazem, com contexto de estabelecimento, recurso, sessão, falhas e desempenho."/>
+            <ActivityCenter request={request} tokenKey={TOKEN_KEY}/>
           </section>
         </>}
       </div>
