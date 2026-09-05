@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
+import AdminOverviewIntelligence from './AdminOverviewIntelligence.jsx'
 import AdminSessionGuard from './AdminSessionGuard.jsx'
 import PwaInstallButton from './PwaInstallButton.jsx'
 import SupportAdminApp, { AdminSupportLauncher } from './SupportAdminApp.jsx'
@@ -15,7 +16,7 @@ const path = window.location.pathname.replace(/\/+$/, '') || '/'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    {path === '/support' ? <SupportAdminApp /> : <><App /><AdminSupportLauncher /></>}
+    {path === '/support' ? <SupportAdminApp /> : <><App /><AdminOverviewIntelligence /><AdminSupportLauncher /></>}
     <AdminSessionGuard />
     <PwaInstallButton />
   </StrictMode>,
