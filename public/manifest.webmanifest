@@ -16,20 +16,14 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/pwa-admin-192.svg",
-      "sizes": "192x192",
+      "src": "/favicon.svg?v=4",
+      "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/pwa-admin-512.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "/pwa-admin-512.svg",
-      "sizes": "512x512",
+      "src": "/favicon.svg?v=4",
+      "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable"
     }
