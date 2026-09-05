@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { confirmAction } from './utils/uiDialog.js'
 import './ApplicationBrandingManager.css'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
@@ -148,7 +149,16 @@ export default function ApplicationBrandingManager({ applications = [] }) {
   }
 
   async function discardDraft() {
-    if (!payload?.draft || !window.confirm('Descartar todas as alterações ainda não publicadas?')) return
+    if (!payload?.draft) return
+    const confirmed = await confirmAction({
+      tone: 'danger',
+      title: 'Descartar alterações de branding?',
+      message: 'Todas as alterações ainda não publicadas serão removidas. A identidade publicada continuará ativa.',
+      confirmLabel: 'Descartar rascunho',
+      cancelLabel: 'Continuar editando',
+    })
+    if (!confirmed) return
+
     setBusy(true)
     setError('')
     try {
@@ -163,7 +173,15 @@ export default function ApplicationBrandingManager({ applications = [] }) {
   }
 
   async function restore(revision) {
-    if (!window.confirm(`Restaurar a versão ${revision.version} como rascunho?`)) return
+    const confirmed = await confirmAction({
+      tone: 'warning',
+      title: `Restaurar a versão ${revision.version}?`,
+      message: 'A versão escolhida será carregada como um novo rascunho. Nada será publicado até você revisar e confirmar a publicação.',
+      confirmLabel: `Restaurar v${revision.version}`,
+      cancelLabel: 'Cancelar',
+    })
+    if (!confirmed) return
+
     setBusy(true)
     setError('')
     try {
