@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import NotificationAudienceExclusions from './NotificationAudienceExclusions'
 import './NotificationsCenter.css'
 
@@ -82,6 +82,12 @@ export default function NotificationsCenter({ request, applications = [] }) {
     [applications],
   )
 
+  const handleExclusionsChange = useCallback(nextExclusions => {
+    setExclusions(nextExclusions)
+    setPreview(null)
+    setSuccess('')
+  }, [])
+
   const audiencePayload = useMemo(() => ({
     audience_type: form.audience_type,
     app_id: form.app_id ? Number(form.app_id) : null,
@@ -90,11 +96,6 @@ export default function NotificationsCenter({ request, applications = [] }) {
     exclusion_rules: exclusions.exclusion_rules || [],
     exclusion_match: exclusions.exclusion_match || 'any',
   }), [form.audience_type, form.app_id, selectedUsers, exclusions])
-
-  useEffect(() => {
-    setPreview(null)
-    setSuccess('')
-  }, [exclusions])
 
   async function loadCampaigns(targetPage = page) {
     setLoading(true)
@@ -305,7 +306,7 @@ export default function NotificationsCenter({ request, applications = [] }) {
             </div>}
           </div>}
 
-          <NotificationAudienceExclusions request={request} onChange={setExclusions}/>
+          <NotificationAudienceExclusions request={request} onChange={handleExclusionsChange}/>
 
           <div className="preview-row">
             <button type="button" className="secondary-notification-button" onClick={calculatePreview} disabled={previewing}>{previewing ? 'Calculando…' : 'Calcular alcance'}</button>
