@@ -19,13 +19,30 @@ if (!chrome) throw new Error('Chrome/Chromium não encontrado.')
 rmSync(output, { recursive: true, force: true })
 mkdirSync(output, { recursive: true })
 
-const viewports = [
-  { name: 'mobile', width: 390, height: 844, mobile: true },
-  { name: 'desktop', width: 1280, height: 800, mobile: false },
+// Narrow headless windows intermittently crash in GitHub's Ubuntu runner GPU/DBus
+// stack. Real 360/390px layout is already exercised by validate-admin-browser.
+// Here we keep Chromium on a stable desktop surface and override matchMedia only
+// for the mobile scenario so the production interaction state machine executes
+// its mobile branch without weakening the assertions.
+const scenarios = [
+  { name: 'mobile-logic', mobile: true },
+  { name: 'desktop', mobile: false },
 ]
 
-function probeDocument(viewport) {
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${cssLinks}<style>*{animation:none!important;transition:none!important}#click-probe{position:absolute;left:45%;top:45%;width:150px;height:52px;z-index:2}</style></head>
+function matchMediaShim(mobile) {
+  if (!mobile) return ''
+  return `<script>
+    window.matchMedia = query => ({
+      matches: query === '(max-width: 760px)',
+      media: query,
+      onchange: null,
+      addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent() { return false },
+    })
+  <\/script>`
+}
+
+function probeDocument(scenario) {
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${cssLinks}<style>*{animation:none!important;transition:none!important}#click-probe{position:absolute;left:45%;top:45%;width:150px;height:52px;z-index:2}</style>${matchMediaShim(scenario.mobile)}</head>
   <body style="pointer-events:none">
     <main id="root" class="ecosystem-shell admin-persistent-shell" inert>
       <aside class="ecosystem-sidebar admin-persistent-sidebar" inert aria-hidden="true"><nav><button>Visão geral</button></nav></aside>
@@ -71,7 +88,8 @@ function probeDocument(viewport) {
           add('underlying-button-clicked', clicks === 1, String(clicks))
           add('repair-reported', outcome.repaired > 0, String(outcome.repaired))
 
-          if (${viewport.mobile}) {
+          if (${scenario.mobile}) {
+            add('mobile-branch-selected', matchMedia('(max-width: 760px)').matches, String(matchMedia('(max-width: 760px)').matches))
             add('closed-mobile-drawer-inert', drawer.inert, String(drawer.inert))
             add('closed-mobile-drawer-hidden', drawer.getAttribute('aria-hidden') === 'true', drawer.getAttribute('aria-hidden') || 'none')
           } else {
@@ -79,7 +97,7 @@ function probeDocument(viewport) {
             add('desktop-drawer-visible-to-a11y', !drawer.hasAttribute('aria-hidden'), drawer.getAttribute('aria-hidden') || 'none')
           }
 
-          document.querySelector('#result').textContent = JSON.stringify({ viewport: '${viewport.name}', checks, ok: checks.every(check => check.pass) })
+          document.querySelector('#result').textContent = JSON.stringify({ scenario: '${scenario.name}', checks, ok: checks.every(check => check.pass) })
           document.body.dataset.complete = 'true'
         })
       }))
@@ -106,23 +124,23 @@ function runProbe(url, common, attempts = 6) {
 }
 
 const failures = []
-for (const viewport of viewports) {
-  const file = join(output, `${viewport.name}.html`)
-  writeFileSync(file, probeDocument(viewport))
+for (const scenario of scenarios) {
+  const file = join(output, `${scenario.name}.html`)
+  writeFileSync(file, probeDocument(scenario))
   const common = [
     '--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage',
     '--allow-file-access-from-files', '--run-all-compositor-stages-before-draw',
-    '--virtual-time-budget=3500', `--window-size=${Math.max(500, viewport.width)},${Math.max(800, viewport.height)}`,
+    '--virtual-time-budget=3500', '--window-size=1280,800',
   ]
   const probe = runProbe(pathToFileURL(file).href, common)
   const result = probe.result
   if (!result) {
     const detail = probe.run?.stderr?.trim() || probe.run?.stdout?.trim()?.slice(-500) || 'sem saída do Chromium'
-    failures.push(`${viewport.name}: Chromium não concluiu o probe após ${probe.attempt} tentativas (${detail})`)
+    failures.push(`${scenario.name}: Chromium não concluiu o probe após ${probe.attempt} tentativas (${detail})`)
     continue
   }
-  console.log(`${result.ok ? '✓' : '✗'} interaction-guard/${viewport.name}: ${result.checks.map(check => `${check.name}=${check.pass ? 'ok' : 'FAIL'}`).join(', ')}${probe.attempt > 1 ? ` (tentativa ${probe.attempt})` : ''}`)
-  if (!result.ok) failures.push(`${viewport.name}: ${result.checks.filter(check => !check.pass).map(check => `${check.name} (${check.detail})`).join('; ')}`)
+  console.log(`${result.ok ? '✓' : '✗'} interaction-guard/${scenario.name}: ${result.checks.map(check => `${check.name}=${check.pass ? 'ok' : 'FAIL'}`).join(', ')}${probe.attempt > 1 ? ` (tentativa ${probe.attempt})` : ''}`)
+  if (!result.ok) failures.push(`${scenario.name}: ${result.checks.filter(check => !check.pass).map(check => `${check.name} (${check.detail})`).join('; ')}`)
 }
 
 if (failures.length) {
@@ -131,4 +149,4 @@ if (failures.length) {
   process.exit(1)
 }
 
-console.log(`\nWatchdog de interação validado em ${viewports.length} cenários reais de navegador.`)
+console.log(`\nWatchdog de interação validado em ${scenarios.length} cenários reais de navegador.`)
