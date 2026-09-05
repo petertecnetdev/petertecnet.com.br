@@ -99,18 +99,36 @@ export default function NotificationsCenter({ request, applications = [] }) {
     }
   }
 
-  useEffect(() => { loadCampaigns(1) }, [])
+  useEffect(() => {
+    let active = true
+    const timer = window.setTimeout(async () => {
+      try {
+        const payload = await request('/admin/ecosystem/notifications?page=1&per_page=25')
+        if (!active) return
+        setCampaigns(payload?.campaigns?.data || [])
+        setPagination(payload?.campaigns || null)
+        setSummary(payload?.summary || {})
+        setPage(Number(payload?.campaigns?.current_page || 1))
+      } catch (err) {
+        if (active) setError(err.message)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }, 0)
+
+    return () => {
+      active = false
+      window.clearTimeout(timer)
+    }
+  }, [request])
 
   useEffect(() => {
     window.clearTimeout(searchTimer.current)
     const term = userSearch.trim()
-    if (form.audience_type !== 'users' || term.length < 2) {
-      setUserResults([])
-      setUserSearching(false)
-      return
-    }
-    setUserSearching(true)
+    if (form.audience_type !== 'users' || term.length < 2) return undefined
+
     searchTimer.current = window.setTimeout(async () => {
+      setUserSearching(true)
       try {
         const payload = await request(`/admin/ecosystem/users?search=${encodeURIComponent(term)}`)
         setUserResults((payload?.users || []).slice(0, 12))
@@ -122,7 +140,7 @@ export default function NotificationsCenter({ request, applications = [] }) {
       }
     }, 260)
     return () => window.clearTimeout(searchTimer.current)
-  }, [userSearch, form.audience_type])
+  }, [userSearch, form.audience_type, request])
 
   function change(field, value) {
     setForm(current => ({ ...current, [field]: value }))
@@ -132,8 +150,20 @@ export default function NotificationsCenter({ request, applications = [] }) {
 
   function selectAudience(value) {
     setForm(current => ({ ...current, audience_type: value, app_id: value === 'ecosystem' ? '' : current.app_id }))
+    if (value !== 'users') {
+      setUserResults([])
+      setUserSearching(false)
+    }
     setPreview(null)
     setSuccess('')
+  }
+
+  function changeUserSearch(value) {
+    setUserSearch(value)
+    if (value.trim().length < 2) {
+      setUserResults([])
+      setUserSearching(false)
+    }
   }
 
   function toggleUser(user) {
@@ -243,7 +273,7 @@ export default function NotificationsCenter({ request, applications = [] }) {
           </label>}
 
           {form.audience_type === 'users' && <div className="user-picker">
-            <label className="notification-field"><span>Buscar usuários</span><input value={userSearch} onChange={event => setUserSearch(event.target.value)} placeholder="Nome, e-mail, username ou ID"/></label>
+            <label className="notification-field"><span>Buscar usuários</span><input value={userSearch} onChange={event => changeUserSearch(event.target.value)} placeholder="Nome, e-mail, username ou ID"/></label>
             {selectedUsers.length > 0 && <div className="selected-users">{selectedUsers.map(user => <button key={user.id} type="button" onClick={() => toggleUser(user)} title="Remover usuário"><span>{userName(user)}</span><i>×</i></button>)}</div>}
             {(userSearching || userResults.length > 0) && <div className="user-results">
               {userSearching ? <div className="user-searching">Buscando usuários…</div> : userResults.map(user => {
