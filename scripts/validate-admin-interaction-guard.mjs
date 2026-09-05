@@ -41,7 +41,7 @@ function probeDocument(viewport) {
       let clicks = 0
       document.querySelector('#click-probe').addEventListener('click', () => { clicks += 1 })
       addEventListener('load', () => requestAnimationFrame(() => {
-        const outcome = repairAdminInteractionState()
+        const outcome = repairAdminInteractionState({ force: true })
         requestAnimationFrame(() => {
           const checks = []
           const add = (name, pass, detail = '') => checks.push({ name, pass: Boolean(pass), detail })
@@ -54,6 +54,7 @@ function probeDocument(viewport) {
           const rect = probe.getBoundingClientRect()
           const top = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
           top?.closest?.('#click-probe')?.click()
+          const backdropStyle = getComputedStyle(backdrop)
 
           add('guard-activated', document.body.classList.contains('admin-interaction-guard-active'))
           add('root-not-inert', !root.inert, String(root.inert))
@@ -63,7 +64,7 @@ function probeDocument(viewport) {
           add('processing-nonblocking', getComputedStyle(processing).pointerEvents === 'none', getComputedStyle(processing).pointerEvents)
           add('processing-no-longer-fullscreen', processing.getBoundingClientRect().width < innerWidth * .6, String(processing.getBoundingClientRect().width))
           add('stale-backdrop-closed', !backdrop.classList.contains('is-open'), backdrop.className)
-          add('stale-backdrop-nonblocking', getComputedStyle(backdrop).pointerEvents === 'none', getComputedStyle(backdrop).pointerEvents)
+          add('stale-backdrop-nonblocking', backdropStyle.display === 'none' || backdropStyle.pointerEvents === 'none', `${backdropStyle.display}/${backdropStyle.pointerEvents}`)
           add('orphan-overlay-removed', !document.querySelector('#orphan-overlay'))
           add('underlying-button-hit-test', Boolean(top?.closest?.('#click-probe')), top?.className || top?.tagName || 'none')
           add('underlying-button-clicked', clicks === 1, String(clicks))
