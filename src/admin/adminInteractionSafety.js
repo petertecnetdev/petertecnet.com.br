@@ -211,8 +211,8 @@ function markProcessingAsNonBlocking() {
   return repaired
 }
 
-export function repairAdminInteractionState() {
-  if (!window.location.pathname.startsWith('/admin')) return { repaired: 0, version: GUARD_VERSION }
+export function repairAdminInteractionState({ force = false } = {}) {
+  if (!force && !window.location.pathname.startsWith('/admin')) return { repaired: 0, version: GUARD_VERSION }
 
   document.body.classList.add('admin-interaction-guard-active')
 
