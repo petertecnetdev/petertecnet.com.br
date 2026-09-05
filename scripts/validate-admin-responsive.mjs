@@ -14,6 +14,7 @@ function check(name, condition) {
 }
 
 const main = read('src/main.jsx')
+const sessionGuard = read('src/AdminSessionGuard.jsx')
 const index = read('index.html')
 const responsive = read('src/AdminResponsive.css')
 const navigation = read('src/AdminNavigationStandard.css')
@@ -31,7 +32,8 @@ check('viewport meta is configured', /name="viewport"\s+content="[^"]*width=devi
 check('responsive layer is imported', responsiveImport >= 0)
 check('responsive layer loads after base Admin CSS', responsiveImport > appImport && responsiveImport > feedbackImport)
 check('canonical navigation layer loads last', navigationImport > responsiveImport)
-check('canonical navigation controller is mounted', main.includes('<AdminAppNavigation />'))
+check('admin session guard is mounted', main.includes('<AdminSessionGuard />'))
+check('canonical navigation controller is mounted behind the session guard', sessionGuard.includes('<AdminAppNavigation />') && sessionGuard.includes('authorized &&'))
 check('root surfaces cannot widen the page', responsive.includes('.admin-shell') && responsive.includes('overflow-x: clip'))
 check('tables keep local scrolling on dense viewports', responsive.includes('.table-wrap') && responsive.includes('.est-table-wrap') && responsive.includes('.notification-table-wrap'))
 check('financial table becomes cards on phones', responsive.includes(".table-wrap td:nth-child(1)::before { content: 'Aplicação'; }"))
