@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import PublicDiscoveryExperience from './PublicDiscoveryExperience.jsx'
 import SmartImage from './components/SmartImage.jsx'
 import { formatCurrency, getItemImage } from './landingApi.js'
@@ -10,6 +11,7 @@ import {
   trackDiscoveryEvent,
 } from './discoveryApi.js'
 import './PublicExperienceRouter.css'
+import './NavDiscoverySearch.css'
 
 const ORIGIN = 'https://petertecnet.com.br'
 
@@ -71,6 +73,23 @@ function SearchInput({ initial = '', city = '', compact = false }) {
       {!loading && query.trim().length >= 2 && <a className="is-all" href={`/buscar?q=${encodeURIComponent(query.trim())}`}>Ver todos os resultados →</a>}
     </div>}
   </div>
+}
+
+function NavSearchPortal({ initial = '' }) {
+  const [target, setTarget] = useState(null)
+
+  useEffect(() => {
+    setTarget(document.querySelector('.mkt-header .mkt-nav'))
+  }, [])
+
+  if (!target) return null
+
+  return createPortal(
+    <div className="mkt-discovery-search" role="search" aria-label="Busca global na navegação">
+      <SearchInput initial={initial} compact />
+    </div>,
+    target,
+  )
 }
 
 function ResultGroup({ title, rows = [] }) {
@@ -194,24 +213,10 @@ function EnhancedArticlePage({ slug }) {
 function AdaptiveHome() {
   const params = useMemo(() => new URLSearchParams(window.location.search), [])
   const intentTerm = params.get('utm_term') || params.get('intent') || params.get('q') || ''
-  const [intent, setIntent] = useState(null)
-  useEffect(() => {
-    if (intentTerm.trim().length < 2) return undefined
-    const controller = new AbortController()
-    fetchDiscoverySearch({ q: intentTerm, limit: 4 }, controller.signal).then(payload => setIntent(payload?.data || null)).catch(() => null)
-    return () => controller.abort()
-  }, [intentTerm])
-  const recommendation = intent ? [
-    ...(intent.results?.applications || []),
-    ...(intent.results?.items || []),
-    ...(intent.results?.establishments || []),
-  ][0] : null
+
   return <>
     <PublicDiscoveryExperience />
-    <aside className="adaptive-discovery-dock" aria-label="Busca global e recomendação inteligente">
-      {recommendation && <a className="adaptive-intent" href={recommendation.url}><small>ENTENDEMOS SUA INTENÇÃO: {intentTerm}</small><strong>{recommendation.title}</strong><span>Abrir recomendação →</span></a>}
-      <SearchInput initial={intentTerm} compact />
-    </aside>
+    <NavSearchPortal initial={intentTerm} />
   </>
 }
 
