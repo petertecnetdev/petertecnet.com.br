@@ -1,6 +1,7 @@
 import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import './nexus-mobile-nav.css'
 import './seo.js'
 import PeterAccountGateway from './components/PeterAccountGateway.jsx'
 import PublicBlogIndex from './PublicBlogIndex.jsx'
