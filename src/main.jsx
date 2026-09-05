@@ -24,8 +24,9 @@ const PETRINIA_STORY_SLUG = 'petrinia-cutinapp-persistencia-tecnologia'
 const adminToken = localStorage.getItem('petertecnet_admin_token')
 const ecosystemToken = localStorage.getItem('token')
 
+// Preserve legacy Admin Center sessions, but never promote a normal ecosystem
+// session into an "admin" token. Authorization is always decided by the API.
 if (adminToken && !ecosystemToken) localStorage.setItem('token', adminToken)
-if (ecosystemToken && !adminToken) localStorage.setItem('petertecnet_admin_token', ecosystemToken)
 
 installGlobalImageFallbacks()
 installPasswordVisibilityToggles()

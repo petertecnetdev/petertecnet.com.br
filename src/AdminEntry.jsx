@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
+import AdminAccessGate from './AdminAccessGate.jsx'
 import AdminPersistentShell from './AdminPersistentShell.jsx'
 import AdminRouteSync from './AdminRouteSync.jsx'
 import AdminRouteErrorBoundary from './AdminRouteErrorBoundary.jsx'
@@ -89,17 +90,19 @@ export default function AdminEntry() {
   const activeKey = adminTabFromLocation(path)
 
   return (
-    <AdminUiProvider>
-      <AdminPersistentShell activeKey={activeKey}>
-        <AdminRouteErrorBoundary key={path}>
-          <Suspense fallback={<AdminRouteLoading />}>
-            {adminRouteContent(path)}
-          </Suspense>
-        </AdminRouteErrorBoundary>
-      </AdminPersistentShell>
-      <AdminMobileNavigation />
-      <AdminWorkspaceStateBridge />
-      <AdminRealtimeBridge />
-    </AdminUiProvider>
+    <AdminAccessGate>
+      <AdminUiProvider>
+        <AdminPersistentShell activeKey={activeKey}>
+          <AdminRouteErrorBoundary key={path}>
+            <Suspense fallback={<AdminRouteLoading />}>
+              {adminRouteContent(path)}
+            </Suspense>
+          </AdminRouteErrorBoundary>
+        </AdminPersistentShell>
+        <AdminMobileNavigation />
+        <AdminWorkspaceStateBridge />
+        <AdminRealtimeBridge />
+      </AdminUiProvider>
+    </AdminAccessGate>
   )
 }
