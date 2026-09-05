@@ -164,3 +164,85 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startPersistence, { once: true });
   else startPersistence();
 })();
+
+// Shared device-level registry used by the Peter Tecnet landing page. Each PWA
+// records its own installed state in a parent-domain cookie so the App Store can
+// switch from "Instalar" to "Abrir" without coupling the applications together.
+(() => {
+  'use strict';
+
+  const script = document.currentScript;
+  const COOKIE_NAME = 'pt_pwa_installed_apps';
+  const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+  const normalizeSlug = value => String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  const inferSlug = () => {
+    const host = window.location.hostname.toLowerCase();
+    if (host === 'petertecnet.com.br' || host === 'www.petertecnet.com.br') return 'peter-tecnet';
+    return normalizeSlug(host.split('.')[0]);
+  };
+
+  const appSlug = normalizeSlug(script?.dataset?.appSlug || inferSlug() || script?.dataset?.appName);
+  if (!appSlug) return;
+
+  const isStandalone = () => window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone === true;
+
+  const readRegistry = () => {
+    const prefix = `${COOKIE_NAME}=`;
+    const raw = document.cookie
+      .split(';')
+      .map(part => part.trim())
+      .find(part => part.startsWith(prefix));
+    if (!raw) return new Set();
+    try {
+      return new Set(decodeURIComponent(raw.slice(prefix.length)).split(',').map(normalizeSlug).filter(Boolean));
+    } catch (_) {
+      return new Set();
+    }
+  };
+
+  const writeRegistry = registry => {
+    const value = encodeURIComponent([...registry].sort().join(','));
+    document.cookie = `${COOKIE_NAME}=${value}; Domain=.petertecnet.com.br; Path=/; Max-Age=${COOKIE_MAX_AGE}; SameSite=Lax; Secure`;
+  };
+
+  const updateRegistry = installed => {
+    const registry = readRegistry();
+    const changed = installed ? !registry.has(appSlug) : registry.has(appSlug);
+    if (installed) registry.add(appSlug);
+    else registry.delete(appSlug);
+    if (changed) writeRegistry(registry);
+
+    window.dispatchEvent(new CustomEvent('petertecnet:pwa-install-state', {
+      detail: { slug: appSlug, installed: Boolean(installed) },
+    }));
+  };
+
+  const refresh = async () => {
+    if (isStandalone()) {
+      updateRegistry(true);
+      return;
+    }
+
+    if (script?.dataset?.detectInstalled === 'related-app' && typeof navigator.getInstalledRelatedApps === 'function') {
+      try {
+        const relatedApps = await navigator.getInstalledRelatedApps();
+        if (relatedApps.some(app => app?.platform === 'webapp')) updateRegistry(true);
+      } catch (_) {}
+    }
+  };
+
+  if (isStandalone()) updateRegistry(true);
+  window.addEventListener('appinstalled', () => updateRegistry(true));
+  window.addEventListener('beforeinstallprompt', () => updateRegistry(false));
+  window.addEventListener('pageshow', refresh);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+  refresh();
+})();
