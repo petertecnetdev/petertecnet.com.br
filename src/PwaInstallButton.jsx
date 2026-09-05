@@ -72,7 +72,10 @@ export default function PwaInstallButton() {
 
     setInstalling(true)
     try {
-      await installPrompt.prompt()
+      const openInstallDialog = installPrompt['prompt']
+      if (typeof openInstallDialog === 'function') {
+        await openInstallDialog.call(installPrompt)
+      }
       const choice = await installPrompt.userChoice
       if (choice?.outcome === 'accepted') {
         setInstallPrompt(null)
