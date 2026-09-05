@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import './ContentDiscoveryAdminPage.css'
+import BlogPerformancePanel from './BlogPerformancePanel.jsx'
 import { blogArticles } from './marketingContent.js'
 import {
   createAdminContent,
@@ -261,6 +262,8 @@ export default function ContentDiscoveryAdminPage() {
         <div className="content-editor-actions"><button className="content-primary" disabled={saving} type="submit">{saving ? 'Salvando…' : 'Salvar'}</button>{selectedId && editor.status !== 'published' && <button type="button" disabled={saving} onClick={publish}>Publicar agora</button>}{selectedId && <button className="is-danger" type="button" disabled={saving} onClick={remove}>Excluir</button>}</div>
       </form>
     </section>
+
+    <BlogPerformancePanel rows={analytics?.content_performance || []} periodDays={analytics?.period_days || 30} />
 
     <section className="content-analytics-grid">
       <div className="content-panel"><div className="content-panel-head"><div><p className="admin-kicker">FUNIL</p><h2>Descoberta → conversão</h2></div><small>Últimos 30 dias</small></div><Funnel rows={analytics?.funnel || []} /></div>
