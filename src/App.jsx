@@ -1,404 +1,469 @@
-import { useEffect, useMemo, useState } from 'react'
-import './App.css'
-import { AdminPage, LoginPage } from './Admin'
-import {
-  fetchApplications,
-  fetchPeterCatalog,
-  fetchPeterItem,
-  fetchSite,
-  formatCurrency,
-  getItemImage,
-  resolveAssetUrl,
-} from './landingApi'
-import useLandingMotion from './useLandingMotion'
-import { updatePageSeo } from './seo'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
-const defaultContact = {
-  email: 'contato@petertecnet.com.br',
-  instagram: 'https://www.instagram.com/petertecnet/',
-}
+const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
+const TOKEN_KEY = 'petertecnet_admin_token'
+const OWNER_EMAIL = 'petertecnet@gmail.com'
 
-const solutionPaths = [
-  {
-    id: 'eventos',
-    label: 'Eventos e ingressos',
-    title: 'Quero criar eventos e vender ingressos',
-    description: 'Organize produção, vendas, promoters, participantes e validação de entradas em uma operação digital.',
-    slugs: ['cutinapp'],
-  },
-  {
-    id: 'catalogo',
-    label: 'Catálogo e presença',
-    title: 'Quero colocar meus produtos e serviços online',
-    description: 'Crie presença digital, organize itens e transforme seu catálogo em um ponto de descoberta e conversão.',
-    slugs: ['nexus'],
-  },
-  {
-    id: 'atendimento',
-    label: 'Atendimento e vendas',
-    title: 'Quero vender e acompanhar clientes melhor',
-    description: 'Estruture atendimento, oportunidades, propostas, cobranças e follow-up em um fluxo comercial contínuo.',
-    slugs: ['payflow', 'peter-payflow'],
-  },
-  {
-    id: 'agenda',
-    label: 'Agenda e serviços',
-    title: 'Quero organizar agenda, equipe e serviços',
-    description: 'Digitalize a operação de serviços com agenda, equipe, clientes e disponibilidade conectados.',
-    slugs: ['rasoio'],
-  },
-  {
-    id: 'crypto',
-    label: 'Crypto e inteligência de mercado',
-    title: 'Quero acompanhar o mercado cripto com mais inteligência',
-    description: 'Use dados, monitoramento, análise de cenário, gestão de risco e automações para acompanhar ativos digitais com mais contexto e disciplina, sem promessas de retorno.',
-    slugs: ['kryvion'],
-  },
-  {
-    id: 'conexoes',
-    label: 'Comunidade e conexões',
-    title: 'Quero criar conexões e experiências sociais',
-    description: 'Use produtos do ecossistema voltados a descoberta, relacionamento, comunidade e novas interações.',
-    slugs: ['laora', 'plat'],
-  },
+const navItems = [
+  ['dashboard', 'Visão geral', '⌂'],
+  ['operations', 'Operações', '◈'],
+  ['financial', 'Financeiro', '◒'],
+  ['applications', 'Aplicações', '◇'],
+  ['activity', 'Atividade', '↯'],
 ]
 
-const capabilities = [
-  ['Produto digital', 'Da ideia à operação', 'Estratégia, experiência, engenharia e evolução contínua no mesmo ciclo.'],
-  ['Integrações', 'Sistemas que conversam', 'APIs, autenticação, pagamentos, dados e automações conectados sem criar ilhas.'],
-  ['Dados e inteligência', 'Informação para decidir melhor', 'IA, análise de dados, monitoramento e automações aplicadas a operações, produtos e mercados digitais.'],
-  ['Software sob medida', 'Tecnologia para um problema real', 'Quando o produto pronto não resolve, construímos a solução certa para a operação.'],
-]
-
-const normalizeText = value => String(value || '').toLocaleLowerCase('pt-BR')
-
-function MarketingHeader({ menuOpen, setMenuOpen }) {
-  const closeMenu = () => setMenuOpen(false)
-  return <header className="pt-nav">
-    <a className="pt-brand" href="/#inicio" onClick={closeMenu} aria-label="Peter Tecnet — início">
-      <span className="pt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span>
-      <span><strong>Peter Tecnet</strong><small>Technology ecosystem</small></span>
-    </a>
-    <button className="pt-menu-toggle" type="button" aria-label="Abrir menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><span /><span /></button>
-    <nav className={menuOpen ? 'pt-nav-links is-open' : 'pt-nav-links'} aria-label="Navegação principal">
-      <a href="/#ecossistema" onClick={closeMenu}>Ecossistema</a>
-      <a href="/#catalogo" onClick={closeMenu}>Catálogo</a>
-      <a href="/#como-funciona" onClick={closeMenu}>Como funciona</a>
-      <a href="/#empresa" onClick={closeMenu}>Para empresas</a>
-      <a className="pt-nav-cta" href="/#comece" onClick={closeMenu}>Encontre sua solução <span>↗</span></a>
-    </nav>
-  </header>
+const groupLabels = {
+  users: 'Usuários', applications: 'Aplicações', establishments: 'Estabelecimentos',
+  items: 'Itens', events: 'Eventos', orders: 'Pedidos', payments: 'Pagamentos',
 }
 
-function ApplicationCard({ application, index }) {
-  return <article className="app-card" data-tilt>
-    <div className="app-card-top">
-      <span>{String(index + 1).padStart(2, '0')}</span>
-      <span>{application.version ? `v${application.version}` : 'Peter Tecnet'}</span>
-    </div>
-    <div className="app-logo-wrap">
-      <img src={resolveAssetUrl(application.logo) || '/petertecnetlogo.png'} alt={`Logo ${application.name}`} loading="lazy" />
-    </div>
-    <h3>{application.name}</h3>
-    <p>{application.description || 'Produto digital desenvolvido e evoluído dentro do ecossistema Peter Tecnet.'}</p>
-    {application.url && <a className="text-link" href={application.url} target="_blank" rel="noreferrer">Abrir plataforma <span>↗</span></a>}
+function tokenFrom(payload) {
+  return payload?.token?.access_token || payload?.access_token || payload?.token || ''
+}
+
+function userFrom(payload) {
+  return payload?.token?.user || payload?.user || null
+}
+
+function fullName(user) {
+  return [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.user_name || user?.email || 'Usuário'
+}
+
+function number(value) {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+function compactNumber(value) {
+  return new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 }).format(number(value))
+}
+
+function currency(value) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(number(value))
+}
+
+function dateTime(value) {
+  if (!value) return '—'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+}
+
+function request(path, options = {}) {
+  const token = localStorage.getItem(TOKEN_KEY)
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), options.timeout || 18000)
+  return fetch(`${API}${path}`, {
+    ...options,
+    signal: controller.signal,
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
+  }).then(async response => {
+    const payload = response.status === 204 ? null : await response.json().catch(() => ({}))
+    if (response.status === 401 && path !== '/auth/login') {
+      localStorage.removeItem(TOKEN_KEY)
+      window.dispatchEvent(new Event('admin-session-expired'))
+    }
+    if (!response.ok) {
+      throw new Error(payload?.error || payload?.message || Object.values(payload?.errors || {}).flat()?.[0] || 'Não foi possível concluir a operação.')
+    }
+    return payload
+  }).catch(error => {
+    if (error?.name === 'AbortError') throw new Error('A API demorou para responder.')
+    throw error
+  }).finally(() => window.clearTimeout(timeout))
+}
+
+function Login({ onAuthenticated }) {
+  const [form, setForm] = useState({ email: OWNER_EMAIL, password: '' })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function submit(event) {
+    event.preventDefault()
+    setError('')
+    if (form.email.trim().toLowerCase() !== OWNER_EMAIL) {
+      setError('Este Admin Center é restrito ao administrador da Peter Tecnet.')
+      return
+    }
+    setLoading(true)
+    try {
+      const payload = await request('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username: form.email.trim().toLowerCase(), password: form.password }),
+      })
+      const token = tokenFrom(payload)
+      const user = userFrom(payload)
+      if (!token) throw new Error('A API não retornou uma sessão válida.')
+      if (String(user?.email || '').toLowerCase() !== OWNER_EMAIL) throw new Error('Usuário sem acesso ao Admin Center.')
+      localStorage.setItem(TOKEN_KEY, token)
+      onAuthenticated(user)
+    } catch (err) {
+      localStorage.removeItem(TOKEN_KEY)
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return <main className="login-screen">
+    <div className="login-aura aura-one"/><div className="login-aura aura-two"/>
+    <section className="login-copy">
+      <a className="brand brand-large" href="https://petertecnet.com.br/" target="_blank" rel="noreferrer">
+        <span className="brand-logo"><img src="/petertecnetlogo.png" alt=""/></span>
+        <span><b>Peter Tecnet</b><small>Admin Center</small></span>
+      </a>
+      <div>
+        <p className="eyebrow">ECOSYSTEM CONTROL / PRIVATE</p>
+        <h1>Gestão do ecossistema em uma única visão.</h1>
+        <p>Operações, receita, usuários, aplicações e sinais críticos conectados à API central da Peter Tecnet.</p>
+      </div>
+      <small className="login-security">Sessão autenticada pela API Peter Tecnet · acesso administrativo restrito</small>
+    </section>
+    <section className="login-panel">
+      <form className="login-card" onSubmit={submit}>
+        <div className="login-mark"><img src="/petertecnetlogo.png" alt="Peter Tecnet"/></div>
+        <p className="eyebrow">ADMIN CENTER</p>
+        <h2>Entrar</h2>
+        <p className="muted">Use suas credenciais administrativas.</p>
+        <label>E-mail<input type="email" autoComplete="username" value={form.email} onChange={event => setForm({ ...form, email: event.target.value })} required/></label>
+        <label>Senha<input type="password" autoComplete="current-password" value={form.password} onChange={event => setForm({ ...form, password: event.target.value })} required autoFocus/></label>
+        {error && <div className="form-error" role="alert">{error}</div>}
+        <button className="primary-button" disabled={loading}>{loading ? 'Autenticando…' : 'Acessar dashboard'}<span>↗</span></button>
+      </form>
+    </section>
+  </main>
+}
+
+function MetricCard({ label, value, detail, trend, tone = 'neutral' }) {
+  return <article className={`metric-card tone-${tone}`}>
+    <div className="metric-head"><span>{label}</span>{trend && <small>{trend}</small>}</div>
+    <strong>{value}</strong>
+    <p>{detail}</p>
   </article>
 }
 
-function CatalogCard({ item }) {
-  const image = getItemImage(item)
-  const identifier = item.slug || item.id
-  return <article className="catalog-card" data-tilt>
-    <a className="catalog-media" href={`/solucoes/${encodeURIComponent(identifier)}`} aria-label={`Ver ${item.name}`}>
-      {image ? <img src={image} alt={item.name} loading="lazy" /> : <span className="catalog-placeholder"><img src="/petertecnetlogo.png" alt="" /></span>}
-      {item.is_featured && <span className="featured-pill">Destaque</span>}
-    </a>
-    <div className="catalog-body">
-      <div className="catalog-meta"><span>{item.category || item.type || 'Solução digital'}</span><strong>{formatCurrency(item.price)}</strong></div>
-      <h3><a href={`/solucoes/${encodeURIComponent(identifier)}`}>{item.name}</a></h3>
-      <p>{item.description || 'Solução disponível no catálogo Peter Tecnet.'}</p>
-      <a className="text-link" href={`/solucoes/${encodeURIComponent(identifier)}`}>Ver detalhes <span>↗</span></a>
+function LineChart({ rows = [], valueKey = 'gross', labelKey = 'day', formatter = compactNumber }) {
+  const values = rows.map(row => number(row?.[valueKey]))
+  const max = Math.max(...values, 1)
+  const points = rows.map((row, index) => {
+    const x = rows.length <= 1 ? 50 : (index / (rows.length - 1)) * 100
+    const y = 92 - (number(row?.[valueKey]) / max) * 78
+    return `${x},${y}`
+  }).join(' ')
+  return <div className="line-chart">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <line x1="0" y1="25" x2="100" y2="25"/><line x1="0" y1="50" x2="100" y2="50"/><line x1="0" y1="75" x2="100" y2="75"/>
+      {points && <><polyline className="chart-area" points={`0,100 ${points} 100,100`}/><polyline className="chart-line" points={points}/></>}
+    </svg>
+    <div className="chart-labels">
+      {rows.length ? <><span>{String(rows[0]?.[labelKey] || '').slice(5)}</span><b>{formatter(max)}</b><span>{String(rows.at(-1)?.[labelKey] || '').slice(5)}</span></> : <span>Sem dados no período</span>}
     </div>
+  </div>
+}
+
+function Bars({ rows = [] }) {
+  const normalized = rows.slice(0, 7).map(row => ({
+    label: row.name || row.application_name || row.app_slug || 'Aplicação',
+    value: number(row.activity_count_30d ?? row.users_count ?? row.gross ?? row.transactions),
+  }))
+  const max = Math.max(...normalized.map(row => row.value), 1)
+  return <div className="bars">
+    {normalized.length ? normalized.map(row => <div className="bar-row" key={row.label}>
+      <div><span>{row.label}</span><b>{compactNumber(row.value)}</b></div>
+      <i><span style={{ width: `${Math.max((row.value / max) * 100, row.value ? 5 : 0)}%` }}/></i>
+    </div>) : <Empty text="Sem dados de engajamento ainda."/>}
+  </div>
+}
+
+function Panel({ title, subtitle, action, children, className = '' }) {
+  return <article className={`panel ${className}`}>
+    <header><div><h3>{title}</h3>{subtitle && <p>{subtitle}</p>}</div>{action}</header>
+    {children}
   </article>
 }
 
-function LandingPage() {
-  const [menuOpen, setMenuOpen] = useState(false)
+function Empty({ text = 'Nenhum dado disponível.' }) {
+  return <div className="empty-state">{text}</div>
+}
+
+function statusTone(status) {
+  const value = String(status || '').toLowerCase()
+  if (['critical', 'down', 'failed', 'error', 'unhealthy'].some(key => value.includes(key))) return 'danger'
+  if (['warning', 'degraded', 'pending', 'attention'].some(key => value.includes(key))) return 'warning'
+  return 'success'
+}
+
+function Dashboard({ user, onLogout }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [launcherOpen, setLauncherOpen] = useState(false)
+  const [dashboard, setDashboard] = useState(null)
+  const [activity, setActivity] = useState(null)
+  const [financial, setFinancial] = useState(null)
+  const [command, setCommand] = useState(null)
   const [applications, setApplications] = useState([])
-  const [appsStatus, setAppsStatus] = useState('loading')
-  const [catalog, setCatalog] = useState([])
-  const [catalogStatus, setCatalogStatus] = useState('loading')
-  const [catalogCompany, setCatalogCompany] = useState(null)
-  const [contact, setContact] = useState(defaultContact)
-  const [selectedPath, setSelectedPath] = useState(solutionPaths[0].id)
-  const [catalogQuery, setCatalogQuery] = useState('')
-  const [catalogCategory, setCatalogCategory] = useState('todos')
-  const [showAllCatalog, setShowAllCatalog] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState('')
+  const [query, setQuery] = useState('')
+  const [searching, setSearching] = useState(false)
+  const [searchResult, setSearchResult] = useState(null)
+  const searchTimer = useRef(null)
 
-  useLandingMotion(true)
-
-  useEffect(() => {
-    updatePageSeo({
-      title: 'Peter Tecnet | Software, IA, automações e tecnologia para o mercado crypto',
-      description: 'Conheça o ecossistema Peter Tecnet: plataformas, software, IA, automações, integrações, produtos digitais e tecnologia para análise e inteligência no mercado cripto.',
-      path: '/',
-      keywords: ['Peter Tecnet', 'software', 'aplicativos', 'inteligência artificial', 'automação', 'APIs', 'integrações', 'crypto', 'cripto', 'criptomoedas', 'análise de mercado', 'ativos digitais', 'Kryvion'],
+  async function loadAll({ quiet = false } = {}) {
+    quiet ? setRefreshing(true) : setLoading(true)
+    setLoadError('')
+    const endpoints = [
+      ['/admin/ecosystem/dashboard', setDashboard],
+      ['/admin/ecosystem/activity', setActivity],
+      ['/admin/ecosystem/financial/dashboard', setFinancial],
+      ['/admin/ecosystem/command/overview', setCommand],
+      ['/admin/applications', payload => setApplications(payload?.applications || payload?.data || (Array.isArray(payload) ? payload : []))],
+    ]
+    const settled = await Promise.allSettled(endpoints.map(([path]) => request(path)))
+    let failures = 0
+    settled.forEach((result, index) => {
+      if (result.status === 'fulfilled') endpoints[index][1](result.value)
+      else failures += 1
     })
-  }, [])
+    if (failures === endpoints.length) setLoadError('Não foi possível carregar a dashboard. Verifique a sessão e a API.')
+    else if (failures) setLoadError(`${failures} fonte${failures > 1 ? 's' : ''} de dados não respondeu. O restante da dashboard continua disponível.`)
+    setLoading(false)
+    setRefreshing(false)
+  }
+
+  useEffect(() => { loadAll() }, [])
 
   useEffect(() => {
-    const controller = new AbortController()
-
-    const load = async () => {
-      const [appsResult, siteResult] = await Promise.allSettled([
-        fetchApplications(controller.signal),
-        fetchSite(controller.signal),
-      ])
-
-      let loadedApplications = []
-      if (appsResult.status === 'fulfilled') {
-        loadedApplications = Array.isArray(appsResult.value?.applications) ? appsResult.value.applications : []
-        setApplications(loadedApplications)
-        setAppsStatus('success')
-      } else {
-        setAppsStatus('error')
+    function shortcut(event) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault(); document.querySelector('.top-search input')?.focus()
       }
-
-      if (siteResult.status === 'fulfilled' && siteResult.value?.site?.contact) {
-        setContact(current => ({ ...current, ...siteResult.value.site.contact }))
-      }
-
-      try {
-        const catalogPayload = await fetchPeterCatalog(loadedApplications, controller.signal)
-        setCatalog(Array.isArray(catalogPayload.items) ? catalogPayload.items : [])
-        setCatalogCompany(catalogPayload.establishment || null)
-        setCatalogStatus('success')
-      } catch (error) {
-        if (error?.name !== 'AbortError') setCatalogStatus('error')
-      }
+      if (event.key === 'Escape') { setSearchResult(null); setLauncherOpen(false); setSidebarOpen(false) }
     }
-
-    load()
-    return () => controller.abort()
+    window.addEventListener('keydown', shortcut)
+    return () => window.removeEventListener('keydown', shortcut)
   }, [])
 
-  const categories = useMemo(() => {
-    const values = catalog.map(item => item.category || item.type).filter(Boolean)
-    return [...new Set(values)].slice(0, 10)
-  }, [catalog])
+  useEffect(() => {
+    window.clearTimeout(searchTimer.current)
+    const trimmed = query.trim()
+    if (trimmed.length < 2) { setSearchResult(null); setSearching(false); return }
+    setSearching(true)
+    searchTimer.current = window.setTimeout(async () => {
+      try { setSearchResult(await request(`/admin/ecosystem/command/search?q=${encodeURIComponent(trimmed)}`)) }
+      catch (error) { setSearchResult({ error: error.message, groups: {}, total: 0 }) }
+      finally { setSearching(false) }
+    }, 280)
+    return () => window.clearTimeout(searchTimer.current)
+  }, [query])
 
-  const filteredCatalog = useMemo(() => {
-    const query = normalizeText(catalogQuery.trim())
-    return catalog.filter(item => {
-      const category = item.category || item.type || ''
-      const matchesCategory = catalogCategory === 'todos' || category === catalogCategory
-      const haystack = normalizeText(`${item.name} ${item.description} ${item.category} ${item.subcategory} ${item.brand}`)
-      return matchesCategory && (!query || haystack.includes(query))
-    })
-  }, [catalog, catalogCategory, catalogQuery])
+  function go(section) {
+    setSidebarOpen(false)
+    document.getElementById(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
-  const visibleCatalog = showAllCatalog ? filteredCatalog : filteredCatalog.slice(0, 8)
-  const activePath = solutionPaths.find(path => path.id === selectedPath) || solutionPaths[0]
-  const recommendedApps = applications.filter(application => activePath.slugs.includes(String(application.slug || '').toLowerCase()))
+  const summary = dashboard?.summary || {}
+  const financialSummary = financial?.summary || {}
+  const totals = financialSummary?.totals || {}
+  const approved = financialSummary?.approved || {}
+  const failed = financialSummary?.failed || {}
+  const pending = financialSummary?.pending || {}
+  const appRows = dashboard?.applications || applications || []
+  const activityRows = activity?.activity || dashboard?.recent_activity || []
+  const issueRows = command?.issues?.data || command?.issues || []
+  const financialAlerts = financial?.alerts || []
+  const operationalStatus = command?.overall_status || command?.status || command?.health?.status || (issueRows.some(issue => statusTone(issue.severity) === 'danger') ? 'Atenção' : 'Operacional')
+  const status = statusTone(operationalStatus)
+  const activeApps = summary.active_applications ?? appRows.filter(app => app.is_active !== false).length
 
-  return <div className="marketing-shell">
-    <div className="scroll-progress" aria-hidden="true" />
-    <div className="cursor-glow" aria-hidden="true" />
-    <MarketingHeader menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+  const highestApp = useMemo(() => [...appRows].sort((a, b) => number(b.activity_count_30d) - number(a.activity_count_30d))[0], [appRows])
 
-    <main>
-      <section className="pt-hero" id="inicio">
-        <video className="pt-hero-video" autoPlay muted loop playsInline aria-hidden="true"><source src="/video.mp4" type="video/mp4" /></video>
-        <div className="hero-atmosphere" aria-hidden="true" /><div className="hero-grid" aria-hidden="true" />
-        <div className="hero-layout pt-container">
-          <div className="hero-copy-block" data-reveal>
-            <p className="eyebrow"><span /> Tecnologia para problemas reais</p>
-            <h1>Encontre tecnologia para <em>vender, organizar, analisar e crescer.</em></h1>
-            <p className="hero-lead">A Peter Tecnet cria e opera um ecossistema de plataformas, aplicativos e soluções digitais para negócios, operações e mercados digitais — agora também com tecnologia voltada a dados, inteligência e acompanhamento do mercado cripto.</p>
-            <div className="hero-actions">
-              <a className="pt-button pt-button-primary" href="#comece">Encontrar minha solução <span>↘</span></a>
-              <a className="pt-button pt-button-secondary" href="#catalogo">Explorar catálogo <span>↗</span></a>
-            </div>
-            <div className="hero-trust"><span>CNPJ 42.595.409/0001-48</span><i /> <span>Produtos próprios + soluções empresariais + crypto</span></div>
-          </div>
+  return <div className="admin-shell">
+    <div className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)}/>
+    <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+      <a className="brand" href="#dashboard" onClick={event => { event.preventDefault(); go('dashboard') }}>
+        <span className="brand-logo"><img src="/petertecnetlogo.png" alt=""/></span>
+        <span><b>Peter Tecnet</b><small>Admin Center</small></span>
+      </a>
+      <nav>
+        <p>GESTÃO</p>
+        {navItems.map(([id, label, icon]) => <button key={id} onClick={() => go(id)}><span>{icon}</span>{label}<i>↗</i></button>)}
+      </nav>
+      <div className="sidebar-status">
+        <span className={`status-dot ${status}`}/><div><b>{operationalStatus}</b><small>Estado do ecossistema</small></div>
+      </div>
+      <div className="sidebar-user">
+        <div className="avatar">{fullName(user).slice(0, 2).toUpperCase()}</div>
+        <div><b>{fullName(user)}</b><small>{user?.email}</small></div>
+        <button onClick={onLogout} aria-label="Sair">↪</button>
+      </div>
+    </aside>
 
-          <aside className="hero-console" data-reveal data-tilt aria-label="Ecossistema Peter Tecnet em tempo real">
-            <div className="console-head"><span><i /> ECOSYSTEM / LIVE</span><small>API CONNECTED</small></div>
-            <div className="console-logo"><img src="/petertecnetlogo.png" alt="Peter Tecnet" /><span className="ring ring-a" /><span className="ring ring-b" /></div>
-            <div className="console-stats">
-              <div><strong>{appsStatus === 'success' ? applications.length : '—'}</strong><span>plataformas ativas</span></div>
-              <div><strong>{catalogStatus === 'success' ? catalog.length : '—'}</strong><span>soluções no catálogo</span></div>
-            </div>
-            <div className="console-stream"><span>01</span><p>Descubra a ferramenta certa</p><span>02</span><p>Ative e coloque em operação</p><span>03</span><p>Expanda dentro do ecossistema</p></div>
-          </aside>
+    <main className="workspace">
+      <header className="topbar">
+        <button className="hamburger" onClick={() => setSidebarOpen(value => !value)} aria-label="Abrir menu" aria-expanded={sidebarOpen}><span/><span/><span/></button>
+        <div className="top-search">
+          <span>⌕</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Pesquisar em todo o ecossistema…" aria-label="Pesquisar no ecossistema"/><kbd>Ctrl K</kbd>
+          {(searchResult || searching) && <SearchPopover result={searchResult} searching={searching} onClose={() => { setQuery(''); setSearchResult(null) }}/>} 
         </div>
-        <div className="hero-marquee" aria-hidden="true"><div>PLATAFORMAS • APLICATIVOS • CRYPTO • IA • DADOS DE MERCADO • AUTOMAÇÕES • APIs • INTEGRAÇÕES • PRODUTOS DIGITAIS • </div><div>PLATAFORMAS • APLICATIVOS • CRYPTO • IA • DADOS DE MERCADO • AUTOMAÇÕES • APIs • INTEGRAÇÕES • PRODUTOS DIGITAIS • </div></div>
-      </section>
+        <div className="top-actions">
+          <button className="icon-button" onClick={() => loadAll({ quiet: true })} aria-label="Atualizar dados" title="Atualizar dados">{refreshing ? '◌' : '↻'}</button>
+          <div className="launcher-wrap">
+            <button className="ecosystem-button" onClick={() => setLauncherOpen(value => !value)}><span>◫</span><b>Navegar no ecossistema</b><i>⌄</i></button>
+            {launcherOpen && <EcosystemLauncher applications={applications} onClose={() => setLauncherOpen(false)}/>} 
+          </div>
+        </div>
+      </header>
 
-      <section className="path-section" id="comece">
-        <div className="pt-container">
-          <div className="section-heading" data-reveal><p className="kicker">Áreas de atuação e objetivos</p><h2>Você não precisa conhecer nossas ferramentas. <span>Conte o que quer resolver.</span></h2><p>Escolha uma necessidade — de operações e vendas a dados e mercado cripto — e mostramos os produtos do ecossistema mais próximos dela.</p></div>
-          <div className="path-layout" data-reveal>
-            <div className="path-selector" role="tablist" aria-label="Objetivos">
-              {solutionPaths.map(path => <button key={path.id} className={selectedPath === path.id ? 'path-option is-active' : 'path-option'} type="button" onClick={() => setSelectedPath(path.id)}><span>{path.label}</span><b>↗</b></button>)}
+      <div className="content">
+        <section className="hero-section" id="dashboard">
+          <div><p className="eyebrow">PETER TECNET / ECOSYSTEM INTELLIGENCE</p><h1>Dashboard administrativo</h1><p>Acompanhe operação, adoção e receita do ecossistema em tempo real.</p></div>
+          <div className={`health-chip ${status}`}><span/><div><small>ECOSYSTEM HEALTH</small><b>{operationalStatus}</b></div></div>
+        </section>
+
+        {loadError && <div className="notice">{loadError}<button onClick={() => loadAll()}>Tentar novamente</button></div>}
+        {loading ? <DashboardSkeleton/> : <>
+          <section className="metrics-grid">
+            <MetricCard label="Receita bruta" value={currency(totals.gross)} detail={`${compactNumber(approved.count)} pagamentos confirmados`} tone="accent"/>
+            <MetricCard label="Receita Peter Tecnet" value={currency(totals.platform_fees)} detail="Taxas da plataforma no período" tone="success"/>
+            <MetricCard label="Usuários ativos hoje" value={compactNumber(summary.active_users_today)} detail={`${compactNumber(summary.interactions_today)} interações hoje`}/>
+            <MetricCard label="Interações · 30 dias" value={compactNumber(summary.interactions_30d)} detail={`${compactNumber(summary.active_users_30d)} usuários ativos`}/>
+            <MetricCard label="Aplicações ativas" value={compactNumber(activeApps)} detail={`${compactNumber(summary.applications ?? appRows.length)} cadastradas`}/>
+            <MetricCard label="Pagamentos em atenção" value={compactNumber(number(failed.count) + number(pending.count))} detail={`${compactNumber(failed.count)} falhas · ${compactNumber(pending.count)} pendentes`} tone={number(failed.count) ? 'danger' : 'warning'}/>
+          </section>
+
+          <section className="analytics-grid">
+            <Panel title="Receita nos últimos 30 dias" subtitle="Volume bruto processado pelo ecossistema" className="chart-panel">
+              <LineChart rows={financial?.timeline || []} valueKey="gross" formatter={currency}/>
+              <div className="chart-summary"><span><i className="dot approved"/>Aprovado <b>{currency(approved.amount)}</b></span><span><i className="dot fees"/>Taxas Peter <b>{currency(totals.platform_fees)}</b></span><span><i className="dot net"/>Líquido vendedores <b>{currency(totals.seller_net)}</b></span></div>
+            </Panel>
+            <Panel title="Engajamento por aplicação" subtitle="Interações registradas nos últimos 30 dias">
+              <Bars rows={appRows}/>
+              {highestApp && <div className="insight"><span>↗</span><p><b>{highestApp.name}</b> concentra o maior volume recente de atividade.</p></div>}
+            </Panel>
+          </section>
+
+          <section id="operations" className="section-anchor">
+            <SectionHeading kicker="OPERAÇÕES" title="Saúde e sinais críticos" text="Alertas financeiros e operacionais que merecem atenção imediata."/>
+            <div className="operations-grid">
+              <Panel title="Alertas ativos" subtitle={`${issueRows.length + financialAlerts.length} sinais encontrados`}>
+                <div className="alerts-list">
+                  {[...issueRows.slice(0, 5), ...financialAlerts.slice(0, 4)].length ? [...issueRows.slice(0, 5), ...financialAlerts.slice(0, 4)].map((item, index) => <div className="alert-row" key={item.id || item.public_id || `${item.title}-${index}`}>
+                    <span className={`severity ${statusTone(item.severity || item.status)}`}/><div><b>{item.title || item.name || item.message || 'Sinal operacional'}</b><small>{item.message || item.description || item.status || item.severity}</small></div>
+                  </div>) : <Empty text="Nenhum alerta crítico no momento."/>}
+                </div>
+              </Panel>
+              <Panel title="Pulso do ecossistema" subtitle="Indicadores de adoção e operação">
+                <div className="pulse-grid">
+                  <div><span>Novos usuários · 30d</span><b>{compactNumber(summary.new_users_30d)}</b></div>
+                  <div><span>Inativos · 30d</span><b>{compactNumber(summary.inactive_users_30d)}</b></div>
+                  <div><span>Estabelecimentos</span><b>{compactNumber(summary.establishments)}</b></div>
+                  <div><span>Vínculos de acesso</span><b>{compactNumber(summary.access_links)}</b></div>
+                </div>
+              </Panel>
             </div>
-            <div className="path-result">
-              <p className="path-index">/{String(solutionPaths.findIndex(path => path.id === activePath.id) + 1).padStart(2, '0')}</p>
-              <h3>{activePath.title}</h3>
-              <p>{activePath.description}</p>
-              <div className="recommended-apps">
-                {appsStatus === 'loading' && <span className="mini-loading">Buscando produtos do ecossistema…</span>}
-                {appsStatus === 'success' && recommendedApps.length === 0 && <span className="mini-loading">Produto desta área em integração ao ecossistema.</span>}
-                {recommendedApps.map(application => <a key={application.id || application.slug} href={application.url || '#ecossistema'} target={application.url ? '_blank' : undefined} rel={application.url ? 'noreferrer' : undefined}><img src={resolveAssetUrl(application.logo) || '/petertecnetlogo.png'} alt="" /><span><strong>{application.name}</strong><small>{application.description || 'Produto Peter Tecnet'}</small></span><b>↗</b></a>)}
+          </section>
+
+          <section id="financial" className="section-anchor">
+            <SectionHeading kicker="FINANCEIRO" title="Performance de receita" text="Distribuição financeira por aplicação e status de pagamentos."/>
+            <div className="financial-strip">
+              <div><span>Transações</span><b>{compactNumber(totals.transactions)}</b></div><div><span>Gross</span><b>{currency(totals.gross)}</b></div><div><span>Taxas do provedor</span><b>{currency(totals.provider_fees)}</b></div><div><span>Seller net</span><b>{currency(totals.seller_net)}</b></div>
+            </div>
+            <Panel title="Receita por aplicação" subtitle="Ranking por volume bruto processado">
+              <div className="table-wrap"><table><thead><tr><th>Aplicação</th><th>Transações</th><th>Volume bruto</th><th>Taxa Peter</th><th>Líquido</th></tr></thead><tbody>{financial?.applications?.length ? financial.applications.map(row => <tr key={row.app_slug || row.application_name}><td><b>{row.application_name || row.app_slug}</b></td><td>{compactNumber(row.transactions)}</td><td>{currency(row.gross)}</td><td>{currency(row.platform_fees)}</td><td>{currency(row.seller_net)}</td></tr>) : <tr><td colSpan="5"><Empty text="Ainda não há movimentação financeira consolidada por aplicação."/></td></tr>}</tbody></table></div>
+            </Panel>
+          </section>
+
+          <section id="applications" className="section-anchor">
+            <SectionHeading kicker="APLICAÇÕES" title="Ecossistema em produção" text="Adoção e atividade por produto conectado à API central."/>
+            <div className="apps-grid">
+              {appRows.length ? appRows.map(app => <article className="app-card" key={app.id || app.slug}>
+                <div className="app-card-head"><div className="app-icon">{app.logo ? <img src={app.logo} alt="" onError={event => { event.currentTarget.style.display = 'none' }}/> : <span>{String(app.name || 'P').slice(0, 1)}</span>}</div><span className={app.is_active === false ? 'app-state offline' : 'app-state'}>{app.is_active === false ? 'Inativa' : 'Ativa'}</span></div>
+                <h3>{app.name}</h3><p>{app.description || app.slug || 'Aplicação Peter Tecnet'}</p>
+                <div className="app-stats"><span><small>Usuários</small><b>{compactNumber(app.users_count)}</b></span><span><small>Ativos 30d</small><b>{compactNumber(app.active_users_30d)}</b></span><span><small>Interações</small><b>{compactNumber(app.activity_count_30d)}</b></span></div>
+                {app.url && <a href={app.url} target="_blank" rel="noreferrer">Abrir aplicação ↗</a>}
+              </article>) : <Empty text="Nenhuma aplicação disponível na leitura atual."/>}
+            </div>
+          </section>
+
+          <section id="activity" className="section-anchor">
+            <SectionHeading kicker="ATIVIDADE" title="Linha do tempo recente" text="Últimas ações registradas pela telemetria do ecossistema."/>
+            <Panel title="Atividade recente" subtitle={`${compactNumber(activity?.summary?.total ?? summary.interactions_30d)} interações no recorte atual`}>
+              <div className="timeline">
+                {activityRows.length ? activityRows.slice(0, 16).map((row, index) => <div className="timeline-row" key={row.id || `${row.created_at}-${index}`}><span className="timeline-dot"/><div><b>{row.name || row.interaction_type || row.type || 'Interação'}</b><small>{row.user_email || row.email || row.application_name || row.app_name || 'Ecossistema Peter Tecnet'}</small></div><time>{dateTime(row.created_at || row.occurred_at)}</time></div>) : <Empty text="Nenhuma interação recente retornada pela API."/>}
               </div>
-              <a className="text-link path-contact" href={`mailto:${contact.email}?subject=${encodeURIComponent(`Quero resolver: ${activePath.label}`)}`}>Quero conversar sobre esse objetivo <span>↗</span></a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="ecosystem-section" id="ecossistema">
-        <div className="pt-container">
-          <div className="section-heading section-heading-split" data-reveal><div><p className="kicker">Ecossistema Peter Tecnet</p><h2>Produtos feitos para entrar em operação, <span>não para ficar em apresentação.</span></h2></div><p>Cada produto resolve uma parte do dia a dia. Juntos, formam um ecossistema que acompanha diferentes necessidades — incluindo negócios, serviços, experiências digitais e inteligência para mercados como crypto.</p></div>
-          {appsStatus === 'loading' && <div className="app-grid">{[1,2,3,4].map(value => <div className="app-card loading-card" key={value} />)}</div>}
-          {appsStatus === 'success' && applications.length > 0 && <div className="app-grid">{applications.map((application, index) => <ApplicationCard application={application} index={index} key={application.id || application.slug} />)}</div>}
-          {appsStatus === 'error' && <div className="state-panel">Não foi possível consultar o ecossistema agora. As plataformas continuam acessíveis por seus domínios Peter Tecnet.</div>}
-        </div>
-      </section>
-
-      <section className="catalog-section" id="catalogo">
-        <div className="pt-container">
-          <div className="section-heading section-heading-split" data-reveal><div><p className="kicker">Catálogo conectado à Nexus</p><h2>Veja o que a Peter Tecnet <span>oferece agora.</span></h2></div><p>{catalogCompany?.description || 'Produtos e serviços cadastrados no catálogo da Peter Tecnet são trazidos da API e passam a fazer parte da própria experiência do site.'}</p></div>
-
-          <div className="catalog-toolbar" data-reveal>
-            <label className="catalog-search"><span>⌕</span><input value={catalogQuery} onChange={event => setCatalogQuery(event.target.value)} placeholder="Buscar solução, produto ou serviço…" aria-label="Buscar no catálogo" /></label>
-            <div className="catalog-categories"><button className={catalogCategory === 'todos' ? 'is-active' : ''} onClick={() => setCatalogCategory('todos')} type="button">Todos</button>{categories.map(category => <button className={catalogCategory === category ? 'is-active' : ''} onClick={() => setCatalogCategory(category)} type="button" key={category}>{category}</button>)}</div>
-          </div>
-
-          {catalogStatus === 'loading' && <div className="catalog-grid">{[1,2,3,4].map(value => <div className="catalog-card loading-card" key={value} />)}</div>}
-          {catalogStatus === 'success' && visibleCatalog.length > 0 && <><div className="catalog-grid">{visibleCatalog.map(item => <CatalogCard item={item} key={item.id || item.slug} />)}</div>{filteredCatalog.length > 8 && <button className="catalog-more" type="button" onClick={() => setShowAllCatalog(value => !value)}>{showAllCatalog ? 'Mostrar menos' : `Ver todos os ${filteredCatalog.length} itens`} <span>↘</span></button>}</>}
-          {catalogStatus === 'success' && visibleCatalog.length === 0 && <div className="state-panel">Nenhum item do catálogo corresponde a essa busca.</div>}
-          {catalogStatus === 'error' && <div className="state-panel">O catálogo não pôde ser carregado agora. A landing continua funcionando e a integração tenta automaticamente o endpoint compatível com a versão da API em produção.</div>}
-        </div>
-      </section>
-
-      <section className="flow-section" id="como-funciona">
-        <div className="pt-container flow-layout">
-          <div className="section-heading flow-sticky" data-reveal><p className="kicker">Do visitante ao usuário ativo</p><h2>Entre por uma necessidade. <span>Continue pelo valor.</span></h2><p>O site passa a funcionar como porta de entrada para todo o ecossistema, conectando descoberta, ativação e evolução.</p></div>
-          <ol className="flow-list">
-            <li data-reveal><span>01</span><div><small>DESCUBRA</small><h3>Veja uma solução que faça sentido agora</h3><p>Objetivos, catálogo e páginas detalhadas reduzem a distância entre “o que vocês fazem?” e “isso resolve meu problema”.</p></div></li>
-            <li data-reveal><span>02</span><div><small>ATIVE</small><h3>Entre diretamente na ferramenta certa</h3><p>Cada produto do ecossistema tem uma chamada clara para uso, teste, cadastro ou contato comercial.</p></div></li>
-            <li data-reveal><span>03</span><div><small>EXPANDA</small><h3>Descubra outras ferramentas quando precisar</h3><p>O relacionamento não termina na primeira solução: o ecossistema apresenta próximos passos conforme novas necessidades aparecem.</p></div></li>
-          </ol>
-        </div>
-      </section>
-
-      <section className="company-section" id="empresa">
-        <div className="pt-container">
-          <div className="company-intro" data-reveal><p className="kicker">Tecnologia para empresas e mercados digitais</p><h2>Produto próprio quando existe. <span>Solução sob medida quando precisa.</span></h2><p>A experiência de construir e operar nossas próprias plataformas também é aplicada em projetos empresariais e novas verticais: sistemas, integrações, automações, APIs, IA, análise de dados e tecnologia para o ecossistema crypto.</p></div>
-          <div className="capability-grid">{capabilities.map(([label, title, description], index) => <article key={label} data-reveal><div><span>0{index + 1}</span><small>{label}</small></div><h3>{title}</h3><p>{description}</p></article>)}</div>
-        </div>
-      </section>
-
-      <section className="conversion-section" id="contato">
-        <div className="conversion-grid" aria-hidden="true" />
-        <div className="pt-container conversion-inner" data-reveal>
-          <span className="conversion-orbit"><img src="/petertecnetlogo.png" alt="" /></span>
-          <p className="kicker">Próximo passo</p>
-          <h2>Você chegou procurando tecnologia. <span>Saia com um caminho.</span></h2>
-          <p>Explore uma plataforma agora ou conte qual problema sua empresa precisa resolver. A Peter Tecnet pode atender com um produto do ecossistema ou construir a solução adequada.</p>
-          <div className="hero-actions conversion-actions"><a className="pt-button pt-button-primary" href="#comece">Encontrar uma plataforma <span>↗</span></a><a className="pt-button pt-button-secondary" href={`mailto:${contact.email}`}>Falar com a Peter Tecnet <span>↗</span></a></div>
-        </div>
-      </section>
+            </Panel>
+          </section>
+        </>}
+      </div>
     </main>
-
-    <footer className="pt-footer"><div className="pt-container footer-grid"><div className="pt-brand"><span className="pt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span><span><strong>Peter Tecnet</strong><small>Tecnologia em movimento</small></span></div><p>© {new Date().getFullYear()} Peter Tecnet · CNPJ 42.595.409/0001-48</p><nav><a href="/login">Administrar</a><a href={contact.instagram} target="_blank" rel="noreferrer">Instagram ↗</a><a href="#inicio">Topo ↑</a></nav></div></footer>
   </div>
 }
 
-function ProductPage({ identifier }) {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [status, setStatus] = useState('loading')
-  const [payload, setPayload] = useState(null)
+function SectionHeading({ kicker, title, text }) {
+  return <div className="section-heading"><div><p className="eyebrow">{kicker}</p><h2>{title}</h2></div><p>{text}</p></div>
+}
 
-  useLandingMotion(status === 'success')
+function SearchPopover({ result, searching, onClose }) {
+  const groups = result?.groups || {}
+  return <div className="search-popover">
+    <div className="search-popover-head"><span>{searching ? 'Pesquisando…' : `${result?.total || 0} resultado(s)`}</span><button onClick={onClose}>×</button></div>
+    {result?.error && <div className="search-error">{result.error}</div>}
+    {!searching && !result?.error && !result?.total && <Empty text="Nenhum resultado encontrado."/>}
+    <div className="search-groups">
+      {Object.entries(groups).map(([group, rows]) => <section key={group}><h4>{groupLabels[group] || group}<span>{rows.length}</span></h4>{rows.map((row, index) => <div className="search-result" key={row.id || index}><div><b>{row.name || row.title || row.first_name || row.email || row.public_id || row.reference || `#${row.id}`}</b><small>{row.email || row.slug || row.status || row.category || row.application_name || row.url || `ID ${row.id}`}</small></div><span>#{row.id}</span></div>)}</section>)}
+    </div>
+  </div>
+}
+
+function EcosystemLauncher({ applications, onClose }) {
+  return <div className="launcher-popover">
+    <div className="launcher-head"><div><p className="eyebrow">ECOSYSTEM</p><b>Navegar nas aplicações</b></div><button onClick={onClose}>×</button></div>
+    <div className="launcher-grid">
+      <a href="https://petertecnet.com.br/" target="_blank" rel="noreferrer"><span className="launcher-logo"><img src="/petertecnetlogo.png" alt=""/></span><div><b>Peter Tecnet</b><small>Site institucional</small></div><i>↗</i></a>
+      {applications.filter(app => app.is_active !== false && app.url).map(app => <a key={app.id || app.slug} href={app.url} target="_blank" rel="noreferrer"><span className="launcher-logo">{app.logo ? <img src={app.logo} alt=""/> : String(app.name || 'P')[0]}</span><div><b>{app.name}</b><small>{app.slug || 'Aplicação'}</small></div><i>↗</i></a>)}
+    </div>
+  </div>
+}
+
+function DashboardSkeleton() {
+  return <div className="skeleton-wrap"><div className="metrics-grid">{Array.from({ length: 6 }, (_, index) => <div className="skeleton metric-card" key={index}/>)}</div><div className="analytics-grid"><div className="skeleton panel tall"/><div className="skeleton panel tall"/></div></div>
+}
+
+export default function App() {
+  const [user, setUser] = useState(null)
+  const [checking, setChecking] = useState(Boolean(localStorage.getItem(TOKEN_KEY)))
 
   useEffect(() => {
-    const controller = new AbortController()
-    const load = async () => {
+    async function validate() {
+      const token = localStorage.getItem(TOKEN_KEY)
+      if (!token) { setChecking(false); return }
       try {
-        const appsPayload = await fetchApplications(controller.signal)
-        const applications = Array.isArray(appsPayload?.applications) ? appsPayload.applications : []
-        const itemPayload = await fetchPeterItem(identifier, applications, controller.signal)
-        setPayload(itemPayload)
-        setStatus('success')
-        const image = getItemImage(itemPayload.item)
-        updatePageSeo({
-          title: `${itemPayload.item?.name || 'Solução'} | Peter Tecnet`,
-          description: itemPayload.item?.description || 'Conheça esta solução do catálogo Peter Tecnet.',
-          path: `/solucoes/${encodeURIComponent(identifier)}`,
-          image,
-          type: 'product',
-        })
-      } catch (error) {
-        if (error?.name !== 'AbortError') {
-          setStatus(error?.status === 404 ? 'not-found' : 'error')
-          updatePageSeo({
-            title: 'Solução não encontrada | Peter Tecnet',
-            description: 'A solução solicitada não está disponível no catálogo público da Peter Tecnet.',
-            path: `/solucoes/${encodeURIComponent(identifier)}`,
-            robots: 'noindex, nofollow',
-          })
-        }
-      }
+        const payload = await request('/auth/me')
+        const current = payload?.user || payload
+        if (String(current?.email || '').toLowerCase() !== OWNER_EMAIL) throw new Error('Acesso não autorizado.')
+        setUser(current)
+      } catch {
+        localStorage.removeItem(TOKEN_KEY)
+      } finally { setChecking(false) }
     }
-    load()
-    return () => controller.abort()
-  }, [identifier])
+    validate()
+    const expired = () => { setUser(null); setChecking(false) }
+    window.addEventListener('admin-session-expired', expired)
+    return () => window.removeEventListener('admin-session-expired', expired)
+  }, [])
 
-  if (status === 'loading') return <div className="product-state"><img src="/petertecnetlogo.png" alt="" /><p>Consultando o catálogo Peter Tecnet…</p></div>
-  if (status === 'error' || status === 'not-found') return <div className="product-state"><img src="/petertecnetlogo.png" alt="" /><h1>{status === 'not-found' ? 'Solução não encontrada.' : 'Não foi possível carregar esta solução.'}</h1><p>Você pode voltar ao catálogo e explorar outras opções disponíveis.</p><a className="pt-button pt-button-primary" href="/#catalogo">Voltar ao catálogo <span>↗</span></a></div>
+  function logout() {
+    const token = localStorage.getItem(TOKEN_KEY)
+    if (token) request('/auth/logout', { method: 'POST' }).catch(() => {})
+    localStorage.removeItem(TOKEN_KEY)
+    setUser(null)
+  }
 
-  const { item, establishment, otherItems } = payload
-  const image = getItemImage(item)
-  const contactEmail = establishment?.email || defaultContact.email
-  const interestSubject = encodeURIComponent(`Interesse em ${item.name}`)
-  const interestBody = encodeURIComponent(`Olá, quero saber mais sobre ${item.name}, que encontrei no site da Peter Tecnet.`)
-
-  return <div className="marketing-shell product-shell">
-    <div className="cursor-glow" aria-hidden="true" />
-    <MarketingHeader menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-    <main>
-      <section className="product-hero">
-        <div className="hero-grid" aria-hidden="true" />
-        <div className="pt-container product-breadcrumb"><a href="/">Peter Tecnet</a><span>/</span><a href="/#catalogo">Catálogo</a><span>/</span><strong>{item.name}</strong></div>
-        <div className="pt-container product-layout">
-          <div className="product-copy" data-reveal>
-            <div className="catalog-meta"><span>{item.category || item.type || 'Solução Peter Tecnet'}</span>{item.source_app?.name && <span>Origem: {item.source_app.name}</span>}</div>
-            <h1>{item.name}</h1>
-            <p className="product-description">{item.description || 'Solução disponível no catálogo Peter Tecnet.'}</p>
-            <div className="product-price"><small>Investimento</small><strong>{formatCurrency(item.price)}</strong></div>
-            <div className="hero-actions"><a className="pt-button pt-button-primary" href={`mailto:${contactEmail}?subject=${interestSubject}&body=${interestBody}`}>Tenho interesse <span>↗</span></a><a className="pt-button pt-button-secondary" href="/#catalogo">Explorar catálogo <span>↘</span></a></div>
-          </div>
-          <div className="product-visual" data-reveal data-tilt>{image ? <img src={image} alt={item.name} /> : <span><img src="/petertecnetlogo.png" alt="Peter Tecnet" /></span>}<div className="product-visual-data"><small>CATALOG / PETER TECNET</small><b>{item.slug || `ITEM-${item.id}`}</b></div></div>
-        </div>
-      </section>
-
-      <section className="product-details"><div className="pt-container details-layout"><div className="section-heading" data-reveal><p className="kicker">Sobre esta solução</p><h2>Detalhes para decidir com <span>mais clareza.</span></h2></div><div className="detail-panel" data-reveal><p>{item.description || 'Entre em contato com a Peter Tecnet para entender aplicação, escopo e disponibilidade desta solução.'}</p><dl>{item.type && <><dt>Tipo</dt><dd>{item.type}</dd></>}{item.category && <><dt>Categoria</dt><dd>{item.category}</dd></>}{item.subcategory && <><dt>Subcategoria</dt><dd>{item.subcategory}</dd></>}{item.brand && <><dt>Marca</dt><dd>{item.brand}</dd></>}{establishment?.name && <><dt>Oferecido por</dt><dd>{establishment.fantasy || establishment.name}</dd></>}</dl></div></div></section>
-
-      {otherItems.length > 0 && <section className="related-section"><div className="pt-container"><div className="section-heading" data-reveal><p className="kicker">Continue explorando</p><h2>Outras soluções do <span>mesmo catálogo.</span></h2></div><div className="catalog-grid">{otherItems.slice(0, 4).map(candidate => <CatalogCard item={candidate} key={candidate.id || candidate.slug} />)}</div></div></section>}
-    </main>
-    <footer className="pt-footer"><div className="pt-container footer-grid"><div className="pt-brand"><span className="pt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span><span><strong>Peter Tecnet</strong><small>Tecnologia em movimento</small></span></div><p>© {new Date().getFullYear()} Peter Tecnet</p><nav><a href="/#catalogo">Catálogo</a><a href="/">Início</a></nav></div></footer>
-  </div>
+  if (checking) return <div className="boot-screen"><img src="/petertecnetlogo.png" alt=""/><span/><p>Validando sessão administrativa…</p></div>
+  return user ? <Dashboard user={user} onLogout={logout}/> : <Login onAuthenticated={setUser}/>
 }
-
-function App() {
-  const path = window.location.pathname.replace(/\/+$/, '') || '/'
-  if (path === '/login') return <LoginPage />
-  if (path.startsWith('/admin')) return <AdminPage />
-  const productMatch = path.match(/^\/solucoes\/([^/]+)$/)
-  if (productMatch) return <ProductPage identifier={decodeURIComponent(productMatch[1])} />
-  return <LandingPage />
-}
-
-export default App
