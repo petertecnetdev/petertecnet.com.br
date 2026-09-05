@@ -163,9 +163,6 @@ jobs:
             exit 24
           fi
 
-          # Never destroy source work that was edited directly on the VPS.
-          # Runtime/generated paths are intentionally ignored; application source,
-          # migrations, routes, workflow files and other meaningful changes block deploy.
           LOCAL_SOURCE_CHANGES="$(git status --porcelain=v1 --untracked-files=all | awk '
             {
               path = substr($0, 4)
@@ -177,7 +174,6 @@ jobs:
           ')"
           if [[ -n "$LOCAL_SOURCE_CHANGES" ]]; then
             echo "Refusing deploy: uncommitted source work exists in $DEPLOY_PATH." >&2
-            echo "Commit, stash, or move this work to a dedicated worktree before deploying:" >&2
             printf '%s\n' "$LOCAL_SOURCE_CHANGES" >&2
             exit 26
           fi
@@ -185,159 +181,66 @@ jobs:
           OLD_SHA="$(git rev-parse HEAD)"
           git fetch --prune origin "$DEPLOY_BRANCH"
           TARGET_SHA="$(git rev-parse "origin/$DEPLOY_BRANCH")"
-
-          # A hard reset is safe only when the currently deployed commit is already
-          # an ancestor of the target. If the VPS contains local commits that do not
-          # exist in the target branch, stop before checkout/reset so nothing is lost.
           if ! git merge-base --is-ancestor "$OLD_SHA" "$TARGET_SHA"; then
             echo "Refusing deploy: local commits would be discarded in $DEPLOY_PATH." >&2
-            echo "Preserve these commits in GitHub before deploying:" >&2
             git log --oneline --decorate "$TARGET_SHA..$OLD_SHA" >&2 || true
             exit 27
           fi
 
           case "$DEPLOY_TYPE" in
             frontend)
-              # Put the source checkout on the target commit BEFORE publishing build assets.
-              # Some legacy frontends still track build/ or dist/. Resetting after the copy
-              # would silently restore stale committed assets and undo the deployment.
-              if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then
-                git checkout "$DEPLOY_BRANCH"
-              else
-                git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"
-              fi
+              if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then git checkout "$DEPLOY_BRANCH"; else git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"; fi
               git reset --hard "$TARGET_SHA"
-
               safe_name="$(basename "$DEPLOY_PATH" | tr -c 'A-Za-z0-9._-' '-')"
               BUILD_WORKTREE="/tmp/petertecnet-build-${safe_name}-$$-$RANDOM"
               git worktree add --detach "$BUILD_WORKTREE" "$TARGET_SHA"
-
-              for env_file in .env .env.local .env.production .env.production.local .npmrc; do
-                if [[ -f "$DEPLOY_PATH/$env_file" ]]; then
-                  cp -f "$DEPLOY_PATH/$env_file" "$BUILD_WORKTREE/$env_file"
-                fi
-              done
-
+              for env_file in .env .env.local .env.production .env.production.local .npmrc; do [[ -f "$DEPLOY_PATH/$env_file" ]] && cp -f "$DEPLOY_PATH/$env_file" "$BUILD_WORKTREE/$env_file"; done
               cd "$BUILD_WORKTREE"
-              if [[ ! -f package.json ]]; then
-                echo "package.json not found in release worktree." >&2
-                exit 30
-              fi
-
-              if grep -Eq '"vite"[[:space:]]*:' package.json; then
-                FRONTEND_OUTPUT="dist"
-              else
-                FRONTEND_OUTPUT="build"
-              fi
-
+              [[ -f package.json ]] || { echo "package.json not found in release worktree." >&2; exit 30; }
+              if grep -Eq '"vite"[[:space:]]*:' package.json; then FRONTEND_OUTPUT="dist"; else FRONTEND_OUTPUT="build"; fi
               export CI=true
               export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=4096}"
-              if [[ -f package-lock.json ]]; then
-                if ! npm ci --no-audit --no-fund; then
-                  echo "package-lock.json incompatible with npm ci; using npm install without changing lock."
-                  npm install --no-audit --no-fund --package-lock=false
-                fi
-              else
-                npm install --no-audit --no-fund --package-lock=false
-              fi
+              if [[ -f package-lock.json ]]; then npm ci --no-audit --no-fund || npm install --no-audit --no-fund --package-lock=false; else npm install --no-audit --no-fund --package-lock=false; fi
               npm run build
-
               NEW_OUTPUT="$BUILD_WORKTREE/$FRONTEND_OUTPUT"
               LIVE_OUTPUT="$DEPLOY_PATH/$FRONTEND_OUTPUT"
-              if [[ ! -f "$NEW_OUTPUT/index.html" ]]; then
-                echo "New frontend release has no $FRONTEND_OUTPUT/index.html." >&2
-                exit 31
-              fi
-
+              [[ -f "$NEW_OUTPUT/index.html" ]] || { echo "New frontend release has no $FRONTEND_OUTPUT/index.html." >&2; exit 31; }
               mkdir -p "$LIVE_OUTPUT"
-              (
-                cd "$NEW_OUTPUT"
-                tar --exclude='./index.html' -cf - .
-              ) | (
-                cd "$LIVE_OUTPUT"
-                tar -xf -
-              )
-
+              (cd "$NEW_OUTPUT" && tar --exclude='./index.html' -cf - .) | (cd "$LIVE_OUTPUT" && tar -xf -)
               cp -f "$NEW_OUTPUT/index.html" "$LIVE_OUTPUT/.index.html.next"
               chmod --reference="$LIVE_OUTPUT/index.html" "$LIVE_OUTPUT/.index.html.next" 2>/dev/null || true
               mv -f "$LIVE_OUTPUT/.index.html.next" "$LIVE_OUTPUT/index.html"
-
-              if ! cmp -s "$NEW_OUTPUT/index.html" "$LIVE_OUTPUT/index.html"; then
-                echo "Published frontend index.html differs from the freshly built release." >&2
-                exit 32
-              fi
-
-              echo "Frontend release assets preserved after source reset."
+              cmp -s "$NEW_OUTPUT/index.html" "$LIVE_OUTPUT/index.html" || { echo "Published frontend index.html differs from freshly built release." >&2; exit 32; }
               ;;
-
             laravel)
-              if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then
-                git checkout "$DEPLOY_BRANCH"
-              else
-                git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"
-              fi
+              if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then git checkout "$DEPLOY_BRANCH"; else git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"; fi
               git reset --hard "$TARGET_SHA"
-
-              if [[ ! -f artisan || ! -f composer.json ]]; then
-                echo "Laravel application files were not found in $DEPLOY_PATH" >&2
-                exit 40
-              fi
-
+              [[ -f artisan && -f composer.json ]] || { echo "Laravel application files were not found in $DEPLOY_PATH" >&2; exit 40; }
               composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
               chmod -R ug+rwX storage bootstrap/cache || true
-              php artisan optimize:clear
-              php artisan migrate --force
-              php artisan config:cache
-              php artisan view:cache
-
+              sudo -u www-data -- php artisan optimize:clear
+              sudo -u www-data -- php artisan migrate --force
+              sudo -u www-data -- php artisan config:cache
+              sudo -u www-data -- php artisan view:cache
               if [[ -f config/cognition.php ]]; then
-                php -r 'require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class); $kernel->bootstrap(); echo "Cognitive core: ".(config("cognition.enabled") ? "enabled" : "disabled").PHP_EOL; echo "Cognitive auto-learn: ".(config("cognition.auto_learn") ? "enabled" : "disabled").PHP_EOL; echo "Cognitive queue connection: ".config("cognition.queue_connection", "default").PHP_EOL;'
+                php -r 'require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class); $kernel->bootstrap(); echo "Cognitive core: ".(config("cognition.enabled") ? "enabled" : "disabled").PHP_EOL;'
               fi
-
-              php artisan queue:restart || true
-              php artisan reverb:restart || true
+              sudo -u www-data -- php artisan queue:restart || true
+              sudo -u www-data -- php artisan reverb:restart || true
               ;;
           esac
-
           cd "$DEPLOY_PATH"
           NEW_SHA="$(git rev-parse HEAD)"
           echo "Deployment completed: $OLD_SHA -> $NEW_SHA"
           REMOTE_SCRIPT
-
           chmod 600 "$REMOTE_SCRIPT_FILE"
-
           max_attempts=3
           for attempt in $(seq 1 "$max_attempts"); do
             echo "SSH deploy attempt $attempt/$max_attempts"
-            if ssh \
-              -o StrictHostKeyChecking=accept-new \
-              -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
-              -o ConnectTimeout=20 \
-              -o ConnectionAttempts=1 \
-              -o ServerAliveInterval=30 \
-              -o ServerAliveCountMax=8 \
-              -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
-              "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH' '$DEPLOY_REPOSITORY'" \
-              < "$REMOTE_SCRIPT_FILE"; then
-              exit 0
-            else
-              exit_code=$?
-            fi
-
-            if [[ "$exit_code" -ne 75 && "$exit_code" -ne 255 ]]; then
-              echo "Remote deployment failed with non-retryable exit code $exit_code." >&2
-              exit "$exit_code"
-            fi
-            if [[ "$attempt" -eq "$max_attempts" ]]; then
-              exit "$exit_code"
-            fi
-
+            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=20 -o ConnectionAttempts=1 -o ServerAliveInterval=30 -o ServerAliveCountMax=8 -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH' '$DEPLOY_REPOSITORY'" < "$REMOTE_SCRIPT_FILE"; then exit 0; else exit_code=$?; fi
+            if [[ "$exit_code" -ne 75 && "$exit_code" -ne 255 ]]; then exit "$exit_code"; fi
+            [[ "$attempt" -eq "$max_attempts" ]] && exit "$exit_code"
             sleep_seconds=$((10 + (repository_checksum + attempt * 7) % 11))
-            if [[ "$exit_code" -eq 75 ]]; then
-              echo "VPS deployment queue timed out; reconnecting in ${sleep_seconds}s..."
-            else
-              echo "Transient SSH failure; reconnecting in ${sleep_seconds}s..."
-            fi
             sleep "$sleep_seconds"
           done
 
@@ -348,7 +251,5 @@ jobs:
           HEALTH_URL: ${{ inputs.health_url }}
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error --location \
-            --retry 8 --retry-all-errors --retry-delay 3 --max-time 20 \
-            "$HEALTH_URL" >/dev/null
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 20 "$HEALTH_URL" >/dev/null
           echo "Health check passed: $HEALTH_URL"
