@@ -64,7 +64,7 @@ function probeDocument(viewport) {
           add('processing-nonblocking', getComputedStyle(processing).pointerEvents === 'none', getComputedStyle(processing).pointerEvents)
           add('processing-no-longer-fullscreen', processing.getBoundingClientRect().width < innerWidth * .6, String(processing.getBoundingClientRect().width))
           add('stale-backdrop-closed', !backdrop.classList.contains('is-open'), backdrop.className)
-          add('stale-backdrop-nonblocking', backdropStyle.display === 'none' || backdropStyle.pointerEvents === 'none', `${backdropStyle.display}/${backdropStyle.pointerEvents}`)
+          add('stale-backdrop-nonblocking', backdropStyle.display === 'none' || backdropStyle.pointerEvents === 'none', backdropStyle.display + '/' + backdropStyle.pointerEvents)
           add('orphan-overlay-removed', !document.querySelector('#orphan-overlay'))
           add('underlying-button-hit-test', Boolean(top?.closest?.('#click-probe')), top?.className || top?.tagName || 'none')
           add('underlying-button-clicked', clicks === 1, String(clicks))
