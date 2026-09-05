@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import ActivityCenter from './ActivityCenter.jsx'
+import ApiLogInsightsPanel from './ApiLogInsightsPanel.jsx'
 import './AdminActivityIntegration.css'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
@@ -91,7 +92,10 @@ export default function AdminActivityIntegration() {
   if (!mountNode) return null
 
   return createPortal(
-    <ActivityCenter request={adminRequest} tokenKey={TOKEN_KEY} />,
+    <>
+      <ActivityCenter request={adminRequest} tokenKey={TOKEN_KEY} />
+      <ApiLogInsightsPanel request={adminRequest} />
+    </>,
     mountNode,
   )
 }
