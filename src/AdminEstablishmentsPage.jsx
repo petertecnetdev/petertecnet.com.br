@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { confirmAction } from './utils/uiDialog.js'
 import './AdminEstablishmentsPage.css'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
@@ -263,7 +264,16 @@ export default function AdminEstablishmentsPage() {
   }
 
   async function remove(row) {
-    if (!window.confirm(`Excluir ${establishmentName(row)}? A trilha de auditoria será preservada.`)) return
+    const confirmed = await confirmAction({
+      tone: 'danger',
+      eyebrow: 'EXCLUSÃO DE ESTABLISHMENT',
+      title: `Excluir ${establishmentName(row)}?`,
+      message: 'O registro será removido, mas a trilha de auditoria continuará preservada no ecossistema.',
+      confirmLabel: 'Excluir establishment',
+      cancelLabel: 'Cancelar',
+    })
+    if (!confirmed) return
+
     setSaving(true); setError('')
     try {
       await apiRequest(`/admin/ecosystem/establishments/${row.id}`, { method: 'DELETE' })
