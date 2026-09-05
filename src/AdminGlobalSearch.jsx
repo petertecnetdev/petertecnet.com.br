@@ -15,6 +15,15 @@ const GROUPS = [
   ['payments', 'Pagamentos'],
 ]
 
+const SECTION_BY_GROUP = {
+  applications: 'applications',
+  establishments: 'operations',
+  items: 'operations',
+  events: 'activity',
+  orders: 'operations',
+  payments: 'financial',
+}
+
 function searchRequest(query, signal) {
   const token = localStorage.getItem(TOKEN_KEY)
   return fetch(`${API}/admin/ecosystem/command/search?q=${encodeURIComponent(query)}`, {
@@ -49,6 +58,66 @@ function resultMeta(row) {
     row?.status,
     row?.public_id ? `Public ID ${row.public_id}` : null,
   ].filter(Boolean).slice(0, 3)
+}
+
+function safeResultUrl(value) {
+  if (!value) return null
+  try {
+    const url = new URL(value, window.location.origin)
+    return ['http:', 'https:'].includes(url.protocol) ? url : null
+  } catch {
+    return null
+  }
+}
+
+function resultDestination(group, row) {
+  if (group === 'users') {
+    const rawId = row?.id ?? row?.user_id
+    const userId = Number(rawId)
+    if (Number.isInteger(userId) && userId > 0) return { type: 'user', userId }
+  }
+
+  const directUrl = safeResultUrl(row?.admin_url || row?.detail_url || row?.url || row?.reference_url)
+  if (directUrl) return { type: 'url', url: directUrl }
+
+  const section = SECTION_BY_GROUP[group]
+  return section ? { type: 'section', section } : null
+}
+
+function resultActionLabel(group, destination) {
+  if (group === 'users') return 'Ver detalhes →'
+  if (destination?.type === 'url') return 'Abrir detalhe →'
+  return 'Ir ao módulo →'
+}
+
+function navigateToResult(destination, onClose) {
+  if (!destination) return
+
+  if (destination.type === 'user') {
+    const url = new URL(window.location.href)
+    url.searchParams.set('user', String(destination.userId))
+    url.hash = 'users'
+    window.location.assign(url.href)
+    return
+  }
+
+  if (destination.type === 'url') {
+    if (destination.url.origin === window.location.origin) {
+      window.location.assign(destination.url.href)
+    } else {
+      const opened = window.open(destination.url.href, '_blank', 'noopener,noreferrer')
+      if (opened) opened.opener = null
+      onClose()
+    }
+    return
+  }
+
+  const url = new URL(window.location.href)
+  url.searchParams.delete('user')
+  url.hash = destination.section
+  window.history.pushState({ adminSection: destination.section }, '', `${url.pathname}${url.search}${url.hash}`)
+  onClose()
+  window.setTimeout(() => document.getElementById(destination.section)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0)
 }
 
 function SearchIcon() {
@@ -111,8 +180,22 @@ function AdminSearchPage({ onClose }) {
           if (!rows.length) return activeGroup === key ? <div className="global-search-status" key={key}>Nenhum resultado em {label.toLowerCase()}.</div> : null
           return <section className="global-search-group" key={key}><header><div><span>{label}</span><b>{rows.length}</b></div></header><div className="global-search-grid">{rows.map((row, index) => {
             const meta = resultMeta(row)
-            const href = row?.url || row?.reference_url || null
-            return <article className="global-search-card" key={`${key}-${row?.id ?? row?.public_id ?? index}`}><div className="global-search-card-main"><span className="global-search-kind">{label}</span><h3>{resultTitle(row)}</h3><p>{resultSubtitle(row)}</p>{meta.length > 0 && <div className="global-search-meta">{meta.map(value => <span key={value}>{value}</span>)}</div>}</div><div className="global-search-card-side"><small>{row?.id != null ? `#${row.id}` : row?.public_id || ''}</small>{href && <a href={href} target="_blank" rel="noreferrer">Abrir ↗</a>}</div></article>
+            const destination = resultDestination(key, row)
+            const openResult = () => navigateToResult(destination, onClose)
+            return <article
+              className={`global-search-card${destination ? ' is-actionable' : ''}`}
+              key={`${key}-${row?.id ?? row?.public_id ?? index}`}
+              role={destination ? 'link' : undefined}
+              tabIndex={destination ? 0 : undefined}
+              onClick={destination ? openResult : undefined}
+              onKeyDown={destination ? event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  openResult()
+                }
+              } : undefined}
+              aria-label={destination ? `${resultActionLabel(key, destination)}: ${resultTitle(row)}` : undefined}
+            ><div className="global-search-card-main"><span className="global-search-kind">{label}</span><h3>{resultTitle(row)}</h3><p>{resultSubtitle(row)}</p>{meta.length > 0 && <div className="global-search-meta">{meta.map(value => <span key={value}>{value}</span>)}</div>}</div><div className="global-search-card-side"><small>{row?.id != null ? `#${row.id}` : row?.public_id || ''}</small>{destination && <span className="global-search-card-open">{resultActionLabel(key, destination)}</span>}</div></article>
           })}</div></section>
         })}
       </div>}
