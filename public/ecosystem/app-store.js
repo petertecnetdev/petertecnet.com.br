@@ -5,11 +5,9 @@
   const API_URL = 'https://api.petertecnet.com.br/api/applications';
   const FALLBACK_LOGO = '/petertecnetlogo.png';
   const STORE_ID = 'peter-app-store';
-  const nativeFetch = window.fetch.bind(window);
+  const NETWORK_TIMEOUT_MS = 5000;
 
   let cachedApplications = null;
-  let observedApplicationsRequest = false;
-  let observedApplicationsSettled = false;
   let loadingFallback = false;
   let scheduled = false;
 
@@ -67,53 +65,11 @@
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 
-  const isApplicationsRequest = (input, init = {}) => {
-    const requestMethod = typeof Request !== 'undefined' && input instanceof Request ? input.method : null;
-    const method = String(init?.method || requestMethod || 'GET').toUpperCase();
-    if (method !== 'GET') return false;
-
-    const raw = typeof Request !== 'undefined' && input instanceof Request ? input.url : String(input || '');
-    try {
-      const candidate = new URL(raw, window.location.href);
-      const expected = new URL(API_URL);
-      return candidate.origin === expected.origin && candidate.pathname === expected.pathname;
-    } catch {
-      return false;
-    }
-  };
-
   const captureApplications = payload => {
-    const applications = Array.isArray(payload?.applications) ? payload.applications : [];
+    const applications = Array.isArray(payload) ? payload : (Array.isArray(payload?.applications) ? payload.applications : []);
     if (!applications.length) return;
     cachedApplications = applications;
     scheduleLoad();
-  };
-
-  // The React landing already loads /api/applications. Observe and reuse that
-  // response so the App Store does not double-hit the rate-limited endpoint.
-  window.fetch = async (...args) => {
-    const observe = isApplicationsRequest(args[0], args[1]);
-    if (observe) observedApplicationsRequest = true;
-
-    try {
-      const response = await nativeFetch(...args);
-      if (observe) {
-        response.clone().json()
-          .then(captureApplications)
-          .catch(() => {})
-          .finally(() => {
-            observedApplicationsSettled = true;
-            scheduleLoad();
-          });
-      }
-      return response;
-    } catch (error) {
-      if (observe) {
-        observedApplicationsSettled = true;
-        scheduleLoad();
-      }
-      throw error;
-    }
   };
 
   const installStyles = () => {
@@ -225,24 +181,29 @@
     const section = document.getElementById('plataformas');
     if (!section) return;
 
+    if (!cachedApplications && Array.isArray(window.__PETERTECNET_APPLICATIONS__)) {
+      captureApplications(window.__PETERTECNET_APPLICATIONS__);
+    }
+
     if (cachedApplications) {
       render(cachedApplications);
       return;
     }
 
-    // If the landing already requested applications, never create a second
-    // request. On failure the original platform experience remains untouched.
-    if (observedApplicationsRequest || !allowNetworkFallback || loadingFallback) return;
+    if (!allowNetworkFallback || loadingFallback) return;
 
     loadingFallback = true;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), NETWORK_TIMEOUT_MS);
     try {
-      const response = await nativeFetch(API_URL, { headers: { Accept: 'application/json' } });
+      const response = await fetch(API_URL, { headers: { Accept: 'application/json' }, signal: controller.signal });
       if (!response.ok) throw new Error(`applications:${response.status}`);
       const payload = await response.json();
       captureApplications(payload);
     } catch {
       // Progressive enhancement: if data is unavailable, keep the original grid.
     } finally {
+      window.clearTimeout(timeout);
       loadingFallback = false;
     }
   };
@@ -262,12 +223,15 @@
     observer.observe(document.body, { childList: true, subtree: true });
     window.addEventListener('pageshow', scheduleLoad);
     window.addEventListener('popstate', scheduleLoad);
+    window.addEventListener('petertecnet:applications', event => {
+      captureApplications(event.detail?.applications || []);
+    });
 
-    // Fallback only for pages where the React landing did not issue its normal
-    // applications request. This keeps the store reusable without duplicating it.
+    // Give React the first chance to publish the applications payload. Only use
+    // a bounded network fallback if that shared payload never arrives.
     window.setTimeout(() => {
-      if (!cachedApplications && !observedApplicationsRequest && !observedApplicationsSettled) load(true);
-    }, 1500);
+      if (!cachedApplications) load(true);
+    }, 1800);
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
