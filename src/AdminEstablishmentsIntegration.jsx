@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import AdminEstablishmentsPage from './AdminEstablishmentsPage.jsx'
+import AdminEstablishmentsPage from './AdminEstablishmentsPageV2.jsx'
 
 export default function AdminEstablishmentsIntegration() {
   const [host, setHost] = useState(null)
