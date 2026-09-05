@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import NotificationsCenter from './NotificationsCenter'
 import AdminUsersCenter from './AdminUsersCenter.jsx'
+import { connectMissionControlRealtime } from './missionControlRealtime.js'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
@@ -274,6 +275,39 @@ function Dashboard({ user, onLogout }) {
   useEffect(() => {
     const timer = window.setTimeout(() => { void loadAll() }, 0)
     return () => window.clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    let realtimeState = 'connecting'
+    let refreshTimer = null
+
+    const queueRefresh = () => {
+      if (refreshTimer) window.clearTimeout(refreshTimer)
+      refreshTimer = window.setTimeout(() => { void loadAll({ quiet: true }) }, 300)
+    }
+
+    const disconnect = connectMissionControlRealtime({
+      token: () => localStorage.getItem(TOKEN_KEY),
+      events: ['ecosystem.updated'],
+      onUpdate: (payload, eventName) => {
+        const modules = Array.isArray(payload?.modules) ? payload.modules : []
+        const affectsDashboard = modules.length === 0 || modules.some(module =>
+          ['dashboard', 'activity', 'audit', 'applications', 'operations', 'financial'].includes(module)
+        )
+        if (eventName !== 'ecosystem.updated' || affectsDashboard) queueRefresh()
+      },
+      onState: state => { realtimeState = state },
+    })
+
+    const fallback = window.setInterval(() => {
+      if (realtimeState !== 'connected') queueRefresh()
+    }, 15000)
+
+    return () => {
+      if (refreshTimer) window.clearTimeout(refreshTimer)
+      window.clearInterval(fallback)
+      disconnect?.()
+    }
   }, [])
 
   useEffect(() => {
