@@ -30,8 +30,10 @@
   if (isStandalone() || !isMobileDevice()) return;
 
   let deferredPrompt = null;
+  let installed = false;
+
   const style = document.createElement('style');
-  style.textContent = `.pt-install-app{position:fixed;left:50%;bottom:max(14px,env(safe-area-inset-bottom));z-index:2147483000;width:min(calc(100% - 24px),560px);transform:translateX(-50%);display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;border:1px solid rgba(118,229,255,.3);border-radius:20px;padding:12px;background:linear-gradient(135deg,rgba(4,18,27,.98),rgba(8,31,43,.98));color:#effdff;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;box-shadow:0 18px 60px rgba(0,0,0,.48);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);cursor:pointer;touch-action:manipulation}.pt-install-icon{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:rgba(118,229,255,.12);border:1px solid rgba(118,229,255,.18)}.pt-install-icon svg{width:22px;height:22px}.pt-install-copy{min-width:0;text-align:left}.pt-install-copy strong{display:block;font-size:14px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pt-install-copy span{display:block;margin-top:4px;color:#a9c4cc;font-size:11.5px;line-height:1.25}.pt-install-cta{border:0;border-radius:13px;padding:11px 14px;background:#e6fbff;color:#06151b;font-size:12px;font-weight:900;white-space:nowrap}.pt-install-help{position:fixed;inset:0;z-index:2147483640;display:grid;place-items:end center;padding:20px;background:rgba(0,6,11,.66);backdrop-filter:blur(7px)}.pt-install-card{width:min(440px,100%);border:1px solid rgba(118,229,255,.2);border-radius:22px;padding:20px;background:#07151d;color:#effdff;font-family:Inter,system-ui,sans-serif}.pt-install-card h2{margin:0 0 8px;font-size:20px}.pt-install-card p{margin:0 0 16px;color:#a9c4cc;line-height:1.5}.pt-install-card button{width:100%;border:0;border-radius:14px;padding:12px 14px;background:#dffbff;color:#06151b;font-weight:800}@media(max-width:430px){.pt-install-app{grid-template-columns:auto 1fr;gap:10px}.pt-install-cta{grid-column:1/-1;width:100%}}@media(min-width:821px){.pt-install-app,.pt-install-help{display:none!important}}`;
+  style.textContent = `.pt-install-app{position:fixed!important;left:50%!important;bottom:max(14px,env(safe-area-inset-bottom))!important;z-index:2147483000!important;width:min(calc(100% - 24px),560px);transform:translateX(-50%);display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;border:1px solid rgba(118,229,255,.3);border-radius:20px;padding:12px;background:linear-gradient(135deg,rgba(4,18,27,.98),rgba(8,31,43,.98));color:#effdff;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;box-shadow:0 18px 60px rgba(0,0,0,.48);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);cursor:pointer;touch-action:manipulation}.pt-install-icon{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:rgba(118,229,255,.12);border:1px solid rgba(118,229,255,.18)}.pt-install-icon svg{width:22px;height:22px}.pt-install-copy{min-width:0;text-align:left}.pt-install-copy strong{display:block;font-size:14px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pt-install-copy span{display:block;margin-top:4px;color:#a9c4cc;font-size:11.5px;line-height:1.25}.pt-install-cta{border:0;border-radius:13px;padding:11px 14px;background:#e6fbff;color:#06151b;font-size:12px;font-weight:900;white-space:nowrap}.pt-install-help{position:fixed;inset:0;z-index:2147483640;display:grid;place-items:end center;padding:20px;background:rgba(0,6,11,.66);backdrop-filter:blur(7px)}.pt-install-card{width:min(440px,100%);border:1px solid rgba(118,229,255,.2);border-radius:22px;padding:20px;background:#07151d;color:#effdff;font-family:Inter,system-ui,sans-serif}.pt-install-card h2{margin:0 0 8px;font-size:20px}.pt-install-card p{margin:0 0 16px;color:#a9c4cc;line-height:1.5}.pt-install-card button{width:100%;border:0;border-radius:14px;padding:12px 14px;background:#dffbff;color:#06151b;font-weight:800}@media(max-width:430px){.pt-install-app{grid-template-columns:auto 1fr;gap:10px}.pt-install-cta{grid-column:1/-1;width:100%}}@media(min-width:821px){.pt-install-app,.pt-install-help{display:none!important}}`;
   document.head.appendChild(style);
 
   const button = document.createElement('button');
@@ -61,12 +63,45 @@
       deferredPrompt = null;
       await prompt.prompt();
       try { await prompt.userChoice; } catch (_) {}
+      ensureMounted();
       return;
     }
     showHelp();
   });
-  window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); deferredPrompt = event; button.dataset.ready = 'true'; });
-  window.addEventListener('appinstalled', () => { deferredPrompt = null; button.remove(); });
-  const mount = () => { if (!isStandalone() && isMobileDevice() && !button.isConnected) document.body.appendChild(button); };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, { once: true }); else mount();
+
+  window.addEventListener('beforeinstallprompt', event => {
+    event.preventDefault();
+    deferredPrompt = event;
+    button.dataset.ready = 'true';
+    ensureMounted();
+  });
+
+  window.addEventListener('appinstalled', () => {
+    installed = true;
+    deferredPrompt = null;
+    button.remove();
+  });
+
+  function ensureMounted() {
+    if (installed || isStandalone() || !isMobileDevice()) {
+      button.remove();
+      return;
+    }
+    if (document.body && !button.isConnected) document.body.appendChild(button);
+  }
+
+  const observer = new MutationObserver(() => ensureMounted());
+  const startPersistence = () => {
+    ensureMounted();
+    if (document.body) observer.observe(document.body, { childList: true });
+  };
+
+  window.addEventListener('pageshow', ensureMounted);
+  window.addEventListener('popstate', ensureMounted);
+  window.addEventListener('hashchange', ensureMounted);
+  window.addEventListener('orientationchange', ensureMounted);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) ensureMounted(); });
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startPersistence, { once: true });
+  else startPersistence();
 })();
