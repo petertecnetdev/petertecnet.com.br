@@ -9,6 +9,7 @@ import './App.css'
 import './AdminEstablishmentsFeedback.css'
 import './AdminResponsive.css'
 import './AdminNavigationStandard.css'
+import './AdminHamburgerPolish.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
