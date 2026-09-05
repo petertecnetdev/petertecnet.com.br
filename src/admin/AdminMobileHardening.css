@@ -1,0 +1,11 @@
+/* Final mobile guardrails for the canonical Admin Center shell.
+   Keep the drawer comfortably inside narrow viewports regardless of legacy
+   sidebar rules loaded by individual modules. */
+@media (max-width: 760px) {
+  .admin-persistent-shell > .admin-persistent-sidebar,
+  .admin-persistent-shell > .ecosystem-sidebar {
+    box-sizing: border-box !important;
+    width: min(86vw, 312px) !important;
+    max-width: 88vw !important;
+  }
+}
