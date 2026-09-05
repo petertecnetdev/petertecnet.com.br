@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { showNotice } from './utils/uiDialog.js'
 import './AccountAccessPage.css'
 
 const API = 'https://api.petertecnet.com.br/api'
@@ -30,22 +31,14 @@ function passwordValidationMessage(password) {
   return ''
 }
 
-async function showAlert({ icon = 'error', title, text, confirmButtonText = 'Entendi' }) {
-  if (window.Swal?.fire) {
-    return window.Swal.fire({
-      icon,
-      title,
-      text,
-      confirmButtonText,
-      allowOutsideClick: true,
-      background: '#071820',
-      color: '#edfaff',
-      confirmButtonColor: '#54cfff',
-    })
-  }
-
-  window.alert(`${title}\n\n${text}`)
-  return undefined
+function showAlert({ icon = 'error', title, text, confirmButtonText = 'Entendi' }) {
+  const tone = icon === 'success' ? 'success' : icon === 'warning' ? 'warning' : icon === 'error' ? 'danger' : 'neutral'
+  return showNotice({
+    tone,
+    title,
+    message: text,
+    confirmLabel: confirmButtonText,
+  })
 }
 
 function showErrorAlert(title, error, fallback) {
