@@ -148,7 +148,7 @@ export default function AdminEstablishmentResourceEditor({ action, app, establis
   return <div className="aer-page">
     <header className="aer-page-header">
       <button type="button" className="aer-back" onClick={onBack}>← Voltar ao establishment</button>
-      <div><p className="eyebrow">ADMIN CENTER / {app.name || app.slug}</p><h2>{title}</h2><p>Criação administrativa dentro do ecossistema, sem sair para a página do aplicativo.</p></div>
+      <div><p className="eyebrow">ADMIN CENTER / {app.name || app.slug}</p><h2>{title}</h2><p>{kind === 'event' ? 'Gerencie os eventos deste establishment, duplique programações existentes ou cadastre um novo evento sem sair do Admin Center.' : 'Criação administrativa dentro do ecossistema, sem sair para a página do aplicativo.'}</p></div>
       <div className="aer-context"><small>Establishment</small><b>{establishmentName(establishment)}</b><span>#{establishment.id} · {app.name || app.slug}</span></div>
     </header>
 
@@ -156,9 +156,9 @@ export default function AdminEstablishmentResourceEditor({ action, app, establis
     {loadingContext && <div className="aer-feedback">Carregando contexto operacional…</div>}
     {kind === 'event' && <AdminEstablishmentEvents establishment={establishment} app={app} onSuccess={onCreated} />}
 
-    <form className="aer-form" onSubmit={submit}>
+    <form id={kind === 'event' ? 'admin-event-create-form' : undefined} className="aer-form" onSubmit={submit}>
       {kind === 'event' && <>
-        <Section number="01" title="Evento" description="Informações centrais que aparecerão na Cutinapp."><div className="aer-grid">
+        <Section number="01" title="Novo evento" description="Preencha as informações centrais que aparecerão na Cutinapp."><div className="aer-grid">
           <Field label="Nome do evento *"><input value={form.title} onChange={e => patch({ title: e.target.value })} required /></Field>
           <Field label="Categoria"><input value={form.category} onChange={e => patch({ category: e.target.value })} /></Field>
           <Field label="Formato *"><select value={form.event_format} onChange={e => patch({ event_format: e.target.value })}><option value="in_person">Presencial</option><option value="online">Online</option><option value="hybrid">Híbrido</option></select></Field>
