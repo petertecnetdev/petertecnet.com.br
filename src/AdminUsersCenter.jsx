@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import AdminUserDetailPage from './AdminUserDetailPage.jsx'
+import { confirmAction } from './utils/uiDialog.js'
 import './AdminUsersCenter.css'
 
 const OWNER_EMAIL = 'petertecnet@gmail.com'
@@ -190,7 +191,16 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
 
   async function deleteUser(user) {
     if (String(user.email || '').toLowerCase() === OWNER_EMAIL) return
-    if (!window.confirm(`Excluir definitivamente ${user.email}? Esta ação remove o cadastro central do usuário.`)) return
+    const confirmed = await confirmAction({
+      tone: 'danger',
+      title: 'Excluir usuário do ecossistema?',
+      message: `${fullName(user)} (${user.email}) será removido do cadastro central. Vínculos e históricos dependentes podem ser afetados conforme as regras da API.`,
+      confirmLabel: 'Excluir usuário',
+      cancelLabel: 'Manter usuário',
+      dismissOnBackdrop: false,
+    })
+    if (!confirmed) return
+
     setBusy(true)
     setError('')
     setMessage('')
