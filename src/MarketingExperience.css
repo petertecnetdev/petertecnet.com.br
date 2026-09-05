@@ -565,3 +565,52 @@ body { margin: 0; }
 @keyframes mktLogoFloat { 50% { transform: translateY(-8px); } }
 @keyframes mktScan { 0%, 62% { transform: translateX(-120%); } 82%, 100% { transform: translateX(120%); } }
 @keyframes mktSignalIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Responsive navigation — desktop/tablet/mobile layout aligned with the Peter Tecnet visual system. */
+@media (min-width: 861px) {
+  .mkt-header { flex-wrap: nowrap; }
+  .mkt-nav { min-width: 0; }
+}
+
+@media (max-width: 1180px) and (min-width: 861px) {
+  :root { --mkt-header-height: 76px; }
+  .mkt-header { padding-inline: 22px; gap: 16px; }
+  .mkt-brand small { display: none; }
+  .mkt-nav { margin-left: auto; gap: 12px; }
+  .mkt-nav > a:not(.mkt-nav-cta) { display: none; }
+  .mkt-nav-cta { white-space: nowrap; }
+  .mkt-menu { display: block; order: 4; flex: 0 0 44px; border: 1px solid var(--mkt-line-strong); border-radius: 14px; }
+  .mkt-nav.is-open {
+    position: absolute; top: calc(100% + 1px); left: 18px; right: 18px; display: flex;
+    padding: 14px; border: 1px solid var(--mkt-line-strong); border-radius: 18px;
+    background: rgba(2,10,14,.98); box-shadow: var(--mkt-shadow); flex-direction: column; align-items: stretch;
+  }
+  .mkt-nav.is-open > a:not(.mkt-nav-cta) { display: block; padding: 12px 10px; }
+}
+
+@media (max-width: 860px) {
+  .mkt-header { min-height: 68px; gap: 10px; padding: 10px 14px; }
+  .mkt-brand { min-width: 0; margin-right: auto; }
+  .mkt-brand-mark { width: 40px; height: 40px; border-radius: 12px; flex: 0 0 40px; }
+  .mkt-brand-mark img { width: 25px; height: 25px; }
+  .mkt-brand strong { font-size: 14px; }
+  .mkt-brand small { display: none; }
+  .mkt-menu { display: block; flex: 0 0 44px; border: 1px solid var(--mkt-line-strong); border-radius: 14px; }
+  .mkt-nav { left: 10px; right: 10px; padding: 10px; border-radius: 16px; max-height: calc(100vh - 86px); overflow-y: auto; }
+  .mkt-nav > a { min-height: 46px; display: flex; align-items: center; border-radius: 11px; }
+  .mkt-nav > a:hover, .mkt-nav > a:focus-visible { background: rgba(85,232,255,.07); }
+  .mkt-nav-cta { margin-top: 5px; padding-inline: 14px !important; }
+  .mkt-header peter-ecosystem-launcher { flex: 0 0 auto !important; margin-left: 0 !important; }
+}
+
+@media (max-width: 430px) {
+  .mkt-header { padding-inline: 10px; }
+  .mkt-brand > span:last-child { max-width: 118px; }
+  .mkt-brand strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mkt-nav { left: 8px; right: 8px; }
+}
+
+/* Keep compact navigation labels readable on desktop. */
+@media (min-width: 861px) {
+  .mkt-nav > a { white-space: nowrap; }
+}
