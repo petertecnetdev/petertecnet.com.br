@@ -55,6 +55,7 @@ function probeDocument(viewport) {
           const top = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
           top?.closest?.('#click-probe')?.click()
           const backdropStyle = getComputedStyle(backdrop)
+          const processingRect = processing.getBoundingClientRect()
 
           add('guard-activated', document.body.classList.contains('admin-interaction-guard-active'))
           add('root-not-inert', !root.inert, String(root.inert))
@@ -62,7 +63,7 @@ function probeDocument(viewport) {
           add('content-not-aria-hidden', main.getAttribute('aria-hidden') !== 'true', main.getAttribute('aria-hidden') || 'none')
           add('body-pointer-events-restored', document.body.style.pointerEvents !== 'none', document.body.style.pointerEvents || 'default')
           add('processing-nonblocking', getComputedStyle(processing).pointerEvents === 'none', getComputedStyle(processing).pointerEvents)
-          add('processing-no-longer-fullscreen', processing.getBoundingClientRect().width < innerWidth * .6, String(processing.getBoundingClientRect().width))
+          add('processing-no-longer-fullscreen', processingRect.width < innerWidth * .95 && processingRect.height < innerHeight * .25, processingRect.width + 'x' + processingRect.height)
           add('stale-backdrop-closed', !backdrop.classList.contains('is-open'), backdrop.className)
           add('stale-backdrop-nonblocking', backdropStyle.display === 'none' || backdropStyle.pointerEvents === 'none', backdropStyle.display + '/' + backdropStyle.pointerEvents)
           add('orphan-overlay-removed', !document.querySelector('#orphan-overlay'))
