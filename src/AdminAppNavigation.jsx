@@ -1,15 +1,15 @@
 import { useEffect } from 'react'
 
 const PAGE_DEFINITIONS = [
-  { key: 'dashboard', label: 'Visão geral', selector: '#dashboard', aliases: ['dashboard', 'visao geral', 'visão geral'] },
-  { key: 'operations', label: 'Operações', selector: '#operations', aliases: ['operations', 'operacoes', 'operações'] },
-  { key: 'financial', label: 'Financeiro', selector: '#financial', aliases: ['financial', 'financeiro'] },
-  { key: 'applications', label: 'Aplicações', selector: '#applications', aliases: ['applications', 'aplicacoes', 'aplicações'] },
-  { key: 'users', label: 'Usuários', selector: '#users', aliases: ['users', 'usuarios', 'usuários'] },
-  { key: 'establishments', label: 'Estabelecimentos', selector: '#establishments-admin-integration', aliases: ['establishments', 'estabelecimentos'] },
-  { key: 'items', label: 'Itens', selector: '#items-admin-integration', aliases: ['items', 'itens'] },
-  { key: 'notifications', label: 'Notificações', selector: '#notifications', aliases: ['notifications', 'notificacoes', 'notificações'] },
-  { key: 'activity', label: 'Atividade', selector: '#activity', aliases: ['activity', 'atividade'] },
+  { key: 'dashboard', slug: 'visao-geral', label: 'Visão geral', selector: '#dashboard', aliases: ['dashboard', 'visao geral', 'visão geral'] },
+  { key: 'operations', slug: 'operacoes', label: 'Operações', selector: '#operations', aliases: ['operations', 'operacoes', 'operações'] },
+  { key: 'financial', slug: 'financeiro', label: 'Financeiro', selector: '#financial', aliases: ['financial', 'financeiro'] },
+  { key: 'applications', slug: 'aplicacoes', label: 'Aplicações', selector: '#applications', aliases: ['applications', 'aplicacoes', 'aplicações'] },
+  { key: 'users', slug: 'usuarios', label: 'Usuários', selector: '#users', aliases: ['users', 'usuarios', 'usuários'] },
+  { key: 'establishments', slug: 'estabelecimentos', label: 'Estabelecimentos', selector: '#establishments-admin-integration', aliases: ['establishments', 'estabelecimentos'] },
+  { key: 'items', slug: 'itens', label: 'Itens', selector: '#items-admin-integration', aliases: ['items', 'itens'] },
+  { key: 'notifications', slug: 'notificacoes', label: 'Notificações', selector: '#notifications', aliases: ['notifications', 'notificacoes', 'notificações'] },
+  { key: 'activity', slug: 'atividade', label: 'Atividade', selector: '#activity', aliases: ['activity', 'atividade'] },
 ]
 
 const PAGE_KEYS = new Set(PAGE_DEFINITIONS.map(page => page.key))
@@ -27,15 +27,21 @@ function pageDefinition(key) {
   return PAGE_DEFINITIONS.find(page => page.key === key) || PAGE_DEFINITIONS[0]
 }
 
+function keyFromToken(value) {
+  const normalized = normalize(value)
+  if (!normalized) return null
+  const compact = normalized.replace(/ /g, '-')
+  if (PAGE_KEYS.has(compact)) return compact
+
+  const match = PAGE_DEFINITIONS.find(page =>
+    normalize(page.slug) === normalized || page.aliases.some(alias => normalize(alias) === normalized),
+  )
+  return match?.key || null
+}
+
 function pageFromLocation() {
   const url = new URL(window.location.href)
-  const queryPage = normalize(url.searchParams.get('page')).replace(/ /g, '-')
-  if (PAGE_KEYS.has(queryPage)) return queryPage
-
-  const hashPage = normalize(url.hash.replace(/^#/, '')).replace(/ /g, '-')
-  if (PAGE_KEYS.has(hashPage)) return hashPage
-
-  return 'dashboard'
+  return keyFromToken(url.searchParams.get('page')) || keyFromToken(url.hash.replace(/^#/, '')) || 'dashboard'
 }
 
 function pageFromButton(button) {
@@ -52,7 +58,7 @@ function pageFromButton(button) {
 function writeHistory(page, mode) {
   const url = new URL(window.location.href)
   if (page === 'dashboard') url.searchParams.delete('page')
-  else url.searchParams.set('page', page)
+  else url.searchParams.set('page', pageDefinition(page).slug)
   url.hash = ''
 
   const state = { ...(window.history.state || {}), adminPage: page }
@@ -185,7 +191,7 @@ export default function AdminAppNavigation() {
 
     if (!sync()) {
       window.requestAnimationFrame(() => sync())
-    } else if (window.location.hash) {
+    } else {
       writeHistory(currentPage, 'replaceState')
     }
 
