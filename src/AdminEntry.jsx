@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import AdminPersistentShell from './AdminPersistentShell.jsx'
 import AdminRouteSync from './AdminRouteSync.jsx'
+import AdminRouteErrorBoundary from './AdminRouteErrorBoundary.jsx'
 import AdminMobileNavigation from './components/AdminMobileNavigation.jsx'
 import AdminEstablishmentMediaBridge from './AdminEstablishmentMedia.jsx'
 import AdminProductivityBridge from './AdminProductivityBridge.jsx'
@@ -89,9 +90,11 @@ export default function AdminEntry() {
   return (
     <AdminUiProvider>
       <AdminPersistentShell activeKey={activeKey}>
-        <Suspense fallback={<AdminRouteLoading />}>
-          {adminRouteContent(path)}
-        </Suspense>
+        <AdminRouteErrorBoundary key={path}>
+          <Suspense fallback={<AdminRouteLoading />}>
+            {adminRouteContent(path)}
+          </Suspense>
+        </AdminRouteErrorBoundary>
       </AdminPersistentShell>
       <AdminMobileNavigation />
       <AdminWorkspaceStateBridge />
