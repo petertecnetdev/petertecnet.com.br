@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import AdminEstablishmentEvents from './AdminEstablishmentEvents.jsx'
 import './AdminEstablishmentResourceEditor.css'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
@@ -153,6 +154,7 @@ export default function AdminEstablishmentResourceEditor({ action, app, establis
 
     {error && <div className="aer-feedback error" role="alert">{error}<button type="button" onClick={() => setError('')}>×</button></div>}
     {loadingContext && <div className="aer-feedback">Carregando contexto operacional…</div>}
+    {kind === 'event' && <AdminEstablishmentEvents establishment={establishment} app={app} onSuccess={onCreated} />}
 
     <form className="aer-form" onSubmit={submit}>
       {kind === 'event' && <>
