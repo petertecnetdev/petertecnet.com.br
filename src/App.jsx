@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import NotificationsCenter from './NotificationsCenter'
 import AdminUsersCenter from './AdminUsersCenter.jsx'
-import InteractionCleanup from './InteractionCleanup.jsx'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
@@ -73,7 +72,10 @@ function request(path, options = {}) {
       window.dispatchEvent(new Event('admin-session-expired'))
     }
     if (!response.ok) {
-      throw new Error(payload?.error || payload?.message || Object.values(payload?.errors || {}).flat()?.[0] || 'Não foi possível concluir a operação.')
+      const requestError = new Error(payload?.error || payload?.message || Object.values(payload?.errors || {}).flat()?.[0] || 'Não foi possível concluir a operação.')
+      requestError.status = response.status
+      requestError.retryAfter = Number(response.headers.get('Retry-After') || payload?.retry_after || 0)
+      throw requestError
     }
     return payload
   }).catch(error => {
@@ -86,14 +88,32 @@ function Login({ onAuthenticated }) {
   const [form, setForm] = useState({ email: OWNER_EMAIL, password: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [retryAfter, setRetryAfter] = useState(0)
+  const submittingRef = useRef(false)
+
+  useEffect(() => {
+    if (retryAfter <= 0) return undefined
+    const timer = window.setTimeout(() => {
+      setRetryAfter(current => {
+        if (current <= 1) {
+          setError(message => message.startsWith('Muitas tentativas') ? '' : message)
+          return 0
+        }
+        return current - 1
+      })
+    }, 1000)
+    return () => window.clearTimeout(timer)
+  }, [retryAfter])
 
   async function submit(event) {
     event.preventDefault()
+    if (submittingRef.current || loading || retryAfter > 0) return
     setError('')
     if (form.email.trim().toLowerCase() !== OWNER_EMAIL) {
       setError('Este Admin Center é restrito ao administrador da Peter Tecnet.')
       return
     }
+    submittingRef.current = true
     setLoading(true)
     try {
       const payload = await request('/auth/login', {
@@ -108,8 +128,15 @@ function Login({ onAuthenticated }) {
       onAuthenticated(user)
     } catch (err) {
       localStorage.removeItem(TOKEN_KEY)
-      setError(err.message)
+      if (err?.status === 429) {
+        const seconds = Math.max(1, Number(err.retryAfter) || 60)
+        setRetryAfter(seconds)
+        setError('Muitas tentativas de acesso. Aguarde antes de tentar novamente.')
+      } else {
+        setError(err.message)
+      }
     } finally {
+      submittingRef.current = false
       setLoading(false)
     }
   }
@@ -136,8 +163,8 @@ function Login({ onAuthenticated }) {
         <p className="muted">Use suas credenciais administrativas.</p>
         <label>E-mail<input type="email" autoComplete="username" value={form.email} onChange={event => setForm({ ...form, email: event.target.value })} required/></label>
         <label>Senha<input type="password" autoComplete="current-password" value={form.password} onChange={event => setForm({ ...form, password: event.target.value })} required autoFocus/></label>
-        {error && <div className="form-error" role="alert">{error}</div>}
-        <button className="primary-button" disabled={loading}>{loading ? 'Autenticando…' : 'Acessar dashboard'}<span>↗</span></button>
+        {error && <div className="form-error" role="alert">{error}{retryAfter > 0 ? ` Tente novamente em ${retryAfter}s.` : ''}</div>}
+        <button className="primary-button" disabled={loading || retryAfter > 0}>{loading ? 'Autenticando…' : retryAfter > 0 ? `Aguarde ${retryAfter}s` : 'Acessar dashboard'}<span>↗</span></button>
       </form>
     </section>
   </main>
@@ -418,16 +445,13 @@ function Dashboard({ user, onLogout }) {
           <section id="notifications" className="section-anchor">
             <NotificationsCenter request={request} applications={applications}/>
           </section>
+
           <section id="activity" className="section-anchor">
             <SectionHeading kicker="ATIVIDADE" title="Linha do tempo recente" text="Últimas ações registradas pela telemetria do ecossistema."/>
             <Panel title="Atividade recente" subtitle={`${compactNumber(activity?.summary?.total ?? summary.interactions_30d)} interações no recorte atual`}>
-              <InteractionCleanup
-                rows={activityRows.slice(0, 16)}
-                total={activity?.summary?.total ?? summary.interactions_30d ?? activityRows.length}
-                request={request}
-                onChanged={() => loadAll({ quiet: true })}
-                formatDate={dateTime}
-              />
+              <div className="timeline">
+                {activityRows.length ? activityRows.slice(0, 16).map((row, index) => <div className="timeline-row" key={row.id || `${row.created_at}-${index}`}><span className="timeline-dot"/><div><b>{row.name || row.interaction_type || row.type || 'Interação'}</b><small>{row.user_email || row.email || row.application_name || row.app_name || 'Ecossistema Peter Tecnet'}</small></div><time>{dateTime(row.created_at || row.occurred_at)}</time></div>) : <Empty text="Nenhuma interação recente retornada pela API."/>}
+              </div>
             </Panel>
           </section>
         </>}
