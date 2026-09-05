@@ -204,13 +204,42 @@ jobs:
               npm run build
               NEW_OUTPUT="$BUILD_WORKTREE/$FRONTEND_OUTPUT"
               LIVE_OUTPUT="$DEPLOY_PATH/$FRONTEND_OUTPUT"
+              NEXT_OUTPUT="$DEPLOY_PATH/.${FRONTEND_OUTPUT}.next.$$-$RANDOM"
+              PREVIOUS_OUTPUT="$DEPLOY_PATH/.${FRONTEND_OUTPUT}.previous.$$-$RANDOM"
               [[ -f "$NEW_OUTPUT/index.html" ]] || { echo "New frontend release has no $FRONTEND_OUTPUT/index.html." >&2; exit 31; }
-              mkdir -p "$LIVE_OUTPUT"
-              (cd "$NEW_OUTPUT" && tar --exclude='./index.html' -cf - .) | (cd "$LIVE_OUTPUT" && tar -xf -)
-              cp -f "$NEW_OUTPUT/index.html" "$LIVE_OUTPUT/.index.html.next"
-              chmod --reference="$LIVE_OUTPUT/index.html" "$LIVE_OUTPUT/.index.html.next" 2>/dev/null || true
-              mv -f "$LIVE_OUTPUT/.index.html.next" "$LIVE_OUTPUT/index.html"
-              cmp -s "$NEW_OUTPUT/index.html" "$LIVE_OUTPUT/index.html" || { echo "Published frontend index.html differs from freshly built release." >&2; exit 32; }
+
+              # Build a complete release beside the live directory. Replacing the directory
+              # avoids writing over files that may be owned/read-only from older deployments.
+              rm -rf "$NEXT_OUTPUT"
+              cp -a "$NEW_OUTPUT" "$NEXT_OUTPUT"
+              [[ -f "$NEXT_OUTPUT/index.html" ]] || { echo "Prepared frontend release has no index.html." >&2; exit 31; }
+
+              if [[ -e "$LIVE_OUTPUT" ]]; then
+                mv "$LIVE_OUTPUT" "$PREVIOUS_OUTPUT"
+              fi
+              if ! mv "$NEXT_OUTPUT" "$LIVE_OUTPUT"; then
+                echo "Failed to activate new frontend release; attempting rollback." >&2
+                [[ -e "$PREVIOUS_OUTPUT" ]] && mv "$PREVIOUS_OUTPUT" "$LIVE_OUTPUT" || true
+                exit 32
+              fi
+
+              cmp -s "$NEW_OUTPUT/index.html" "$LIVE_OUTPUT/index.html" || {
+                echo "Published frontend index.html differs from freshly built release; attempting rollback." >&2
+                rm -rf "$NEXT_OUTPUT" || true
+                if [[ -e "$PREVIOUS_OUTPUT" ]]; then
+                  FAILED_OUTPUT="$DEPLOY_PATH/.${FRONTEND_OUTPUT}.failed.$$-$RANDOM"
+                  mv "$LIVE_OUTPUT" "$FAILED_OUTPUT" || true
+                  mv "$PREVIOUS_OUTPUT" "$LIVE_OUTPUT" || true
+                  sudo rm -rf "$FAILED_OUTPUT" 2>/dev/null || rm -rf "$FAILED_OUTPUT" || true
+                fi
+                exit 32
+              }
+
+              # Old releases may contain files owned by the web server. Cleanup is best-effort
+              # and uses sudo only after the new release has been verified and activated.
+              if [[ -e "$PREVIOUS_OUTPUT" ]]; then
+                sudo rm -rf "$PREVIOUS_OUTPUT" 2>/dev/null || rm -rf "$PREVIOUS_OUTPUT" || true
+              fi
               ;;
             laravel)
               if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then git checkout "$DEPLOY_BRANCH"; else git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"; fi
