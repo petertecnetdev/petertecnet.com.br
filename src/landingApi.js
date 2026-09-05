@@ -65,19 +65,44 @@ export const getItemImage = item => {
   return fileImage || createItemInitialsImage(item)
 }
 
+const API_TIMEOUT_MS = 6000
+
 const apiGet = async (path, signal) => {
-  const response = await fetch(`${API_ORIGIN}${path}`, {
-    headers: { Accept: 'application/json' },
-    signal,
-  })
+  const controller = new AbortController()
+  let timedOut = false
+  const abortFromCaller = () => controller.abort()
+  if (signal?.aborted) abortFromCaller()
+  else signal?.addEventListener('abort', abortFromCaller, { once: true })
 
-  if (!response.ok) {
-    const error = new Error(`API request failed: ${response.status}`)
-    error.status = response.status
+  const timeout = window.setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, API_TIMEOUT_MS)
+
+  try {
+    const response = await fetch(`${API_ORIGIN}${path}`, {
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    })
+
+    if (!response.ok) {
+      const error = new Error(`API request failed: ${response.status}`)
+      error.status = response.status
+      throw error
+    }
+
+    return await response.json()
+  } catch (error) {
+    if (timedOut) {
+      const timeoutError = new Error(`API request timeout after ${API_TIMEOUT_MS}ms`)
+      timeoutError.name = 'TimeoutError'
+      throw timeoutError
+    }
     throw error
+  } finally {
+    window.clearTimeout(timeout)
+    signal?.removeEventListener('abort', abortFromCaller)
   }
-
-  return response.json()
 }
 
 export const fetchApplications = signal => apiGet('/api/applications', signal)
