@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import AdminUserDetailPage from './AdminUserDetailPage.jsx'
 import './AdminUsersCenter.css'
 
 const OWNER_EMAIL = 'petertecnet@gmail.com'
@@ -15,11 +16,6 @@ function dateTime(value) {
   return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
 }
 
-function statusLabel(status) {
-  const labels = { active: 'Ativo', blocked: 'Bloqueado', suspended: 'Suspenso', pending: 'Pendente' }
-  return labels[status] || status || 'Sem vínculo'
-}
-
 function buildQuery(filters, page = 1) {
   const params = new URLSearchParams()
   Object.entries(filters).forEach(([key, value]) => {
@@ -27,6 +23,11 @@ function buildQuery(filters, page = 1) {
   })
   params.set('page', String(page))
   return params.toString()
+}
+
+function detailUserFromUrl() {
+  const value = new URLSearchParams(window.location.search).get('user')
+  return value && /^\d+$/.test(value) ? Number(value) : null
 }
 
 function Stat({ label, value, detail }) {
@@ -45,10 +46,9 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   const [filters, setFilters] = useState({ ...EMPTY_FILTERS })
   const [form, setForm] = useState({ ...EMPTY_USER })
   const [editingId, setEditingId] = useState(null)
-  const [detail, setDetail] = useState(null)
+  const [detailUserId, setDetailUserId] = useState(detailUserFromUrl)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
-  const [detailLoading, setDetailLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
 
@@ -77,22 +77,23 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
     }
   }
 
-  async function loadDetail(userId) {
-    setDetailLoading(true)
-    setError('')
-    try {
-      const payload = await apiRequest(`/admin/ecosystem/users/${userId}`)
-      setDetail(payload)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setDetailLoading(false)
-    }
-  }
-
   useEffect(() => {
     Promise.all([loadProfiles(), loadUsers(1, { ...EMPTY_FILTERS })]).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    function onPopState() {
+      setDetailUserId(detailUserFromUrl())
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  useEffect(() => {
+    if (!detailUserId) return undefined
+    const timer = window.setTimeout(() => document.getElementById('users')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0)
+    return () => window.clearTimeout(timer)
+  }, [detailUserId])
 
   const pageStats = useMemo(() => {
     const activeAccesses = users.reduce((total, user) => total + (user.applications || []).filter(app => app.pivot?.status === 'active').length, 0)
@@ -102,6 +103,24 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
       activeAccesses,
     }
   }, [users])
+
+  function openDetail(userId) {
+    const url = new URL(window.location.href)
+    url.searchParams.set('user', String(userId))
+    window.history.pushState({ adminUserId: userId }, '', `${url.pathname}${url.search}${url.hash}`)
+    setDetailUserId(Number(userId))
+    setError('')
+    setMessage('')
+  }
+
+  async function closeDetail() {
+    const url = new URL(window.location.href)
+    url.searchParams.delete('user')
+    window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`)
+    setDetailUserId(null)
+    await loadUsers(pagination.current_page || 1, filters, { quiet: true })
+    window.setTimeout(() => document.getElementById('users')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0)
+  }
 
   async function applyFilters(event) {
     event?.preventDefault()
@@ -159,9 +178,9 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
         body: JSON.stringify(payload),
       })
       setMessage(editingId ? 'Usuário atualizado com sucesso.' : 'Usuário criado com sucesso.')
+      const targetPage = editingId ? pagination.current_page || 1 : 1
       resetEditor()
-      await loadUsers(editingId ? pagination.current_page || 1 : 1, filters, { quiet: true })
-      if (detail?.user?.id === editingId) await loadDetail(editingId)
+      await loadUsers(targetPage, filters, { quiet: true })
     } catch (err) {
       setError(err.message)
     } finally {
@@ -177,7 +196,6 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
     setMessage('')
     try {
       await apiRequest(`/admin/ecosystem/users/${user.id}`, { method: 'DELETE' })
-      if (detail?.user?.id === user.id) setDetail(null)
       setMessage('Usuário excluído.')
       const targetPage = users.length === 1 && (pagination.current_page || 1) > 1 ? pagination.current_page - 1 : pagination.current_page || 1
       await loadUsers(targetPage, filters, { quiet: true })
@@ -188,32 +206,9 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
     }
   }
 
-  async function toggleAccess(user, app) {
-    const current = user.applications?.find(item => Number(item.id) === Number(app.id))
-    const nextStatus = current?.pivot?.status === 'active' ? 'blocked' : 'active'
-    setBusy(true)
-    setError('')
-    setMessage('')
-    try {
-      await apiRequest(`/admin/ecosystem/users/${user.id}/applications/${app.id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ status: nextStatus, role: current?.pivot?.role || 'member' }),
-      })
-      setMessage(`${app.name}: acesso ${nextStatus === 'active' ? 'liberado' : 'bloqueado'} para ${user.email}.`)
-      await loadUsers(pagination.current_page || 1, filters, { quiet: true })
-      if (detail?.user?.id === user.id) await loadDetail(user.id)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setBusy(false)
-    }
+  if (detailUserId) {
+    return <AdminUserDetailPage userId={detailUserId} apiRequest={apiRequest} applications={applications} onBack={closeDetail}/>
   }
-
-  const detailUser = detail?.user
-  const detailApps = applications.map(app => {
-    const link = detailUser?.applications?.find(candidate => Number(candidate.id) === Number(app.id))
-    return { app, link }
-  })
 
   return <div className="acu-root">
     <div className="acu-stats">
@@ -259,23 +254,8 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
 
     <section className="acu-card acu-table-card">
       <header><div><span>ECOSSISTEMA</span><h3>Todos os usuários</h3><p>{pagination.from && pagination.to ? `Exibindo ${pagination.from}–${pagination.to} de ${pagination.total}` : `${pagination.total || 0} usuários encontrados`}</p></div><button className="acu-secondary" onClick={() => loadUsers(pagination.current_page || 1, filters)} disabled={loading}>↻ Atualizar</button></header>
-      {loading ? <div className="acu-loading">Carregando usuários…</div> : users.length ? <div className="acu-table-wrap"><table><thead><tr><th>Usuário</th><th>Perfil</th><th>Atividade</th><th>Recursos</th><th>Aplicações</th><th>Ações</th></tr></thead><tbody>{users.map(user => <tr key={user.id}><td><div className="acu-user"><span>{fullName(user).slice(0, 2).toUpperCase()}</span><div><b>{fullName(user)}</b><small>#{user.id} · {user.email}</small></div></div></td><td><span className="acu-badge">{user.profile?.name || 'Sem perfil'}</span></td><td><b>{dateTime(user.last_activity_at)}</b><small>{user.interactions_count || 0} interações</small></td><td><b>{user.establishments_count || 0}</b><small>estabelecimento(s)</small></td><td><b>{user.applications?.length || 0}</b><small>vínculo(s)</small></td><td><div className="acu-actions"><button onClick={() => loadDetail(user.id)}>Detalhes</button><button onClick={() => beginEdit(user)}>Editar</button><button className="acu-danger" disabled={String(user.email || '').toLowerCase() === OWNER_EMAIL || busy} onClick={() => deleteUser(user)}>Excluir</button></div></td></tr>)}</tbody></table></div> : <div className="acu-empty">Nenhum usuário encontrado com os filtros atuais.</div>}
+      {loading ? <div className="acu-loading">Carregando usuários…</div> : users.length ? <div className="acu-table-wrap"><table><thead><tr><th>Usuário</th><th>Perfil</th><th>Atividade</th><th>Recursos</th><th>Aplicações</th><th>Ações</th></tr></thead><tbody>{users.map(user => <tr key={user.id}><td><div className="acu-user"><span>{fullName(user).slice(0, 2).toUpperCase()}</span><div><b>{fullName(user)}</b><small>#{user.id} · {user.email}</small></div></div></td><td><span className="acu-badge">{user.profile?.name || 'Sem perfil'}</span></td><td><b>{dateTime(user.last_activity_at)}</b><small>{user.interactions_count || 0} interações</small></td><td><b>{user.establishments_count || 0}</b><small>estabelecimento(s)</small></td><td><b>{user.applications?.length || 0}</b><small>vínculo(s)</small></td><td><div className="acu-actions"><button onClick={() => openDetail(user.id)}>Detalhes</button><button onClick={() => beginEdit(user)}>Editar</button><button className="acu-danger" disabled={String(user.email || '').toLowerCase() === OWNER_EMAIL || busy} onClick={() => deleteUser(user)}>Excluir</button></div></td></tr>)}</tbody></table></div> : <div className="acu-empty">Nenhum usuário encontrado com os filtros atuais.</div>}
       <footer className="acu-pagination"><span>Página {pagination.current_page || 1} de {pagination.last_page || 1}</span><div><button className="acu-secondary" disabled={!pagination.previous_page || loading} onClick={() => loadUsers(pagination.previous_page, filters)}>← Anterior</button><button className="acu-secondary" disabled={!pagination.next_page || loading} onClick={() => loadUsers(pagination.next_page, filters)}>Próxima →</button></div></footer>
     </section>
-
-    {(detail || detailLoading) && <div className="acu-drawer-backdrop" onMouseDown={event => { if (event.target === event.currentTarget && !detailLoading) setDetail(null) }}>
-      <aside className="acu-drawer" aria-label="Detalhes do usuário">
-        {detailLoading && !detail ? <div className="acu-loading">Carregando detalhes…</div> : detailUser && <>
-          <header className="acu-drawer-head"><div className="acu-user acu-user--large"><span>{fullName(detailUser).slice(0, 2).toUpperCase()}</span><div><small>USUÁRIO #{detailUser.id}</small><h3>{fullName(detailUser)}</h3><p>{detailUser.email} · @{detailUser.user_name || '—'}</p></div></div><button onClick={() => setDetail(null)} aria-label="Fechar">×</button></header>
-          <div className="acu-detail-stats"><Stat label="Interações" value={detail.summary?.total_interactions} detail={`${detail.summary?.interactions_30d || 0} em 30 dias`}/><Stat label="Logins" value={detail.summary?.logins_30d} detail="últimos 30 dias"/><Stat label="Aplicações" value={detail.summary?.applications} detail="vínculos atuais"/><Stat label="Estabelecimentos" value={detail.summary?.establishments} detail="recursos vinculados"/></div>
-
-          <section className="acu-detail-section"><h4>Aplicações e acessos</h4><div className="acu-access-list">{detailApps.length ? detailApps.map(({ app, link }) => <div key={app.id}><div><b>{app.name}</b><small>{link ? `${statusLabel(link.pivot?.status)} · ${link.pivot?.role || 'member'}` : 'Sem vínculo'}</small></div><button className={link?.pivot?.status === 'active' ? 'acu-danger' : 'acu-primary'} disabled={busy} onClick={() => toggleAccess(detailUser, app)}>{link?.pivot?.status === 'active' ? 'Bloquear' : 'Liberar'}</button></div>) : <div className="acu-empty">Nenhuma aplicação cadastrada.</div>}</div></section>
-
-          <section className="acu-detail-section"><h4>Segurança</h4>{detail.security?.alerts?.length ? detail.security.alerts.map((alert, index) => <div key={index} className={`acu-security acu-security--${alert.level || 'info'}`}>{alert.message}</div>) : <div className="acu-security acu-security--success">Nenhum alerta de segurança detectado neste recorte.</div>}<div className="acu-security-grid"><div><span>Último login</span><b>{dateTime(detail.summary?.last_login_at)}</b></div><div><span>Última atividade</span><b>{dateTime(detail.summary?.last_activity_at)}</b></div><div><span>IPs recentes</span><b>{detail.security?.ips?.length || 0}</b></div><div><span>Dispositivos</span><b>{detail.security?.devices?.length || 0}</b></div></div></section>
-
-          <section className="acu-detail-section"><h4>Linha do tempo</h4><div className="acu-timeline">{detail.timeline?.length ? detail.timeline.slice(0, 40).map((row, index) => <div key={row.id || index}><i/><div><b>{row.description || row.interaction_type || row.type || 'Interação'}</b><small>{row.application?.name || row.application_name || row.app_name || 'Peter Tecnet'} · {dateTime(row.created_at || row.occurred_at)}</small></div></div>) : <div className="acu-empty">Ainda não há atividade registrada.</div>}</div></section>
-        </>}
-      </aside>
-    </div>}
   </div>
 }
