@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import NotificationsCenter from './NotificationsCenter'
 import AdminUsersCenter from './AdminUsersCenter.jsx'
 import { connectMissionControlRealtime } from './missionControlRealtime.js'
@@ -28,6 +28,39 @@ function tokenFrom(payload) {
 
 function userFrom(payload) {
   return payload?.token?.user || payload?.user || null
+}
+
+let googleIdentityPromise
+
+function loadGoogleIdentity() {
+  if (window.google?.accounts?.id) return Promise.resolve(window.google.accounts.id)
+  if (googleIdentityPromise) return googleIdentityPromise
+
+  googleIdentityPromise = new Promise((resolve, reject) => {
+    const finish = () => {
+      const identity = window.google?.accounts?.id
+      if (identity) resolve(identity)
+      else reject(new Error('O Google Identity não ficou disponível.'))
+    }
+
+    const existing = document.querySelector('script[data-admin-google-identity]')
+    if (existing) {
+      existing.addEventListener('load', finish, { once: true })
+      existing.addEventListener('error', () => reject(new Error('Não foi possível carregar o login com Google.')), { once: true })
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.defer = true
+    script.dataset.adminGoogleIdentity = 'true'
+    script.addEventListener('load', finish, { once: true })
+    script.addEventListener('error', () => reject(new Error('Não foi possível carregar o login com Google.')), { once: true })
+    document.head.appendChild(script)
+  })
+
+  return googleIdentityPromise
 }
 
 function fullName(user) {
@@ -90,7 +123,10 @@ function Login({ onAuthenticated }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [retryAfter, setRetryAfter] = useState(0)
+  const [googleStatus, setGoogleStatus] = useState('loading')
   const submittingRef = useRef(false)
+  const googleBusyRef = useRef(false)
+  const googleButtonRef = useRef(null)
 
   useEffect(() => {
     if (retryAfter <= 0) return undefined
@@ -105,6 +141,76 @@ function Login({ onAuthenticated }) {
     }, 1000)
     return () => window.clearTimeout(timer)
   }, [retryAfter])
+
+  const completeAuthentication = useCallback((payload) => {
+    const token = tokenFrom(payload)
+    const user = userFrom(payload)
+    if (!token) throw new Error('A API não retornou uma sessão válida.')
+    if (String(user?.email || '').toLowerCase() !== OWNER_EMAIL) throw new Error('Usuário sem acesso ao Admin Center.')
+    localStorage.setItem(TOKEN_KEY, token)
+    onAuthenticated(user)
+  }, [onAuthenticated])
+
+  useEffect(() => {
+    let active = true
+
+    async function bootGoogle() {
+      try {
+        const providers = await request('/account/identity/providers')
+        const clientId = String(providers?.google?.client_id || '').trim()
+        if (!providers?.google?.enabled || !clientId) {
+          if (active) setGoogleStatus('unavailable')
+          return
+        }
+
+        const identity = await loadGoogleIdentity()
+        if (!active || !googleButtonRef.current) return
+
+        identity.initialize({
+          client_id: clientId,
+          cancel_on_tap_outside: false,
+          callback: async ({ credential }) => {
+            if (!credential || googleBusyRef.current || submittingRef.current) return
+            googleBusyRef.current = true
+            setLoading(true)
+            setError('')
+            try {
+              const payload = await request('/auth/google', {
+                method: 'POST',
+                body: JSON.stringify({ token_id: credential }),
+              })
+              if (!active) return
+              completeAuthentication(payload)
+            } catch (err) {
+              localStorage.removeItem(TOKEN_KEY)
+              if (active) setError(err?.message || 'Não foi possível entrar com o Google.')
+            } finally {
+              googleBusyRef.current = false
+              if (active) setLoading(false)
+            }
+          },
+        })
+
+        googleButtonRef.current.replaceChildren()
+        const buttonWidth = Math.max(220, Math.min(346, Math.floor(googleButtonRef.current.getBoundingClientRect().width || 346)))
+        identity.renderButton(googleButtonRef.current, {
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'rectangular',
+          logo_alignment: 'left',
+          width: buttonWidth,
+          locale: 'pt-BR',
+        })
+        if (active) setGoogleStatus('ready')
+      } catch {
+        if (active) setGoogleStatus('unavailable')
+      }
+    }
+
+    void bootGoogle()
+    return () => { active = false }
+  }, [completeAuthentication])
 
   async function submit(event) {
     event.preventDefault()
@@ -121,12 +227,7 @@ function Login({ onAuthenticated }) {
         method: 'POST',
         body: JSON.stringify({ username: form.email.trim().toLowerCase(), password: form.password }),
       })
-      const token = tokenFrom(payload)
-      const user = userFrom(payload)
-      if (!token) throw new Error('A API não retornou uma sessão válida.')
-      if (String(user?.email || '').toLowerCase() !== OWNER_EMAIL) throw new Error('Usuário sem acesso ao Admin Center.')
-      localStorage.setItem(TOKEN_KEY, token)
-      onAuthenticated(user)
+      completeAuthentication(payload)
     } catch (err) {
       localStorage.removeItem(TOKEN_KEY)
       if (err?.status === 429) {
@@ -161,7 +262,12 @@ function Login({ onAuthenticated }) {
         <div className="login-mark"><img src="/petertecnetlogo.png" alt="Peter Tecnet"/></div>
         <p className="eyebrow">ADMIN CENTER</p>
         <h2>Entrar</h2>
-        <p className="muted">Use suas credenciais administrativas.</p>
+        <p className="muted">Entre com a conta Google da Peter Tecnet ou use sua senha administrativa.</p>
+        {googleStatus !== 'unavailable' && <div className={`admin-google-login status-${googleStatus}`}>
+          <div ref={googleButtonRef}/>
+          {googleStatus === 'loading' && <small>Carregando acesso seguro com Google…</small>}
+        </div>}
+        {googleStatus === 'ready' && <div className="login-divider"><span>ou use sua senha</span></div>}
         <label>E-mail<input type="email" autoComplete="username" value={form.email} onChange={event => setForm({ ...form, email: event.target.value })} required/></label>
         <label>Senha<input type="password" autoComplete="current-password" value={form.password} onChange={event => setForm({ ...form, password: event.target.value })} required autoFocus/></label>
         {error && <div className="form-error" role="alert">{error}{retryAfter > 0 ? ` Tente novamente em ${retryAfter}s.` : ''}</div>}
