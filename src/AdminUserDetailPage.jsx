@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import './AdminUserDetailPage.css'
+import { confirmAction } from './utils/uiDialog.js'
 
 const EMPTY_ACTIVITY_FILTERS = {
   q: '', app_id: '', type: '', outcome: '', severity: '', environment: '', entity_type: '', from: '', to: '', sort: 'newest', per_page: '50',
@@ -239,7 +240,15 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
 
   async function resetEmailVerificationDeferrals() {
     const used = Number(emailDeferralState?.deferrals_used || 0)
-    if (!window.confirm(`Resetar os ${used} adiamento(s) usados por este usuário? Ele poderá adiar a confirmação do e-mail novamente.`)) return
+    const confirmed = await confirmAction({
+      tone: 'warning',
+      eyebrow: 'SUPORTE DE CONTA',
+      title: 'Resetar adiamentos de e-mail?',
+      message: `O usuário já utilizou ${used} adiamento(s). Ao resetar, ele poderá adiar a confirmação do e-mail novamente até o limite configurado.`,
+      confirmLabel: 'Resetar adiamentos',
+      cancelLabel: 'Cancelar',
+    })
+    if (!confirmed) return
 
     setEmailDeferralBusy(true)
     setEmailDeferralNotice('')
