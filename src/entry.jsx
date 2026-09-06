@@ -1,6 +1,7 @@
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 
 import('./MarketingConversionBridge.js')
+import('./MarketingQuoteDraftBridge.js')
 import('./SupportLinkBridge.js')
 
 const isMarketingHub = path === '/'
