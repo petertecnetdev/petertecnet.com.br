@@ -21,7 +21,7 @@ mkdirSync(output, { recursive: true })
 const cssUrl = pathToFileURL(join(assets, cssFile)).href
 const viewports = [
   { name: 'mobile-360', width: 360, height: 800, metricColumns: 1, stacked: true },
-  { name: 'tablet-768', width: 768, height: 1024, metricColumns: 2, stacked: true },
+  { name: 'tablet-768', width: 768, height: 1024, metricColumns: 2, stacked: false },
   { name: 'desktop-1440', width: 1440, height: 900, metricColumns: 3, stacked: false },
 ]
 
