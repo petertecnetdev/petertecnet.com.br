@@ -166,10 +166,11 @@ jobs:
           # Atomic frontend deploys create dot-prefixed sibling releases. If a previous
           # run was interrupted after activation, these directories are deployment
           # artifacts rather than manual source edits. Clean them before checking the
-          # working tree and ignore any that cannot be removed because of old ownership.
+          # working tree. Legacy root-owned leftovers are cleaned once by server maintenance;
+          # normal deploy artifacts are owned by the deploy user and need no sudo.
           for stale_release in .build.next.* .build.previous.* .build.failed.* .dist.next.* .dist.previous.* .dist.failed.*; do
             [[ -e "$stale_release" ]] || continue
-            sudo rm -rf "$stale_release" 2>/dev/null || rm -rf "$stale_release" || true
+            rm -rf "$stale_release" 2>/dev/null || true
           done
 
           LOCAL_SOURCE_CHANGES="$(git status --porcelain=v1 --untracked-files=all | awk '
@@ -241,15 +242,15 @@ jobs:
                   FAILED_OUTPUT="$DEPLOY_PATH/.${FRONTEND_OUTPUT}.failed.$$-$RANDOM"
                   mv "$LIVE_OUTPUT" "$FAILED_OUTPUT" || true
                   mv "$PREVIOUS_OUTPUT" "$LIVE_OUTPUT" || true
-                  sudo rm -rf "$FAILED_OUTPUT" 2>/dev/null || rm -rf "$FAILED_OUTPUT" || true
+                  rm -rf "$FAILED_OUTPUT" 2>/dev/null || true
                 fi
                 exit 32
               }
 
-              # Old releases may contain files owned by the web server. Cleanup is best-effort
-              # and uses sudo only after the new release has been verified and activated.
+              # Cleanup is best-effort and deliberately does not use sudo from CI.
+              # New releases are created by the deploy user, so normal cleanup remains writable.
               if [[ -e "$PREVIOUS_OUTPUT" ]]; then
-                sudo rm -rf "$PREVIOUS_OUTPUT" 2>/dev/null || rm -rf "$PREVIOUS_OUTPUT" || true
+                rm -rf "$PREVIOUS_OUTPUT" 2>/dev/null || true
               fi
               ;;
             laravel)
