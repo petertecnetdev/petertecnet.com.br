@@ -1,7 +1,7 @@
 (() => {
   'use strict'
 
-  const SDK_VERSION = '3.0.1'
+  const SDK_VERSION = '3.0.2'
   const ELEMENT_NAME = 'peter-ecosystem-launcher'
   const TOKEN_KEYS = ['petertecnet_admin_token', 'petertecnet_token', 'token', 'access_token', 'auth_token']
   const PUBLIC_CACHE_KEY = 'peter.ecosystem.public-apps.v3'
@@ -9,7 +9,7 @@
   const SYNC_INTERVAL_MS = 1500
   const API_FALLBACK = 'https://api.petertecnet.com.br/api'
   const PORTAL_URL = 'https://petertecnet.com.br'
-  const TELEMETRY_VERSION = '3.3.2'
+  const TELEMETRY_VERSION = '3.3.3'
   const TELEMETRY_URL = `${PORTAL_URL}/ecosystem/peter-telemetry-v3.js?v=${TELEMETRY_VERSION}`
 
   if (window.PeterTecnetEcosystem?.version === SDK_VERSION && customElements.get(ELEMENT_NAME)) return
