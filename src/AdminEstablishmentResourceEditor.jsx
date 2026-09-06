@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import AdminEstablishmentCatalog from './AdminEstablishmentCatalog.jsx'
 import AdminEstablishmentEvents from './AdminEstablishmentEvents.jsx'
 import './AdminEstablishmentResourceEditor.css'
 
@@ -41,6 +42,7 @@ function Section({ number, title, description, children }) {
 }
 
 function resourceKind(action) {
+  if (action?.key === 'ticket') return 'ticket-manager'
   return action?.resourceKind || action?.key || 'item'
 }
 
@@ -68,6 +70,7 @@ export default function AdminEstablishmentResourceEditor({ action, app, establis
 
   const kind = resourceKind(action)
   const title = action.label || 'Criar recurso'
+  const isCutinapp = appKey(app).includes('cutinapp')
   const activeItems = useMemo(() => {
     const services = context.items.filter(item => item.type === 'service')
     return services.length ? services : context.items
@@ -149,18 +152,37 @@ export default function AdminEstablishmentResourceEditor({ action, app, establis
     }
   }
 
+  const headerDescription = kind === 'event'
+    ? 'Liste e gerencie os eventos deste establishment, acompanhe ingressos/vendas, duplique programações ou cadastre um novo evento.'
+    : kind === 'ticket-manager'
+      ? 'Gerencie os ingressos reais por evento, com lotes, capacidade, vendas, receita, reservas, cortesias e check-ins.'
+      : 'Criação administrativa dentro do ecossistema, sem sair para a página do aplicativo.'
+
+  if (kind === 'ticket-manager') {
+    return <div className="aer-page">
+      <header className="aer-page-header">
+        <button type="button" className="aer-back" onClick={onBack}>← Voltar ao establishment</button>
+        <div><p className="eyebrow">ADMIN CENTER / {app.name || app.slug}</p><h2>Ingressos e vendas</h2><p>{headerDescription}</p></div>
+        <div className="aer-context"><small>Establishment</small><b>{establishmentName(establishment)}</b><span>#{establishment.id} · {app.name || app.slug}</span></div>
+      </header>
+      <AdminEstablishmentEvents establishment={establishment} app={app} ticketsOnly />
+      <footer className="aer-actions"><button type="button" className="aer-secondary" onClick={onBack}>Voltar</button></footer>
+    </div>
+  }
+
   return <div className="aer-page">
     <header className="aer-page-header">
       <button type="button" className="aer-back" onClick={onBack}>← Voltar ao establishment</button>
-      <div><p className="eyebrow">ADMIN CENTER / {app.name || app.slug}</p><h2>{title}</h2><p>{kind === 'event' ? 'Gerencie os eventos deste establishment, duplique programações existentes ou cadastre um novo evento sem sair do Admin Center.' : 'Criação administrativa dentro do ecossistema, sem sair para a página do aplicativo.'}</p></div>
+      <div><p className="eyebrow">ADMIN CENTER / {app.name || app.slug}</p><h2>{title}</h2><p>{headerDescription}</p></div>
       <div className="aer-context"><small>Establishment</small><b>{establishmentName(establishment)}</b><span>#{establishment.id} · {app.name || app.slug}</span></div>
     </header>
 
     {error && <div className="aer-feedback error" role="alert">{error}<button type="button" onClick={() => setError('')}>×</button></div>}
     {loadingContext && <div className="aer-feedback">Carregando contexto operacional…</div>}
-    {kind === 'event' && <AdminEstablishmentEvents establishment={establishment} app={app} onSuccess={onCreated} />}
+    {kind === 'event' && <AdminEstablishmentEvents establishment={establishment} app={app} />}
+    {kind === 'item' && isCutinapp && <AdminEstablishmentCatalog establishment={establishment} app={app} onCreate={() => document.getElementById('admin-item-create-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />}
 
-    <form id={kind === 'event' ? 'admin-event-create-form' : undefined} className="aer-form" onSubmit={submit}>
+    <form id={kind === 'event' ? 'admin-event-create-form' : kind === 'item' ? 'admin-item-create-form' : undefined} className="aer-form" onSubmit={submit}>
       {kind === 'event' && <>
         <Section number="01" title="Novo evento" description="Preencha as informações centrais que aparecerão na Cutinapp."><div className="aer-grid">
           <Field label="Nome do evento *"><input value={form.title} onChange={e => patch({ title: e.target.value })} required /></Field>
@@ -207,7 +229,7 @@ export default function AdminEstablishmentResourceEditor({ action, app, establis
 
       {kind === 'item' && <Section number="01" title={action?.entityLabel ? `Novo ${action.entityLabel}` : 'Novo item'} description={action?.description || 'Item genérico vinculado diretamente ao establishment e à aplicação.'}><div className="aer-grid">
         <Field label="Nome *"><input value={form.name} onChange={e => patch({ name: e.target.value })} required /></Field>
-        <Field label="Tipo *"><select value={form.type} onChange={e => patch({ type: e.target.value })}><option value="item">Item</option><option value="product">Produto</option><option value="service">Serviço</option><option value="ticket">Ingresso</option></select></Field>
+        <Field label="Tipo *"><select value={form.type} onChange={e => patch({ type: e.target.value })}><option value="item">Item</option><option value="product">Produto</option><option value="service">Serviço</option>{!isCutinapp && <option value="ticket">Ingresso</option>}</select></Field>
         <Field label="Preço (R$) *"><input type="number" min="0" step="0.01" value={form.price} onChange={e => patch({ price: e.target.value })} required /></Field>
         <Field label="Categoria"><input value={form.category} onChange={e => patch({ category: e.target.value })} /></Field>
         <Field label="Estoque"><input type="number" min="0" value={form.stock} onChange={e => patch({ stock: e.target.value })} /></Field>
