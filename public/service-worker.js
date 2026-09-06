@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'petertecnet-admin-pwa-v6';
+const CACHE_VERSION = 'petertecnet-admin-pwa-v7';
 const ADMIN_CACHE_PREFIX = 'petertecnet-admin-pwa-';
 
 const OFFLINE_HTML = `<!doctype html>

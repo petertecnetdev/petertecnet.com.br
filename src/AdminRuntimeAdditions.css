@@ -1,0 +1,5 @@
+.admin-shell[data-admin-page="support"] .content > [data-admin-page-key="support"],
+.admin-shell[data-admin-page="telemetry"] .content > [data-admin-page-key="telemetry"]{display:block!important}
+.admin-inline-link{display:inline-flex;margin-top:16px;min-height:42px;align-items:center;padding:0 14px;border:1px solid rgba(88,216,235,.16);border-radius:12px;color:#91eafa;text-decoration:none;font-weight:800;background:rgba(88,216,235,.045)}
+.sidebar>.admin-release-tag{width:min(100%,1280px);margin:0 auto 10px}
+.admin-session-unavailable{padding:24px;text-align:center}.admin-session-unavailable h2{margin:0;font-family:Manrope,sans-serif}.admin-session-unavailable p{max-width:520px;margin:0;color:#78969f;line-height:1.6}.admin-session-unavailable>div{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}.admin-session-unavailable .primary-button{width:auto;min-width:180px;margin:0;padding:0 18px}.admin-session-secondary{min-height:50px;padding:0 18px;border:1px solid var(--line);border-radius:12px;background:#07141a;color:#a6c4cb;font-weight:800}

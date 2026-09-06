@@ -1,33 +1,47 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import NotificationsCenter from './NotificationsCenter'
 import AdminUsersCenter from './AdminUsersCenter.jsx'
-import { connectMissionControlRealtime } from './missionControlRealtime.js'
-
-const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
-const TOKEN_KEY = 'petertecnet_admin_token'
-const OWNER_EMAIL = 'petertecnet@gmail.com'
+import AdminEstablishmentsPage from './AdminEstablishmentsPageV2.jsx'
+import AdminItemsManager from './AdminItemsManager.jsx'
+import AdminModuleBoundary from './AdminModuleBoundary.jsx'
+import ExecutiveOverview from './ExecutiveOverview.jsx'
+import { useAdminAuth } from './adminAuth.js'
+import { useAdminData } from './adminData.js'
+import { ADMIN_RELEASE_LABEL } from './adminVersion.js'
 
 const navItems = [
-  ['dashboard', 'Visão geral', '⌂'],
-  ['operations', 'Operações', '◈'],
-  ['financial', 'Financeiro', '◒'],
-  ['applications', 'Aplicações', '◇'],
-  ['users', 'Usuários', '◎'],
-  ['notifications', 'Notificações', '✦'],
-  ['activity', 'Atividade', '↯'],
+  ['dashboard', 'Visão geral', '⌂', 'visao-geral'],
+  ['operations', 'Operações', '◈', 'operacoes'],
+  ['financial', 'Financeiro', '◒', 'financeiro'],
+  ['applications', 'Aplicações', '◇', 'aplicacoes'],
+  ['users', 'Usuários', '◎', 'usuarios'],
+  ['establishments', 'Estabelecimentos', '▰', 'estabelecimentos'],
+  ['items', 'Itens', '▣', 'itens'],
+  ['support', 'Suporte', '◌', 'suporte'],
+  ['telemetry', 'Telemetria', '◉', 'telemetria'],
+  ['notifications', 'Notificações', '✦', 'notificacoes'],
+  ['activity', 'Atividade', '↯', 'atividade'],
 ]
+
+const PAGE_BY_SLUG = Object.fromEntries(navItems.map(([id, , , slug]) => [slug, id]))
+const SLUG_BY_PAGE = Object.fromEntries(navItems.map(([id, , , slug]) => [id, slug]))
+
+function pageFromLocation() {
+  const token = new URL(window.location.href).searchParams.get('page') || ''
+  return PAGE_BY_SLUG[token] || 'dashboard'
+}
+
+function writePage(page, mode = 'pushState') {
+  const url = new URL(window.location.href)
+  if (page === 'dashboard') url.searchParams.delete('page')
+  else url.searchParams.set('page', SLUG_BY_PAGE[page] || page)
+  url.hash = ''
+  window.history[mode]({ ...(window.history.state || {}), adminPage: page }, '', `${url.pathname}${url.search}`)
+}
 
 const groupLabels = {
   users: 'Usuários', applications: 'Aplicações', establishments: 'Estabelecimentos',
   items: 'Itens', events: 'Eventos', orders: 'Pedidos', payments: 'Pagamentos',
-}
-
-function tokenFrom(payload) {
-  return payload?.token?.access_token || payload?.access_token || payload?.token || ''
-}
-
-function userFrom(payload) {
-  return payload?.token?.user || payload?.user || null
 }
 
 let googleIdentityPromise
@@ -35,21 +49,18 @@ let googleIdentityPromise
 function loadGoogleIdentity() {
   if (window.google?.accounts?.id) return Promise.resolve(window.google.accounts.id)
   if (googleIdentityPromise) return googleIdentityPromise
-
   googleIdentityPromise = new Promise((resolve, reject) => {
     const finish = () => {
       const identity = window.google?.accounts?.id
       if (identity) resolve(identity)
       else reject(new Error('O Google Identity não ficou disponível.'))
     }
-
     const existing = document.querySelector('script[data-admin-google-identity]')
     if (existing) {
       existing.addEventListener('load', finish, { once: true })
       existing.addEventListener('error', () => reject(new Error('Não foi possível carregar o login com Google.')), { once: true })
       return
     }
-
     const script = document.createElement('script')
     script.src = 'https://accounts.google.com/gsi/client'
     script.async = true
@@ -59,7 +70,6 @@ function loadGoogleIdentity() {
     script.addEventListener('error', () => reject(new Error('Não foi possível carregar o login com Google.')), { once: true })
     document.head.appendChild(script)
   })
-
   return googleIdentityPromise
 }
 
@@ -86,42 +96,19 @@ function dateTime(value) {
   return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
 }
 
-function request(path, options = {}) {
-  const token = localStorage.getItem(TOKEN_KEY)
-  const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), options.timeout || 18000)
-  return fetch(`${API}${path}`, {
-    ...options,
-    signal: controller.signal,
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  }).then(async response => {
-    const payload = response.status === 204 ? null : await response.json().catch(() => ({}))
-    if (response.status === 401 && path !== '/auth/login') {
-      localStorage.removeItem(TOKEN_KEY)
-      window.dispatchEvent(new Event('admin-session-expired'))
-    }
-    if (!response.ok) {
-      const requestError = new Error(payload?.error || payload?.message || Object.values(payload?.errors || {}).flat()?.[0] || 'Não foi possível concluir a operação.')
-      requestError.status = response.status
-      requestError.retryAfter = Number(response.headers.get('Retry-After') || payload?.retry_after || 0)
-      throw requestError
-    }
-    return payload
-  }).catch(error => {
-    if (error?.name === 'AbortError') throw new Error('A API demorou para responder.')
-    throw error
-  }).finally(() => window.clearTimeout(timeout))
+function SessionUnavailable({ message, onRetry, onLogout }) {
+  return <main className="boot-screen admin-session-unavailable">
+    <img src="/petertecnetlogo.png" alt=""/>
+    <h2>Não foi possível validar sua sessão agora.</h2>
+    <p>{message || 'A API administrativa está temporariamente indisponível.'}</p>
+    <div><button type="button" className="primary-button" onClick={onRetry}>Tentar novamente ↻</button><button type="button" className="admin-session-secondary" onClick={onLogout}>Sair desta sessão</button></div>
+  </main>
 }
 
-function Login({ onAuthenticated }) {
-  const [form, setForm] = useState({ email: OWNER_EMAIL, password: '' })
+function Login({ login, loginWithGoogle, getIdentityProviders, initialError = '' }) {
+  const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(initialError)
   const [retryAfter, setRetryAfter] = useState(0)
   const [googleStatus, setGoogleStatus] = useState('loading')
   const submittingRef = useRef(false)
@@ -142,94 +129,55 @@ function Login({ onAuthenticated }) {
     return () => window.clearTimeout(timer)
   }, [retryAfter])
 
-  const completeAuthentication = useCallback((payload) => {
-    const token = tokenFrom(payload)
-    const user = userFrom(payload)
-    if (!token) throw new Error('A API não retornou uma sessão válida.')
-    if (String(user?.email || '').toLowerCase() !== OWNER_EMAIL) throw new Error('Usuário sem acesso ao Admin Center.')
-    localStorage.setItem(TOKEN_KEY, token)
-    onAuthenticated(user)
-  }, [onAuthenticated])
+  const bootGoogle = useCallback(async () => {
+    const providers = await getIdentityProviders()
+    const clientId = String(providers?.google?.client_id || '').trim()
+    if (!providers?.google?.enabled || !clientId) return false
+    const identity = await loadGoogleIdentity()
+    if (!googleButtonRef.current) return false
+    identity.initialize({
+      client_id: clientId,
+      cancel_on_tap_outside: false,
+      callback: async ({ credential }) => {
+        if (!credential || googleBusyRef.current || submittingRef.current) return
+        googleBusyRef.current = true
+        setLoading(true)
+        setError('')
+        try {
+          await loginWithGoogle(credential)
+        } catch (err) {
+          setError(err?.message || 'Não foi possível entrar com o Google.')
+        } finally {
+          googleBusyRef.current = false
+          setLoading(false)
+        }
+      },
+    })
+    googleButtonRef.current.replaceChildren()
+    const buttonWidth = Math.max(220, Math.min(346, Math.floor(googleButtonRef.current.getBoundingClientRect().width || 346)))
+    identity.renderButton(googleButtonRef.current, {
+      theme: 'outline', size: 'large', text: 'continue_with', shape: 'rectangular',
+      logo_alignment: 'left', width: buttonWidth, locale: 'pt-BR',
+    })
+    return true
+  }, [getIdentityProviders, loginWithGoogle])
 
   useEffect(() => {
     let active = true
-
-    async function bootGoogle() {
-      try {
-        const providers = await request('/account/identity/providers')
-        const clientId = String(providers?.google?.client_id || '').trim()
-        if (!providers?.google?.enabled || !clientId) {
-          if (active) setGoogleStatus('unavailable')
-          return
-        }
-
-        const identity = await loadGoogleIdentity()
-        if (!active || !googleButtonRef.current) return
-
-        identity.initialize({
-          client_id: clientId,
-          cancel_on_tap_outside: false,
-          callback: async ({ credential }) => {
-            if (!credential || googleBusyRef.current || submittingRef.current) return
-            googleBusyRef.current = true
-            setLoading(true)
-            setError('')
-            try {
-              const payload = await request('/auth/google', {
-                method: 'POST',
-                body: JSON.stringify({ token_id: credential }),
-              })
-              if (!active) return
-              completeAuthentication(payload)
-            } catch (err) {
-              localStorage.removeItem(TOKEN_KEY)
-              if (active) setError(err?.message || 'Não foi possível entrar com o Google.')
-            } finally {
-              googleBusyRef.current = false
-              if (active) setLoading(false)
-            }
-          },
-        })
-
-        googleButtonRef.current.replaceChildren()
-        const buttonWidth = Math.max(220, Math.min(346, Math.floor(googleButtonRef.current.getBoundingClientRect().width || 346)))
-        identity.renderButton(googleButtonRef.current, {
-          theme: 'outline',
-          size: 'large',
-          text: 'continue_with',
-          shape: 'rectangular',
-          logo_alignment: 'left',
-          width: buttonWidth,
-          locale: 'pt-BR',
-        })
-        if (active) setGoogleStatus('ready')
-      } catch {
-        if (active) setGoogleStatus('unavailable')
-      }
-    }
-
-    void bootGoogle()
+    bootGoogle().then(ready => { if (active) setGoogleStatus(ready ? 'ready' : 'unavailable') })
+      .catch(() => { if (active) setGoogleStatus('unavailable') })
     return () => { active = false }
-  }, [completeAuthentication])
+  }, [bootGoogle])
 
   async function submit(event) {
     event.preventDefault()
     if (submittingRef.current || loading || retryAfter > 0) return
     setError('')
-    if (form.email.trim().toLowerCase() !== OWNER_EMAIL) {
-      setError('Este Admin Center é restrito ao administrador da Peter Tecnet.')
-      return
-    }
     submittingRef.current = true
     setLoading(true)
     try {
-      const payload = await request('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ username: form.email.trim().toLowerCase(), password: form.password }),
-      })
-      completeAuthentication(payload)
+      await login({ email: form.email, password: form.password })
     } catch (err) {
-      localStorage.removeItem(TOKEN_KEY)
       if (err?.status === 429) {
         const seconds = Math.max(1, Number(err.retryAfter) || 60)
         setRetryAfter(seconds)
@@ -262,7 +210,7 @@ function Login({ onAuthenticated }) {
         <div className="login-mark"><img src="/petertecnetlogo.png" alt="Peter Tecnet"/></div>
         <p className="eyebrow">ADMIN CENTER</p>
         <h2>Entrar</h2>
-        <p className="muted">Entre com a conta Google da Peter Tecnet ou use sua senha administrativa.</p>
+        <p className="muted">Entre com sua conta Google autorizada ou use sua senha administrativa.</p>
         {googleStatus !== 'unavailable' && <div className={`admin-google-login status-${googleStatus}`}>
           <div ref={googleButtonRef}/>
           {googleStatus === 'loading' && <small>Carregando acesso seguro com Google…</small>}
@@ -337,83 +285,21 @@ function statusTone(status) {
 }
 
 function Dashboard({ user, onLogout }) {
+  const { request } = useAdminAuth()
+  const { data, errors, loading, refreshing, refresh, retry } = useAdminData()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [launcherOpen, setLauncherOpen] = useState(false)
-  const [dashboard, setDashboard] = useState(null)
-  const [activity, setActivity] = useState(null)
-  const [financial, setFinancial] = useState(null)
-  const [command, setCommand] = useState(null)
-  const [applications, setApplications] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [loadError, setLoadError] = useState('')
+  const [activePage, setActivePage] = useState(() => pageFromLocation())
   const [query, setQuery] = useState('')
   const [searching, setSearching] = useState(false)
   const [searchResult, setSearchResult] = useState(null)
   const searchTimer = useRef(null)
 
-  async function loadAll({ quiet = false } = {}) {
-    if (quiet) {
-      setRefreshing(true)
-    } else {
-      setLoading(true)
-    }
-    setLoadError('')
-    const endpoints = [
-      ['/admin/ecosystem/dashboard', setDashboard],
-      ['/admin/ecosystem/activity', setActivity],
-      ['/admin/ecosystem/financial/dashboard', setFinancial],
-      ['/admin/ecosystem/command/overview', setCommand],
-      ['/admin/applications', payload => setApplications(payload?.applications || payload?.data || (Array.isArray(payload) ? payload : []))],
-    ]
-    const settled = await Promise.allSettled(endpoints.map(([path]) => request(path)))
-    let failures = 0
-    settled.forEach((result, index) => {
-      if (result.status === 'fulfilled') endpoints[index][1](result.value)
-      else failures += 1
-    })
-    if (failures === endpoints.length) setLoadError('Não foi possível carregar a dashboard. Verifique a sessão e a API.')
-    else if (failures) setLoadError(`${failures} fonte${failures > 1 ? 's' : ''} de dados não respondeu. O restante da dashboard continua disponível.`)
-    setLoading(false)
-    setRefreshing(false)
-  }
-
   useEffect(() => {
-    const timer = window.setTimeout(() => { void loadAll() }, 0)
-    return () => window.clearTimeout(timer)
-  }, [])
-
-  useEffect(() => {
-    let realtimeState = 'connecting'
-    let refreshTimer = null
-
-    const queueRefresh = () => {
-      if (refreshTimer) window.clearTimeout(refreshTimer)
-      refreshTimer = window.setTimeout(() => { void loadAll({ quiet: true }) }, 300)
-    }
-
-    const disconnect = connectMissionControlRealtime({
-      token: () => localStorage.getItem(TOKEN_KEY),
-      events: ['ecosystem.updated'],
-      onUpdate: (payload, eventName) => {
-        const modules = Array.isArray(payload?.modules) ? payload.modules : []
-        const affectsDashboard = modules.length === 0 || modules.some(module =>
-          ['dashboard', 'activity', 'audit', 'applications', 'operations', 'financial'].includes(module)
-        )
-        if (eventName !== 'ecosystem.updated' || affectsDashboard) queueRefresh()
-      },
-      onState: state => { realtimeState = state },
-    })
-
-    const fallback = window.setInterval(() => {
-      if (realtimeState !== 'connected') queueRefresh()
-    }, 15000)
-
-    return () => {
-      if (refreshTimer) window.clearTimeout(refreshTimer)
-      window.clearInterval(fallback)
-      disconnect?.()
-    }
+    const handlePopState = () => setActivePage(pageFromLocation())
+    window.addEventListener('popstate', handlePopState)
+    writePage(pageFromLocation(), 'replaceState')
+    return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
   useEffect(() => {
@@ -437,13 +323,22 @@ function Dashboard({ user, onLogout }) {
       finally { setSearching(false) }
     }, 280)
     return () => window.clearTimeout(searchTimer.current)
-  }, [query])
+  }, [query, request])
 
   function go(section) {
+    const page = SLUG_BY_PAGE[section] ? section : 'dashboard'
     setSidebarOpen(false)
-    document.getElementById(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setLauncherOpen(false)
+    setActivePage(page)
+    writePage(page)
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
   }
 
+  const dashboard = data.dashboard
+  const activity = data.activity
+  const financial = data.financial
+  const command = data.command
+  const applications = data.applications || []
   const summary = dashboard?.summary || {}
   const financialSummary = financial?.summary || {}
   const totals = financialSummary?.totals || {}
@@ -460,20 +355,21 @@ function Dashboard({ user, onLogout }) {
 
   const highestApp = [...appRows].sort((a, b) => number(b.activity_count_30d) - number(a.activity_count_30d))[0]
 
-  return <div className="admin-shell">
+  return <div className="admin-shell" data-admin-page={activePage}>
     <div className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)}/>
     <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-      <a className="brand" href="#dashboard" onClick={event => { event.preventDefault(); go('dashboard') }}>
+      <a className="brand" href="/" onClick={event => { event.preventDefault(); go('dashboard') }}>
         <span className="brand-logo"><img src="/petertecnetlogo.png" alt=""/></span>
         <span><b>Peter Tecnet</b><small>Admin Center</small></span>
       </a>
       <nav>
         <p>GESTÃO</p>
-        {navItems.map(([id, label, icon]) => <button key={id} onClick={() => go(id)}><span>{icon}</span>{label}<i>↗</i></button>)}
+        {navItems.map(([id, label, icon]) => <button key={id} className={activePage === id ? 'active' : ''} aria-current={activePage === id ? 'page' : undefined} onClick={() => go(id)}><span>{icon}</span>{label}<i>↗</i></button>)}
       </nav>
       <div className="sidebar-status">
         <span className={`status-dot ${status}`}/><div><b>{operationalStatus}</b><small>Estado do ecossistema</small></div>
       </div>
+      <span className="admin-release-tag">{ADMIN_RELEASE_LABEL}</span>
       <div className="sidebar-user">
         <div className="avatar">{fullName(user).slice(0, 2).toUpperCase()}</div>
         <div><b>{fullName(user)}</b><small>{user?.email}</small></div>
@@ -498,7 +394,7 @@ function Dashboard({ user, onLogout }) {
           {(searchResult || searching) && <SearchPopover result={searchResult} searching={searching} onClose={() => { setQuery(''); setSearchResult(null) }}/>} 
         </div>
         <div className="top-actions">
-          <button className="icon-button" onClick={() => loadAll({ quiet: true })} aria-label="Atualizar dados" title="Atualizar dados">{refreshing ? '◌' : '↻'}</button>
+          <button className="icon-button" onClick={() => refresh({ quiet: true })} aria-label="Atualizar dados" title="Atualizar dados">{refreshing ? '◌' : '↻'}</button>
           <div className="launcher-wrap">
             <button className="ecosystem-button" onClick={() => setLauncherOpen(value => !value)}><span>◫</span><b>Navegar no ecossistema</b><i>⌄</i></button>
             {launcherOpen && <EcosystemLauncher applications={applications} onClose={() => setLauncherOpen(false)}/>} 
@@ -507,14 +403,15 @@ function Dashboard({ user, onLogout }) {
       </header>
 
       <div className="content">
-        <section className="hero-section" id="dashboard">
+        <section className="hero-section" id="dashboard" data-admin-page-key="dashboard">
           <div><p className="eyebrow">PETER TECNET / ECOSYSTEM INTELLIGENCE</p><h1>Dashboard administrativo</h1><p>Acompanhe operação, adoção e receita do ecossistema em tempo real.</p></div>
           <div className={`health-chip ${status}`}><span/><div><small>ECOSYSTEM HEALTH</small><b>{operationalStatus}</b></div></div>
         </section>
 
-        {loadError && <div className="notice">{loadError}<button onClick={() => loadAll()}>Tentar novamente</button></div>}
-        {loading ? <DashboardSkeleton/> : <>
-          <section className="metrics-grid">
+        <div data-admin-page-key="dashboard"><AdminModuleBoundary name="Visão executiva"><ExecutiveOverview onNavigate={go}/></AdminModuleBoundary></div>
+        {Object.keys(errors).length > 0 && <div className="notice" data-admin-page-key="dashboard">Algumas fontes estão indisponíveis. O restante do painel continua funcionando.<button onClick={() => refresh()}>Tentar novamente</button></div>}
+        {loading ? <div data-admin-page-key="dashboard"><DashboardSkeleton/></div> : <>
+          <section className="metrics-grid" data-admin-page-key="dashboard">
             <MetricCard label="Receita bruta" value={currency(totals.gross)} detail={`${compactNumber(approved.count)} pagamentos confirmados`} tone="accent"/>
             <MetricCard label="Receita Peter Tecnet" value={currency(totals.platform_fees)} detail="Taxas da plataforma no período" tone="success"/>
             <MetricCard label="Usuários ativos hoje" value={compactNumber(summary.active_users_today)} detail={`${compactNumber(summary.interactions_today)} interações hoje`}/>
@@ -523,7 +420,7 @@ function Dashboard({ user, onLogout }) {
             <MetricCard label="Pagamentos em atenção" value={compactNumber(number(failed.count) + number(pending.count))} detail={`${compactNumber(failed.count)} falhas · ${compactNumber(pending.count)} pendentes`} tone={number(failed.count) ? 'danger' : 'warning'}/>
           </section>
 
-          <section className="analytics-grid">
+          <section className="analytics-grid" data-admin-page-key="dashboard">
             <Panel title="Receita nos últimos 30 dias" subtitle="Volume bruto processado pelo ecossistema" className="chart-panel">
               <LineChart rows={financial?.timeline || []} valueKey="gross" formatter={currency}/>
               <div className="chart-summary"><span><i className="dot approved"/>Aprovado <b>{currency(approved.amount)}</b></span><span><i className="dot fees"/>Taxas Peter <b>{currency(totals.platform_fees)}</b></span><span><i className="dot net"/>Líquido vendedores <b>{currency(totals.seller_net)}</b></span></div>
@@ -534,7 +431,7 @@ function Dashboard({ user, onLogout }) {
             </Panel>
           </section>
 
-          <section id="operations" className="section-anchor">
+          <section id="operations" className="section-anchor" data-admin-page-key="operations">
             <SectionHeading kicker="OPERAÇÕES" title="Saúde e sinais críticos" text="Alertas financeiros e operacionais que merecem atenção imediata."/>
             <div className="operations-grid">
               <Panel title="Alertas ativos" subtitle={`${issueRows.length + financialAlerts.length} sinais encontrados`}>
@@ -555,7 +452,7 @@ function Dashboard({ user, onLogout }) {
             </div>
           </section>
 
-          <section id="financial" className="section-anchor">
+          <section id="financial" className="section-anchor" data-admin-page-key="financial">
             <SectionHeading kicker="FINANCEIRO" title="Performance de receita" text="Distribuição financeira por aplicação e status de pagamentos."/>
             <div className="financial-strip">
               <div><span>Transações</span><b>{compactNumber(totals.transactions)}</b></div><div><span>Gross</span><b>{currency(totals.gross)}</b></div><div><span>Taxas do provedor</span><b>{currency(totals.provider_fees)}</b></div><div><span>Seller net</span><b>{currency(totals.seller_net)}</b></div>
@@ -565,7 +462,7 @@ function Dashboard({ user, onLogout }) {
             </Panel>
           </section>
 
-          <section id="applications" className="section-anchor">
+          <section id="applications" className="section-anchor" data-admin-page-key="applications">
             <SectionHeading kicker="APLICAÇÕES" title="Ecossistema em produção" text="Adoção e atividade por produto conectado à API central."/>
             <div className="apps-grid">
               {appRows.length ? appRows.map(app => <article className="app-card" key={app.id || app.slug}>
@@ -577,16 +474,50 @@ function Dashboard({ user, onLogout }) {
             </div>
           </section>
 
-          <section id="users" className="section-anchor">
+          <section id="users" className="section-anchor" data-admin-page-key="users">
             <SectionHeading kicker="USUÁRIOS" title="Gestão central de usuários" text="Pesquise, filtre e administre cadastros, perfis, acessos e atividade de todo o ecossistema."/>
-            <AdminUsersCenter apiRequest={request} applications={applications}/>
+            <AdminModuleBoundary name="Usuários"><AdminUsersCenter apiRequest={request} applications={applications}/></AdminModuleBoundary>
           </section>
 
-          <section id="notifications" className="section-anchor">
-            <NotificationsCenter request={request} applications={applications}/>
+          <section id="establishments-admin-integration" className="section-anchor establishments-admin-integration" data-admin-page-key="establishments">
+            <AdminModuleBoundary name="Estabelecimentos"><AdminEstablishmentsPage /></AdminModuleBoundary>
           </section>
 
-          <section id="activity" className="section-anchor">
+          <section id="items-admin-integration" className="section-anchor admin-items-section" data-admin-page-key="items">
+            <AdminModuleBoundary name="Itens"><AdminItemsManager /></AdminModuleBoundary>
+          </section>
+
+          <section id="support" className="section-anchor" data-admin-page-key="support">
+            <SectionHeading kicker="SUPORTE" title="Saúde do atendimento" text="Chamados ativos e prioridades de suporte de todo o ecossistema."/>
+            <SourceState source="support" error={errors.support} onRetry={() => retry('support')}>
+              <div className="pulse-grid">
+                <div><span>Ativos</span><b>{compactNumber(data.support?.active)}</b></div>
+                <div><span>Urgentes</span><b>{compactNumber(data.support?.urgent)}</b></div>
+                <div><span>Sem responsável</span><b>{compactNumber(data.support?.unassigned)}</b></div>
+                <div><span>Resolvidos hoje</span><b>{compactNumber(data.support?.resolved_today)}</b></div>
+              </div>
+              <a className="admin-inline-link" href="/support">Abrir central completa de suporte ↗</a>
+            </SourceState>
+          </section>
+
+          <section id="telemetry" className="section-anchor" data-admin-page-key="telemetry">
+            <SectionHeading kicker="TELEMETRIA" title="Saúde técnica das aplicações" text="Cobertura, erros, sessões e versão da telemetria frontend por aplicação."/>
+            <SourceState source="telemetry" error={errors.telemetry} onRetry={() => retry('telemetry')}>
+              <div className="financial-strip">
+                <div><span>Saudáveis</span><b>{compactNumber(data.telemetry?.summary?.healthy)}</b></div>
+                <div><span>Atenção</span><b>{compactNumber(data.telemetry?.summary?.warning)}</b></div>
+                <div><span>Down</span><b>{compactNumber(data.telemetry?.summary?.down)}</b></div>
+                <div><span>Sessões · 15min</span><b>{compactNumber(data.telemetry?.summary?.active_sessions_15m)}</b></div>
+              </div>
+              <div className="apps-grid">{(data.telemetry?.applications || []).map(app => <article className="app-card" key={app.id || app.slug}><div className="app-card-head"><div className="app-icon">{app.logo ? <img src={app.logo} alt=""/> : <span>{String(app.name || 'P')[0]}</span>}</div><span className={app.status === 'healthy' ? 'app-state' : 'app-state offline'}>{app.status}</span></div><h3>{app.name}</h3><p>{compactNumber(app.events_24h)} eventos · {compactNumber(app.errors_24h)} erros em 24h</p><div className="app-stats"><span><small>Sessões 15m</small><b>{compactNumber(app.active_sessions_15m)}</b></span><span><small>Schema</small><b>{app.latest_schema || '—'}</b></span><span><small>SDK</small><b>{app.latest_version || '—'}</b></span></div></article>)}</div>
+            </SourceState>
+          </section>
+
+          <section id="notifications" className="section-anchor" data-admin-page-key="notifications">
+            <AdminModuleBoundary name="Notificações"><NotificationsCenter request={request} applications={applications}/></AdminModuleBoundary>
+          </section>
+
+          <section id="activity" className="section-anchor" data-admin-page-key="activity">
             <SectionHeading kicker="ATIVIDADE" title="Linha do tempo recente" text="Últimas ações registradas pela telemetria do ecossistema."/>
             <Panel title="Atividade recente" subtitle={`${compactNumber(activity?.summary?.total ?? summary.interactions_30d)} interações no recorte atual`}>
               <div className="timeline">
@@ -602,6 +533,11 @@ function Dashboard({ user, onLogout }) {
 
 function SectionHeading({ kicker, title, text }) {
   return <div className="section-heading"><div><p className="eyebrow">{kicker}</p><h2>{title}</h2></div><p>{text}</p></div>
+}
+
+function SourceState({ error, onRetry, children }) {
+  if (!error) return children
+  return <div className="admin-module-error" role="status"><div><small>FONTE INDISPONÍVEL</small><h3>Não foi possível atualizar este módulo.</h3><p>{error}</p></div><button type="button" onClick={onRetry}>Tentar novamente ↻</button></div>
 }
 
 function SearchPopover({ result, searching, onClose }) {
@@ -631,35 +567,10 @@ function DashboardSkeleton() {
 }
 
 export default function App() {
-  const [user, setUser] = useState(null)
-  const [checking, setChecking] = useState(Boolean(localStorage.getItem(TOKEN_KEY)))
-
-  useEffect(() => {
-    async function validate() {
-      const token = localStorage.getItem(TOKEN_KEY)
-      if (!token) { setChecking(false); return }
-      try {
-        const payload = await request('/auth/me')
-        const current = payload?.user || payload
-        if (String(current?.email || '').toLowerCase() !== OWNER_EMAIL) throw new Error('Acesso não autorizado.')
-        setUser(current)
-      } catch {
-        localStorage.removeItem(TOKEN_KEY)
-      } finally { setChecking(false) }
-    }
-    validate()
-    const expired = () => { setUser(null); setChecking(false) }
-    window.addEventListener('admin-session-expired', expired)
-    return () => window.removeEventListener('admin-session-expired', expired)
-  }, [])
-
-  function logout() {
-    const token = localStorage.getItem(TOKEN_KEY)
-    if (token) request('/auth/logout', { method: 'POST' }).catch(() => {})
-    localStorage.removeItem(TOKEN_KEY)
-    setUser(null)
-  }
-
-  if (checking) return <div className="boot-screen"><img src="/petertecnetlogo.png" alt=""/><span/><p>Validando sessão administrativa…</p></div>
-  return user ? <Dashboard user={user} onLogout={logout}/> : <Login onAuthenticated={setUser}/>
+  const { status, user, error, login, loginWithGoogle, getIdentityProviders, logout, validate } = useAdminAuth()
+  if (status === 'checking') return <div className="boot-screen"><img src="/petertecnetlogo.png" alt=""/><span/><p>Validando sessão administrativa…</p></div>
+  if (status === 'unavailable') return <SessionUnavailable message={error} onRetry={() => validate()} onLogout={logout}/>
+  return status === 'authenticated' && user
+    ? <Dashboard user={user} onLogout={logout}/>
+    : <Login login={login} loginWithGoogle={loginWithGoogle} getIdentityProviders={getIdentityProviders} initialError={error}/>
 }

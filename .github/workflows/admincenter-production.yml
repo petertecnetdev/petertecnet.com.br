@@ -24,6 +24,10 @@ jobs:
         run: npm ci
       - name: Lint
         run: npm run lint
+      - name: Anti-ghost runtime contract
+        run: npm run validate:runtime
+      - name: Authentication regression scenarios
+        run: npm run test:auth
       - name: Production build
         run: npm run build
 
@@ -41,3 +45,19 @@ jobs:
       VPS_PORT: ${{ secrets.VPS_PORT }}
       VPS_USER: ${{ secrets.VPS_USER }}
       VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+
+  smoke:
+    name: Smoke Admin Center Production
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify published release, bundle and service worker
+        env:
+          ADMIN_HEALTH_URL: https://admincenter.petertecnet.com.br/
+          ADMIN_EXPECTED_RELEASE: 2026.09.06.2
+        run: npm run smoke:production
