@@ -8,7 +8,7 @@ const source = readFileSync(corePath, 'utf8')
 execFileSync(process.execPath, ['--check', corePath], { stdio: 'inherit' })
 
 const required = [
-  "const CORE_VERSION = '1.0.0'",
+  "const CORE_VERSION = '1.0.1'",
   "window.PeterTecnetFrontendCore = core",
   "X-Peter-Frontend-Core",
   "features: { isEnabled }",
