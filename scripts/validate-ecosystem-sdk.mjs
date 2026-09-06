@@ -6,10 +6,12 @@ const sdkPath = resolve('public/ecosystem/peter-ecosystem.js')
 const insightsPath = resolve('public/ecosystem/peter-insights.js')
 const ecosystemV3Path = resolve('public/ecosystem/peter-ecosystem-v3.js')
 const telemetryV3Path = resolve('public/ecosystem/peter-telemetry-v3.js')
+const accountGatewayPath = resolve('src/components/PeterAccountGateway.jsx')
 const source = readFileSync(sdkPath, 'utf8')
 const insights = readFileSync(insightsPath, 'utf8')
 const ecosystemV3 = readFileSync(ecosystemV3Path, 'utf8')
 const telemetryV3 = readFileSync(telemetryV3Path, 'utf8')
+const accountGateway = readFileSync(accountGatewayPath, 'utf8')
 
 execFileSync(process.execPath, ['--check', sdkPath], { stdio: 'inherit' })
 execFileSync(process.execPath, ['--check', insightsPath], { stdio: 'inherit' })
@@ -61,11 +63,16 @@ if (!source.includes("host.endsWith('.petertecnet.com.br')")) throw new Error('C
 
 const telemetryVersion = telemetryV3.match(/const VERSION = '([^']+)'/)?.[1]
 const launcherTelemetryVersion = ecosystemV3.match(/const TELEMETRY_VERSION = '([^']+)'/)?.[1]
+const accountGatewayTelemetryVersion = accountGateway.match(/const TELEMETRY_VERSION = '([^']+)'/)?.[1]
 
 if (!telemetryVersion) throw new Error('Telemetry SDK version marker is missing.')
 if (!launcherTelemetryVersion) throw new Error('Ecosystem v3 telemetry version marker is missing.')
+if (!accountGatewayTelemetryVersion) throw new Error('Account Gateway telemetry version marker is missing.')
 if (telemetryVersion !== launcherTelemetryVersion) {
   throw new Error(`Telemetry version drift: runtime ${telemetryVersion} != launcher ${launcherTelemetryVersion}`)
+}
+if (telemetryVersion !== accountGatewayTelemetryVersion) {
+  throw new Error(`Telemetry version drift: runtime ${telemetryVersion} != account gateway ${accountGatewayTelemetryVersion}`)
 }
 if (!telemetryV3.includes("const SCHEMA = '3'")) throw new Error('Telemetry v3 must continue emitting schema 3.')
 if (!telemetryV3.includes('trackAction:')) throw new Error('Telemetry SDK must expose the shared semantic trackAction helper.')
