@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { confirmAction } from './utils/uiDialog.js'
+import AdminEstablishmentCatalog from './AdminEstablishmentCatalog.jsx'
+import AdminEstablishmentEvents from './AdminEstablishmentEvents.jsx'
 import AdminEstablishmentResourceEditor from './AdminEstablishmentResourceEditor.jsx'
 import './AdminEstablishmentsPage.css'
 
@@ -22,8 +24,10 @@ const GENERIC_ITEM_RESOURCES = [
 const RESOURCE_REGISTRY = {
   cutinapp: [
     { key: 'event', label: 'Criar evento', description: 'Cadastre o evento aqui no Admin Center.', icon: 'EV' },
-    { key: 'ticket', resourceKind: 'item', defaultType: 'ticket', entityLabel: 'ingresso', label: 'Criar ingresso', description: 'Cadastre um ingresso usando o Item genérico com tipo ticket.', icon: 'IN' },
+    { key: 'events-list', mode: 'events', label: 'Listar eventos', description: 'Veja e gerencie todos os eventos deste establishment.', icon: 'LE' },
+    { key: 'ticket-ops', mode: 'tickets', label: 'Ingressos e vendas', description: 'Gerencie lotes reais, vendas, disponibilidade, receita e check-ins por evento.', icon: 'IV' },
     { key: 'product', resourceKind: 'item', defaultType: 'product', entityLabel: 'produto', label: 'Criar produto', description: 'Cadastre um produto para venda antecipada ou catálogo do establishment.', icon: 'PR' },
+    { key: 'catalog-list', mode: 'catalog', label: 'Listar catálogo', description: 'Veja produtos e itens já cadastrados para este establishment.', icon: 'LC' },
     { key: 'item', label: 'Criar item', description: 'Cadastre qualquer outro item sem sair do painel.', icon: 'IT' },
   ],
   rasoio: [
@@ -255,7 +259,21 @@ export default function AdminEstablishmentsPageV2() {
     if (!editing?.id) { setError('Salve o establishment antes de criar recursos vinculados.'); return }
     if (!savedAppIds.has(Number(app.id))) { setError(`Salve o vínculo com ${app.name || app.slug} antes de criar recursos.`); return }
     setResourceEditor({ action, app, establishment: { ...editing, ...form, id: editing.id, user_id: Number(form.user_id) || editing.user_id } })
-    setMode('resource'); setError(''); setNotice(''); window.setTimeout(scrollTop, 0)
+    setMode(action.mode || 'resource'); setError(''); setNotice(''); window.setTimeout(scrollTop, 0)
+  }
+
+  if (['events', 'tickets', 'catalog'].includes(mode) && resourceEditor) {
+    const { action, app, establishment } = resourceEditor
+    return <div className="aep-page aep-editor-page">
+      <header className="aep-editor-header">
+        <button className="aep-back" type="button" onClick={() => { setMode('editor'); setResourceEditor(null); window.setTimeout(scrollTop, 0) }}>← Voltar ao establishment</button>
+        <div className="aep-editor-title"><p className="eyebrow">CUTINAPP / OPERAÇÃO</p><h2>{action.label}</h2><p>{action.description}</p></div>
+        <div className="aep-editor-id"><small>ESTABLISHMENT</small><strong>#{establishment.id}</strong></div>
+      </header>
+      {mode === 'events' && <AdminEstablishmentEvents establishment={establishment} app={app} />}
+      {mode === 'tickets' && <AdminEstablishmentEvents establishment={establishment} app={app} ticketsOnly />}
+      {mode === 'catalog' && <AdminEstablishmentCatalog establishment={establishment} app={app} />}
+    </div>
   }
 
   if (mode === 'resource' && resourceEditor) {
@@ -299,7 +317,7 @@ export default function AdminEstablishmentsPageV2() {
           })}</div>
           <div className="aep-grid aep-primary-app"><Field label="Aplicação principal *" wide><select value={form.app_id} onChange={e => setForm(current => ({ ...current, app_id: e.target.value }))} required><option value="">Selecione</option>{selectedApps.map(app => <option key={app.id} value={app.id}>{app.name}</option>)}</select></Field></div>
           <div className="aep-resource-center">
-            <div className="aep-resource-center-head"><div><h4>Criar recursos por aplicação</h4><p>Escolha o recurso e o editor já abre com o tipo correto para esta aplicação.</p></div>{!editing && <span>Disponível após salvar</span>}</div>
+            <div className="aep-resource-center-head"><div><h4>Recursos por aplicação</h4><p>Crie, liste e gerencie os recursos desta aplicação sem sair do establishment.</p></div>{!editing && <span>Disponível após salvar</span>}</div>
             {!selectedApps.length && <div className="aep-resource-empty">Vincule uma aplicação para liberar as ações específicas.</div>}
             <div className="aep-app-action-grid">{selectedApps.map(app => {
               const linked = savedAppIds.has(Number(app.id))
