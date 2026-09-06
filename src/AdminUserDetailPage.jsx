@@ -118,6 +118,9 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
   const [activityPagination, setActivityPagination] = useState({ current_page: 1, last_page: 1, total: 0 })
   const [activityLoading, setActivityLoading] = useState(false)
   const [activityError, setActivityError] = useState('')
+  const [emailDeferralState, setEmailDeferralState] = useState(null)
+  const [emailDeferralBusy, setEmailDeferralBusy] = useState(false)
+  const [emailDeferralNotice, setEmailDeferralNotice] = useState('')
 
   async function loadDetail({ quiet = false } = {}) {
     if (!quiet) setLoading(true)
@@ -129,6 +132,15 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
       setError(err.message)
     } finally {
       if (!quiet) setLoading(false)
+    }
+  }
+
+  async function loadEmailDeferralState() {
+    try {
+      const payload = await apiRequest(`/admin/ecosystem/users/${userId}/email-verification-deferrals`)
+      setEmailDeferralState(payload?.email_verification || null)
+    } catch {
+      setEmailDeferralState(null)
     }
   }
 
@@ -149,6 +161,7 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void loadDetail()
+      void loadEmailDeferralState()
       void loadActivity(1, { ...EMPTY_ACTIVITY_FILTERS })
     }, 0)
     return () => window.clearTimeout(timer)
@@ -224,6 +237,25 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
     await loadActivity(1, next)
   }
 
+  async function resetEmailVerificationDeferrals() {
+    const used = Number(emailDeferralState?.deferrals_used || 0)
+    if (!window.confirm(`Resetar os ${used} adiamento(s) usados por este usuário? Ele poderá adiar a confirmação do e-mail novamente.`)) return
+
+    setEmailDeferralBusy(true)
+    setEmailDeferralNotice('')
+    setError('')
+
+    try {
+      const payload = await apiRequest(`/admin/ecosystem/users/${userId}/email-verification-deferrals/reset`, { method: 'POST' })
+      setEmailDeferralState(payload?.email_verification || null)
+      setEmailDeferralNotice(payload?.message || 'Adiamentos da confirmação de e-mail resetados com sucesso.')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setEmailDeferralBusy(false)
+    }
+  }
+
   if (loading) return <div className="aud-page aud-loading"><div className="aud-loader"/><p>Montando a visão 360° do usuário…</p></div>
 
   if (!user) return <div className="aud-page"><button className="aud-back" onClick={onBack}>← Voltar para usuários</button><div className="aud-error">{error || 'Não foi possível carregar este usuário.'}</div></div>
@@ -237,7 +269,7 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
   return <div className="aud-page">
     <div className="aud-page-head">
       <button className="aud-back" onClick={onBack}>← Voltar para usuários</button>
-      <div className="aud-head-actions"><button className="aud-secondary" onClick={() => loadDetail()} disabled={loading}>↻ Atualizar ficha</button></div>
+      <div className="aud-head-actions"><button className="aud-secondary" onClick={() => { void loadDetail(); void loadEmailDeferralState() }} disabled={loading}>↻ Atualizar ficha</button></div>
     </div>
 
     {error && <div className="aud-error">{error}</div>}
@@ -371,6 +403,23 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
         <div className="aud-security-alerts">{detail.security?.alerts?.length ? detail.security.alerts.map((alert, index) => <div key={index} className={`aud-security-alert ${tone(alert.level)}`}>{alert.message}</div>) : <div className="aud-security-alert success">Nenhum alerta de segurança detectado no recorte recente.</div>}</div>
         <div className="aud-security-metrics"><Metric label="Logins · 7d" value={summary.logins_7d || 0} detail="últimos 7 dias"/><Metric label="Logins · 30d" value={summary.logins_30d || 0} detail="últimos 30 dias"/><Metric label="Logins · 90d" value={summary.logins_90d || 0} detail="últimos 90 dias"/><Metric label="Primeira atividade" value={dateOnly(summary.first_activity_at)} detail={dateTime(summary.first_activity_at)}/></div>
       </section>
+
+      <section className="aud-card">
+        <header><div><span>CONFIRMAÇÃO DE E-MAIL</span><h3>Adiamentos da confirmação</h3><p>Use este controle quando o usuário atingir a 3ª solicitação e precisar voltar a adiar a confirmação.</p></div></header>
+        <div className="aud-security-metrics">
+          <Metric label="Adiamentos usados" value={emailDeferralState ? `${emailDeferralState.deferrals_used}/${emailDeferralState.max_deferrals}` : '—'} detail={emailDeferralState?.confirmation_required ? 'Confirmação obrigatória no próximo acesso' : 'limite atual da conta'}/>
+          <Metric label="Adiamentos restantes" value={emailDeferralState?.deferrals_remaining ?? '—'} detail={emailDeferralState?.can_defer ? 'usuário ainda pode adiar' : 'nenhum adiamento disponível'}/>
+          <Metric label="Último adiamento" value={dateOnly(emailDeferralState?.last_deferred_at)} detail={dateTime(emailDeferralState?.last_deferred_at)}/>
+        </div>
+        {emailDeferralNotice && <div className="aud-security-alert success">{emailDeferralNotice}</div>}
+        <div className="aud-filter-actions">
+          <button type="button" className="aud-primary" onClick={resetEmailVerificationDeferrals} disabled={emailDeferralBusy || emailDeferralState?.verified || !Number(emailDeferralState?.deferrals_used || 0)}>
+            {emailDeferralBusy ? 'Resetando…' : 'Resetar adiamentos de e-mail'}
+          </button>
+          {emailDeferralState?.verified && <span>O e-mail deste usuário já está confirmado.</span>}
+        </div>
+      </section>
+
       <div className="aud-security-grid">
         <section className="aud-card"><header><div><span>REDE</span><h3>IPs recentes</h3></div></header><div className="aud-ranked-list">{detail.security?.ips?.length ? detail.security.ips.map(row => <div key={row.value}><code>{row.value}</code><b>{row.count}×</b></div>) : <Empty/>}</div></section>
         <section className="aud-card"><header><div><span>LOCALIZAÇÃO</span><h3>Locais observados</h3></div></header><div className="aud-ranked-list">{detail.security?.locations?.length ? detail.security.locations.map(row => <div key={row.value}><span>{row.value}</span><b>{row.count}×</b></div>) : <Empty/>}</div></section>
