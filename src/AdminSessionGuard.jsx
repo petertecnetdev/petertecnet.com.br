@@ -3,6 +3,7 @@ import AdminAppNavigation from './AdminAppNavigation.jsx'
 import AdminGlobalSearch from './AdminGlobalSearch.jsx'
 import AdminEstablishmentsIntegration from './AdminEstablishmentsIntegration.jsx'
 import AdminItemsIntegration from './AdminItemsIntegration.jsx'
+import ImportantEventsIntegration from './ImportantEventsIntegration.jsx'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
@@ -59,6 +60,7 @@ export default function AdminSessionGuard() {
     <AdminGlobalSearch />
     <AdminEstablishmentsIntegration />
     <AdminItemsIntegration />
+    <ImportantEventsIntegration />
     <AdminAppNavigation />
   </>
 }
