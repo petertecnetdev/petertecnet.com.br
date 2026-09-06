@@ -1,7 +1,7 @@
 (() => {
   'use strict'
 
-  const VERSION = '3.3.2'
+  const VERSION = '3.3.3'
   const SCHEMA = '3'
   const API_FALLBACK = 'https://api.petertecnet.com.br/api'
   const TOKEN_KEYS = ['petertecnet_admin_token', 'petertecnet_token', 'token', 'access_token', 'auth_token']
@@ -585,8 +585,8 @@
     version: VERSION,
     schema: SCHEMA,
     start,
-    track: (type, details) => runtime?.track(type, details) || false,
-    trackAction: (operation, details) => runtime?.trackAction(operation, details) || false,
+    track: (type, details) => runtime ? (runtime.track(type, details), true) : false,
+    trackAction: (operation, details) => runtime ? (runtime.trackAction(operation, details), true) : false,
     flush: () => runtime?.flush(),
     get runtime() { return runtime },
   }
