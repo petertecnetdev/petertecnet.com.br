@@ -8,7 +8,7 @@
     "validate:responsive": "node scripts/validate-admin-responsive.mjs",
     "validate:dialogs": "node scripts/validate-no-native-dialogs.mjs",
     "build": "npm run validate:dialogs && npm run validate:responsive && vite build",
-    "lint": "oxlint src/App.jsx src/main.jsx src/AdminSessionGuard.jsx src/AdminAppNavigation.jsx src/AdminGlobalSearch.jsx src/AdminEstablishmentsIntegration.jsx src/AdminItemsIntegration.jsx src/AdminUsersCenter.jsx src/AdminUserDetailPage.jsx src/NotificationsCenter.jsx src/InteractionCleanup.jsx src/ApplicationBrandingManager.jsx src/CriticalEventsPanel.jsx src/AccountAccessPage.jsx src/utils/uiDialog.js scripts/validate-admin-responsive.mjs scripts/validate-no-native-dialogs.mjs"
+    "lint": "oxlint src/App.jsx src/main.jsx src/AdminSessionGuard.jsx src/AdminAppNavigation.jsx src/AdminGlobalSearch.jsx src/AdminEstablishmentsIntegration.jsx src/AdminItemsIntegration.jsx src/AdminUsersCenter.jsx src/AdminUserDetailPage.jsx src/AdminUserDetailExperience.jsx src/NotificationsCenter.jsx src/InteractionCleanup.jsx src/ApplicationBrandingManager.jsx src/CriticalEventsPanel.jsx src/AccountAccessPage.jsx src/utils/uiDialog.js scripts/validate-admin-responsive.mjs scripts/validate-no-native-dialogs.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",
