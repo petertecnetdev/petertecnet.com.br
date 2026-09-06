@@ -166,7 +166,8 @@ jobs:
           LOCAL_SOURCE_CHANGES="$(git status --porcelain=v1 --untracked-files=all | awk '
             {
               path = substr($0, 4)
-              if (path ~ /^(storage\/|bootstrap\/cache\/|node_modules\/|vendor\/|dist\/|build\/|artifacts\/)/) next
+              if (path ~ /^(storage\/|bootstrap\/cache\/|node_modules\/|vendor\/|dist\/|build\/|artifacts\/|\.automation-evolve\/)/) next
+              if (path ~ /^(build|dist)\.rollback\.[0-9]{14}\//) next
               if (path ~ /^\.env($|\.)/) next
               if (path ~ /\.bak\.[0-9]{8}-[0-9]{6}-[0-9]+$/) next
               print
