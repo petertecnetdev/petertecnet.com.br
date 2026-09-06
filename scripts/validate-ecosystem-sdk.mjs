@@ -68,5 +68,8 @@ if (telemetryVersion !== launcherTelemetryVersion) {
   throw new Error(`Telemetry version drift: runtime ${telemetryVersion} != launcher ${launcherTelemetryVersion}`)
 }
 if (!telemetryV3.includes("const SCHEMA = '3'")) throw new Error('Telemetry v3 must continue emitting schema 3.')
+if (!telemetryV3.includes('trackAction:')) throw new Error('Telemetry SDK must expose the shared semantic trackAction helper.')
+if (!telemetryV3.includes('entityContext(')) throw new Error('Telemetry SDK must preserve generic entity context for API actions.')
+if (!telemetryV3.includes("if (action.type === 'logout') flush(true)")) throw new Error('Telemetry SDK must preserve the logout attribution flush.')
 
 console.log('Peter Tecnet Ecosystem + Insights SDK contracts OK')

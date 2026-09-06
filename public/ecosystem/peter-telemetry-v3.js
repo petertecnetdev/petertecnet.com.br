@@ -1,7 +1,7 @@
 (() => {
   'use strict'
 
-  const VERSION = '3.2.0'
+  const VERSION = '3.3.1'
   const SCHEMA = '3'
   const API_FALLBACK = 'https://api.petertecnet.com.br/api'
   const TOKEN_KEYS = ['petertecnet_admin_token', 'petertecnet_token', 'token', 'access_token', 'auth_token']
@@ -93,13 +93,46 @@
     return clean(heading?.textContent || document.title || page(), 160)
   }
 
-  function pathParts(rawUrl, appSlug) {
+  function rawPathParts(rawUrl) {
     let pathname = safeUrl(rawUrl)
     try { pathname = new URL(String(rawUrl), window.location.origin).pathname } catch {}
-    const parts = pathname.split('/').filter(Boolean).map(part => decodeURIComponent(part).toLowerCase())
-    return parts.filter(part => ![
+    return pathname.split('/').filter(Boolean).map(part => decodeURIComponent(part).toLowerCase())
+  }
+
+  function pathParts(rawUrl, appSlug) {
+    return rawPathParts(rawUrl).filter(part => ![
       'api', 'v1', 'v2', 'v3', 'apps', appSlug,
     ].includes(part) && !/^\d+$/.test(part) && !/^[0-9a-f-]{24,}$/i.test(part))
+  }
+
+  function singularize(value) {
+    const word = slug(value, 80)
+    if (!word) return ''
+    if (word.endsWith('ies') && word.length > 3) return `${word.slice(0, -3)}y`
+    if (word.endsWith('sses')) return word.slice(0, -2)
+    if (word.endsWith('s') && !word.endsWith('ss')) return word.slice(0, -1)
+    return word
+  }
+
+  function entityContext(rawUrl, appSlug) {
+    const parts = rawPathParts(rawUrl).filter(part => !['api', 'v1', 'v2', 'v3', 'apps', appSlug].includes(part))
+    let entityId = null
+    let entityKey = ''
+    let entityType = ''
+    for (let index = parts.length - 1; index >= 0; index -= 1) {
+      const part = parts[index]
+      if (/^\d+$/.test(part)) {
+        entityId = Number(part)
+        entityType = singularize(parts[index - 1] || '')
+        break
+      }
+      if (/^[0-9a-f-]{24,}$/i.test(part)) {
+        entityKey = part
+        entityType = singularize(parts[index - 1] || '')
+        break
+      }
+    }
+    return { entityId, entityKey, entityType }
   }
 
   function humanize(value) {
@@ -119,6 +152,7 @@
     if (/\/auth\/refresh$/.test(pathname)) return { type: 'session_refresh', label: 'Renovação da sessão' }
 
     const parts = pathParts(rawUrl, appSlug)
+    const entity = entityContext(rawUrl, appSlug)
     const actionWords = new Set([
       'publish', 'unpublish', 'claim', 'validate', 'checkin', 'check-in', 'follow', 'unfollow',
       'comment', 'like', 'share', 'approve', 'reject', 'accept', 'cancel', 'confirm', 'invite',
@@ -160,7 +194,16 @@
       actionLabel = `${verb} ${humanize(resourceKey)}`
     }
 
-    return { type, label: actionLabel, pathname }
+    return {
+      type,
+      label: actionLabel,
+      pathname,
+      resource: resourceKey,
+      action: actionKey || (verb === 'GET' ? 'view' : verb === 'POST' ? 'create' : ['PUT', 'PATCH'].includes(verb) ? 'update' : verb === 'DELETE' ? 'delete' : verb.toLowerCase()),
+      entityType: entity.entityType || singularize(resourceKey),
+      entityId: entity.entityId,
+      entityKey: entity.entityKey,
+    }
   }
 
   function start(options = {}) {
@@ -272,17 +315,31 @@
       const label = labelOf(element)
       const context = contextOf(element)
       const destination = safeUrl(element.getAttribute?.('href'))
+      const semanticAction = slug(element.dataset?.telemetryAction || element.dataset?.trackAction || '', 80)
+      const entityType = singularize(element.dataset?.entityType || element.dataset?.telemetryEntity || '')
+      const entityId = /^\d+$/.test(element.dataset?.entityId || '') ? Number(element.dataset.entityId) : null
+      const sharedMetadata = {
+        tag: element.tagName,
+        destination,
+        context,
+        ui_action: slug([context, label].filter(Boolean).join(' ')),
+        screen: slug(screen),
+        semantic_action: semanticAction || undefined,
+        entity_type: entityType || undefined,
+        entity_id: entityId || undefined,
+      }
       enqueue('click', {
         label,
         target: destination || element.id || element.name || element.tagName,
-        metadata: {
-          tag: element.tagName,
-          destination,
-          context,
-          ui_action: slug([context, label].filter(Boolean).join(' ')),
-          screen: slug(screen),
-        },
+        metadata: sharedMetadata,
       })
+      if (semanticAction) {
+        enqueue(semanticAction, {
+          label,
+          target: destination || element.id || element.name || element.tagName,
+          metadata: { ...sharedMetadata, source: 'ui' },
+        })
+      }
       scheduleScreen('click')
     }
 
@@ -375,8 +432,15 @@
           outcome,
           duration_ms: Math.max(0, Date.now() - started),
           screen: slug(screen),
+          resource: action.resource,
+          action: action.action,
+          entity_type: action.entityType,
+          entity_id: action.entityId,
+          entity_key: action.entityKey,
         },
       })
+      // Flush logout while the auth token is still available so the backend can attribute the event to the user.
+      if (action.type === 'logout') flush(true)
     }
 
     const instrumentedFetch = async (input, init = {}) => {
@@ -468,6 +532,14 @@
       appSlug,
       sessionId,
       track: (type, details = {}) => enqueue(type, details),
+      trackAction: (operation, details = {}) => {
+        const type = slug(String(operation || '').replace(/[.:/]+/g, '_'), 80) || 'business_action'
+        enqueue(type, {
+          ...details,
+          label: details.label || humanize(type),
+          metadata: { operation: clean(operation, 160), ...(details.metadata || {}) },
+        })
+      },
       flush: () => flush(true),
       stop: () => {
         clearInterval(flushTimer)
@@ -492,6 +564,7 @@
     schema: SCHEMA,
     start,
     track: (type, details) => runtime?.track(type, details) || false,
+    trackAction: (operation, details) => runtime?.trackAction(operation, details) || false,
     flush: () => runtime?.flush(),
     get runtime() { return runtime },
   }
