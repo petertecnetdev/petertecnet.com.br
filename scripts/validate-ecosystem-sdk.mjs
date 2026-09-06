@@ -78,5 +78,8 @@ if (!telemetryV3.includes("const SCHEMA = '3'")) throw new Error('Telemetry v3 m
 if (!telemetryV3.includes('trackAction:')) throw new Error('Telemetry SDK must expose the shared semantic trackAction helper.')
 if (!telemetryV3.includes('entityContext(')) throw new Error('Telemetry SDK must preserve generic entity context for API actions.')
 if (!telemetryV3.includes("if (action.type === 'logout') flush(true)")) throw new Error('Telemetry SDK must preserve the logout attribution flush.')
+if (!telemetryV3.includes("storageGet('localStorage', key)")) throw new Error('Telemetry token lookup must tolerate blocked localStorage.')
+if (!telemetryV3.includes("storageGet('sessionStorage', sessionKey)")) throw new Error('Telemetry session lookup must tolerate blocked sessionStorage.')
+if (/\b(?:localStorage|sessionStorage)\.getItem\(/.test(telemetryV3)) throw new Error('Telemetry runtime must not use unguarded Web Storage reads.')
 
 console.log('Peter Tecnet Ecosystem + Insights SDK contracts OK')
