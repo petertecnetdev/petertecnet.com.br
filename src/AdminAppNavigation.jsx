@@ -92,6 +92,7 @@ function decorateNavigation(shell, activePage) {
     const page = pageFromButton(button)
     if (!page) return
 
+    button.type = 'button'
     button.dataset.adminPageTarget = page
     const active = page === activePage
     button.classList.toggle('active', active)
@@ -109,7 +110,7 @@ function updateSurfaceAccessibility(shell, activePage) {
   })
 }
 
-function applyPage(page, { historyMode = null, focus = false } = {}) {
+function applyPage(page, { historyMode = null, focus = false, scroll = false } = {}) {
   const shell = document.querySelector('.admin-shell')
   if (!(shell instanceof HTMLElement)) return false
 
@@ -126,7 +127,7 @@ function applyPage(page, { historyMode = null, focus = false } = {}) {
   closeMobileSidebar(shell)
 
   window.requestAnimationFrame(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    if (scroll) window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
     if (focus) {
       const target = shell.querySelector(`[data-admin-page-key="${resolved}"] h1, [data-admin-page-key="${resolved}"] h2, [data-admin-page-key="${resolved}"] h3`)
       if (target instanceof HTMLElement) {
@@ -145,8 +146,8 @@ export default function AdminAppNavigation() {
     let currentPage = pageFromLocation()
     let mutationFrame = 0
 
-    const sync = ({ historyMode = null, focus = false } = {}) => {
-      const applied = applyPage(currentPage, { historyMode, focus })
+    const sync = ({ historyMode = null, focus = false, scroll = false } = {}) => {
+      const applied = applyPage(currentPage, { historyMode, focus, scroll })
       if (!applied) return false
       return true
     }
@@ -160,7 +161,7 @@ export default function AdminAppNavigation() {
         event.preventDefault()
         event.stopImmediatePropagation()
         currentPage = 'dashboard'
-        sync({ historyMode: 'pushState', focus: true })
+        sync({ historyMode: 'pushState', focus: true, scroll: true })
         return
       }
 
@@ -172,7 +173,7 @@ export default function AdminAppNavigation() {
       event.preventDefault()
       event.stopImmediatePropagation()
       currentPage = page
-      sync({ historyMode: 'pushState', focus: true })
+      sync({ historyMode: 'pushState', focus: true, scroll: true })
     }
 
     const handlePopState = () => {
