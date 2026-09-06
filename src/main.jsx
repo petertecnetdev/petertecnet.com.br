@@ -16,6 +16,7 @@ import installSeoFaqSection from './installSeoFaqSection.jsx'
 
 const PublicExperienceRouter = lazy(() => import('./PublicExperienceRouter.jsx'))
 const AdminTicketSalesPage = lazy(() => import('./AdminTicketSalesPage.jsx'))
+const AdminEventSeriesPage = lazy(() => import('./AdminEventSeriesPage.jsx'))
 const API_BASE_URL = 'https://api.petertecnet.com.br/api'
 const APP_SLUG = 'peter-tecnet'
 const PETRINIA_STORY_SLUG = 'petrinia-cutinapp-persistencia-tecnologia'
@@ -25,6 +26,8 @@ installPeterWhatsappFallback()
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 const isAdminTicketSales = ['/admin/events/tickets', '/admin/tickets', '/admin/ingressos'].includes(path)
+const isAdminEventSeries = ['/admin/events/agenda', '/admin/events/series', '/admin/agenda'].includes(path)
+const isAdminSurface = isAdminTicketSales || isAdminEventSeries
 const isBlogIndex = path === '/blog'
 const blogArticleMatch = path.match(/^\/blog\/([^/]+)$/)
 const blogArticleSlug = blogArticleMatch ? (() => {
@@ -33,9 +36,8 @@ const blogArticleSlug = blogArticleMatch ? (() => {
 const isPetriniaStory = blogArticleSlug === PETRINIA_STORY_SLUG
 
 // The legacy Admin shell was removed from this frontend. Keep its old routes
-// redirected, but expose the production ticket workspace as an isolated,
-// authenticated Admin Center surface instead of resurrecting the removed shell.
-if (!isAdminTicketSales && (path === '/admin' || path.startsWith('/admin/') || path === '/login')) {
+// redirected, but expose authenticated production workspaces as isolated Admin Center surfaces.
+if (!isAdminSurface && (path === '/admin' || path.startsWith('/admin/') || path === '/login')) {
   window.history.replaceState({}, '', '/')
 }
 
@@ -44,13 +46,15 @@ const lazyFallback = <main style={{ minHeight: '70vh', display: 'grid', placeIte
 
 const appPage = isAdminTicketSales
   ? <Suspense fallback={lazyFallback}><AdminTicketSalesPage /></Suspense>
-  : isBlogIndex
-    ? <PublicBlogIndex />
-    : isPetriniaStory
-      ? <PetriniaCutinappStory />
-      : blogArticleSlug
-        ? <PublicBlogArticle slug={blogArticleSlug} />
-        : <Suspense fallback={lazyFallback}><PublicExperienceRouter /></Suspense>
+  : isAdminEventSeries
+    ? <Suspense fallback={lazyFallback}><AdminEventSeriesPage /></Suspense>
+    : isBlogIndex
+      ? <PublicBlogIndex />
+      : isPetriniaStory
+        ? <PetriniaCutinappStory />
+        : blogArticleSlug
+          ? <PublicBlogArticle slug={blogArticleSlug} />
+          : <Suspense fallback={lazyFallback}><PublicExperienceRouter /></Suspense>
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
