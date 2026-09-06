@@ -1,0 +1,288 @@
+import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
+import AdminUserDetailPage from './AdminUserDetailPage.jsx'
+import './AdminUserCommunication.css'
+
+const EMPTY_FORM = {
+  channel: 'both',
+  type: 'info',
+  subject: '',
+  message: '',
+  action_url: '',
+}
+
+const CHANNEL_LABELS = {
+  email: 'E-mail',
+  notification: 'Notificação',
+  both: 'E-mail + notificação',
+}
+
+const TEMPLATES = [
+  { key: 'information', label: 'Informação', subject: 'Informação da Peter Tecnet', type: 'info' },
+  { key: 'support', label: 'Suporte', subject: 'Atualização do seu atendimento', type: 'general' },
+  { key: 'account', label: 'Conta', subject: 'Informação sobre sua conta Peter Tecnet', type: 'info' },
+  { key: 'important', label: 'Aviso', subject: 'Aviso importante da Peter Tecnet', type: 'warning' },
+]
+
+function fullName(user) {
+  return [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.user_name || user?.email || 'Usuário'
+}
+
+function validateHttpsUrl(value) {
+  if (!value.trim()) return true
+  try {
+    return new URL(value.trim()).protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+export default function AdminUserDetailExperience(props) {
+  const { userId, apiRequest } = props
+  const [user, setUser] = useState(null)
+  const [actionsTarget, setActionsTarget] = useState(null)
+  const [open, setOpen] = useState(false)
+  const [form, setForm] = useState({ ...EMPTY_FORM })
+  const [sending, setSending] = useState(false)
+  const [loadingUser, setLoadingUser] = useState(true)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+
+  useEffect(() => {
+    let active = true
+    setLoadingUser(true)
+    apiRequest(`/admin/ecosystem/users/${userId}`)
+      .then(payload => {
+        if (active) setUser(payload?.user || null)
+      })
+      .catch(() => {
+        if (active) setUser(null)
+      })
+      .finally(() => {
+        if (active) setLoadingUser(false)
+      })
+    return () => { active = false }
+  }, [apiRequest, userId])
+
+  useEffect(() => {
+    let frame = 0
+    const locate = () => {
+      const target = document.querySelector('.aud-page .aud-head-actions')
+      setActionsTarget(current => current === target ? current : target)
+    }
+    frame = window.requestAnimationFrame(locate)
+    const observer = new MutationObserver(locate)
+    observer.observe(document.body, { childList: true, subtree: true })
+    return () => {
+      window.cancelAnimationFrame(frame)
+      observer.disconnect()
+    }
+  }, [userId])
+
+  useEffect(() => {
+    if (!open) return undefined
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKeyDown = event => {
+      if (event.key === 'Escape' && !sending) setOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.body.style.overflow = previous
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open, sending])
+
+  const recipientLabel = useMemo(() => user ? `${fullName(user)} · ${user.email || 'sem e-mail'}` : `Usuário #${userId}`, [user, userId])
+
+  function openComposer(channel) {
+    setForm(current => ({ ...EMPTY_FORM, channel, type: current.type || 'info' }))
+    setError('')
+    setSuccess('')
+    setOpen(true)
+  }
+
+  function change(field, value) {
+    setForm(current => ({ ...current, [field]: value }))
+    setError('')
+    setSuccess('')
+  }
+
+  function applyTemplate(template) {
+    setForm(current => ({ ...current, subject: template.subject, type: template.type }))
+    setError('')
+    setSuccess('')
+  }
+
+  async function ensureNotificationReach() {
+    const payload = await apiRequest('/admin/ecosystem/notifications/preview', {
+      method: 'POST',
+      body: JSON.stringify({ audience_type: 'users', user_ids: [Number(userId)], app_id: null }),
+    })
+    if (!Number(payload?.deliveries_count || 0)) {
+      throw new Error('Este usuário não possui uma aplicação ativa apta a receber notificações no momento.')
+    }
+    return payload
+  }
+
+  async function sendEmail() {
+    if (!user?.email) throw new Error('Este usuário não possui e-mail cadastrado.')
+    return apiRequest(`/admin/ecosystem/users/${userId}/communications/email`, {
+      method: 'POST',
+      body: JSON.stringify({
+        subject: form.subject.trim(),
+        message: form.message.trim(),
+        action_url: form.action_url.trim() || null,
+      }),
+    })
+  }
+
+  async function sendNotification() {
+    return apiRequest('/admin/ecosystem/notifications', {
+      method: 'POST',
+      body: JSON.stringify({
+        audience_type: 'users',
+        user_ids: [Number(userId)],
+        app_id: null,
+        type: form.type,
+        title: form.subject.trim(),
+        message: form.message.trim(),
+        reference_url: form.action_url.trim() || null,
+        data: { source: 'admin_user_detail', user_id: Number(userId) },
+      }),
+    })
+  }
+
+  async function submit(event) {
+    event.preventDefault()
+    setError('')
+    setSuccess('')
+
+    if (!form.subject.trim() || !form.message.trim()) {
+      setError('Informe o assunto/título e a mensagem antes de enviar.')
+      return
+    }
+    if (!validateHttpsUrl(form.action_url)) {
+      setError('O link opcional deve usar HTTPS.')
+      return
+    }
+
+    setSending(true)
+    const delivered = []
+    try {
+      if (form.channel === 'notification' || form.channel === 'both') await ensureNotificationReach()
+      if (form.channel === 'email' || form.channel === 'both') {
+        await sendEmail()
+        delivered.push('e-mail')
+      }
+      if (form.channel === 'notification' || form.channel === 'both') {
+        await sendNotification()
+        delivered.push('notificação')
+      }
+      setSuccess(`Enviado com sucesso por ${delivered.join(' e ')} para ${fullName(user)}.`)
+      setForm(current => ({ ...EMPTY_FORM, channel: current.channel }))
+    } catch (err) {
+      const partial = delivered.length ? ` ${delivered.join(' e ')} já foi enviado;` : ''
+      setError(`${partial} ${err.message || 'Não foi possível concluir o envio.'}`.trim())
+    } finally {
+      setSending(false)
+    }
+  }
+
+  async function resendAccess() {
+    setSending(true)
+    setError('')
+    setSuccess('')
+    try {
+      const payload = await apiRequest('/admin/ecosystem/users/resend-email', {
+        method: 'POST',
+        body: JSON.stringify({ user_id: Number(userId) }),
+      })
+      setSuccess(payload?.message || 'Orientações de acesso reenviadas.')
+    } catch (err) {
+      setError(err.message || 'Não foi possível reenviar as orientações de acesso.')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const quickActions = <div className="auc-quick-actions" aria-label="Comunicação rápida com o usuário">
+    <button type="button" className="auc-action auc-action--email" onClick={() => openComposer('email')} disabled={loadingUser || !user?.email}>E-mail</button>
+    <button type="button" className="auc-action auc-action--notification" onClick={() => openComposer('notification')} disabled={loadingUser}>Notificação</button>
+    <button type="button" className="auc-action auc-action--both" onClick={() => openComposer('both')} disabled={loadingUser || !user?.email}>Comunicar</button>
+  </div>
+
+  const modal = open ? createPortal(<div className="auc-modal-backdrop" role="presentation" onMouseDown={event => {
+    if (event.target === event.currentTarget && !sending) setOpen(false)
+  }}>
+    <section className="auc-modal" role="dialog" aria-modal="true" aria-labelledby="auc-title">
+      <header className="auc-modal-head">
+        <div>
+          <span>COMUNICAÇÃO INDIVIDUAL</span>
+          <h2 id="auc-title">Enviar para {fullName(user)}</h2>
+          <p>{recipientLabel}</p>
+        </div>
+        <button type="button" className="auc-close" onClick={() => setOpen(false)} disabled={sending} aria-label="Fechar">×</button>
+      </header>
+
+      <div className="auc-channel-grid" aria-label="Canal de envio">
+        {Object.entries(CHANNEL_LABELS).map(([key, label]) => <button
+          key={key}
+          type="button"
+          className={form.channel === key ? 'active' : ''}
+          onClick={() => change('channel', key)}
+          disabled={sending || ((key === 'email' || key === 'both') && !user?.email)}
+        >
+          <b>{label}</b>
+          <small>{key === 'email' ? 'Caixa de entrada' : key === 'notification' ? 'Dentro das aplicações' : 'Dois canais no mesmo envio'}</small>
+        </button>)}
+      </div>
+
+      <div className="auc-template-row">
+        <span>Atalhos</span>
+        <div>{TEMPLATES.map(template => <button key={template.key} type="button" onClick={() => applyTemplate(template)} disabled={sending}>{template.label}</button>)}</div>
+      </div>
+
+      <form className="auc-form" onSubmit={submit}>
+        <label className="auc-wide">Assunto / título
+          <input value={form.subject} onChange={event => change('subject', event.target.value)} maxLength={180} placeholder="Ex.: Informação importante sobre sua conta" autoFocus required/>
+        </label>
+        {(form.channel === 'notification' || form.channel === 'both') && <label>Tipo da notificação
+          <select value={form.type} onChange={event => change('type', event.target.value)}>
+            <option value="info">Informação</option>
+            <option value="general">Geral</option>
+            <option value="success">Sucesso</option>
+            <option value="warning">Aviso</option>
+            <option value="critical">Crítica</option>
+            <option value="maintenance">Manutenção</option>
+            <option value="marketing">Marketing</option>
+          </select>
+        </label>}
+        <label className={(form.channel === 'email' ? 'auc-wide' : '')}>Link HTTPS opcional
+          <input type="url" value={form.action_url} onChange={event => change('action_url', event.target.value)} maxLength={500} placeholder="https://..."/>
+        </label>
+        <label className="auc-wide">Mensagem
+          <textarea value={form.message} onChange={event => change('message', event.target.value)} maxLength={5000} rows={8} placeholder="Escreva a informação que este usuário deve receber..." required/>
+          <small>{form.message.length}/5000 caracteres</small>
+        </label>
+
+        {error && <div className="auc-feedback auc-feedback--error">{error}</div>}
+        {success && <div className="auc-feedback auc-feedback--success">{success}</div>}
+
+        <div className="auc-modal-actions auc-wide">
+          <button type="button" className="auc-secondary" onClick={resendAccess} disabled={sending || !user?.email}>Reenviar acesso</button>
+          <div>
+            <button type="button" className="auc-secondary" onClick={() => setOpen(false)} disabled={sending}>Cancelar</button>
+            <button type="submit" className="auc-primary" disabled={sending || loadingUser}>{sending ? 'Enviando…' : `Enviar ${CHANNEL_LABELS[form.channel]}`}</button>
+          </div>
+        </div>
+      </form>
+    </section>
+  </div>, document.body) : null
+
+  return <>
+    <AdminUserDetailPage {...props}/>
+    {actionsTarget ? createPortal(quickActions, actionsTarget) : null}
+    {modal}
+  </>
+}
