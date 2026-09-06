@@ -24,9 +24,11 @@ export default function PwaInstallButton() {
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js', { scope: '/' }).catch(error => {
-        console.error('[Admin Center PWA] Falha ao registrar service worker:', error)
-      })
+      navigator.serviceWorker.register('/service-worker.js', { scope: '/', updateViaCache: 'none' })
+        .then(registration => registration.update())
+        .catch(error => {
+          console.error('[Admin Center PWA] Falha ao registrar service worker:', error)
+        })
     }
 
     const media = window.matchMedia?.('(max-width: 900px), (pointer: coarse)')
