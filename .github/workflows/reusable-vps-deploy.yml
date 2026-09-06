@@ -163,10 +163,20 @@ jobs:
             exit 24
           fi
 
+          # Atomic frontend deploys create dot-prefixed sibling releases. If a previous
+          # run was interrupted after activation, these directories are deployment
+          # artifacts rather than manual source edits. Clean them before checking the
+          # working tree and ignore any that cannot be removed because of old ownership.
+          for stale_release in .build.next.* .build.previous.* .build.failed.* .dist.next.* .dist.previous.* .dist.failed.*; do
+            [[ -e "$stale_release" ]] || continue
+            sudo rm -rf "$stale_release" 2>/dev/null || rm -rf "$stale_release" || true
+          done
+
           LOCAL_SOURCE_CHANGES="$(git status --porcelain=v1 --untracked-files=all | awk '
             {
               path = substr($0, 4)
               if (path ~ /^(storage\/|bootstrap\/cache\/|node_modules\/|vendor\/|dist\/|build\/|artifacts\/|\.automation-evolve\/)/) next
+              if (path ~ /^\.(build|dist)\.(next|previous|failed)\./) next
               if (path ~ /^(build|dist)\.rollback\.[0-9]{14}\//) next
               if (path ~ /^\.env($|\.)/) next
               if (path ~ /\.bak\.[0-9]{8}-[0-9]{6}-[0-9]+$/) next
