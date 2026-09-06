@@ -1,5 +1,10 @@
 import { fetchContentEntry, trackDiscoveryEvent } from './discoveryApi.js'
 import { marketingServices } from './marketingHubContent.js'
+import {
+  captureMarketingAttribution,
+  marketingAttributionMetadata,
+  withMarketingAttribution,
+} from './utils/marketingAttribution.js'
 
 const APP_SLUG = 'peter-tecnet'
 const flag = '__peterMarketingConversionBridgeInstalled'
@@ -56,11 +61,14 @@ function classify(anchor) {
 }
 
 function installTracking() {
+  const attribution = captureMarketingAttribution()
+  const attributionMetadata = marketingAttributionMetadata(attribution)
+
   trackDiscoveryEvent('page_view', {
     entityType: 'marketing_page',
     entityId: window.location.pathname,
     application: APP_SLUG,
-    metadata: { title: document.title },
+    metadata: { title: document.title, ...attributionMetadata },
   })
 
   document.addEventListener('click', event => {
@@ -68,15 +76,23 @@ function installTracking() {
     if (!anchor) return
     const classification = classify(anchor)
     if (!classification) return
+
+    let destination = anchor.getAttribute('href')
+    if (classification.type === 'conversion' && classification.id === 'quote') {
+      destination = withMarketingAttribution(destination, attribution)
+      anchor.setAttribute('href', destination)
+    }
+
     trackDiscoveryEvent('cta_click', {
       entityType: classification.type,
       entityId: classification.id,
       application: APP_SLUG,
       metadata: {
-        destination: anchor.getAttribute('href'),
+        destination,
         label: String(anchor.textContent || '').trim().slice(0, 160),
         position: positionFor(anchor),
         source_path: window.location.pathname,
+        ...attributionMetadata,
       },
     })
   }, { passive: true })
