@@ -78,6 +78,7 @@ if (!telemetryV3.includes("const SCHEMA = '3'")) throw new Error('Telemetry v3 m
 if (!telemetryV3.includes('trackAction:')) throw new Error('Telemetry SDK must expose the shared semantic trackAction helper.')
 if (!telemetryV3.includes("track: (type, details) => runtime ? (runtime.track(type, details), true) : false")) throw new Error('Telemetry track() must report accepted events truthfully.')
 if (!telemetryV3.includes("trackAction: (operation, details) => runtime ? (runtime.trackAction(operation, details), true) : false")) throw new Error('Telemetry trackAction() must report accepted events truthfully.')
+if (!telemetryV3.includes('previousTelemetry.runtime?.stop?.()')) throw new Error('Telemetry SDK must safely hand over from older runtime versions.')
 if (!telemetryV3.includes('entityContext(')) throw new Error('Telemetry SDK must preserve generic entity context for API actions.')
 if (!telemetryV3.includes("if (action.type === 'logout') flush(true)")) throw new Error('Telemetry SDK must preserve the logout attribution flush.')
 if (!telemetryV3.includes("storageGet('localStorage', key)")) throw new Error('Telemetry token lookup must tolerate blocked localStorage.')
