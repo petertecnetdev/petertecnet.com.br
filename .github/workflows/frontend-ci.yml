@@ -23,6 +23,8 @@ jobs:
         run: npm run lint
       - name: Validate ecosystem SDK
         run: npm run test:ecosystem
+      - name: Validate deploy safety guard
+        run: bash scripts/validate-deploy-safety-guard.sh
       - name: Production build
         run: npm run build
       - name: Validate Admin Center in real browser
