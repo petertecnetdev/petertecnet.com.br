@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useRef } from 'react'
 
-const SDK_VERSION = '3.0.0'
-const TELEMETRY_VERSION = '3.3.1'
+const SDK_VERSION = '3.0.1'
+const TELEMETRY_VERSION = '3.3.2'
 const INSIGHTS_VERSION = '1.0.0'
 const SDK_URL = `https://petertecnet.com.br/ecosystem/peter-ecosystem-v3.js?v=${SDK_VERSION}`
 const TELEMETRY_URL = `https://petertecnet.com.br/ecosystem/peter-telemetry-v3.js?v=${TELEMETRY_VERSION}`
