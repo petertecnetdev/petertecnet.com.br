@@ -40,18 +40,22 @@ function Section({ number, title, description, children }) {
   return <section className="aer-card"><header><span>{number}</span><div><h3>{title}</h3><p>{description}</p></div></header>{children}</section>
 }
 
+function resourceKind(action) {
+  return action?.resourceKind || action?.key || 'item'
+}
+
 function initialForm(action, app, establishment) {
-  const key = action.key
-  if (key === 'event') return {
+  const kind = resourceKind(action)
+  if (kind === 'event') return {
     title: '', description: '', category: '', event_format: 'in_person', start_date: '', end_date: '',
     venue: establishmentName(establishment), address: establishment?.address || '', city: establishment?.city || '', uf: establishment?.uf || '',
     online_platform: '', online_url: '', max_attendees: '', contact_email: establishment?.email || '', contact_phone: establishment?.phone || '',
     is_published: false, is_approved: true, is_private: false, requires_approval: false, approval_message: '',
   }
-  if (key === 'employer') return { user_id: '', role: '', permissions: '' }
-  if (key === 'appointment') return { client_id: '', attendant_id: '', item_id: '', order_datetime: '', payment_method: 'pix', notes: '' }
+  if (kind === 'employer') return { user_id: '', role: '', permissions: '' }
+  if (kind === 'appointment') return { client_id: '', attendant_id: '', item_id: '', order_datetime: '', payment_method: 'pix', notes: '' }
   return {
-    name: '', type: appKey(app).includes('rasoio') ? 'service' : 'item', price: '', category: '', stock: '', duration: '', description: '',
+    name: '', type: action?.defaultType || (appKey(app).includes('rasoio') ? 'service' : 'item'), price: '', category: '', stock: '', duration: '', description: '',
   }
 }
 
@@ -62,7 +66,7 @@ export default function AdminEstablishmentResourceEditor({ action, app, establis
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  const kind = action.key
+  const kind = resourceKind(action)
   const title = action.label || 'Criar recurso'
   const activeItems = useMemo(() => {
     const services = context.items.filter(item => item.type === 'service')
@@ -201,7 +205,7 @@ export default function AdminEstablishmentResourceEditor({ action, app, establis
         {!loadingContext && !activeItems.length && <div className="aer-feedback warning">Este establishment ainda não possui serviço/item ativo nesta aplicação.</div>}
       </>}
 
-      {kind === 'item' && <Section number="01" title="Novo item" description="Item genérico vinculado diretamente ao establishment e à aplicação."><div className="aer-grid">
+      {kind === 'item' && <Section number="01" title={action?.entityLabel ? `Novo ${action.entityLabel}` : 'Novo item'} description={action?.description || 'Item genérico vinculado diretamente ao establishment e à aplicação.'}><div className="aer-grid">
         <Field label="Nome *"><input value={form.name} onChange={e => patch({ name: e.target.value })} required /></Field>
         <Field label="Tipo *"><select value={form.type} onChange={e => patch({ type: e.target.value })}><option value="item">Item</option><option value="product">Produto</option><option value="service">Serviço</option><option value="ticket">Ingresso</option></select></Field>
         <Field label="Preço (R$) *"><input type="number" min="0" step="0.01" value={form.price} onChange={e => patch({ price: e.target.value })} required /></Field>
