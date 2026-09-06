@@ -8,6 +8,7 @@ const PAGE_DEFINITIONS = [
   { key: 'users', slug: 'usuarios', label: 'Usuários', selector: '#users', aliases: ['users', 'usuarios', 'usuários'] },
   { key: 'establishments', slug: 'estabelecimentos', label: 'Estabelecimentos', selector: '#establishments-admin-integration', aliases: ['establishments', 'estabelecimentos'] },
   { key: 'items', slug: 'itens', label: 'Itens', selector: '#items-admin-integration', aliases: ['items', 'itens'] },
+  { key: 'important-events', slug: 'eventos-importantes', label: 'Eventos importantes', selector: '#important-events', aliases: ['important events', 'eventos importantes', 'ocorrencias', 'ocorrências'] },
   { key: 'notifications', slug: 'notificacoes', label: 'Notificações', selector: '#notifications', aliases: ['notifications', 'notificacoes', 'notificações'] },
   { key: 'activity', slug: 'atividade', label: 'Atividade', selector: '#activity', aliases: ['activity', 'atividade'] },
 ]
@@ -48,6 +49,7 @@ function pageFromButton(button) {
   if (!(button instanceof HTMLElement)) return null
   if (button.dataset.establishmentsAdminNav) return 'establishments'
   if (button.dataset.itemsAdminNav) return 'items'
+  if (button.dataset.importantEventsNav) return 'important-events'
   if (button.dataset.adminPageTarget && PAGE_KEYS.has(button.dataset.adminPageTarget)) return button.dataset.adminPageTarget
 
   const text = normalize(button.textContent)
