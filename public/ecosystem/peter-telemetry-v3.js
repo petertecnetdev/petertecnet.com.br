@@ -1,7 +1,7 @@
 (() => {
   'use strict'
 
-  const VERSION = '3.3.3'
+  const VERSION = '3.3.4'
   const SCHEMA = '3'
   const API_FALLBACK = 'https://api.petertecnet.com.br/api'
   const TOKEN_KEYS = ['petertecnet_admin_token', 'petertecnet_token', 'token', 'access_token', 'auth_token']
@@ -9,6 +9,13 @@
   const PRIVATE_TEXT = /@|\b\d{8,}\b/
 
   if (window.PeterTecnetTelemetry?.version === VERSION) return
+
+  // Stop an older Peter Tecnet collector before capturing browser primitives.
+  // This prevents stacked fetch/XHR/history wrappers during SDK version handover.
+  const previousTelemetry = window.PeterTecnetTelemetry
+  if (previousTelemetry?.version && previousTelemetry.version !== VERSION) {
+    try { previousTelemetry.runtime?.stop?.() } catch {}
+  }
 
   const nativeFetch = window.fetch?.bind(window)
   const nativeXhrOpen = window.XMLHttpRequest?.prototype?.open
