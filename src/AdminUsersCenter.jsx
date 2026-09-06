@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import AdminUserDetailPage from './AdminUserDetailPage.jsx'
+import AdminUserDetailPage from './AdminUserDetailExperience.jsx'
 import { confirmAction } from './utils/uiDialog.js'
 import './AdminUsersCenter.css'
 
