@@ -265,9 +265,28 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
     }
   }
 
+  function switchTab(event, nextTab) {
+    event.preventDefault()
+    if (nextTab === tab) return
+
+    const page = event.currentTarget.closest('.aud-page')
+    const currentScrollY = window.scrollY
+    const currentScrollX = window.scrollX
+
+    if (page) {
+      const currentHeight = Math.ceil(page.getBoundingClientRect().height)
+      if (currentHeight > 0) page.style.minHeight = `${currentHeight}px`
+    }
+
+    setTab(nextTab)
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: currentScrollY, left: currentScrollX, behavior: 'auto' })
+    })
+  }
+
   if (loading) return <div className="aud-page aud-loading"><div className="aud-loader"/><p>Montando a visão 360° do usuário…</p></div>
 
-  if (!user) return <div className="aud-page"><button className="aud-back" onClick={onBack}>← Voltar para usuários</button><div className="aud-error">{error || 'Não foi possível carregar este usuário.'}</div></div>
+  if (!user) return <div className="aud-page"><button type="button" className="aud-back" onClick={onBack}>← Voltar para usuários</button><div className="aud-error">{error || 'Não foi possível carregar este usuário.'}</div></div>
 
   const roleLabels = {
     producer: 'Produtor', participant: 'Participante', promoter: 'Promoter', barber: 'Barbeiro',
@@ -277,8 +296,8 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
 
   return <div className="aud-page">
     <div className="aud-page-head">
-      <button className="aud-back" onClick={onBack}>← Voltar para usuários</button>
-      <div className="aud-head-actions"><button className="aud-secondary" onClick={() => { void loadDetail(); void loadEmailDeferralState() }} disabled={loading}>↻ Atualizar ficha</button></div>
+      <button type="button" className="aud-back" onClick={onBack}>← Voltar para usuários</button>
+      <div className="aud-head-actions"><button type="button" className="aud-secondary" onClick={() => { void loadDetail(); void loadEmailDeferralState() }} disabled={loading}>↻ Atualizar ficha</button></div>
     </div>
 
     {error && <div className="aud-error">{error}</div>}
@@ -318,7 +337,7 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
     <nav className="aud-tabs" aria-label="Seções do usuário">
       {[
         ['overview', 'Visão geral'], ['resources', 'Vínculos e recursos'], ['activity', 'Atividades'], ['security', 'Segurança'],
-      ].map(([key, label]) => <button key={key} className={tab === key ? 'active' : ''} onClick={() => setTab(key)}>{label}</button>)}
+      ].map(([key, label]) => <button type="button" key={key} className={tab === key ? 'active' : ''} aria-current={tab === key ? 'page' : undefined} onClick={event => switchTab(event, key)}>{label}</button>)}
     </nav>
 
     {tab === 'overview' && <div className="aud-section-stack">
@@ -354,7 +373,7 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
             const platform = platforms.find(item => Number(item.application?.id) === Number(application.id))
             const access = platform?.access
             const isActive = access?.status === 'active'
-            return <div key={application.id} className="aud-access-row"><div><ApplicationMark application={application}/><span><b>{application.name}</b><small>{access ? `${statusLabel(access.status)} · ${access.role || 'member'} · desde ${dateOnly(access.joined_at)}` : 'Sem vínculo atual'}</small></span></div><button className={isActive ? 'aud-danger' : 'aud-primary'} disabled={busyAppId === application.id} onClick={() => toggleAccess(application)}>{busyAppId === application.id ? 'Salvando…' : isActive ? 'Bloquear' : 'Liberar acesso'}</button></div>
+            return <div key={application.id} className="aud-access-row"><div><ApplicationMark application={application}/><span><b>{application.name}</b><small>{access ? `${statusLabel(access.status)} · ${access.role || 'member'} · desde ${dateOnly(access.joined_at)}` : 'Sem vínculo atual'}</small></span></div><button type="button" className={isActive ? 'aud-danger' : 'aud-primary'} disabled={busyAppId === application.id} onClick={() => toggleAccess(application)}>{busyAppId === application.id ? 'Salvando…' : isActive ? 'Bloquear' : 'Liberar acesso'}</button></div>
           }) : <Empty>Nenhuma aplicação cadastrada.</Empty>}
         </div>
       </section>
@@ -362,7 +381,7 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
 
     {tab === 'resources' && <div className="aud-section-stack">
       <section className="aud-card aud-filter-card">
-        <header><div><span>FILTROS</span><h3>Vínculos e recursos do ecossistema</h3></div><button className="aud-secondary" onClick={() => setResourceFilters({ q: '', app_id: '', resource: 'all' })}>Limpar</button></header>
+        <header><div><span>FILTROS</span><h3>Vínculos e recursos do ecossistema</h3></div><button type="button" className="aud-secondary" onClick={() => setResourceFilters({ q: '', app_id: '', resource: 'all' })}>Limpar</button></header>
         <div className="aud-resource-filters">
           <label className="aud-filter-wide">Buscar<input value={resourceFilters.q} onChange={event => setResourceFilters({ ...resourceFilters, q: event.target.value })} placeholder="Nome, categoria, estabelecimento, evento, função…"/></label>
           <label>Plataforma<select value={resourceFilters.app_id} onChange={event => setResourceFilters({ ...resourceFilters, app_id: event.target.value })}><option value="">Todas</option>{applicationOptions.map(app => <option key={app.id} value={app.id}>{app.name}</option>)}</select></label>
@@ -391,7 +410,7 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
           <label>Até<input type="date" value={activityFilters.to} onChange={event => setActivityFilters({ ...activityFilters, to: event.target.value })}/></label>
           <label>Ordenar<select value={activityFilters.sort} onChange={event => setActivityFilters({ ...activityFilters, sort: event.target.value })}><option value="newest">Mais recentes</option><option value="oldest">Mais antigas</option></select></label>
           <label>Por página<select value={activityFilters.per_page} onChange={event => setActivityFilters({ ...activityFilters, per_page: event.target.value })}><option value="20">20</option><option value="50">50</option><option value="100">100</option></select></label>
-          <div className="aud-filter-actions aud-filter-wide"><button className="aud-primary" disabled={activityLoading}>{activityLoading ? 'Filtrando…' : 'Aplicar filtros'}</button><button type="button" className="aud-secondary" onClick={clearActivityFilters}>Limpar</button></div>
+          <div className="aud-filter-actions aud-filter-wide"><button type="submit" className="aud-primary" disabled={activityLoading}>{activityLoading ? 'Filtrando…' : 'Aplicar filtros'}</button><button type="button" className="aud-secondary" onClick={clearActivityFilters}>Limpar</button></div>
         </form>
       </section>
 
@@ -402,7 +421,7 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
           <i className={`aud-activity-dot ${tone(row.outcome || row.severity)}`}/>
           <div className="aud-activity-main"><div className="aud-activity-title"><b>{row.name || row.type || 'Interação'}</b><span className={`aud-status ${tone(row.outcome || row.severity)}`}>{row.outcome || row.severity || 'registrada'}</span></div><p>{row.application?.name || 'Peter Tecnet'} · {dateTime(row.created_at)}</p><div className="aud-activity-meta">{row.route && <span>{row.method || 'GET'} {row.route}</span>}{row.entity_type && <span>{row.entity_type}{row.entity_id ? ` #${row.entity_id}` : ''}</span>}{row.environment && <span>{row.environment}</span>}{row.request_id && <span>req {row.request_id}</span>}</div></div>
         </article>)}</div> : <Empty>Nenhuma atividade corresponde aos filtros atuais.</Empty>}
-        <footer className="aud-pagination"><span>{activityPagination.from && activityPagination.to ? `${activityPagination.from}–${activityPagination.to} de ${activityPagination.total}` : `${activityPagination.total || 0} registros`}</span><div><button className="aud-secondary" disabled={!activityPagination.previous_page || activityLoading} onClick={() => loadActivity(activityPagination.previous_page, activityFilters)}>← Anterior</button><button className="aud-secondary" disabled={!activityPagination.next_page || activityLoading} onClick={() => loadActivity(activityPagination.next_page, activityFilters)}>Próxima →</button></div></footer>
+        <footer className="aud-pagination"><span>{activityPagination.from && activityPagination.to ? `${activityPagination.from}–${activityPagination.to} de ${activityPagination.total}` : `${activityPagination.total || 0} registros`}</span><div><button type="button" className="aud-secondary" disabled={!activityPagination.previous_page || activityLoading} onClick={() => loadActivity(activityPagination.previous_page, activityFilters)}>← Anterior</button><button type="button" className="aud-secondary" disabled={!activityPagination.next_page || activityLoading} onClick={() => loadActivity(activityPagination.next_page, activityFilters)}>Próxima →</button></div></footer>
       </section>
     </div>}
 
