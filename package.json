@@ -9,7 +9,7 @@
     "lint": "oxlint",
     "test:ecosystem": "node scripts/validate-ecosystem-sdk.mjs && node scripts/validate-frontend-core.mjs",
     "test:frontend-core": "node scripts/validate-frontend-core.mjs",
-    "test:admin-ui": "node scripts/validate-admin-navigation.mjs && node scripts/validate-admin-browser.mjs && node scripts/validate-admin-navigation-browser.mjs",
+    "test:admin-ui": "node scripts/validate-admin-ticket-sales.mjs && node scripts/validate-admin-ticket-sales-browser.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
