@@ -491,13 +491,16 @@
     const observer = new MutationObserver(() => scheduleScreen('dom'))
     observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true })
 
+    const onPopState = () => navigation('popstate')
+    const onHashChange = () => navigation('hashchange')
+
     document.addEventListener('click', onClick, true)
     document.addEventListener('submit', onSubmit, true)
     document.addEventListener('change', onChange, true)
     document.addEventListener('input', onInput, true)
     document.addEventListener('visibilitychange', onVisibility)
-    window.addEventListener('popstate', () => navigation('popstate'))
-    window.addEventListener('hashchange', () => navigation('hashchange'))
+    window.addEventListener('popstate', onPopState)
+    window.addEventListener('hashchange', onHashChange)
     window.addEventListener('error', onError)
     window.addEventListener('unhandledrejection', onRejection)
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -548,7 +551,20 @@
       },
       flush: () => flush(true),
       stop: () => {
+        clearTimeout(screenTimer)
+        clearTimeout(inputTimer)
         clearInterval(flushTimer)
+        document.removeEventListener('click', onClick, true)
+        document.removeEventListener('submit', onSubmit, true)
+        document.removeEventListener('change', onChange, true)
+        document.removeEventListener('input', onInput, true)
+        document.removeEventListener('visibilitychange', onVisibility)
+        window.removeEventListener('popstate', onPopState)
+        window.removeEventListener('hashchange', onHashChange)
+        window.removeEventListener('error', onError)
+        window.removeEventListener('unhandledrejection', onRejection)
+        window.removeEventListener('scroll', onScroll)
+        window.removeEventListener('pagehide', endSession)
         endSession()
         observer.disconnect()
         window.fetch = nativeFetch

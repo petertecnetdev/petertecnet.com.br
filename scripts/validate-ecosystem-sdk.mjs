@@ -81,5 +81,8 @@ if (!telemetryV3.includes("if (action.type === 'logout') flush(true)")) throw ne
 if (!telemetryV3.includes("storageGet('localStorage', key)")) throw new Error('Telemetry token lookup must tolerate blocked localStorage.')
 if (!telemetryV3.includes("storageGet('sessionStorage', sessionKey)")) throw new Error('Telemetry session lookup must tolerate blocked sessionStorage.')
 if (/\b(?:localStorage|sessionStorage)\.getItem\(/.test(telemetryV3)) throw new Error('Telemetry runtime must not use unguarded Web Storage reads.')
+if (!telemetryV3.includes("window.removeEventListener('popstate', onPopState)")) throw new Error('Telemetry stop must detach navigation listeners.')
+if (!telemetryV3.includes("document.removeEventListener('click', onClick, true)")) throw new Error('Telemetry stop must detach document interaction listeners.')
+if (!telemetryV3.includes("window.removeEventListener('pagehide', endSession)")) throw new Error('Telemetry stop must detach lifecycle listeners.')
 
 console.log('Peter Tecnet Ecosystem + Insights SDK contracts OK')
