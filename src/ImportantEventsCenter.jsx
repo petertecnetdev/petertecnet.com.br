@@ -27,6 +27,17 @@ function GlobeIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.5 3.7 5.5 3.7 9s-1.3 6.5-3.7 9c-2.4-2.5-3.7-5.5-3.7-9S9.6 5.5 12 3Z"/></svg>
 }
 
+function openImportantEventsWorkspace() {
+  const navButton = document.querySelector('[data-important-events-nav], [data-admin-page-target="important-events"]')
+  if (navButton instanceof HTMLButtonElement) {
+    navButton.click()
+    return
+  }
+
+  const target = document.getElementById('important-events')
+  target?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 export function ImportantEventsBell({ request }) {
   const [open, setOpen] = useState(false)
   const [events, setEvents] = useState([])
@@ -71,7 +82,7 @@ export function ImportantEventsBell({ request }) {
   }, [open])
 
   async function openEvent(event) {
-    if (!event.is_read) {
+    if (!event.is_read && event.id) {
       try {
         await request(`/admin/ecosystem/important-events/${event.id}/read`, { method: 'PATCH' })
         setUnread(value => Math.max(0, value - 1))
@@ -82,9 +93,7 @@ export function ImportantEventsBell({ request }) {
       }
     }
     setOpen(false)
-    const target = document.getElementById('important-events')
-    target?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}#important-events`)
+    openImportantEventsWorkspace()
   }
 
   async function markAll() {
