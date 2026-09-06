@@ -18,7 +18,13 @@
   const slug = (value, limit = 100) => clean(value, 180)
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
     .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, limit)
-  const token = () => TOKEN_KEYS.map(key => localStorage.getItem(key)).find(Boolean) || null
+  const storageGet = (storageName, key) => {
+    try { return window[storageName]?.getItem?.(key) || null } catch { return null }
+  }
+  const storageSet = (storageName, key, value) => {
+    try { window[storageName]?.setItem?.(key, value); return true } catch { return false }
+  }
+  const token = () => TOKEN_KEYS.map(key => storageGet('localStorage', key)).find(Boolean) || null
   const nowIso = () => new Date().toISOString()
   const page = () => window.location.pathname
 
@@ -216,8 +222,8 @@
     const apiBase = clean(options.apiBaseUrl || inferApiBase(), 500).replace(/\/+$/, '')
     const endpoint = `${apiBase}/interactions/batch`
     const sessionKey = `peter_telemetry_session_${appSlug}`
-    const sessionId = sessionStorage.getItem(sessionKey) || uid()
-    try { sessionStorage.setItem(sessionKey, sessionId) } catch {}
+    const sessionId = storageGet('sessionStorage', sessionKey) || uid()
+    storageSet('sessionStorage', sessionKey, sessionId)
 
     window.__peterTelemetryStarted = true
     window.__peterTelemetryV3Started = true
