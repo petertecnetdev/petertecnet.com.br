@@ -1,0 +1,120 @@
+name: VPS Storage Hygiene
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/vps-storage-hygiene.yml'
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    name: Reclaim stale automation storage
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Validate VPS configuration
+        id: config
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$VPS_HOST" || -z "$VPS_USER" || -z "$VPS_SSH_KEY" ]]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::VPS cleanup is installed but credentials are not configured."
+            exit 0
+          fi
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+          echo "port=${VPS_PORT:-22}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure SSH
+        if: steps.config.outputs.enabled == 'true'
+        shell: bash
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          : > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Remove stale disposable workspaces
+        if: steps.config.outputs.enabled == 'true'
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ steps.config.outputs.port }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -Eeuo pipefail
+          ssh -T \
+            -o StrictHostKeyChecking=accept-new \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            -o ConnectTimeout=20 \
+            -o ConnectionAttempts=3 \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=4 \
+            -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" 'bash -s' <<'REMOTE_SCRIPT'
+          set -Eeuo pipefail
+
+          before_kb="$(df -Pk / | awk 'NR==2 {print $4}')"
+          reclaimed_kb=0
+          removed=0
+
+          # Only Peter Tecnet automation/build workspaces under /tmp are eligible.
+          # Production trees, databases, uploads, backups, logs and arbitrary /tmp data
+          # are outside this cleanup. A .keep-storage marker opts a workspace out.
+          while IFS= read -r -d '' candidate; do
+            [[ "$(dirname "$candidate")" == "/tmp" ]] || continue
+            [[ ! -e "$candidate/.keep-storage" ]] || continue
+
+            in_use=0
+            for cwd in /proc/[0-9]*/cwd; do
+              target="$(readlink "$cwd" 2>/dev/null || true)"
+              case "$target" in
+                "$candidate"|"$candidate"/*) in_use=1; break ;;
+              esac
+            done
+            if (( in_use )); then
+              echo "Keeping active temporary workspace: $candidate"
+              continue
+            fi
+
+            candidate_kb="$(du -sk "$candidate" 2>/dev/null | awk '{print $1}' || true)"
+            candidate_kb="${candidate_kb:-0}"
+            echo "Reclaiming stale disposable workspace: $candidate (${candidate_kb} KiB)"
+            if rm -rf "$candidate" 2>/dev/null || sudo -n rm -rf "$candidate" 2>/dev/null; then
+              reclaimed_kb=$((reclaimed_kb + candidate_kb))
+              removed=$((removed + 1))
+            else
+              echo "::warning::Could not remove $candidate; leaving it untouched."
+            fi
+          done < <(find /tmp -mindepth 1 -maxdepth 1 -type d -mmin +1800 \
+            \( -name 'petertecnet-build-*' \
+               -o -name 'cutinapp-*' \
+               -o -name 'api-*' \
+               -o -name 'admincenter-*' \) -print0 2>/dev/null)
+
+          after_kb="$(df -Pk / | awk 'NR==2 {print $4}')"
+          echo "Removed stale workspaces: $removed"
+          echo "Estimated reclaimed storage: $((reclaimed_kb / 1024)) MiB"
+          echo "Root free space: $((before_kb / 1024)) MiB -> $((after_kb / 1024)) MiB"
+
+          min_free_kb=$((3 * 1024 * 1024))
+          if (( after_kb < min_free_kb )); then
+            echo "::error::VPS remains below 3 GiB free after safe temporary cleanup."
+            exit 28
+          fi
+          REMOTE_SCRIPT
