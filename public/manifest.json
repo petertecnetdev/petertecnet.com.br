@@ -16,16 +16,27 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/petertecnetlogo.png?v=20260906",
+      "src": "/petertecnetlogo.png?v=20260907-pwa-v1",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Serviços",
+      "short_name": "Serviços",
+      "url": "/servicos/?source=pwa-shortcut"
     },
     {
-      "src": "/petertecnetlogo.png?v=20260906",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "name": "Portfólio",
+      "short_name": "Portfólio",
+      "url": "/portfolio?source=pwa-shortcut"
+    },
+    {
+      "name": "Orçamento",
+      "short_name": "Orçamento",
+      "url": "/orcamento?source=pwa-shortcut"
     }
   ]
 }
