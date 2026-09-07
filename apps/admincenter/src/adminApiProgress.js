@@ -89,7 +89,7 @@ export async function apiProgressRequest(path, options = {}, onProgress) {
   }
 
   if (state.error) throw new Error(state.error)
-  if (state.result === null) throw new Error('A criação da agenda terminou sem confirmação do servidor. Tente novamente; eventos já criados serão reutilizados.')
+  if (state.result === null) throw new Error('A operação terminou sem confirmação do servidor. Atualize os dados antes de tentar novamente.')
 
   return state.result
 }
