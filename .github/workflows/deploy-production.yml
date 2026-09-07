@@ -29,20 +29,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check public routes, bootstrap, CRM intake and live sitemap
+      - name: Check public routes, bootstrap, PWA, CRM intake and live sitemap
         shell: bash
         run: |
           set -euo pipefail
 
           urls=(
             "https://petertecnet.com.br/"
-            "https://petertecnet.com.br/admin/cognition"
             "https://petertecnet.com.br/blog"
             "https://petertecnet.com.br/blog/como-criar-catalogo-digital-para-empresa"
             "https://petertecnet.com.br/servicos/desenvolvimento-de-software"
             "https://petertecnet.com.br/portfolio"
             "https://petertecnet.com.br/sobre"
             "https://petertecnet.com.br/orcamento"
+            "https://petertecnet.com.br/manifest.json"
+            "https://petertecnet.com.br/service-worker.js"
             "https://petertecnet.com.br/robots.txt"
             "https://api.petertecnet.com.br/api/v1/discovery/sitemap.xml?origin=https%3A%2F%2Fpetertecnet.com.br"
           )
@@ -65,10 +66,38 @@ jobs:
             echo "Verified: $label"
           }
 
+          assert_not_contains() {
+            local label="$1"
+            local needle="$2"
+            local haystack="$3"
+            if grep -Fq "$needle" <<<"$haystack"; then
+              echo "Verification failed: $label still contains forbidden '$needle'." >&2
+              exit 1
+            fi
+            echo "Verified absence: $label"
+          }
+
           homepage_html="$(curl --fail --silent --show-error --location --max-time 20 \
             https://petertecnet.com.br/)"
           assert_contains "landing root mount" 'id="root"' "$homepage_html"
           assert_contains "landing official logo" "petertecnetlogo.png" "$homepage_html"
+          assert_contains "landing processing indicator" "pt-processing-indicator" "$homepage_html"
+          assert_contains "landing service worker registration" "service-worker.js" "$homepage_html"
+          assert_not_contains "landing html" "favicon.svg" "$homepage_html"
+          assert_not_contains "landing html" "pwa-admin" "$homepage_html"
+
+          manifest="$(curl --fail --silent --show-error --location --max-time 20 \
+            https://petertecnet.com.br/manifest.json)"
+          assert_contains "landing manifest name" '"name": "Peter Tecnet"' "$manifest"
+          assert_contains "landing manifest icon" "petertecnetlogo.png" "$manifest"
+          assert_not_contains "landing manifest" "pwa-admin" "$manifest"
+
+          worker="$(curl --fail --silent --show-error --location --max-time 20 \
+            https://petertecnet.com.br/service-worker.js)"
+          assert_contains "landing service worker cache namespace" "petertecnet-landing-pwa-v1" "$worker"
+          assert_contains "landing service worker admin bypass" "url.pathname.startsWith('/admin')" "$worker"
+          assert_not_contains "landing service worker identity" "<title>Admin Center" "$worker"
+          assert_not_contains "landing service worker active cache" "const CACHE_VERSION = 'petertecnet-admin-pwa" "$worker"
 
           robots="$(curl --fail --silent --show-error --location --max-time 20 \
             https://petertecnet.com.br/robots.txt)"
@@ -78,8 +107,6 @@ jobs:
             'https://api.petertecnet.com.br/api/v1/discovery/sitemap.xml?origin=https%3A%2F%2Fpetertecnet.com.br')"
           assert_contains "discovery sitemap" "<urlset" "$sitemap"
 
-          # Non-mutating CRM probe: an empty inquiry must reach validation and return 422.
-          # Any 401/403/404/5xx response means the public app context/capability route is broken.
           inquiry_status="$(curl --silent --show-error --output /tmp/inquiry-validation.json \
             --write-out '%{http_code}' --max-time 20 \
             --request POST --header 'Accept: application/json' \
