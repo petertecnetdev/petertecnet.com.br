@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import AdminUserDetailPage from './AdminUserDetailPage.jsx'
 import './AdminUserCommunication.css'
+import './AdminUserCommunicationShell.css'
 
 const EMPTY_FORM = {
   channel: 'both',
@@ -264,8 +265,8 @@ export default function AdminUserDetailExperience(props) {
     </section>
   </div>, document.body) : null
 
-  return <>
-    <div className="aud-page auc-communication-direct" data-user-communication-direct="true">
+  return <div className="auc-user-detail-shell" data-user-detail-experience="true">
+    <div className="auc-communication-direct" data-user-communication-direct="true">
       <section className="aud-card">
         <header>
           <div>
@@ -279,5 +280,5 @@ export default function AdminUserDetailExperience(props) {
     </div>
     <AdminUserDetailPage {...props}/>
     {modal}
-  </>
+  </div>
 }
