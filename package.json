@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/generate-seo-pages.mjs && node scripts/generate-discovery-pages.mjs && node scripts/generate-intent-pages.mjs && node scripts/generate-marketing-pages.mjs",
+    "build": "vite build && node scripts/generate-seo-pages.mjs && node scripts/generate-discovery-pages.mjs && node scripts/generate-intent-pages.mjs && node scripts/generate-marketing-pages.mjs && node scripts/validate-landing-pwa.mjs",
     "lint": "oxlint",
     "test:ecosystem": "node scripts/validate-ecosystem-sdk.mjs && node scripts/validate-frontend-core.mjs",
     "test:frontend-core": "node scripts/validate-frontend-core.mjs",
+    "test:landing-pwa": "node scripts/validate-landing-pwa.mjs",
     "test:admin-ui": "node scripts/validate-admin-ticket-sales.mjs && node scripts/validate-admin-ticket-sales-browser.mjs",
     "preview": "vite preview"
   },
