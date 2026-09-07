@@ -266,6 +266,7 @@
 .admin-shell[data-admin-page="operations"] .content > [data-admin-page-key="operations"],
 .admin-shell[data-admin-page="financial"] .content > [data-admin-page-key="financial"],
 .admin-shell[data-admin-page="applications"] .content > [data-admin-page-key="applications"],
+.admin-shell[data-admin-page="cutinapp"] .content > [data-admin-page-key="cutinapp"],
 .admin-shell[data-admin-page="users"] .content > [data-admin-page-key="users"],
 .admin-shell[data-admin-page="establishments"] .content > [data-admin-page-key="establishments"],
 .admin-shell[data-admin-page="items"] .content > [data-admin-page-key="items"],
@@ -295,6 +296,7 @@
 .admin-shell .est-table-wrap,
 .admin-shell .notification-table-wrap,
 .admin-shell .notifications-layout,
+.admin-shell .cutinapp-admin-integration,
 .admin-shell .establishments-admin-integration,
 .admin-shell .admin-items-section {
   max-width: 100%;

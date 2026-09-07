@@ -3,6 +3,7 @@ import NotificationsCenter from './NotificationsCenter'
 import AdminUsersCenter from './AdminUsersCenter.jsx'
 import AdminEstablishmentsPage from './AdminEstablishmentsPageV2.jsx'
 import AdminItemsManager from './AdminItemsManager.jsx'
+import AdminCutinappCenter from './AdminCutinappCenter.jsx'
 import AdminModuleBoundary from './AdminModuleBoundary.jsx'
 import ExecutiveOverview from './ExecutiveOverview.jsx'
 import { useAdminAuth } from './adminAuth.js'
@@ -14,6 +15,7 @@ const navItems = [
   ['operations', 'Operações', '◈', 'operacoes'],
   ['financial', 'Financeiro', '◒', 'financeiro'],
   ['applications', 'Aplicações', '◇', 'aplicacoes'],
+  ['cutinapp', 'Cutinapp', '◉', 'cutinapp'],
   ['users', 'Usuários', '◎', 'usuarios'],
   ['establishments', 'Estabelecimentos', '▰', 'estabelecimentos'],
   ['items', 'Itens', '▣', 'itens'],
@@ -472,6 +474,10 @@ function Dashboard({ user, onLogout }) {
                 {app.url && <a href={app.url} target="_blank" rel="noreferrer">Abrir aplicação ↗</a>}
               </article>) : <Empty text="Nenhuma aplicação disponível na leitura atual."/>}
             </div>
+          </section>
+
+          <section id="cutinapp-admin-integration" className="section-anchor cutinapp-admin-integration" data-admin-page-key="cutinapp">
+            <AdminModuleBoundary name="Cutinapp"><AdminCutinappCenter /></AdminModuleBoundary>
           </section>
 
           <section id="users" className="section-anchor" data-admin-page-key="users">
