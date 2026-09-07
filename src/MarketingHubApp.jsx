@@ -62,6 +62,7 @@ function normalizeArticle(article) {
     description: article?.excerpt || article?.description || 'Conteúdo produzido pela Peter Tecnet.',
     date: article?.published_at || article?.date || article?.created_at,
     readTime: article?.read_time || article?.readTime || null,
+    tags: Array.isArray(article?.tags) ? article.tags : article?.tags ? [String(article.tags)] : [],
   }
 }
 
@@ -215,7 +216,7 @@ function CatalogCard({ item }) {
 }
 
 function BlogCard({ article }) {
-  const related = serviceForText(`${article.title} ${article.description} ${(article.tags || []).join(' ')}`)
+  const related = serviceForText(`${article.title} ${article.description} ${Array.isArray(article.tags) ? article.tags.join(' ') : String(article.tags || '')}`)
   return <article className="mkt-blog-card is-compact" data-reveal>
     <a className="mkt-blog-visual" href={`/blog/${article.slug}`} aria-label={article.title}><span className="mkt-blog-orbit" aria-hidden="true" /><small>{article.category}</small><strong>{article.title.split(':')[0]}</strong><i>↗</i></a>
     <div className="mkt-blog-body"><div className="mkt-blog-meta"><span>{article.date ? formatArticleDate(article.date) : 'Peter Tecnet'}</span>{article.readTime && <span>{article.readTime}</span>}</div><h3><a href={`/blog/${article.slug}`}>{article.title}</a></h3><p>{article.description}</p>{related && <a className="hub-related-service" href={`/servicos/${related.slug}`}>Relacionado: {related.eyebrow}</a>}<a className="mkt-text-link" href={`/blog/${article.slug}`}>Ler conteúdo <span>↗</span></a></div>

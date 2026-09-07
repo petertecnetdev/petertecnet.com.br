@@ -408,8 +408,15 @@ export const blogArticles = [
 
 export const findBlogArticle = slug => blogArticles.find(article => article.slug === slug)
 
-export const formatArticleDate = value => new Intl.DateTimeFormat('pt-BR', {
-  day: '2-digit',
-  month: 'long',
-  year: 'numeric',
-}).format(new Date(`${value}T12:00:00`))
+export const formatArticleDate = value => {
+  if (!value) return 'Peter Tecnet'
+  const raw = String(value).trim()
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(raw)
+  const parsed = dateOnly ? new Date(`${raw}T12:00:00`) : new Date(raw)
+  if (Number.isNaN(parsed.getTime())) return 'Peter Tecnet'
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  }).format(parsed)
+}
