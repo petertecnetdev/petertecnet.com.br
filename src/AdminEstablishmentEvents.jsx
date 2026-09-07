@@ -57,6 +57,10 @@ function suggestedDate(event) {
 
 const normalize = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 const emptyTicketForm = { name: '', ticket_type: '', type: '', price: '', quantity: '', limit_date: '', description: '' }
+const WEEKDAYS = [
+  { value: 0, label: 'Dom' }, { value: 1, label: 'Seg' }, { value: 2, label: 'Ter' }, { value: 3, label: 'Qua' },
+  { value: 4, label: 'Qui' }, { value: 5, label: 'Sex' }, { value: 6, label: 'Sáb' },
+]
 
 export default function AdminEstablishmentEvents({ establishment, app, onSuccess, ticketsOnly = false }) {
   const [events, setEvents] = useState([])
@@ -66,7 +70,11 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('all')
   const [selected, setSelected] = useState(null)
-  const [date, setDate] = useState('')
+  const [seriesMode, setSeriesMode] = useState('dates')
+  const [seriesDates, setSeriesDates] = useState([''])
+  const [seriesWeekdays, setSeriesWeekdays] = useState([])
+  const [seriesRangeStart, setSeriesRangeStart] = useState('')
+  const [seriesRangeEnd, setSeriesRangeEnd] = useState('')
   const [saving, setSaving] = useState(false)
   const [dialogError, setDialogError] = useState('')
   const [expandedEventId, setExpandedEventId] = useState(null)
@@ -124,40 +132,95 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
   }, [events, filter, query])
 
   const openDuplicate = event => {
+    const firstDate = suggestedDate(event)
+    const rangeEnd = new Date(`${firstDate}T12:00:00`)
+    rangeEnd.setDate(rangeEnd.getDate() + 56)
+    const sourceDay = new Date(event?.start_date).getDay()
     setSelected(event)
-    setDate(suggestedDate(event))
+    setSeriesMode('dates')
+    setSeriesDates([firstDate])
+    setSeriesWeekdays([Number.isNaN(sourceDay) ? 6 : sourceDay])
+    setSeriesRangeStart(firstDate)
+    setSeriesRangeEnd(toDateInput(rangeEnd))
     setDialogError('')
   }
 
   const close = () => {
     if (saving) return
     setSelected(null)
-    setDate('')
+    setSeriesMode('dates')
+    setSeriesDates([''])
+    setSeriesWeekdays([])
+    setSeriesRangeStart('')
+    setSeriesRangeEnd('')
     setDialogError('')
   }
 
-  const duplicate = async () => {
-    if (!selected || !date) {
-      setDialogError('Escolha a nova data do evento.')
-      return
+  const updateSeriesDate = (index, value) => {
+    setSeriesDates(current => current.map((item, itemIndex) => itemIndex === index ? value : item))
+    setDialogError('')
+  }
+
+  const addSeriesDate = () => {
+    setSeriesDates(current => current.length >= 120 ? current : [...current, ''])
+    setDialogError('')
+  }
+
+  const removeSeriesDate = index => {
+    setSeriesDates(current => current.length === 1 ? current : current.filter((_, itemIndex) => itemIndex !== index))
+    setDialogError('')
+  }
+
+  const toggleWeekday = weekday => {
+    setSeriesWeekdays(current => current.includes(weekday) ? current.filter(value => value !== weekday) : [...current, weekday].sort())
+    setDialogError('')
+  }
+
+  const seriesPreviewCount = useMemo(() => {
+    if (seriesMode === 'dates') return new Set(seriesDates.filter(Boolean)).size
+    if (!seriesRangeStart || !seriesRangeEnd || !seriesWeekdays.length) return 0
+    const cursor = new Date(`${seriesRangeStart}T12:00:00`)
+    const end = new Date(`${seriesRangeEnd}T12:00:00`)
+    if (Number.isNaN(cursor.getTime()) || Number.isNaN(end.getTime()) || cursor > end) return 0
+    let count = 0
+    let guard = 0
+    while (cursor <= end && guard <= 366) {
+      if (seriesWeekdays.includes(cursor.getDay())) count += 1
+      cursor.setDate(cursor.getDate() + 1)
+      guard += 1
     }
-    if (toDateInput(selected.start_date) === date) {
-      setDialogError('Escolha uma data diferente da data original.')
-      return
+    return count
+  }, [seriesDates, seriesMode, seriesRangeEnd, seriesRangeStart, seriesWeekdays])
+
+  const createSeries = async () => {
+    if (!selected) return
+    const payload = { app_id: appId, mode: seriesMode }
+    if (seriesMode === 'dates') {
+      const dates = [...new Set(seriesDates.filter(Boolean))]
+      if (!dates.length) { setDialogError('Adicione pelo menos uma data para a nova agenda.'); return }
+      if (dates.includes(toDateInput(selected.start_date))) { setDialogError('Remova a data do evento original para não duplicar a edição atual.'); return }
+      payload.dates = dates
+    } else {
+      if (!seriesWeekdays.length) { setDialogError('Selecione pelo menos um dia da semana.'); return }
+      if (!seriesRangeStart || !seriesRangeEnd) { setDialogError('Informe o início e o fim da agenda semanal.'); return }
+      if (seriesPreviewCount > 120) { setDialogError('A agenda gera mais de 120 ocorrências. Reduza o período ou os dias selecionados.'); return }
+      payload.weekdays = seriesWeekdays
+      payload.range_start = seriesRangeStart
+      payload.range_end = seriesRangeEnd
     }
 
     setSaving(true)
     setDialogError('')
     try {
-      const payload = await apiRequest(`/admin/ecosystem/establishments/${establishmentId}/resources/events/${selected.id}/duplicate`, {
+      const result = await apiRequest(`/admin/ecosystem/establishments/${establishmentId}/resources/events/${selected.id}/series`, {
         method: 'POST',
-        body: JSON.stringify({ app_id: appId, date }),
+        body: JSON.stringify(payload),
       })
       setSelected(null)
-      setDate('')
       await load()
-      setNotice(payload?.message || 'Evento duplicado como rascunho.')
-      onSuccess?.(payload?.message || 'Evento duplicado como rascunho.')
+      const message = result?.message || `${result?.created_count || 0} ocorrência(s) criada(s) como rascunho.`
+      setNotice(message)
+      onSuccess?.(message)
     } catch (err) {
       setDialogError(err.message)
     } finally {
@@ -281,7 +344,7 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
               <div className="aee-event-metrics"><span><b>{number(event.ticket_types_count ?? event.tickets_count)}</b> lotes</span><span><b>{number(event.tickets_sold_count)}</b> vendidos</span><span><b>{number(event.tickets_available_count)}</b> disponíveis</span><span><b>{money(event.gross_ticket_revenue)}</b> receita</span><span><b>{number(event.checked_in_count)}</b> check-ins</span></div>
               <small>{event.artists_count || 0} artista(s) · ID #{event.id}</small>
             </div>
-            <div className="aee-event-actions"><button className="aee-tickets" type="button" onClick={() => void toggleTickets(event)}>{ticketLoading === event.id ? 'Carregando…' : expandedEventId === event.id ? 'Fechar ingressos' : 'Ingressos e vendas'}</button>{!ticketsOnly && <button className="aee-duplicate" type="button" onClick={() => openDuplicate(event)}>⧉ Duplicar</button>}</div>
+            <div className="aee-event-actions"><button className="aee-tickets" type="button" onClick={() => void toggleTickets(event)}>{ticketLoading === event.id ? 'Carregando…' : expandedEventId === event.id ? 'Fechar ingressos' : 'Ingressos e vendas'}</button>{!ticketsOnly && <button className="aee-duplicate" type="button" onClick={() => openDuplicate(event)}>⧉ Agenda / duplicar</button>}</div>
           </div>
 
           {expandedEventId === event.id && <div className="aee-ticket-panel">
@@ -320,15 +383,38 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
     </div>}
 
     {selected && <div className="aee-dialog-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) close() }}>
-      <div className="aee-dialog" role="dialog" aria-modal="true" aria-labelledby="aee-dialog-title">
-        <header><div><span>DUPLICAR EVENTO</span><h3 id="aee-dialog-title">{selected.title}</h3></div><button type="button" onClick={close} disabled={saving} aria-label="Fechar">×</button></header>
+      <div className="aee-dialog aee-series-dialog" role="dialog" aria-modal="true" aria-labelledby="aee-dialog-title">
+        <header><div><span>CRIAR AGENDA / DUPLICAR EM LOTE</span><h3 id="aee-dialog-title">{selected.title}</h3></div><button type="button" onClick={close} disabled={saving} aria-label="Fechar">×</button></header>
         <div className="aee-dialog-body">
-          <p>A nova cópia será criada como <b>rascunho</b>, preservando duração, capa, local, line-up e lotes. Horários e prazos serão deslocados para a nova data.</p>
+          <p>Use este evento como modelo para criar várias edições. Cada nova ocorrência será um <b>rascunho independente</b>, preservando duração, capa, local, line-up e lotes, com horários e prazos deslocados para a nova data.</p>
           <div className="aee-warning"><b>Não serão copiados:</b> vendas, passes, participantes, check-ins, avaliações ou interações.</div>
-          <label><span>Nova data *</span><input type="date" min={toDateInput(new Date())} value={date} onChange={event => { setDate(event.target.value); setDialogError('') }} disabled={saving} /></label>
+          <div className="aee-series-mode" role="group" aria-label="Modo de criação da agenda">
+            <button type="button" className={seriesMode === 'dates' ? 'active' : ''} onClick={() => { setSeriesMode('dates'); setDialogError('') }} disabled={saving}><b>Datas específicas</b><span>Escolha cada edição manualmente</span></button>
+            <button type="button" className={seriesMode === 'weekly' ? 'active' : ''} onClick={() => { setSeriesMode('weekly'); setDialogError('') }} disabled={saving}><b>Agenda semanal</b><span>Repita em dias fixos da semana</span></button>
+          </div>
+
+          {seriesMode === 'dates' && <div className="aee-series-dates">
+            <div className="aee-series-date-list">
+              {seriesDates.map((value, index) => <div className="aee-series-date-row" key={`${index}-${value}`}>
+                <label><span>Data {index + 1}</span><input type="date" min={toDateInput(new Date())} value={value} onChange={event => updateSeriesDate(index, event.target.value)} disabled={saving} /></label>
+                {seriesDates.length > 1 && <button type="button" className="aee-series-remove" onClick={() => removeSeriesDate(index)} disabled={saving} aria-label={`Remover data ${index + 1}`}>×</button>}
+              </div>)}
+            </div>
+            <button type="button" className="aee-series-add" onClick={addSeriesDate} disabled={saving || seriesDates.length >= 120}>＋ Adicionar outra data</button>
+          </div>}
+
+          {seriesMode === 'weekly' && <div className="aee-series-weekly">
+            <div><span className="aee-field-label">Dias da semana *</span><div className="aee-weekday-grid">{WEEKDAYS.map(day => <button type="button" key={day.value} className={seriesWeekdays.includes(day.value) ? 'active' : ''} onClick={() => toggleWeekday(day.value)} disabled={saving}>{day.label}</button>)}</div></div>
+            <div className="aee-range-grid">
+              <label><span>Início da agenda *</span><input type="date" min={toDateInput(new Date())} value={seriesRangeStart} onChange={event => { setSeriesRangeStart(event.target.value); setDialogError('') }} disabled={saving} /></label>
+              <label><span>Fim da agenda *</span><input type="date" min={seriesRangeStart || toDateInput(new Date())} value={seriesRangeEnd} onChange={event => { setSeriesRangeEnd(event.target.value); setDialogError('') }} disabled={saving} /></label>
+            </div>
+          </div>}
+
+          <div className={`aee-series-summary ${seriesPreviewCount > 120 ? 'warning' : ''}`}><span>Ocorrências previstas</span><b>{seriesPreviewCount}</b><small>Limite de 120 por operação. Duplicidades existentes são reutilizadas, não recriadas.</small></div>
           {dialogError && <div className="aee-feedback error">{dialogError}</div>}
         </div>
-        <footer><button type="button" className="secondary" onClick={close} disabled={saving}>Cancelar</button><button type="button" className="primary" onClick={duplicate} disabled={saving || !date}>{saving ? 'Duplicando…' : 'Criar cópia como rascunho'}</button></footer>
+        <footer><button type="button" className="secondary" onClick={close} disabled={saving}>Cancelar</button><button type="button" className="primary" onClick={createSeries} disabled={saving || seriesPreviewCount < 1 || seriesPreviewCount > 120}>{saving ? 'Criando agenda…' : 'Criar agenda como rascunho'}</button></footer>
       </div>
     </div>}
   </section>
