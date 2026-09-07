@@ -12,7 +12,6 @@ import { installWebVitals } from './discoveryApi.js'
 import { installGlobalImageFallbacks } from './utils/imageFallback.js'
 import { installPasswordVisibilityToggles } from './utils/passwordVisibility.js'
 import { installPeterWhatsappFallback } from './utils/peterWhatsappFallback.js'
-import installSeoFaqSection from './installSeoFaqSection.jsx'
 
 const PublicExperienceRouter = lazy(() => import('./PublicExperienceRouter.jsx'))
 const AdminTicketSalesPage = lazy(() => import('./AdminTicketSalesPage.jsx'))
@@ -65,5 +64,3 @@ createRoot(document.getElementById('root')).render(
     </PublicErrorBoundary>
   </StrictMode>,
 )
-
-if (window.location.pathname === '/') installSeoFaqSection()
