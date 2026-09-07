@@ -7,18 +7,24 @@ on:
     paths:
       - 'apps/admincenter/**'
       - '.github/workflows/admincenter-production.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'apps/admincenter/**'
+      - '.github/workflows/admincenter-production.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: admincenter-production-main
+  group: admincenter-production-main-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   validate-and-deploy:
-    name: Validate and deploy Admin Center from main
+    name: Validate Admin Center and deploy from main
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -49,13 +55,16 @@ jobs:
           grep -q 'assets/' dist/index.html
 
       - name: Configure SSH
+        if: github.event_name != 'pull_request'
         working-directory: .
         env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           set -euo pipefail
-          test -n "${{ secrets.VPS_HOST }}"
-          test -n "${{ secrets.VPS_USER }}"
+          test -n "$VPS_HOST"
+          test -n "$VPS_USER"
           test -n "$VPS_SSH_KEY"
           install -d -m 700 "$HOME/.ssh"
           printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
@@ -64,6 +73,7 @@ jobs:
           chmod 600 "$HOME/.ssh/known_hosts"
 
       - name: Publish atomic frontend release
+        if: github.event_name != 'pull_request'
         working-directory: .
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
@@ -74,42 +84,56 @@ jobs:
           set -euo pipefail
           PORT="${VPS_PORT:-22}"
           ARCHIVE="$RUNNER_TEMP/admincenter-${GITHUB_SHA}.tar.gz"
+          REMOTE_ARCHIVE="/tmp/admincenter-${GITHUB_SHA}.tar.gz"
+          REMOTE_SCRIPT="$RUNNER_TEMP/admincenter-publish.sh"
+
           tar -C apps/admincenter/dist -czf "$ARCHIVE" .
 
-          REMOTE_SCRIPT="$RUNNER_TEMP/admincenter-publish.sh"
+          scp \
+            -P "$PORT" \
+            -o StrictHostKeyChecking=accept-new \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            "$ARCHIVE" "$VPS_USER@$VPS_HOST:$REMOTE_ARCHIVE"
+
           cat > "$REMOTE_SCRIPT" <<'REMOTE'
           set -Eeuo pipefail
           TARGET="$1"
           SHA="$2"
+          ARCHIVE="$3"
           NEXT="$TARGET/.dist.next.$SHA"
           PREVIOUS="$TARGET/.dist.previous.$SHA"
           LIVE="$TARGET/dist"
 
           [[ "$TARGET" == /var/www/* ]] || exit 20
+          [[ "$ARCHIVE" == /tmp/admincenter-*.tar.gz ]] || exit 21
+          test -f "$ARCHIVE"
+
           rm -rf "$NEXT" "$PREVIOUS"
           mkdir -p "$NEXT"
-          tar -xzf - -C "$NEXT"
+          tar -xzf "$ARCHIVE" -C "$NEXT"
+          rm -f "$ARCHIVE"
           test -f "$NEXT/index.html"
 
           if [[ -e "$LIVE" ]]; then mv "$LIVE" "$PREVIOUS"; fi
           if ! mv "$NEXT" "$LIVE"; then
             [[ -e "$PREVIOUS" ]] && mv "$PREVIOUS" "$LIVE" || true
-            exit 21
+            exit 22
           fi
 
           rm -rf "$PREVIOUS"
           printf '%s\n' "$SHA" > "$TARGET/.admincenter-main-release"
           REMOTE
 
-          cat "$ARCHIVE" | ssh \
+          ssh \
+            -p "$PORT" \
             -o StrictHostKeyChecking=accept-new \
             -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
             -o ConnectTimeout=20 \
-            -p "$PORT" \
             "$VPS_USER@$VPS_HOST" \
-            "bash -s -- '$TARGET' '$GITHUB_SHA'" < <(cat "$REMOTE_SCRIPT"; cat "$ARCHIVE")
+            "bash -s -- '$TARGET' '$GITHUB_SHA' '$REMOTE_ARCHIVE'" < "$REMOTE_SCRIPT"
 
       - name: Health check
+        if: github.event_name != 'pull_request'
         working-directory: .
         run: |
           set -euo pipefail
