@@ -1,37 +1,30 @@
 {
-  "id": "/admin",
-  "name": "Peter Tecnet Admin Center",
-  "short_name": "Admin Center",
-  "description": "Admin Center do ecossistema Peter Tecnet.",
+  "id": "/",
+  "name": "Peter Tecnet",
+  "short_name": "Peter Tecnet",
+  "description": "Ecossistema Peter Tecnet de plataformas, software, automações, integrações e produtos digitais.",
   "lang": "pt-BR",
   "dir": "ltr",
-  "start_url": "/admin",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "any",
   "background_color": "#02080c",
   "theme_color": "#02080c",
-  "categories": ["business", "productivity"],
+  "categories": ["business", "productivity", "utilities"],
   "prefer_related_applications": false,
-  "related_applications": [
-    {
-      "platform": "webapp",
-      "url": "https://petertecnet.com.br/manifest.json",
-      "id": "/admin"
-    }
-  ],
   "icons": [
     {
-      "src": "/favicon.svg?v=4",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/petertecnetlogo.png?v=20260906",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/favicon.svg?v=4",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/petertecnetlogo.png?v=20260906",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ]
