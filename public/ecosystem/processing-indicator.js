@@ -1,5 +1,6 @@
 (() => {
   const TAG = 'pt-processing-indicator'
+  const OFFICIAL_LOGO = '/petertecnetlogo.png?v=20260907-official-loader'
   if (customElements.get(TAG)) return
 
   const DEFAULT_MESSAGES = [
@@ -38,7 +39,7 @@
             <div class="pt-processing__visual" aria-hidden="true">
               <span class="pt-processing__orbit"></span>
               <span class="pt-processing__pulse"></span>
-              <img class="pt-processing__logo" src="/petertecnetlogo.png" alt="" decoding="async" fetchpriority="high" />
+              <img class="pt-processing__logo" src="${OFFICIAL_LOGO}" alt="" decoding="async" fetchpriority="high" />
             </div>
             <p class="pt-processing__eyebrow">${this._escape(eyebrow)}</p>
             <strong class="pt-processing__title">${this._escape(title)}</strong>
