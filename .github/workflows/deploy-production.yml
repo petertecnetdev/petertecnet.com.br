@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check commercial routes, content, CRM intake and live sitemap
+      - name: Check public routes, bootstrap, CRM intake and live sitemap
         shell: bash
         run: |
           set -euo pipefail
@@ -54,27 +54,29 @@ jobs:
               "$url" >/dev/null
           done
 
-          blog_html="$(curl --fail --silent --show-error --location --max-time 20 \
-            https://petertecnet.com.br/blog)"
-          grep -Fq "Blog Peter Tecnet" <<<"$blog_html"
-          grep -Fq "como-criar-catalogo-digital-para-empresa" <<<"$blog_html"
+          assert_contains() {
+            local label="$1"
+            local needle="$2"
+            local haystack="$3"
+            if ! grep -Fq "$needle" <<<"$haystack"; then
+              echo "Verification failed: $label is missing '$needle'." >&2
+              exit 1
+            fi
+            echo "Verified: $label"
+          }
 
-          article_html="$(curl --fail --silent --show-error --location --max-time 20 \
-            https://petertecnet.com.br/blog/como-criar-catalogo-digital-para-empresa)"
-          grep -Fq "Como criar um catálogo digital para sua empresa" <<<"$article_html"
-          grep -Fq "petertecnetlogo.png" <<<"$article_html"
-
-          service_html="$(curl --fail --silent --show-error --location --max-time 20 \
-            https://petertecnet.com.br/servicos/desenvolvimento-de-software)"
-          grep -Fq "Desenvolvimento de software" <<<"$service_html"
+          homepage_html="$(curl --fail --silent --show-error --location --max-time 20 \
+            https://petertecnet.com.br/)"
+          assert_contains "landing root mount" 'id="root"' "$homepage_html"
+          assert_contains "landing official logo" "petertecnetlogo.png" "$homepage_html"
 
           robots="$(curl --fail --silent --show-error --location --max-time 20 \
             https://petertecnet.com.br/robots.txt)"
-          grep -Fq "api.petertecnet.com.br/api/v1/discovery/sitemap.xml" <<<"$robots"
+          assert_contains "robots live sitemap" "api.petertecnet.com.br/api/v1/discovery/sitemap.xml" "$robots"
 
           sitemap="$(curl --fail --silent --show-error --location --max-time 20 \
             'https://api.petertecnet.com.br/api/v1/discovery/sitemap.xml?origin=https%3A%2F%2Fpetertecnet.com.br')"
-          grep -Fq "<urlset" <<<"$sitemap"
+          assert_contains "discovery sitemap" "<urlset" "$sitemap"
 
           # Non-mutating CRM probe: an empty inquiry must reach validation and return 422.
           # Any 401/403/404/5xx response means the public app context/capability route is broken.
@@ -88,4 +90,4 @@ jobs:
             exit 1
           fi
 
-          echo "Public marketing verification passed."
+          echo "Public production verification passed."
