@@ -154,12 +154,46 @@ jobs:
             exit 28
           fi
           echo "VPS free disk before deploy: $((free_kb / 1024)) MiB"
+
+          # When capacity is tight, reclaim only dependency trees from stale, non-production
+          # workspaces. Source, Git history, builds, uploads, databases and live applications
+          # are never touched. A .keep-dependencies marker opts any workspace out.
+          if (( free_kb < warn_free_kb )); then
+            echo "VPS has less than 5 GiB free; checking stale non-production dependencies."
+            while IFS= read -r -d '' dependency_dir; do
+              workspace="$(dirname "$dependency_dir")"
+              workspace_name="$(basename "$workspace")"
+
+              [[ "$(dirname "$workspace")" == "/var/www" ]] || continue
+              [[ "$workspace" != "$DEPLOY_PATH" ]] || continue
+              [[ ! -e "$workspace/.keep-dependencies" ]] || continue
+              case "$workspace_name" in
+                *.petertecnet.com.br|html|_deploy-quarantine) continue ;;
+              esac
+
+              # Do not interfere with workspaces whose source changed in the last 24h.
+              recent_source="$(find "$workspace" -mindepth 1 -maxdepth 4 \
+                -path "$dependency_dir" -prune -o \
+                -path "$workspace/.git" -prune -o \
+                -type f -mmin -1440 -print -quit 2>/dev/null || true)"
+              [[ -z "$recent_source" ]] || continue
+
+              dependency_kb="$(du -sk "$dependency_dir" 2>/dev/null | awk '{print $1}' || true)"
+              echo "Reclaiming regenerable dependencies: $dependency_dir (${dependency_kb:-0} KiB)"
+              rm -rf "$dependency_dir" 2>/dev/null || echo "Could not remove $dependency_dir; leaving it untouched."
+            done < <(find /var/www -mindepth 2 -maxdepth 2 -type d \
+              \( -name node_modules -o -name vendor \) -mmin +1440 -print0 2>/dev/null)
+
+            free_kb="$(df -Pk "$disk_probe" | awk 'NR==2 {print $4}')"
+            echo "VPS free disk after safe dependency cleanup: $((free_kb / 1024)) MiB"
+          fi
+
           if (( free_kb < min_free_kb )); then
-            echo "Refusing deploy: less than 3 GiB free on the VPS filesystem. Free space before retrying." >&2
+            echo "Refusing deploy: less than 3 GiB free on the VPS filesystem after safe cleanup." >&2
             exit 28
           fi
           if (( free_kb < warn_free_kb )); then
-            echo "WARNING: VPS has less than 5 GiB free. Capacity cleanup should be prioritized."
+            echo "WARNING: VPS remains below 5 GiB free. Capacity cleanup should be prioritized."
           fi
 
           if [[ ! -d "$DEPLOY_PATH/.git" ]]; then
