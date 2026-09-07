@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'petertecnet-landing-pwa-v1';
+const CACHE_VERSION = 'petertecnet-landing-pwa-v2';
 const CACHE_PREFIX = 'petertecnet-landing-pwa-';
 const ADMIN_CACHE_PREFIX = 'petertecnet-admin-pwa-';
 const STATIC_ASSETS = [
@@ -74,22 +74,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Vite emits immutable hashed assets, but a cache-first strategy can keep a
+  // partially deployed/stale runtime alive when a release changes while the
+  // PWA is open. Prefer the network and use cache only as an offline fallback.
   if (url.pathname.startsWith('/assets/')) {
     event.respondWith(
-      caches.match(request).then((cached) => cached || fetch(request).then((response) => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy)).catch(() => undefined);
-        }
-        return response;
-      }))
+      fetch(request, { cache: 'no-cache' })
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy)).catch(() => undefined);
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
     );
     return;
   }
 
   if (STATIC_ASSETS.includes(url.pathname)) {
     event.respondWith(
-      fetch(request).then((response) => {
+      fetch(request, { cache: 'no-cache' }).then((response) => {
         if (response.ok) {
           const copy = response.clone();
           caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy)).catch(() => undefined);
