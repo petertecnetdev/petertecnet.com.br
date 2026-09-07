@@ -180,7 +180,9 @@ jobs:
 
               dependency_kb="$(du -sk "$dependency_dir" 2>/dev/null | awk '{print $1}' || true)"
               echo "Reclaiming regenerable dependencies: $dependency_dir (${dependency_kb:-0} KiB)"
-              rm -rf "$dependency_dir" 2>/dev/null || echo "Could not remove $dependency_dir; leaving it untouched."
+              if ! rm -rf "$dependency_dir" 2>/dev/null; then
+                sudo -n rm -rf "$dependency_dir" 2>/dev/null || echo "Could not remove $dependency_dir; leaving it untouched."
+              fi
             done < <(find /var/www -mindepth 2 -maxdepth 2 -type d \
               \( -name node_modules -o -name vendor \) -mmin +1440 -print0 2>/dev/null)
 
