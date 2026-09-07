@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import './AdminEstablishmentEvents.css'
+import './AdminEstablishmentEventsBulk.css'
 import { apiProgressRequest } from './adminApiProgress'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
@@ -86,6 +87,11 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
   const [ticketFormEvent, setTicketFormEvent] = useState(null)
   const [editingTicket, setEditingTicket] = useState(null)
   const [ticketForm, setTicketForm] = useState(emptyTicketForm)
+  const [selectedEventIds, setSelectedEventIds] = useState([])
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+  const [bulkDeleteBusy, setBulkDeleteBusy] = useState(false)
+  const [bulkDeleteError, setBulkDeleteError] = useState('')
+  const [bulkDeleteProgress, setBulkDeleteProgress] = useState(null)
 
   const appId = Number(app?.id)
   const establishmentId = Number(establishment?.id)
@@ -132,6 +138,22 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
       return normalize([event.title, event.venue, event.city, event.uf, event.id].filter(Boolean).join(' ')).includes(term)
     })
   }, [events, filter, query])
+
+  const visibleEventIds = useMemo(() => visibleEvents.map(event => Number(event.id)).filter(Boolean), [visibleEvents])
+  const selectedEvents = useMemo(() => {
+    const selectedSet = new Set(selectedEventIds)
+    return events.filter(event => selectedSet.has(Number(event.id)))
+  }, [events, selectedEventIds])
+  const selectedVisibleCount = useMemo(() => {
+    const selectedSet = new Set(selectedEventIds)
+    return visibleEventIds.filter(id => selectedSet.has(id)).length
+  }, [selectedEventIds, visibleEventIds])
+  const allVisibleSelected = visibleEventIds.length > 0 && selectedVisibleCount === visibleEventIds.length
+
+  useEffect(() => {
+    const existingIds = new Set(events.map(event => Number(event.id)))
+    setSelectedEventIds(current => current.filter(id => existingIds.has(Number(id))))
+  }, [events])
 
   const openDuplicate = event => {
     const firstDate = suggestedDate(event)
@@ -327,6 +349,93 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
     }
   }
 
+  const toggleEventSelection = eventId => {
+    const id = Number(eventId)
+    setSelectedEventIds(current => current.includes(id) ? current.filter(item => item !== id) : [...current, id])
+  }
+
+  const toggleAllVisible = () => {
+    setSelectedEventIds(current => {
+      const next = new Set(current.map(Number))
+      if (allVisibleSelected) visibleEventIds.forEach(id => next.delete(id))
+      else visibleEventIds.forEach(id => next.add(id))
+      return [...next]
+    })
+  }
+
+  const openBulkDelete = () => {
+    if (!selectedEventIds.length) return
+    setBulkDeleteError('')
+    setBulkDeleteProgress(null)
+    setBulkDeleteOpen(true)
+  }
+
+  const closeBulkDelete = () => {
+    if (bulkDeleteBusy) return
+    setBulkDeleteOpen(false)
+    setBulkDeleteError('')
+    setBulkDeleteProgress(null)
+  }
+
+  const deleteSelectedEvents = async () => {
+    if (!selectedEventIds.length || bulkDeleteBusy) return
+
+    const requestedIds = [...selectedEventIds]
+    setBulkDeleteBusy(true)
+    setBulkDeleteError('')
+    setBulkDeleteProgress({
+      processed_count: 0,
+      total_count: requestedIds.length,
+      remaining_count: requestedIds.length,
+      deleted_count: 0,
+      failed_count: 0,
+    })
+
+    try {
+      const result = await apiProgressRequest(
+        `/admin/ecosystem/establishments/${establishmentId}/resources/events/bulk`,
+        {
+          method: 'DELETE',
+          body: JSON.stringify({ app_id: appId, event_ids: requestedIds }),
+        },
+        progress => setBulkDeleteProgress({
+          processed_count: Number(progress?.processed_count || 0),
+          total_count: Number(progress?.total_count || requestedIds.length),
+          remaining_count: Number(progress?.remaining_count || 0),
+          deleted_count: Number(progress?.deleted_count || 0),
+          failed_count: Number(progress?.failed_count || 0),
+          event_id: progress?.event_id || null,
+          event_title: progress?.event_title || null,
+          status: progress?.status || null,
+        })
+      )
+
+      const deletedIds = new Set((result?.deleted_ids || []).map(Number))
+      setEvents(current => current.filter(event => !deletedIds.has(Number(event.id))))
+      setSelectedEventIds(current => current.filter(id => !deletedIds.has(Number(id))))
+      setExpandedEventId(current => deletedIds.has(Number(current)) ? null : current)
+
+      const message = result?.message || `${deletedIds.size} evento(s) excluído(s).`
+      setNotice(message)
+      onSuccess?.(message)
+
+      if (Number(result?.failed_count || 0) > 0) {
+        const firstFailure = result?.failures?.[0]?.message
+        setBulkDeleteError(firstFailure || `${result.failed_count} evento(s) não puderam ser excluídos e continuam selecionados.`)
+      } else {
+        setBulkDeleteOpen(false)
+        setBulkDeleteProgress(null)
+      }
+
+      await load()
+    } catch (err) {
+      setBulkDeleteError(err.message)
+      await load()
+    } finally {
+      setBulkDeleteBusy(false)
+    }
+  }
+
   const goToCreate = () => document.getElementById('admin-event-create-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
   const progressProcessed = Number(seriesProgress?.processed_count || 0)
@@ -334,6 +443,11 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
   const progressRemaining = Number(seriesProgress?.remaining_count ?? Math.max(0, progressTotal - progressProcessed))
   const progressCreated = Number(seriesProgress?.created_count || 0)
   const progressExisting = Number(seriesProgress?.existing_count || 0)
+  const deleteProcessed = Number(bulkDeleteProgress?.processed_count || 0)
+  const deleteTotal = Number(bulkDeleteProgress?.total_count || selectedEventIds.length || 0)
+  const deleteRemaining = Number(bulkDeleteProgress?.remaining_count ?? Math.max(0, deleteTotal - deleteProcessed))
+  const deleteDeleted = Number(bulkDeleteProgress?.deleted_count || 0)
+  const deleteFailed = Number(bulkDeleteProgress?.failed_count || 0)
 
   return <section className="aee-panel">
     <header className="aee-head">
@@ -355,6 +469,14 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
       <select value={filter} onChange={event => setFilter(event.target.value)} aria-label="Filtrar eventos"><option value="all">Todos os eventos</option><option value="upcoming">Próximos</option><option value="drafts">Rascunhos</option><option value="published">Publicados</option><option value="cancelled">Cancelados</option></select>
     </div>}
 
+    {!loading && !ticketsOnly && visibleEvents.length > 0 && <div className="aee-bulk-toolbar">
+      <div className="aee-bulk-selection">
+        <label><input type="checkbox" checked={allVisibleSelected} onChange={toggleAllVisible} /><strong>Selecionar todos visíveis</strong></label>
+        <span>{selectedEventIds.length} evento(s) selecionado(s){query || filter !== 'all' ? ` · ${selectedVisibleCount} nesta lista` : ''}</span>
+      </div>
+      <button type="button" className="aee-bulk-delete-button" onClick={openBulkDelete} disabled={!selectedEventIds.length}>Excluir selecionados ({selectedEventIds.length})</button>
+    </div>}
+
     {error && <div className="aee-feedback error">{error}</div>}
     {ticketError && !ticketFormEvent && <div className="aee-feedback error">{ticketError}</div>}
     {loading && <div className="aee-empty">Carregando eventos…</div>}
@@ -365,8 +487,10 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
       {visibleEvents.map(event => {
         const details = ticketDetails[event.id]
         const summary = details?.summary
-        return <article className={`aee-event-shell ${expandedEventId === event.id ? 'expanded' : ''}`} key={event.id}>
+        const isBulkSelected = selectedEventIds.includes(Number(event.id))
+        return <article className={`aee-event-shell ${expandedEventId === event.id ? 'expanded' : ''} ${isBulkSelected ? 'bulk-selected' : ''}`} key={event.id}>
           <div className="aee-event">
+            {!ticketsOnly && <label className="aee-event-select"><input type="checkbox" checked={isBulkSelected} onChange={() => toggleEventSelection(event.id)} /><span>Selecionar</span></label>}
             <div className="aee-event-main">
               <div className="aee-event-title"><b>{event.title}</b><span className={event.is_cancelled ? 'cancelled' : event.is_published ? 'published' : 'draft'}>{event.is_cancelled ? 'Cancelado' : event.is_published ? 'Publicado' : 'Rascunho'}</span></div>
               <p>{formatDate(event.start_date)} · {event.venue || [event.city, event.uf].filter(Boolean).join(' / ') || 'Local não informado'}</p>
@@ -409,6 +533,31 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
         </div>
         <footer><button type="button" className="secondary" onClick={closeTicketForm} disabled={saving}>Cancelar</button><button type="submit" className="primary" disabled={saving}>{saving ? 'Salvando…' : editingTicket ? 'Salvar lote' : 'Criar lote'}</button></footer>
       </form>
+    </div>}
+
+    {bulkDeleteOpen && <div className="aee-dialog-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) closeBulkDelete() }}>
+      <div className="aee-dialog aee-bulk-dialog" role="dialog" aria-modal="true" aria-labelledby="aee-bulk-dialog-title">
+        <header><div><span>EXCLUSÃO EM MASSA</span><h3 id="aee-bulk-dialog-title">Excluir {selectedEventIds.length} evento(s)?</h3></div><button type="button" onClick={closeBulkDelete} disabled={bulkDeleteBusy} aria-label="Fechar">×</button></header>
+        <div className="aee-dialog-body">
+          <div className="aee-bulk-warning"><b>Atenção:</b> esta é uma operação destrutiva e não possui desfazer. Cada evento será processado individualmente; registros protegidos por vínculos do sistema serão mantidos e informados como falha.</div>
+          <div className="aee-bulk-summary"><span>Eventos selecionados para exclusão</span><b>{selectedEventIds.length}</b></div>
+          <div className="aee-bulk-list">
+            {selectedEvents.slice(0, 8).map(event => <div className="aee-bulk-item" key={event.id}><b>{event.title}</b><small>{formatDate(event.start_date)} · #{event.id}</small></div>)}
+            {selectedEvents.length > 8 && <div className="aee-bulk-more">+ {selectedEvents.length - 8} evento(s) selecionado(s)</div>}
+          </div>
+          {bulkDeleteBusy && <pt-processing-indicator
+            compact="true"
+            title="Excluindo eventos"
+            messages="Excluindo os eventos selecionados com segurança…|Registrando cada exclusão na auditoria…|Preservando eventos que tenham vínculos protegidos…|Atualizando a lista do Admin Center…"
+            progress={String(deleteProcessed)}
+            total={String(deleteTotal)}
+            progress-label={`${deleteProcessed} ${deleteProcessed === 1 ? 'evento processado' : 'eventos processados'} de ${deleteTotal} selecionados`}
+            progress-detail={`${deleteRemaining} ${deleteRemaining === 1 ? 'evento falta' : 'eventos faltam'} • ${deleteDeleted} excluído(s) • ${deleteFailed} falha(s)`}
+          ></pt-processing-indicator>}
+          {bulkDeleteError && <div className="aee-feedback error">{bulkDeleteError}</div>}
+        </div>
+        <footer><button type="button" className="secondary" onClick={closeBulkDelete} disabled={bulkDeleteBusy}>Cancelar</button><button type="button" className="danger" onClick={() => void deleteSelectedEvents()} disabled={bulkDeleteBusy || !selectedEventIds.length}>{bulkDeleteBusy ? `${deleteProcessed} de ${deleteTotal} processados…` : `Excluir ${selectedEventIds.length} evento(s)`}</button></footer>
+      </div>
     </div>}
 
     {selected && <div className="aee-dialog-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) close() }}>
