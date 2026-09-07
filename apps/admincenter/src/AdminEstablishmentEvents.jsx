@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import './AdminEstablishmentEvents.css'
+import { apiProgressRequest } from './adminApiProgress'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
@@ -75,6 +76,7 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
   const [seriesWeekdays, setSeriesWeekdays] = useState([])
   const [seriesRangeStart, setSeriesRangeStart] = useState('')
   const [seriesRangeEnd, setSeriesRangeEnd] = useState('')
+  const [seriesProgress, setSeriesProgress] = useState(null)
   const [saving, setSaving] = useState(false)
   const [dialogError, setDialogError] = useState('')
   const [expandedEventId, setExpandedEventId] = useState(null)
@@ -142,6 +144,7 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
     setSeriesWeekdays([Number.isNaN(sourceDay) ? 6 : sourceDay])
     setSeriesRangeStart(firstDate)
     setSeriesRangeEnd(toDateInput(rangeEnd))
+    setSeriesProgress(null)
     setDialogError('')
   }
 
@@ -153,6 +156,7 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
     setSeriesWeekdays([])
     setSeriesRangeStart('')
     setSeriesRangeEnd('')
+    setSeriesProgress(null)
     setDialogError('')
   }
 
@@ -211,11 +215,30 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
 
     setSaving(true)
     setDialogError('')
+    setSeriesProgress({
+      processed_count: 0,
+      total_count: seriesPreviewCount,
+      remaining_count: seriesPreviewCount,
+      created_count: 0,
+      existing_count: 0,
+    })
     try {
-      const result = await apiRequest(`/admin/ecosystem/establishments/${establishmentId}/resources/events/${selected.id}/series`, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      })
+      const result = await apiProgressRequest(
+        `/admin/ecosystem/establishments/${establishmentId}/resources/events/${selected.id}/series`,
+        {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        },
+        progress => setSeriesProgress({
+          processed_count: Number(progress?.processed_count || 0),
+          total_count: Number(progress?.total_count || seriesPreviewCount),
+          remaining_count: Number(progress?.remaining_count || 0),
+          created_count: Number(progress?.created_count || 0),
+          existing_count: Number(progress?.existing_count || 0),
+          date: progress?.date || null,
+          status: progress?.status || null,
+        })
+      )
       setSelected(null)
       await load()
       const message = result?.message || `${result?.created_count || 0} ocorrência(s) criada(s) como rascunho.`
@@ -305,6 +328,12 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
   }
 
   const goToCreate = () => document.getElementById('admin-event-create-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+  const progressProcessed = Number(seriesProgress?.processed_count || 0)
+  const progressTotal = Number(seriesProgress?.total_count || seriesPreviewCount || 0)
+  const progressRemaining = Number(seriesProgress?.remaining_count ?? Math.max(0, progressTotal - progressProcessed))
+  const progressCreated = Number(seriesProgress?.created_count || 0)
+  const progressExisting = Number(seriesProgress?.existing_count || 0)
 
   return <section className="aee-panel">
     <header className="aee-head">
@@ -412,9 +441,18 @@ export default function AdminEstablishmentEvents({ establishment, app, onSuccess
           </div>}
 
           <div className={`aee-series-summary ${seriesPreviewCount > 120 ? 'warning' : ''}`}><span>Ocorrências previstas</span><b>{seriesPreviewCount}</b><small>Limite de 120 por operação. Duplicidades existentes são reutilizadas, não recriadas.</small></div>
+          {saving && <pt-processing-indicator
+            compact="true"
+            title="Criando agenda de eventos"
+            messages="Criando cada edição como rascunho…|Copiando capa, local, line-up e lotes com segurança…|Conferindo duplicidades para não recriar eventos existentes…|Finalizando a agenda e sincronizando os eventos…"
+            progress={String(progressProcessed)}
+            total={String(progressTotal)}
+            progress-label={`${progressProcessed} ${progressProcessed === 1 ? 'evento processado' : 'eventos processados'} de ${progressTotal} solicitados`}
+            progress-detail={`${progressRemaining} ${progressRemaining === 1 ? 'evento falta' : 'eventos faltam'} • ${progressCreated} criado(s) • ${progressExisting} já existente(s)`}
+          ></pt-processing-indicator>}
           {dialogError && <div className="aee-feedback error">{dialogError}</div>}
         </div>
-        <footer><button type="button" className="secondary" onClick={close} disabled={saving}>Cancelar</button><button type="button" className="primary" onClick={createSeries} disabled={saving || seriesPreviewCount < 1 || seriesPreviewCount > 120}>{saving ? 'Criando agenda…' : 'Criar agenda como rascunho'}</button></footer>
+        <footer><button type="button" className="secondary" onClick={close} disabled={saving}>Cancelar</button><button type="button" className="primary" onClick={createSeries} disabled={saving || seriesPreviewCount < 1 || seriesPreviewCount > 120}>{saving ? `${progressProcessed} de ${progressTotal} processados…` : 'Criar agenda como rascunho'}</button></footer>
       </div>
     </div>}
   </section>
