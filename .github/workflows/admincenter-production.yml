@@ -1,0 +1,149 @@
+name: Admin Center Production (main)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/admincenter/**'
+      - '.github/workflows/admincenter-production.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'apps/admincenter/**'
+      - '.github/workflows/admincenter-production.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admincenter-production-main-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-deploy:
+    name: Validate Admin Center and deploy from main
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/admincenter
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/admincenter/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Production build
+        run: npm run build
+
+      - name: Verify build
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          grep -q 'assets/' dist/index.html
+
+      - name: Configure SSH
+        if: github.event_name != 'pull_request'
+        working-directory: .
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$VPS_HOST"
+          test -n "$VPS_USER"
+          test -n "$VPS_SSH_KEY"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          : > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Publish atomic frontend release
+        if: github.event_name != 'pull_request'
+        working-directory: .
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          TARGET: /var/www/admincenter.petertecnet.com.br
+        run: |
+          set -euo pipefail
+          PORT="${VPS_PORT:-22}"
+          ARCHIVE="$RUNNER_TEMP/admincenter-${GITHUB_SHA}.tar.gz"
+          REMOTE_ARCHIVE="/tmp/admincenter-${GITHUB_SHA}.tar.gz"
+          REMOTE_SCRIPT="$RUNNER_TEMP/admincenter-publish.sh"
+
+          tar -C apps/admincenter/dist -czf "$ARCHIVE" .
+
+          scp \
+            -P "$PORT" \
+            -o StrictHostKeyChecking=accept-new \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            "$ARCHIVE" "$VPS_USER@$VPS_HOST:$REMOTE_ARCHIVE"
+
+          cat > "$REMOTE_SCRIPT" <<'REMOTE'
+          set -Eeuo pipefail
+          TARGET="$1"
+          SHA="$2"
+          ARCHIVE="$3"
+          NEXT="$TARGET/.dist.next.$SHA"
+          PREVIOUS="$TARGET/.dist.previous.$SHA"
+          LIVE="$TARGET/dist"
+
+          [[ "$TARGET" == /var/www/* ]] || exit 20
+          [[ "$ARCHIVE" == /tmp/admincenter-*.tar.gz ]] || exit 21
+          test -f "$ARCHIVE"
+
+          rm -rf "$NEXT" "$PREVIOUS"
+          mkdir -p "$NEXT"
+          tar -xzf "$ARCHIVE" -C "$NEXT"
+          rm -f "$ARCHIVE"
+          test -f "$NEXT/index.html"
+
+          if [[ -e "$LIVE" ]]; then mv "$LIVE" "$PREVIOUS"; fi
+          if ! mv "$NEXT" "$LIVE"; then
+            [[ -e "$PREVIOUS" ]] && mv "$PREVIOUS" "$LIVE" || true
+            exit 22
+          fi
+
+          rm -rf "$PREVIOUS"
+          printf '%s\n' "$SHA" > "$TARGET/.admincenter-main-release"
+          REMOTE
+
+          ssh \
+            -p "$PORT" \
+            -o StrictHostKeyChecking=accept-new \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            -o ConnectTimeout=20 \
+            "$VPS_USER@$VPS_HOST" \
+            "bash -s -- '$TARGET' '$GITHUB_SHA' '$REMOTE_ARCHIVE'" < "$REMOTE_SCRIPT"
+
+      - name: Health check
+        if: github.event_name != 'pull_request'
+        working-directory: .
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 12); do
+            code="$(curl -L -sS -o /tmp/admincenter-health.html -w '%{http_code}' --max-time 15 https://admincenter.petertecnet.com.br/ || true)"
+            if [[ "$code" == "200" ]]; then
+              grep -q '<div id="root"></div>' /tmp/admincenter-health.html
+              exit 0
+            fi
+            sleep 5
+          done
+          cat /tmp/admincenter-health.html || true
+          exit 1

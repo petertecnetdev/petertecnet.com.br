@@ -1,0 +1,43 @@
+name: Admin Center Production
+
+on:
+  push:
+    branches:
+      - admincenter
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Admin Center
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Production build
+        run: npm run build
+
+  deploy:
+    name: Deploy Admin Center
+    needs: validate
+    uses: ./.github/workflows/reusable-vps-deploy.yml
+    with:
+      deploy_path: /var/www/admincenter.petertecnet.com.br
+      deploy_type: frontend
+      deploy_branch: admincenter
+      health_url: https://admincenter.petertecnet.com.br/
+    secrets:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_PORT: ${{ secrets.VPS_PORT }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
