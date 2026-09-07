@@ -19,6 +19,10 @@ function currency(value) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 }).format(number(value))
 }
 
+function percentage(value) {
+  return `${number(value).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
+}
+
 function asArray(value) {
   return Array.isArray(value) ? value : []
 }
@@ -53,10 +57,7 @@ async function request(path) {
   try {
     const response = await fetch(`${API}${path}`, {
       signal: controller.signal,
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
     })
     const payload = await response.json().catch(() => ({}))
     if (!response.ok) throw new Error(payload?.message || payload?.error || `Falha ao carregar ${path}`)
@@ -82,11 +83,19 @@ function priorityFromIssue(issue, index) {
     title: issue?.title || issue?.name || issue?.message || 'Sinal operacional detectado',
     detail: issue?.description || issue?.message || String(severity),
     section: 'operations',
-    action: 'Abrir operações',
+    action: 'Abrir',
   }
 }
 
-function PriorityCard({ item }) {
+function Kpi({ label, value, detail, tone = '' }) {
+  return <div className={`aoi-kpi ${tone ? `aoi-kpi-${tone}` : ''}`}>
+    <small>{label}</small>
+    <b>{value}</b>
+    <span>{detail}</span>
+  </div>
+}
+
+function PriorityRow({ item }) {
   return <article className={`aoi-priority aoi-${item.tone}`}>
     <span className="aoi-priority-signal" aria-hidden="true" />
     <div className="aoi-priority-copy">
@@ -94,27 +103,17 @@ function PriorityCard({ item }) {
       <b>{item.title}</b>
       <p>{item.detail}</p>
     </div>
-    {item.section && <button type="button" onClick={() => goTo(item.section)}>{item.action || 'Ver detalhes'} <span>↗</span></button>}
+    {item.section && <button type="button" onClick={() => goTo(item.section)}>{item.action || 'Abrir'} ↗</button>}
   </article>
-}
-
-function QuickAction({ icon, title, detail, section }) {
-  return <button className="aoi-quick-action" type="button" onClick={() => goTo(section)}>
-    <span className="aoi-quick-icon" aria-hidden="true">{icon}</span>
-    <span><b>{title}</b><small>{detail}</small></span>
-    <i aria-hidden="true">↗</i>
-  </button>
 }
 
 function ApplicationRow({ app }) {
   const activity = number(app?.activity_count_30d ?? app?.interactions_30d ?? app?.users_count)
   const status = app?.is_active === false ? 'warning' : toneOf(app?.health_status || app?.status || 'healthy')
   return <div className="aoi-app-row">
-    <div className="aoi-app-identity">
-      <span className={`aoi-app-dot aoi-${status}`} />
-      <span><b>{app?.name || app?.application_name || app?.slug || 'Aplicação'}</b><small>{app?.slug || app?.description || 'Peter Tecnet'}</small></span>
-    </div>
-    <div className="aoi-app-number"><b>{compactNumber(activity)}</b><small>atividade 30d</small></div>
+    <span className={`aoi-app-dot aoi-${status}`} />
+    <div className="aoi-app-identity"><b>{app?.name || app?.application_name || app?.slug || 'Aplicação'}</b><small>{app?.slug || 'Peter Tecnet'}</small></div>
+    <div className="aoi-app-number"><b>{compactNumber(activity)}</b><small>30d</small></div>
   </div>
 }
 
@@ -166,9 +165,7 @@ function OverviewPanel() {
         } else {
           next[key] = result.value
         }
-      } else {
-        failures += 1
-      }
+      } else failures += 1
     })
 
     setState(current => ({ ...current, ...next }))
@@ -185,9 +182,7 @@ function OverviewPanel() {
   useEffect(() => {
     void load(false)
     const interval = window.setInterval(() => { void load(true) }, 90000)
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') void load(true)
-    }
+    const onVisibility = () => { if (document.visibilityState === 'visible') void load(true) }
     document.addEventListener('visibilitychange', onVisibility)
     return () => {
       requestSequence.current += 1
@@ -213,121 +208,119 @@ function OverviewPanel() {
     const rawIssues = [...commandIssues, ...financialAlerts]
     const dangerIssues = rawIssues.filter(issue => toneOf(issue?.severity || issue?.status || issue?.level) === 'danger')
     const warningIssues = rawIssues.filter(issue => toneOf(issue?.severity || issue?.status || issue?.level) === 'warning')
-    const priorities = dangerIssues.slice(0, 3).map(priorityFromIssue)
+    const priorities = dangerIssues.slice(0, 2).map(priorityFromIssue)
 
     if (number(failed?.count) > 0) priorities.push({
       id: 'failed-payments', tone: 'danger', eyebrow: 'FINANCEIRO',
       title: `${compactNumber(failed.count)} pagamento${number(failed.count) === 1 ? '' : 's'} com falha`,
       detail: `${currency(failed.amount)} em transações que precisam de investigação.`,
-      section: 'financial', action: 'Revisar financeiro',
+      section: 'financial', action: 'Revisar',
     })
     if (number(pending?.count) > 0) priorities.push({
       id: 'pending-payments', tone: 'warning', eyebrow: 'PENDÊNCIAS',
       title: `${compactNumber(pending.count)} pagamento${number(pending.count) === 1 ? '' : 's'} pendente${number(pending.count) === 1 ? '' : 's'}`,
       detail: `${currency(pending.amount)} aguardando conclusão ou conciliação.`,
-      section: 'financial', action: 'Ver pendências',
+      section: 'financial', action: 'Abrir',
     })
     if (inactiveApps.length > 0) priorities.push({
       id: 'inactive-apps', tone: 'warning', eyebrow: 'APLICAÇÕES',
       title: `${inactiveApps.length} aplicação${inactiveApps.length === 1 ? '' : 'ões'} inativa${inactiveApps.length === 1 ? '' : 's'}`,
-      detail: inactiveApps.slice(0, 3).map(app => app?.name || app?.slug).filter(Boolean).join(', ') || 'Há aplicações fora da operação ativa.',
-      section: 'applications', action: 'Revisar aplicações',
+      detail: inactiveApps.slice(0, 2).map(app => app?.name || app?.slug).filter(Boolean).join(', ') || 'Há aplicações fora da operação ativa.',
+      section: 'applications', action: 'Abrir',
     })
-    warningIssues.slice(0, Math.max(0, 6 - priorities.length)).forEach((issue, index) => priorities.push(priorityFromIssue(issue, index + 20)))
+    warningIssues.slice(0, Math.max(0, 3 - priorities.length)).forEach((issue, index) => priorities.push(priorityFromIssue(issue, index + 20)))
 
-    const uniquePriorities = priorities.filter((item, index, list) => list.findIndex(candidate => candidate.title === item.title) === index).slice(0, 6)
+    const uniquePriorities = priorities
+      .filter((item, index, list) => list.findIndex(candidate => candidate.title === item.title) === index)
+      .slice(0, 3)
+
     if (!uniquePriorities.length) uniquePriorities.push({
       id: 'all-clear', tone: 'success', eyebrow: 'SOB CONTROLE',
       title: 'Nenhuma prioridade crítica aberta',
-      detail: 'Os sinais operacionais disponíveis não indicam bloqueios imediatos. Continue acompanhando atividade, receita e adoção.',
-      section: 'activity', action: 'Ver atividade',
+      detail: 'Os sinais disponíveis não indicam bloqueios imediatos.',
+      section: 'activity', action: 'Atividade',
     })
 
     const dangerCount = uniquePriorities.filter(item => item.tone === 'danger').length
     const attentionCount = uniquePriorities.filter(item => item.tone === 'warning').length
-    let headline = 'Operação sob controle.'
-    let headlineDetail = 'Nenhum bloqueio crítico foi detectado nas fontes disponíveis.'
+    let headline = 'Operação sob controle'
+    let headlineDetail = 'Nenhum bloqueio crítico nas fontes disponíveis.'
     if (dangerCount) {
-      headline = `${dangerCount} prioridade${dangerCount > 1 ? 's' : ''} crítica${dangerCount > 1 ? 's' : ''} exige${dangerCount > 1 ? 'm' : ''} ação.`
-      headlineDetail = 'A fila abaixo está ordenada para você começar pelo que pode afetar operação ou receita.'
+      headline = `${dangerCount} prioridade${dangerCount > 1 ? 's' : ''} crítica${dangerCount > 1 ? 's' : ''}`
+      headlineDetail = 'Comece pelos itens com impacto em operação ou receita.'
     } else if (attentionCount || paymentAttention) {
-      headline = `${attentionCount || paymentAttention} ponto${(attentionCount || paymentAttention) > 1 ? 's' : ''} merece${(attentionCount || paymentAttention) > 1 ? 'm' : ''} acompanhamento.`
-      headlineDetail = 'A operação continua disponível, mas há itens que valem revisão antes de virarem incidentes.'
+      headline = `${attentionCount || paymentAttention} ponto${(attentionCount || paymentAttention) > 1 ? 's' : ''} em atenção`
+      headlineDetail = 'A operação segue disponível, com itens que merecem acompanhamento.'
     }
 
+    const takeRate = number(totals?.gross) > 0 ? (number(totals?.platform_fees) / number(totals?.gross)) * 100 : 0
+
     return {
-      summary, totals, failed, pending, applications, activities,
-      activeApps, paymentAttention, priorities: uniquePriorities,
-      headline, headlineDetail,
+      summary, totals, failed, pending, applications, activities, activeApps, paymentAttention,
+      priorities: uniquePriorities, headline, headlineDetail, takeRate,
     }
   }, [state])
 
   const rankedApps = useMemo(() => [...view.applications]
     .sort((a, b) => number(b?.activity_count_30d ?? b?.interactions_30d ?? b?.users_count) - number(a?.activity_count_30d ?? a?.interactions_30d ?? a?.users_count))
-    .slice(0, 6), [view.applications])
+    .slice(0, 4), [view.applications])
+
+  const pendingCount = view.priorities.filter(item => item.tone !== 'success').length
 
   return <section className="aoi-shell" aria-label="Visão geral inteligente do ecossistema">
     <header className="aoi-header">
       <div>
-        <p className="aoi-kicker"><span /> VISÃO GERAL OPERACIONAL</p>
-        <h2>{loading ? 'Construindo seu panorama…' : view.headline}</h2>
-        <p>{loading ? 'Consolidando operação, finanças, aplicações e atividade.' : view.headlineDetail}</p>
+        <p className="aoi-kicker"><span /> VISÃO GERAL</p>
+        <div className="aoi-title-line"><h2>{loading ? 'Consolidando dados…' : view.headline}</h2>{!loading && <span className={`aoi-health aoi-health-${pendingCount ? 'attention' : 'success'}`}>{pendingCount ? `${pendingCount} pendência${pendingCount === 1 ? '' : 's'}` : 'Operacional'}</span>}</div>
+        <p>{loading ? 'Operação, receita, usuários e aplicações.' : view.headlineDetail}</p>
       </div>
       <div className="aoi-sync">
         <small>{updatedAt ? `Atualizado ${timeAgo(updatedAt)}` : 'Sincronizando'}</small>
-        <button type="button" onClick={() => void load(true)} disabled={refreshing}>{refreshing ? 'Atualizando…' : 'Atualizar agora'} <span>↻</span></button>
+        <button type="button" onClick={() => void load(true)} disabled={refreshing} aria-label="Atualizar visão geral">{refreshing ? 'Atualizando…' : '↻ Atualizar'}</button>
       </div>
     </header>
 
     {error && <div className="aoi-notice" role="status"><span>!</span><p>{error}</p></div>}
 
     {loading ? <div className="aoi-loading-grid" aria-hidden="true"><i/><i/><i/></div> : <>
-      <div className="aoi-command-grid">
-        <div className="aoi-priority-panel">
-          <div className="aoi-section-head">
-            <div><small>O QUE FAZER AGORA</small><h3>Fila de decisões</h3></div>
-            <span>{view.priorities.filter(item => item.tone !== 'success').length} pendência{view.priorities.filter(item => item.tone !== 'success').length === 1 ? '' : 's'}</span>
-          </div>
-          <div className="aoi-priority-list">{view.priorities.map(item => <PriorityCard item={item} key={item.id} />)}</div>
-        </div>
-
-        <aside className="aoi-pulse-panel">
-          <div className="aoi-section-head"><div><small>AGORA</small><h3>Pulso do ecossistema</h3></div></div>
-          <div className="aoi-pulse-grid">
-            <div><small>Usuários ativos hoje</small><b>{compactNumber(view.summary?.active_users_today)}</b><span>{compactNumber(view.summary?.interactions_today)} interações</span></div>
-            <div><small>Aplicações ativas</small><b>{compactNumber(view.activeApps)}</b><span>de {compactNumber(view.summary?.applications ?? view.applications.length)} cadastradas</span></div>
-            <div className={view.paymentAttention ? 'is-attention' : ''}><small>Pagamentos em atenção</small><b>{compactNumber(view.paymentAttention)}</b><span>{compactNumber(view.failed?.count)} falhas · {compactNumber(view.pending?.count)} pendentes</span></div>
-            <div><small>Receita bruta</small><b>{currency(view.totals?.gross)}</b><span>{currency(view.totals?.platform_fees)} Peter Tecnet</span></div>
-          </div>
-        </aside>
+      <div className="aoi-kpi-grid">
+        <Kpi label="Ativos hoje" value={compactNumber(view.summary?.active_users_today)} detail={`${compactNumber(view.summary?.interactions_today)} interações`} />
+        <Kpi label="Ativos · 30d" value={compactNumber(view.summary?.active_users_30d)} detail={`${compactNumber(view.summary?.interactions_30d)} interações`} />
+        <Kpi label="Novos usuários · 30d" value={compactNumber(view.summary?.new_users_30d)} detail={`${compactNumber(view.summary?.inactive_users_30d)} inativos`} />
+        <Kpi label="Aplicações" value={`${compactNumber(view.activeApps)}/${compactNumber(view.summary?.applications ?? view.applications.length)}`} detail="ativas / cadastradas" />
+        <Kpi label="Estabelecimentos" value={compactNumber(view.summary?.establishments)} detail={`${compactNumber(view.summary?.access_links)} vínculos`} />
+        <Kpi label="Volume bruto" value={currency(view.totals?.gross)} detail={`${compactNumber(view.totals?.transactions)} transações`} tone="accent" />
+        <Kpi label="Receita Peter Tecnet" value={currency(view.totals?.platform_fees)} detail={`take rate ${percentage(view.takeRate)}`} tone="success" />
+        <Kpi label="Líquido vendedores" value={currency(view.totals?.seller_net)} detail={`${currency(view.totals?.provider_fees)} taxas provedor`} />
+        <Kpi label="Pagamentos em atenção" value={compactNumber(view.paymentAttention)} detail={`${compactNumber(view.failed?.count)} falhas · ${compactNumber(view.pending?.count)} pendentes`} tone={number(view.failed?.count) ? 'danger' : view.paymentAttention ? 'warning' : ''} />
+        <Kpi label="Falhas financeiras" value={currency(view.failed?.amount)} detail={`${currency(view.pending?.amount)} pendente`} tone={number(view.failed?.count) ? 'danger' : ''} />
       </div>
 
-      <div className="aoi-quick-grid">
-        <QuickAction icon="◈" title="Operações" detail="Alertas e saúde" section="operations" />
-        <QuickAction icon="◒" title="Financeiro" detail="Receita e pagamentos" section="financial" />
-        <QuickAction icon="◇" title="Aplicações" detail="Status e adoção" section="applications" />
-        <QuickAction icon="◎" title="Usuários" detail="Gestão e acessos" section="users" />
-        <QuickAction icon="↯" title="Atividade" detail="Eventos recentes" section="activity" />
-        <QuickAction icon="✦" title="Notificações" detail="Central de avisos" section="notifications" />
-      </div>
-
-      <div className="aoi-context-grid">
-        <article className="aoi-context-panel">
-          <div className="aoi-section-head">
-            <div><small>ADOÇÃO</small><h3>Aplicações que estão puxando o ecossistema</h3></div>
-            <button type="button" onClick={() => goTo('applications')}>Ver todas ↗</button>
-          </div>
-          <div className="aoi-app-list">{rankedApps.length ? rankedApps.map((app, index) => <ApplicationRow app={app} key={app?.id || app?.slug || index} />) : <div className="aoi-empty">Ainda não há atividade suficiente para ranquear aplicações.</div>}</div>
+      <div className="aoi-main-grid">
+        <article className="aoi-panel aoi-priority-panel">
+          <div className="aoi-section-head"><div><small>DECISÕES</small><h3>Prioridades agora</h3></div><button type="button" onClick={() => goTo('operations')}>Operações ↗</button></div>
+          <div className="aoi-priority-list">{view.priorities.map(item => <PriorityRow item={item} key={item.id} />)}</div>
         </article>
 
-        <article className="aoi-context-panel">
-          <div className="aoi-section-head">
-            <div><small>ÚLTIMOS MOVIMENTOS</small><h3>Atividade recente</h3></div>
-            <button type="button" onClick={() => goTo('activity')}>Abrir atividade ↗</button>
-          </div>
-          <div className="aoi-activity-list">{view.activities.length ? view.activities.slice(0, 6).map((row, index) => <ActivityRow row={row} index={index} key={row?.id || row?.public_id || index} />) : <div className="aoi-empty">Nenhuma atividade recente disponível nesta atualização.</div>}</div>
+        <article className="aoi-panel">
+          <div className="aoi-section-head"><div><small>ADOÇÃO</small><h3>Aplicações mais ativas</h3></div><button type="button" onClick={() => goTo('applications')}>Todas ↗</button></div>
+          <div className="aoi-app-list">{rankedApps.length ? rankedApps.map((app, index) => <ApplicationRow app={app} key={app?.id || app?.slug || index} />) : <div className="aoi-empty">Sem atividade suficiente para ranking.</div>}</div>
+        </article>
+
+        <article className="aoi-panel">
+          <div className="aoi-section-head"><div><small>TEMPO REAL</small><h3>Atividade recente</h3></div><button type="button" onClick={() => goTo('activity')}>Abrir ↗</button></div>
+          <div className="aoi-activity-list">{view.activities.length ? view.activities.slice(0, 5).map((row, index) => <ActivityRow row={row} index={index} key={row?.id || row?.public_id || index} />) : <div className="aoi-empty">Nenhuma atividade recente disponível.</div>}</div>
         </article>
       </div>
+
+      <nav className="aoi-actions" aria-label="Atalhos da visão geral">
+        <button type="button" onClick={() => goTo('operations')}><span>◈</span>Operações</button>
+        <button type="button" onClick={() => goTo('financial')}><span>◒</span>Financeiro</button>
+        <button type="button" onClick={() => goTo('applications')}><span>◇</span>Aplicações</button>
+        <button type="button" onClick={() => goTo('users')}><span>◎</span>Usuários</button>
+        <button type="button" onClick={() => goTo('activity')}><span>↯</span>Atividade</button>
+        <button type="button" onClick={() => goTo('notifications')}><span>✦</span>Notificações</button>
+      </nav>
     </>}
   </section>
 }
