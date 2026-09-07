@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import AdminEstablishmentCatalog from './AdminEstablishmentCatalog.jsx'
 import AdminEstablishmentEvents from './AdminEstablishmentEvents.jsx'
+import AdminEventEditor from './AdminEventEditor.jsx'
 import './AdminEstablishmentResourceEditor.css'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
@@ -67,6 +68,7 @@ export default function AdminEstablishmentResourceEditor({ action, app, establis
   const [loadingContext, setLoadingContext] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [eventRevision, setEventRevision] = useState(0)
 
   const kind = resourceKind(action)
   const title = action.label || 'Criar recurso'
@@ -79,6 +81,7 @@ export default function AdminEstablishmentResourceEditor({ action, app, establis
   useEffect(() => {
     setForm(initialForm(action, app, establishment))
     setError('')
+    setEventRevision(0)
   }, [action, app, establishment])
 
   useEffect(() => {
@@ -153,7 +156,7 @@ export default function AdminEstablishmentResourceEditor({ action, app, establis
   }
 
   const headerDescription = kind === 'event'
-    ? 'Liste e gerencie os eventos deste establishment, acompanhe ingressos/vendas, duplique programações ou cadastre um novo evento.'
+    ? 'Liste e gerencie os eventos deste establishment, edite dados e imagens, acompanhe ingressos/vendas, duplique programações ou cadastre um novo evento.'
     : kind === 'ticket-manager'
       ? 'Gerencie os ingressos reais por evento, com lotes, capacidade, vendas, receita, reservas, cortesias e check-ins.'
       : 'Criação administrativa dentro do ecossistema, sem sair para a página do aplicativo.'
@@ -179,7 +182,10 @@ export default function AdminEstablishmentResourceEditor({ action, app, establis
 
     {error && <div className="aer-feedback error" role="alert">{error}<button type="button" onClick={() => setError('')}>×</button></div>}
     {loadingContext && <div className="aer-feedback">Carregando contexto operacional…</div>}
-    {kind === 'event' && <AdminEstablishmentEvents establishment={establishment} app={app} />}
+    {kind === 'event' && <>
+      <AdminEventEditor establishment={establishment} app={app} onMutated={() => setEventRevision(current => current + 1)} />
+      <AdminEstablishmentEvents key={`events-${eventRevision}`} establishment={establishment} app={app} />
+    </>}
     {kind === 'item' && isCutinapp && <AdminEstablishmentCatalog establishment={establishment} app={app} onCreate={() => document.getElementById('admin-item-create-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />}
 
     <form id={kind === 'event' ? 'admin-event-create-form' : kind === 'item' ? 'admin-item-create-form' : undefined} className="aer-form" onSubmit={submit}>
