@@ -3,6 +3,7 @@ import NotificationsCenter from './NotificationsCenter'
 import AdminUsersCenter from './AdminUsersCenter.jsx'
 import AdminEstablishmentsPage from './AdminEstablishmentsPageV2.jsx'
 import AdminItemsManager from './AdminItemsManager.jsx'
+import AdminFilesManager from './AdminFilesManager.jsx'
 import AdminCutinappCenter from './AdminCutinappCenter.jsx'
 import AdminModuleBoundary from './AdminModuleBoundary.jsx'
 import ExecutiveOverview from './ExecutiveOverview.jsx'
@@ -19,6 +20,7 @@ const navItems = [
   ['users', 'Usuários', '◎', 'usuarios'],
   ['establishments', 'Estabelecimentos', '▰', 'estabelecimentos'],
   ['items', 'Itens', '▣', 'itens'],
+  ['files', 'Arquivos', '▤', 'arquivos'],
   ['support', 'Suporte', '◌', 'suporte'],
   ['telemetry', 'Telemetria', '◉', 'telemetria'],
   ['notifications', 'Notificações', '✦', 'notificacoes'],
@@ -43,7 +45,7 @@ function writePage(page, mode = 'pushState') {
 
 const groupLabels = {
   users: 'Usuários', applications: 'Aplicações', establishments: 'Estabelecimentos',
-  items: 'Itens', events: 'Eventos', orders: 'Pedidos', payments: 'Pagamentos',
+  items: 'Itens', files: 'Arquivos', events: 'Eventos', orders: 'Pedidos', payments: 'Pagamentos',
 }
 
 let googleIdentityPromise
@@ -491,6 +493,10 @@ function Dashboard({ user, onLogout }) {
 
           <section id="items-admin-integration" className="section-anchor admin-items-section" data-admin-page-key="items">
             <AdminModuleBoundary name="Itens"><AdminItemsManager /></AdminModuleBoundary>
+          </section>
+
+          <section id="files-admin-integration" className="section-anchor admin-files-section" data-admin-page-key="files">
+            <AdminModuleBoundary name="Arquivos"><AdminFilesManager /></AdminModuleBoundary>
           </section>
 
           <section id="support" className="section-anchor" data-admin-page-key="support">
