@@ -11,6 +11,7 @@ import './AdminNavigationStandard.css'
 import './AdminHamburgerPolish.css'
 import './SupportAdminResponsiveFix.css'
 import './AdminProcessingExperience.css'
+import './AdminTopbarPolish.css'
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 
