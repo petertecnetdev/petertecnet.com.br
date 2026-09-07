@@ -101,14 +101,14 @@ jobs:
           SHA="$2"
           ARCHIVE="$3"
           NEXT="$TARGET/.dist.next.$SHA"
-          PREVIOUS="$TARGET/.dist.previous.$SHA"
+          PREVIOUS="$TARGET/.dist.previous.$SHA.$$"
           LIVE="$TARGET/dist"
 
           [[ "$TARGET" == /var/www/* ]] || exit 20
           [[ "$ARCHIVE" == /tmp/admincenter-*.tar.gz ]] || exit 21
           test -f "$ARCHIVE"
 
-          rm -rf "$NEXT" "$PREVIOUS"
+          rm -rf "$NEXT" 2>/dev/null || true
           mkdir -p "$NEXT"
           tar -xzf "$ARCHIVE" -C "$NEXT"
           rm -f "$ARCHIVE"
@@ -120,8 +120,11 @@ jobs:
             exit 22
           fi
 
-          rm -rf "$PREVIOUS"
+          # A release is considered active before best-effort cleanup of the old build.
+          # This avoids marking a successful deployment as failed because legacy files
+          # may still be owned by a previous deployment user.
           printf '%s\n' "$SHA" > "$TARGET/.admincenter-main-release"
+          rm -rf "$PREVIOUS" 2>/dev/null || true
           REMOTE
 
           ssh \
