@@ -899,3 +899,47 @@ body {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* Mobile app ergonomics — readable, touch-friendly Admin Center */
+@media (max-width: 680px) {
+  .admin-shell { font-size: 16px; }
+  .content { padding-left: 14px; padding-right: 14px; }
+  .section-anchor { padding-top: 36px; }
+  .section-heading { align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+  .section-heading > p { font-size: .92rem; line-height: 1.55; }
+  .panel { border-radius: 20px; }
+  .panel > header { min-height: 76px; padding: 18px; align-items: flex-start; }
+  .panel > header h3 { font-size: 1.05rem; line-height: 1.3; }
+  .panel > header p { font-size: .88rem; line-height: 1.45; margin-top: 6px; }
+  .metric-card p, .app-card > p, .alert-row small, .insight p, .pulse-grid span, .financial-strip span, .app-stats small, .empty-state { font-size: .86rem; line-height: 1.5; }
+  .metric-card strong, .financial-strip b { font-size: 1.2rem; }
+  .app-card { border-radius: 20px; padding: 18px; }
+  .app-card h3 { font-size: 1.05rem; }
+  .app-card > p { height: auto; min-height: 0; }
+  .app-state, .app-card > a, .app-stats b { font-size: .82rem; }
+  .top-search input { font-size: 1rem; }
+  .timeline { padding: 12px; display: grid; gap: 10px; }
+  .timeline-row { grid-template-columns: 14px minmax(0, 1fr); gap: 12px; align-items: flex-start; padding: 15px 14px; border: 1px solid rgba(144, 205, 217, .08); border-radius: 16px; background: rgba(8, 24, 31, .72); min-height: 78px; }
+  .timeline-row:last-child { border-bottom: 1px solid rgba(144, 205, 217, .08); }
+  .timeline-dot { width: 8px; height: 8px; margin-top: 7px; box-shadow: 0 0 0 6px rgba(66, 207, 231, .055); }
+  .timeline-row b { font-size: 1rem; line-height: 1.35; }
+  .timeline-row small { font-size: .9rem; line-height: 1.45; margin-top: 5px; color: #7897a0; }
+  .timeline-row time { grid-column: 2; justify-self: start; font-size: .82rem; line-height: 1.35; color: #6f8c94; margin-top: -2px; }
+  .alert-row { padding: 15px 4px; }
+  .alert-row b { font-size: .98rem; line-height: 1.35; }
+  .pulse-grid > div, .financial-strip > div { padding: 18px; }
+  .table-wrap table { min-width: 0; }
+  .table-wrap thead { display: none; }
+  .table-wrap tbody, .table-wrap tr, .table-wrap td { display: block; width: 100%; }
+  .table-wrap tr { margin: 10px 0; padding: 12px 14px; border: 1px solid rgba(144, 205, 217, .08); border-radius: 16px; background: rgba(8, 24, 31, .65); }
+  .table-wrap td { padding: 6px 0; border-bottom: 0; font-size: .9rem; line-height: 1.45; }
+  .table-wrap td b { font-size: .98rem; }
+}
+
+@media (max-width: 420px) {
+  .content { padding-left: 12px; padding-right: 12px; }
+  .top-search input { font-size: 1rem; }
+  .section-heading h2 { font-size: clamp(1.5rem, 7.5vw, 1.9rem); }
+  .timeline-row { padding: 15px 13px; }
+}
