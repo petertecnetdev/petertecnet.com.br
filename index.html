@@ -17,16 +17,6 @@
     <link rel="manifest" href="/manifest.json?v=20260907-official-loader" />
     <link rel="preload" href="/petertecnetlogo.png?v=20260907-official-loader" as="image" fetchpriority="high" />
     <link rel="stylesheet" href="/ecosystem/processing-indicator.css?v=20260907-3" />
-    <script>
-      try {
-        const cacheFix = 'pt-brand-cache-fix-20260907-1';
-        if (localStorage.getItem(cacheFix) !== '1' && 'caches' in window) {
-          caches.keys().then(keys => Promise.all(keys.map(key => caches.delete(key)))).finally(() => {
-            try { localStorage.setItem(cacheFix, '1'); } catch (_) {}
-          });
-        }
-      } catch (_) {}
-    </script>
     <link rel="preconnect" href="https://api.petertecnet.com.br" crossorigin />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="pt_BR" />
@@ -44,7 +34,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.3/dist/sweetalert2.all.min.js"></script>
     <script defer src="/ecosystem/processing-indicator.js?v=20260907-3"></script>
     <script defer src="/ecosystem/address-forms.js?v=20260904"></script>
-    <script defer src="/ecosystem/install-app.js?v=20260905-installed-registry" data-app-name="Peter Tecnet" data-app-slug="peter-tecnet" data-sw="/service-worker.js?v=20260907-cache-reset" data-manifest="/manifest.json" data-detect-installed="related-app"></script>
+    <script defer src="/ecosystem/install-app.js?v=20260905-installed-registry" data-app-name="Peter Tecnet" data-app-slug="peter-tecnet" data-sw="/service-worker.js" data-manifest="/manifest.json" data-detect-installed="related-app"></script>
     <script defer src="/ecosystem/app-store.js?v=20260905-installed-open"></script>
     <script defer src="/ecosystem/app-store-install-state.js?v=20260905-installed-open-2"></script>
   </head>
