@@ -1,7 +1,12 @@
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 
 const BOOT_RELOAD_KEY = 'pt:boot-reload-attempted'
+const RUNTIME_RELOAD_KEY = 'pt:runtime-reload-attempted'
 const BOOT_TIMEOUT_MS = 12000
+const BLANK_SCREEN_GRACE_MS = 700
+let applicationBooted = false
+let runtimeRecoveryStarted = false
+let blankScreenTimer = null
 
 function clearBootReloadGuard() {
   try {
@@ -11,8 +16,16 @@ function clearBootReloadGuard() {
   }
 }
 
-function renderBootFailure(error) {
-  console.error('[Peter Tecnet] application boot failed', error)
+function clearRuntimeReloadGuard() {
+  try {
+    sessionStorage.removeItem(RUNTIME_RELOAD_KEY)
+  } catch {
+    // Storage can be unavailable in restricted/private contexts.
+  }
+}
+
+function renderBootFailure(error, title = 'Não foi possível manter esta página aberta.') {
+  console.error('[Peter Tecnet] application runtime failed', error)
 
   const root = document.getElementById('root')
   if (!root) return
@@ -22,24 +35,27 @@ function renderBootFailure(error) {
       <section style="width:min(520px,100%);padding:28px;border:1px solid rgba(116,217,234,.16);border-radius:22px;background:rgba(5,20,29,.96);box-shadow:0 26px 80px rgba(0,0,0,.35)">
         <img src="/petertecnetlogo.png" alt="Peter Tecnet" style="width:68px;height:68px;object-fit:contain;margin-bottom:14px" />
         <p style="margin:0 0 8px;color:#35dff2;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase">Peter Tecnet</p>
-        <h1 style="margin:0 0 12px;font-size:clamp(24px,6vw,36px);line-height:1.15">Não foi possível concluir a atualização da página.</h1>
-        <p style="margin:0 0 20px;color:#91adb5;line-height:1.6">A versão anterior não ficará presa na tela de carregamento. Recarregue para buscar os arquivos mais recentes.</p>
-        <button id="pt-boot-retry" type="button" style="min-height:44px;padding:0 18px;border:0;border-radius:12px;background:#dffbff;color:#041217;font:800 14px/1 Inter,system-ui,sans-serif;cursor:pointer">Recarregar versão atualizada</button>
+        <h1 style="margin:0 0 12px;font-size:clamp(24px,6vw,36px);line-height:1.15">${title}</h1>
+        <p style="margin:0 0 20px;color:#91adb5;line-height:1.6">A interface entrou em um estado inconsistente e foi interrompida antes de deixar uma tela vazia. Recarregue para buscar a versão atual da aplicação.</p>
+        <button id="pt-boot-retry" type="button" style="min-height:44px;padding:0 18px;border:0;border-radius:12px;background:#dffbff;color:#041217;font:800 14px/1 Inter,system-ui,sans-serif;cursor:pointer">Recarregar Peter Tecnet</button>
       </section>
     </main>`
 
   document.getElementById('pt-boot-retry')?.addEventListener('click', () => {
     clearBootReloadGuard()
+    clearRuntimeReloadGuard()
     window.location.reload()
   })
 }
 
-function recoverBoot(error) {
-  let alreadyRetried = false
+function replaceWithFreshVersion(recoveryKey, error, fallbackTitle) {
+  if (runtimeRecoveryStarted) return
+  runtimeRecoveryStarted = true
 
+  let alreadyRetried = false
   try {
-    alreadyRetried = sessionStorage.getItem(BOOT_RELOAD_KEY) === '1'
-    if (!alreadyRetried) sessionStorage.setItem(BOOT_RELOAD_KEY, '1')
+    alreadyRetried = sessionStorage.getItem(recoveryKey) === '1'
+    if (!alreadyRetried) sessionStorage.setItem(recoveryKey, '1')
   } catch {
     alreadyRetried = true
   }
@@ -51,7 +67,72 @@ function recoverBoot(error) {
     return
   }
 
-  renderBootFailure(error)
+  renderBootFailure(error, fallbackTitle)
+}
+
+function recoverBoot(error) {
+  replaceWithFreshVersion(
+    BOOT_RELOAD_KEY,
+    error,
+    'Não foi possível concluir a atualização da página.',
+  )
+}
+
+function recoverRuntime(error) {
+  if (!applicationBooted) return
+  replaceWithFreshVersion(
+    RUNTIME_RELOAD_KEY,
+    error,
+    'A página encontrou um problema depois de abrir.',
+  )
+}
+
+function rootIsBlank() {
+  const root = document.getElementById('root')
+  if (!root) return true
+  if (root.childElementCount > 0) return false
+  return root.textContent.trim().length === 0
+}
+
+function scheduleBlankScreenCheck(source = 'mutation') {
+  if (!applicationBooted || runtimeRecoveryStarted) return
+  window.clearTimeout(blankScreenTimer)
+  blankScreenTimer = window.setTimeout(() => {
+    if (rootIsBlank()) {
+      recoverRuntime(new Error(`React root became empty after boot (${source})`))
+    }
+  }, BLANK_SCREEN_GRACE_MS)
+}
+
+function installBlankScreenWatchdog() {
+  const root = document.getElementById('root')
+  if (!root) {
+    recoverRuntime(new Error('Application root is missing after boot'))
+    return
+  }
+
+  const observer = new MutationObserver(() => scheduleBlankScreenCheck('root mutation'))
+  observer.observe(root, { childList: true, subtree: false })
+
+  window.addEventListener('pageshow', () => scheduleBlankScreenCheck('pageshow'))
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) scheduleBlankScreenCheck('visibilitychange')
+  })
+
+  // React can clear a root after an uncaught render/effect failure. Global
+  // errors are only actionable here when the visual tree also disappeared.
+  window.addEventListener('error', event => {
+    window.setTimeout(() => {
+      if (rootIsBlank()) recoverRuntime(event.error || new Error(event.message || 'Uncaught runtime error'))
+    }, 0)
+  })
+  window.addEventListener('unhandledrejection', event => {
+    window.setTimeout(() => {
+      if (rootIsBlank()) recoverRuntime(event.reason instanceof Error ? event.reason : new Error(String(event.reason || 'Unhandled rejection')))
+    }, 0)
+  })
+
+  scheduleBlankScreenCheck('watchdog installation')
 }
 
 const bootTimeout = window.setTimeout(() => {
@@ -86,6 +167,14 @@ boot()
   .then(() => {
     window.clearTimeout(bootTimeout)
     clearBootReloadGuard()
+    applicationBooted = true
+    installBlankScreenWatchdog()
+
+    // A healthy page that remains mounted for a while is allowed to recover
+    // automatically again in a future, unrelated session/runtime failure.
+    window.setTimeout(() => {
+      if (!rootIsBlank()) clearRuntimeReloadGuard()
+    }, 10000)
   })
   .catch(error => {
     window.clearTimeout(bootTimeout)
