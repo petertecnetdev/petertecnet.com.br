@@ -12,8 +12,15 @@
   ]
 
   class PeterProcessingIndicator extends HTMLElement {
+    static get observedAttributes() {
+      return ['progress', 'total', 'progress-label', 'progress-detail']
+    }
+
     connectedCallback() {
-      if (this.dataset.ready === 'true') return
+      if (this.dataset.ready === 'true') {
+        this._syncProgress()
+        return
+      }
       this.dataset.ready = 'true'
       this._index = 0
       this._messages = (this.getAttribute('messages') || '')
@@ -44,7 +51,11 @@
             <p class="pt-processing__eyebrow">${this._escape(eyebrow)}</p>
             <strong class="pt-processing__title">${this._escape(title)}</strong>
             <p class="pt-processing__message">${this._escape(this._messages[0])}</p>
-            <div class="pt-processing__bar" aria-hidden="true"></div>
+            <div class="pt-processing__bar" aria-hidden="true"><span class="pt-processing__bar-value"></span></div>
+            <div class="pt-processing__progress" hidden>
+              <strong class="pt-processing__progress-label"></strong>
+              <span class="pt-processing__progress-detail"></span>
+            </div>
             <div class="pt-processing__beat" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
             <div class="pt-processing__status"><span class="pt-processing__dot"></span><span>experiência em preparação</span></div>
           </div>
@@ -52,14 +63,62 @@
 
       this._root = this.querySelector('.pt-processing')
       this._messageNode = this.querySelector('.pt-processing__message')
+      this._barNode = this.querySelector('.pt-processing__bar')
+      this._barValueNode = this.querySelector('.pt-processing__bar-value')
+      this._progressNode = this.querySelector('.pt-processing__progress')
+      this._progressLabelNode = this.querySelector('.pt-processing__progress-label')
+      this._progressDetailNode = this.querySelector('.pt-processing__progress-detail')
+      this._syncProgress()
+
       if (this._messages.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         this._timer = window.setInterval(() => this._nextMessage(), 2400)
       }
     }
 
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (oldValue === newValue || this.dataset.ready !== 'true') return
+      this._syncProgress()
+    }
+
     disconnectedCallback() {
       if (this._timer) window.clearInterval(this._timer)
       this._timer = null
+    }
+
+    _syncProgress() {
+      if (!this._barNode || !this._barValueNode || !this._progressNode) return
+
+      const progress = Number(this.getAttribute('progress'))
+      const total = Number(this.getAttribute('total'))
+      const determinate = Number.isFinite(progress) && Number.isFinite(total) && total > 0
+      const label = this.getAttribute('progress-label') || ''
+      const detail = this.getAttribute('progress-detail') || ''
+
+      this._barNode.classList.toggle('is-determinate', determinate)
+      if (determinate) {
+        const normalized = Math.min(Math.max(progress, 0), total)
+        const percent = Math.min(100, Math.max(0, (normalized / total) * 100))
+        this._barValueNode.style.width = `${percent}%`
+        this._barNode.setAttribute('role', 'progressbar')
+        this._barNode.setAttribute('aria-valuemin', '0')
+        this._barNode.setAttribute('aria-valuemax', String(total))
+        this._barNode.setAttribute('aria-valuenow', String(normalized))
+        this._root?.setAttribute('aria-label', label || `${normalized} de ${total} processados`)
+      } else {
+        this._barValueNode.style.width = '0%'
+        this._barNode.removeAttribute('role')
+        this._barNode.removeAttribute('aria-valuemin')
+        this._barNode.removeAttribute('aria-valuemax')
+        this._barNode.removeAttribute('aria-valuenow')
+      }
+
+      const showProgress = determinate || Boolean(label) || Boolean(detail)
+      this._progressNode.hidden = !showProgress
+      if (this._progressLabelNode) this._progressLabelNode.textContent = label || (determinate ? `${progress} de ${total}` : '')
+      if (this._progressDetailNode) {
+        this._progressDetailNode.textContent = detail
+        this._progressDetailNode.hidden = !detail
+      }
     }
 
     _nextMessage() {
@@ -70,7 +129,7 @@
         this._index = (this._index + 1) % this._messages.length
         const next = this._messages[this._index]
         this._messageNode.textContent = next
-        this._root?.setAttribute('aria-label', next)
+        if (!this.hasAttribute('progress-label')) this._root?.setAttribute('aria-label', next)
         this._messageNode.classList.remove('is-changing')
       }, 220)
     }
