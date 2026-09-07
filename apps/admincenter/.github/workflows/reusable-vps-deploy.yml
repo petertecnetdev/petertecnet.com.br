@@ -1,0 +1,255 @@
+name: Reusable VPS Deploy
+
+on:
+  workflow_call:
+    inputs:
+      deploy_path:
+        description: Absolute application path on the VPS.
+        required: true
+        type: string
+      deploy_type:
+        description: Deployment strategy (frontend or laravel).
+        required: true
+        type: string
+      deploy_branch:
+        description: Branch that must be deployed.
+        required: true
+        type: string
+      health_url:
+        description: Optional public URL checked after deployment.
+        required: false
+        default: ''
+        type: string
+    secrets:
+      VPS_HOST:
+        required: false
+      VPS_PORT:
+        required: false
+      VPS_USER:
+        required: false
+      VPS_SSH_KEY:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Peter Tecnet VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    concurrency:
+      group: deploy-${{ github.repository }}-${{ inputs.deploy_branch }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Check deploy configuration
+        id: config
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${VPS_HOST}" || -z "${VPS_USER}" || -z "${VPS_SSH_KEY}" ]]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Automatic VPS deployment is installed but not enabled."
+            exit 0
+          fi
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+          echo "port=${VPS_PORT:-22}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure SSH
+        if: steps.config.outputs.enabled == 'true'
+        shell: bash
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          : > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Deploy application
+        if: steps.config.outputs.enabled == 'true'
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ steps.config.outputs.port }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          DEPLOY_PATH: ${{ inputs.deploy_path }}
+          DEPLOY_TYPE: ${{ inputs.deploy_type }}
+          DEPLOY_BRANCH: ${{ inputs.deploy_branch }}
+          DEPLOY_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          repository_checksum="$(printf '%s' "$DEPLOY_REPOSITORY" | cksum | awk '{print $1}')"
+          stagger_seconds=$((repository_checksum % 11))
+          echo "Ecosystem SSH stagger for $DEPLOY_REPOSITORY: ${stagger_seconds}s"
+          sleep "$stagger_seconds"
+
+          REMOTE_SCRIPT_FILE="$RUNNER_TEMP/petertecnet-vps-deploy-remote.sh"
+          cat > "$REMOTE_SCRIPT_FILE" <<'REMOTE_SCRIPT'
+          set -Eeuo pipefail
+          umask 002
+
+          DEPLOY_PATH="$1"
+          DEPLOY_TYPE="$2"
+          DEPLOY_BRANCH="$3"
+          DEPLOY_REPOSITORY="$4"
+          BUILD_WORKTREE=""
+
+          cleanup_worktree() {
+            if [[ -n "$BUILD_WORKTREE" && -d "$BUILD_WORKTREE" ]]; then
+              cd "$DEPLOY_PATH" 2>/dev/null || true
+              git worktree remove --force "$BUILD_WORKTREE" >/dev/null 2>&1 || rm -rf "$BUILD_WORKTREE" || true
+              git worktree prune >/dev/null 2>&1 || true
+            fi
+          }
+
+          on_exit() {
+            cleanup_worktree
+          }
+          trap on_exit EXIT
+
+          if [[ "$DEPLOY_PATH" != /var/www/* ]]; then
+            echo "Refusing deploy outside /var/www: $DEPLOY_PATH" >&2
+            exit 20
+          fi
+          if [[ ! "$DEPLOY_BRANCH" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            echo "Invalid deploy branch: $DEPLOY_BRANCH" >&2
+            exit 21
+          fi
+          if [[ "$DEPLOY_TYPE" != "frontend" && "$DEPLOY_TYPE" != "laravel" ]]; then
+            echo "Unsupported deploy type: $DEPLOY_TYPE" >&2
+            exit 22
+          fi
+          if [[ ! "$DEPLOY_REPOSITORY" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+            echo "Invalid GitHub repository: $DEPLOY_REPOSITORY" >&2
+            exit 25
+          fi
+
+          exec 9>/tmp/petertecnet-vps-deploy.lock
+          echo "Waiting for Peter Tecnet VPS deployment slot..."
+          if ! flock -w 2700 9; then
+            echo "Timed out waiting for Peter Tecnet VPS deployment slot." >&2
+            exit 75
+          fi
+          echo "Peter Tecnet VPS deployment slot acquired."
+
+          if [[ ! -d "$DEPLOY_PATH/.git" ]]; then
+            if [[ -d "$DEPLOY_PATH" && -n "$(ls -A "$DEPLOY_PATH" 2>/dev/null)" ]]; then
+              echo "$DEPLOY_PATH exists, is not a Git repository and is not empty." >&2
+              exit 23
+            fi
+            mkdir -p "$(dirname "$DEPLOY_PATH")"
+            rm -rf "$DEPLOY_PATH"
+            echo "Bootstrapping $DEPLOY_REPOSITORY into $DEPLOY_PATH..."
+            git clone --branch "$DEPLOY_BRANCH" --single-branch "https://github.com/$DEPLOY_REPOSITORY.git" "$DEPLOY_PATH"
+          fi
+
+          cd "$DEPLOY_PATH"
+          if [[ ! -d .git ]]; then
+            echo "$DEPLOY_PATH is not a Git repository." >&2
+            exit 23
+          fi
+          if [[ ! -w "$DEPLOY_PATH" ]]; then
+            echo "$DEPLOY_PATH is not writable by the deploy user." >&2
+            exit 24
+          fi
+
+          LOCAL_SOURCE_CHANGES="$(git status --porcelain=v1 --untracked-files=all | awk '
+            {
+              path = substr($0, 4)
+              if (path ~ /^(storage\/|bootstrap\/cache\/|node_modules\/|vendor\/|dist\/|build\/|artifacts\/)/) next
+              if (path ~ /^\.env($|\.)/) next
+              if (path ~ /\.bak\.[0-9]{8}-[0-9]{6}-[0-9]+$/) next
+              print
+            }
+          ')"
+          if [[ -n "$LOCAL_SOURCE_CHANGES" ]]; then
+            echo "Refusing deploy: uncommitted source work exists in $DEPLOY_PATH." >&2
+            printf '%s\n' "$LOCAL_SOURCE_CHANGES" >&2
+            exit 26
+          fi
+
+          OLD_SHA="$(git rev-parse HEAD)"
+          git fetch --prune origin "$DEPLOY_BRANCH"
+          TARGET_SHA="$(git rev-parse "origin/$DEPLOY_BRANCH")"
+          if ! git merge-base --is-ancestor "$OLD_SHA" "$TARGET_SHA"; then
+            echo "Refusing deploy: local commits would be discarded in $DEPLOY_PATH." >&2
+            git log --oneline --decorate "$TARGET_SHA..$OLD_SHA" >&2 || true
+            exit 27
+          fi
+
+          case "$DEPLOY_TYPE" in
+            frontend)
+              if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then git checkout "$DEPLOY_BRANCH"; else git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"; fi
+              git reset --hard "$TARGET_SHA"
+              safe_name="$(basename "$DEPLOY_PATH" | tr -c 'A-Za-z0-9._-' '-')"
+              BUILD_WORKTREE="/tmp/petertecnet-build-${safe_name}-$$-$RANDOM"
+              git worktree add --detach "$BUILD_WORKTREE" "$TARGET_SHA"
+              for env_file in .env .env.local .env.production .env.production.local .npmrc; do [[ -f "$DEPLOY_PATH/$env_file" ]] && cp -f "$DEPLOY_PATH/$env_file" "$BUILD_WORKTREE/$env_file"; done
+              cd "$BUILD_WORKTREE"
+              [[ -f package.json ]] || { echo "package.json not found in release worktree." >&2; exit 30; }
+              if grep -Eq '"vite"[[:space:]]*:' package.json; then FRONTEND_OUTPUT="dist"; else FRONTEND_OUTPUT="build"; fi
+              export CI=true
+              export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=4096}"
+              if [[ -f package-lock.json ]]; then npm ci --no-audit --no-fund || npm install --no-audit --no-fund --package-lock=false; else npm install --no-audit --no-fund --package-lock=false; fi
+              npm run build
+              NEW_OUTPUT="$BUILD_WORKTREE/$FRONTEND_OUTPUT"
+              LIVE_OUTPUT="$DEPLOY_PATH/$FRONTEND_OUTPUT"
+              [[ -f "$NEW_OUTPUT/index.html" ]] || { echo "New frontend release has no $FRONTEND_OUTPUT/index.html." >&2; exit 31; }
+              mkdir -p "$LIVE_OUTPUT"
+              (cd "$NEW_OUTPUT" && tar --exclude='./index.html' -cf - .) | (cd "$LIVE_OUTPUT" && tar -xf -)
+              cp -f "$NEW_OUTPUT/index.html" "$LIVE_OUTPUT/.index.html.next"
+              chmod --reference="$LIVE_OUTPUT/index.html" "$LIVE_OUTPUT/.index.html.next" 2>/dev/null || true
+              mv -f "$LIVE_OUTPUT/.index.html.next" "$LIVE_OUTPUT/index.html"
+              cmp -s "$NEW_OUTPUT/index.html" "$LIVE_OUTPUT/index.html" || { echo "Published frontend index.html differs from freshly built release." >&2; exit 32; }
+              ;;
+            laravel)
+              if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then git checkout "$DEPLOY_BRANCH"; else git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"; fi
+              git reset --hard "$TARGET_SHA"
+              [[ -f artisan && -f composer.json ]] || { echo "Laravel application files were not found in $DEPLOY_PATH" >&2; exit 40; }
+              composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+              chmod -R ug+rwX storage bootstrap/cache || true
+              sudo -u www-data -- php artisan optimize:clear
+              sudo -u www-data -- php artisan migrate --force
+              sudo -u www-data -- php artisan config:cache
+              sudo -u www-data -- php artisan view:cache
+              if [[ -f config/cognition.php ]]; then
+                php -r 'require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class); $kernel->bootstrap(); echo "Cognitive core: ".(config("cognition.enabled") ? "enabled" : "disabled").PHP_EOL;'
+              fi
+              sudo -u www-data -- php artisan queue:restart || true
+              sudo -u www-data -- php artisan reverb:restart || true
+              ;;
+          esac
+          cd "$DEPLOY_PATH"
+          NEW_SHA="$(git rev-parse HEAD)"
+          echo "Deployment completed: $OLD_SHA -> $NEW_SHA"
+          REMOTE_SCRIPT
+          chmod 600 "$REMOTE_SCRIPT_FILE"
+          max_attempts=3
+          for attempt in $(seq 1 "$max_attempts"); do
+            echo "SSH deploy attempt $attempt/$max_attempts"
+            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=20 -o ConnectionAttempts=1 -o ServerAliveInterval=30 -o ServerAliveCountMax=8 -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH' '$DEPLOY_REPOSITORY'" < "$REMOTE_SCRIPT_FILE"; then exit 0; else exit_code=$?; fi
+            if [[ "$exit_code" -ne 75 && "$exit_code" -ne 255 ]]; then exit "$exit_code"; fi
+            [[ "$attempt" -eq "$max_attempts" ]] && exit "$exit_code"
+            sleep_seconds=$((10 + (repository_checksum + attempt * 7) % 11))
+            sleep "$sleep_seconds"
+          done
+
+      - name: Health check
+        if: steps.config.outputs.enabled == 'true' && inputs.health_url != ''
+        shell: bash
+        env:
+          HEALTH_URL: ${{ inputs.health_url }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 20 "$HEALTH_URL" >/dev/null
+          echo "Health check passed: $HEALTH_URL"

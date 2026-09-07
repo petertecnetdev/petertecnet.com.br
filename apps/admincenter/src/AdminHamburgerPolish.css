@@ -1,0 +1,205 @@
+/*
+ * Peter Tecnet Admin Center — canonical hamburger polish.
+ * Loaded after AdminNavigationStandard.css so the trigger keeps one visual
+ * language across desktop, tablet and mobile without touching navigation logic.
+ */
+
+.admin-shell .hamburger {
+  --admin-menu-size: 50px;
+  position: relative;
+  isolation: isolate;
+  width: var(--admin-menu-size) !important;
+  height: var(--admin-menu-size) !important;
+  min-width: var(--admin-menu-size) !important;
+  min-height: var(--admin-menu-size) !important;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 1px solid rgba(112, 222, 238, .24) !important;
+  border-radius: 16px !important;
+  background:
+    radial-gradient(circle at 28% 18%, rgba(116, 236, 250, .18), transparent 35%),
+    linear-gradient(145deg, rgba(16, 43, 56, .96), rgba(5, 19, 29, .98)) !important;
+  color: #eaffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .07),
+    inset 0 -1px 0 rgba(0, 0, 0, .20),
+    0 10px 26px rgba(0, 0, 0, .18),
+    0 0 0 1px rgba(75, 217, 239, .035) !important;
+  backdrop-filter: blur(14px) saturate(135%);
+  -webkit-backdrop-filter: blur(14px) saturate(135%);
+  transition:
+    transform .18s ease,
+    border-color .18s ease,
+    background .18s ease,
+    box-shadow .18s ease !important;
+}
+
+.admin-shell .hamburger::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(115deg, transparent 18%, rgba(255, 255, 255, .12) 48%, transparent 78%);
+  transform: translateX(-120%);
+  transition: transform .42s cubic-bezier(.2, .8, .2, 1);
+  pointer-events: none;
+}
+
+.admin-shell .hamburger::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #6fe8f7;
+  box-shadow: 0 0 10px rgba(111, 232, 247, .72);
+  opacity: .72;
+  pointer-events: none;
+  transition: transform .18s ease, opacity .18s ease, box-shadow .18s ease;
+}
+
+.admin-shell .hamburger span {
+  position: absolute !important;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 21px !important;
+  height: 2px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #bff8ff, #68dbea) !important;
+  box-shadow: 0 0 8px rgba(104, 219, 234, .12);
+  transform-origin: center;
+  transition:
+    width .18s ease,
+    opacity .16s ease,
+    transform .20s cubic-bezier(.2, .8, .2, 1),
+    box-shadow .18s ease !important;
+}
+
+.admin-shell .hamburger span:nth-child(1) {
+  transform: translate(-50%, -50%) translateY(-7px);
+}
+
+.admin-shell .hamburger span:nth-child(2) {
+  width: 14px !important;
+  transform: translate(-50%, -50%);
+}
+
+.admin-shell .hamburger span:nth-child(3) {
+  transform: translate(-50%, -50%) translateY(7px);
+}
+
+.admin-shell .hamburger:focus-visible {
+  outline: 0 !important;
+  border-color: rgba(117, 235, 249, .58) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .09),
+    0 0 0 3px rgba(77, 214, 235, .16),
+    0 0 0 6px rgba(77, 214, 235, .06),
+    0 12px 30px rgba(0, 0, 0, .22) !important;
+}
+
+.admin-shell .hamburger:active {
+  transform: translateY(1px) scale(.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .admin-shell .hamburger:hover {
+    border-color: rgba(112, 229, 243, .42) !important;
+    background:
+      radial-gradient(circle at 28% 18%, rgba(121, 242, 255, .24), transparent 36%),
+      linear-gradient(145deg, rgba(20, 53, 67, .98), rgba(6, 23, 34, .99)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, .09),
+      0 14px 32px rgba(0, 0, 0, .22),
+      0 0 24px rgba(78, 216, 235, .08) !important;
+    transform: translateY(-2px);
+  }
+
+  .admin-shell .hamburger:hover::before {
+    transform: translateX(120%);
+  }
+
+  .admin-shell .hamburger:hover::after {
+    opacity: 1;
+    transform: scale(1.2);
+    box-shadow: 0 0 14px rgba(111, 232, 247, .9);
+  }
+
+  .admin-shell .hamburger:hover span:nth-child(2) {
+    width: 21px !important;
+  }
+}
+
+/* Open state: the trigger becomes a precise close control, not a second icon. */
+.admin-shell .sidebar.open ~ .workspace .hamburger {
+  --admin-menu-size: 50px;
+  border-color: rgba(111, 232, 247, .34) !important;
+  border-radius: 16px !important;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(101, 228, 244, .18), transparent 42%),
+    linear-gradient(145deg, rgba(14, 40, 52, .96), rgba(5, 18, 28, .98)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .08),
+    0 16px 38px rgba(0, 0, 0, .28),
+    0 0 26px rgba(77, 214, 235, .08) !important;
+}
+
+.admin-shell .sidebar.open ~ .workspace .hamburger::after {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+.admin-shell .sidebar.open ~ .workspace .hamburger span {
+  top: 50% !important;
+  left: 50% !important;
+  width: 22px !important;
+}
+
+.admin-shell .sidebar.open ~ .workspace .hamburger span:nth-child(1) {
+  transform: translate(-50%, -50%) rotate(45deg) !important;
+}
+
+.admin-shell .sidebar.open ~ .workspace .hamburger span:nth-child(2) {
+  width: 0 !important;
+  opacity: 0 !important;
+  transform: translate(-50%, -50%) scaleX(.2) !important;
+}
+
+.admin-shell .sidebar.open ~ .workspace .hamburger span:nth-child(3) {
+  transform: translate(-50%, -50%) rotate(-45deg) !important;
+}
+
+@media (max-width: 760px) {
+  .admin-shell .hamburger,
+  .admin-shell .sidebar.open ~ .workspace .hamburger {
+    --admin-menu-size: 46px;
+    border-radius: 14px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-shell .hamburger,
+  .admin-shell .sidebar.open ~ .workspace .hamburger {
+    --admin-menu-size: 44px;
+    border-radius: 13px !important;
+  }
+
+  .admin-shell .hamburger::after {
+    top: 7px;
+    right: 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell .hamburger,
+  .admin-shell .hamburger::before,
+  .admin-shell .hamburger::after,
+  .admin-shell .hamburger span {
+    transition: none !important;
+  }
+}

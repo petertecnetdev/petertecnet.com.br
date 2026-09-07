@@ -1,0 +1,71 @@
+name: Diagnose Locaio VHost
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/diagnose-locaio-vhost.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Configure SSH
+        shell: bash
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          : > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Inspect HTTPS routing
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          port="${VPS_PORT:-22}"
+          cat > "$RUNNER_TEMP/https-probe.sh" <<'REMOTE'
+          set -u
+          DOMAIN="locaio.petertecnet.com.br"
+          echo '===== TLS CERTIFICATE PRESENTED FOR LOCAIO SNI ====='
+          timeout 15 openssl s_client -connect 127.0.0.1:443 -servername "$DOMAIN" -showcerts </dev/null 2>/tmp/sclient.err | openssl x509 -noout -subject -issuer -dates -ext subjectAltName 2>&1 || true
+          echo '--- s_client stderr ---'
+          cat /tmp/sclient.err 2>/dev/null || true
+
+          echo '===== HTTPS RESPONSE USING LOCAIO SNI ====='
+          curl -k -sS -D /tmp/https-headers.txt -o /tmp/https-body.txt --max-time 15 --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/" || true
+          cat /tmp/https-headers.txt 2>/dev/null || true
+          echo '--- body prefix ---'
+          head -c 1600 /tmp/https-body.txt 2>/dev/null || true
+          echo
+
+          echo '===== API VHOST CONTENT (READ-ONLY) ====='
+          sed -n '1,260p' /etc/nginx/sites-enabled/api.petertecnet.com.br 2>/dev/null || true
+          echo '===== FIRST SSL VHOSTS BY NGINX GLOB ORDER ====='
+          for file in /etc/nginx/sites-enabled/*; do
+            grep -q 'listen .*443' "$file" 2>/dev/null || continue
+            echo "--- $file ---"
+            grep -E 'server_name|listen .*443|ssl_certificate|root |proxy_pass' "$file" 2>/dev/null || true
+          done
+          REMOTE
+
+          for attempt in 1 2 3 4 5; do
+            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15 -o ConnectionAttempts=1 -p "$port" "$VPS_USER@$VPS_HOST" 'bash -s' < "$RUNNER_TEMP/https-probe.sh"; then
+              exit 0
+            fi
+            sleep $((3 + attempt * 2))
+          done
+          exit 1

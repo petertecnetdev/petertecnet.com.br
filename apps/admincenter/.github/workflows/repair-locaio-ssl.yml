@@ -1,0 +1,269 @@
+name: Repair Locaio SSL
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/repair-locaio-ssl.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repair-locaio-ssl
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    name: Repair Locaio HTTPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Validate VPS configuration
+        id: config
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$VPS_HOST"
+          test -n "$VPS_USER"
+          test -n "$VPS_SSH_KEY"
+          echo "port=${VPS_PORT:-22}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure SSH
+        shell: bash
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          : > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Diagnose and repair certificate on VPS
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ steps.config.outputs.port }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          REMOTE_SCRIPT="$RUNNER_TEMP/repair-locaio-ssl.sh"
+          cat > "$REMOTE_SCRIPT" <<'REMOTE'
+          set -Eeuo pipefail
+
+          DOMAIN="locaio.petertecnet.com.br"
+          APP_DIR="/var/www/locaio.petertecnet.com.br"
+          SITE="/etc/nginx/sites-available/$DOMAIN"
+          ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
+          CERT_DIR="/etc/letsencrypt/live/$DOMAIN"
+
+          if [[ "$(id -u)" -eq 0 ]]; then
+            SUDO=""
+          elif command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
+            SUDO="sudo"
+          else
+            echo "Deploy user needs root or passwordless sudo." >&2
+            exit 10
+          fi
+
+          echo "=== Locaio TLS diagnostics ==="
+          echo "Host addresses: $(hostname -I 2>/dev/null || true)"
+          echo "DNS IPv4:"
+          getent ahostsv4 "$DOMAIN" | awk '{print $1}' | sort -u || true
+          echo "Nginx matches before repair:"
+          $SUDO grep -R -n -E "server_name[[:space:]]+.*${DOMAIN//./\\.}" /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null || true
+
+          if [[ ! -f "$APP_DIR/dist/index.html" ]]; then
+            echo "Locaio frontend build not found at $APP_DIR/dist/index.html" >&2
+            exit 11
+          fi
+
+          if ! command -v certbot >/dev/null 2>&1; then
+            $SUDO apt-get update
+            $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y certbot python3-certbot-nginx
+          fi
+
+          # Keep exactly one enabled sites-available entry for this hostname.
+          while IFS= read -r duplicate; do
+            [[ -z "$duplicate" ]] && continue
+            resolved="$($SUDO readlink -f "$duplicate" 2>/dev/null || true)"
+            if [[ "$duplicate" != "$ENABLED" && "$resolved" != "$SITE" ]]; then
+              echo "Disabling duplicate Locaio vhost symlink: $duplicate"
+              $SUDO rm -f "$duplicate"
+            fi
+          done < <($SUDO grep -l -E "server_name[[:space:]]+.*${DOMAIN//./\\.}" /etc/nginx/sites-enabled/* 2>/dev/null || true)
+
+          # Start from a valid HTTP vhost so the ACME HTTP-01 challenge can be served.
+          $SUDO tee "$SITE" >/dev/null <<NGINX_HTTP
+          server {
+              listen 80;
+              listen [::]:80;
+              server_name $DOMAIN;
+
+              root $APP_DIR/dist;
+              index index.html;
+
+              location / {
+                  try_files \$uri \$uri/ /index.html;
+              }
+
+              location ~* \\.(?:js|css|png|jpg|jpeg|gif|svg|ico|webp|woff2?)$ {
+                  try_files \$uri =404;
+                  expires 7d;
+                  add_header Cache-Control "public, max-age=604800, immutable";
+              }
+
+              add_header X-Content-Type-Options nosniff always;
+              add_header Referrer-Policy strict-origin-when-cross-origin always;
+              add_header X-Frame-Options SAMEORIGIN always;
+          }
+          NGINX_HTTP
+
+          $SUDO ln -sfn "$SITE" "$ENABLED"
+          $SUDO nginx -t
+          $SUDO systemctl reload nginx
+
+          echo "=== Existing Certbot lineages ==="
+          $SUDO certbot certificates || true
+
+          # Obtain the correct lineage if it does not exist. Otherwise let Certbot renew only when needed.
+          if [[ ! -s "$CERT_DIR/fullchain.pem" || ! -s "$CERT_DIR/privkey.pem" ]]; then
+            echo "No usable Locaio certificate lineage found; issuing one."
+            $SUDO certbot certonly --nginx \
+              --non-interactive --agree-tos --register-unsafely-without-email \
+              --cert-name "$DOMAIN" -d "$DOMAIN"
+          else
+            echo "Locaio certificate lineage exists; checking renewal state."
+            if ! $SUDO openssl x509 -checkend 604800 -noout -in "$CERT_DIR/fullchain.pem"; then
+              $SUDO certbot renew --cert-name "$DOMAIN" --non-interactive
+            fi
+          fi
+
+          test -s "$CERT_DIR/fullchain.pem"
+          test -s "$CERT_DIR/privkey.pem"
+          $SUDO openssl x509 -checkend 604800 -noout -in "$CERT_DIR/fullchain.pem"
+          $SUDO openssl x509 -in "$CERT_DIR/fullchain.pem" -noout -ext subjectAltName | grep -Fq "DNS:$DOMAIN"
+
+          # Write the final canonical HTTPS vhost explicitly so Nginx cannot serve another certificate for this hostname.
+          $SUDO tee "$SITE" >/dev/null <<NGINX_TLS
+          server {
+              listen 80;
+              listen [::]:80;
+              server_name $DOMAIN;
+              return 301 https://\$host\$request_uri;
+          }
+
+          server {
+              listen 443 ssl;
+              listen [::]:443 ssl;
+              http2 on;
+              server_name $DOMAIN;
+
+              ssl_certificate $CERT_DIR/fullchain.pem;
+              ssl_certificate_key $CERT_DIR/privkey.pem;
+              ssl_protocols TLSv1.2 TLSv1.3;
+              ssl_session_cache shared:SSL:10m;
+              ssl_session_timeout 1d;
+
+              root $APP_DIR/dist;
+              index index.html;
+
+              location / {
+                  try_files \$uri \$uri/ /index.html;
+              }
+
+              location ~* \\.(?:js|css|png|jpg|jpeg|gif|svg|ico|webp|woff2?)$ {
+                  try_files \$uri =404;
+                  expires 7d;
+                  add_header Cache-Control "public, max-age=604800, immutable";
+              }
+
+              add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+              add_header X-Content-Type-Options nosniff always;
+              add_header Referrer-Policy strict-origin-when-cross-origin always;
+              add_header X-Frame-Options SAMEORIGIN always;
+          }
+          NGINX_TLS
+
+          $SUDO nginx -t
+          $SUDO systemctl reload nginx
+
+          echo "=== Certificate actually served by Nginx ==="
+          $SUDO openssl s_client \
+            -connect 127.0.0.1:443 \
+            -servername "$DOMAIN" \
+            -verify_hostname "$DOMAIN" \
+            -verify_return_error </dev/null 2>/tmp/locaio-openssl.err \
+            | $SUDO openssl x509 -noout -subject -issuer -dates -ext subjectAltName
+
+          if ! $SUDO openssl s_client \
+            -connect 127.0.0.1:443 \
+            -servername "$DOMAIN" \
+            -verify_hostname "$DOMAIN" \
+            -verify_return_error </dev/null 2>&1 \
+            | grep -Fq "Verify return code: 0 (ok)"; then
+            echo "Nginx is still not serving a trusted certificate for $DOMAIN." >&2
+            cat /tmp/locaio-openssl.err >&2 || true
+            exit 12
+          fi
+
+          curl --fail --silent --show-error --location \
+            --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/" \
+            | grep -Fq "Locaio"
+
+          echo "Locaio HTTPS certificate repaired and verified locally on the VPS."
+          REMOTE
+
+          chmod 600 "$REMOTE_SCRIPT"
+          for attempt in 1 2 3 4 5; do
+            if ssh \
+              -o StrictHostKeyChecking=accept-new \
+              -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+              -o ConnectTimeout=20 \
+              -o ConnectionAttempts=1 \
+              -o ServerAliveInterval=30 \
+              -o ServerAliveCountMax=8 \
+              -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
+              'bash -s' < "$REMOTE_SCRIPT"; then
+              exit 0
+            fi
+            status=$?
+            [[ "$status" -ne 255 ]] && exit "$status"
+            sleep $((5 + attempt * 3))
+          done
+          exit 255
+
+      - name: Verify public HTTPS and certificate
+        shell: bash
+        run: |
+          set -euo pipefail
+          DOMAIN="locaio.petertecnet.com.br"
+
+          curl --fail --silent --show-error --location \
+            --retry 8 --retry-all-errors --retry-delay 3 --max-time 20 \
+            "https://$DOMAIN/" | grep -Fq "Locaio"
+
+          openssl s_client \
+            -connect "$DOMAIN:443" \
+            -servername "$DOMAIN" \
+            -verify_hostname "$DOMAIN" \
+            -verify_return_error </dev/null 2>/tmp/public-openssl.err \
+            | openssl x509 -noout -subject -issuer -dates -ext subjectAltName
+
+          openssl s_client \
+            -connect "$DOMAIN:443" \
+            -servername "$DOMAIN" \
+            -verify_hostname "$DOMAIN" \
+            -verify_return_error </dev/null 2>&1 \
+            | grep -Fq "Verify return code: 0 (ok)"
+
+          echo "Public Locaio HTTPS is trusted and hostname-valid."

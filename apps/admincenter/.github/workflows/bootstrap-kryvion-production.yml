@@ -1,0 +1,283 @@
+name: Bootstrap Kryvion Production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/bootstrap-kryvion-production.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bootstrap-kryvion-production
+  cancel-in-progress: false
+
+jobs:
+  provision:
+    name: Provision Kryvion on VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check VPS configuration
+        id: config
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${VPS_HOST}" || -z "${VPS_USER}" || -z "${VPS_SSH_KEY}" ]]; then
+            echo "Missing VPS deployment secrets." >&2
+            exit 1
+          fi
+          echo "port=${VPS_PORT:-22}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure SSH
+        shell: bash
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          : > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Resolve privileged SSH principal
+        id: ssh
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ steps.config.outputs.port }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS=(
+            -o StrictHostKeyChecking=accept-new
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts"
+            -o ConnectTimeout=10
+            -o ConnectionAttempts=1
+            -p "$VPS_PORT"
+          )
+
+          if [[ "$VPS_USER" == "root" ]]; then
+            echo "user=root" >> "$GITHUB_OUTPUT"
+            echo "mode=root" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ssh "${SSH_OPTS[@]}" "root@$VPS_HOST" 'test "$(id -u)" -eq 0' >/dev/null 2>&1; then
+            echo "Using root SSH for one-time Kryvion provisioning."
+            echo "user=root" >> "$GITHUB_OUTPUT"
+            echo "mode=root" >> "$GITHUB_OUTPUT"
+          else
+            echo "Root SSH is unavailable; using the configured deploy user with command-scoped sudo attempts."
+            echo "user=$VPS_USER" >> "$GITHUB_OUTPUT"
+            echo "mode=sudo" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy frontend and configure Nginx
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ steps.config.outputs.port }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          REMOTE_USER: ${{ steps.ssh.outputs.user }}
+          PRIVILEGE_MODE: ${{ steps.ssh.outputs.mode }}
+        run: |
+          set -euo pipefail
+          REMOTE_SCRIPT="$RUNNER_TEMP/bootstrap-kryvion.sh"
+          cat > "$REMOTE_SCRIPT" <<'REMOTE'
+          set -Eeuo pipefail
+
+          DOMAIN="kryvion.petertecnet.com.br"
+          APP_DIR="/var/www/kryvion.petertecnet.com.br"
+          REPOSITORY="https://github.com/petertecnetdev/kryvion.petertecnet.com.br.git"
+          NGINX_SITE="/etc/nginx/sites-available/kryvion.petertecnet.com.br"
+          NGINX_ENABLED="/etc/nginx/sites-enabled/kryvion.petertecnet.com.br"
+          DEPLOY_OWNER="$1"
+          PRIVILEGE_MODE="$2"
+
+          if [[ "$(id -u)" -eq 0 || "$PRIVILEGE_MODE" == "root" ]]; then
+            SUDO=()
+          else
+            SUDO=(sudo -n)
+          fi
+
+          privileged() {
+            "${SUDO[@]}" "$@"
+          }
+
+          fail_permissions() {
+            echo "Unable to provision Kryvion with the configured SSH account." >&2
+            echo "Remote identity: $(id)" >&2
+            echo "Directory permissions:" >&2
+            ls -ld /var /var/www 2>&1 || true
+            if command -v sudo >/dev/null 2>&1; then
+              echo "Non-interactive sudo policy:" >&2
+              sudo -n -l 2>&1 || true
+            fi
+            exit 10
+          }
+
+          exec 9>/tmp/petertecnet-vps-deploy.lock
+          flock -w 1800 9
+
+          if [[ ! -d "$APP_DIR" ]]; then
+            if ! privileged install -d -m 2775 "$APP_DIR"; then
+              fail_permissions
+            fi
+          fi
+
+          if [[ "$DEPLOY_OWNER" != "root" ]] && id "$DEPLOY_OWNER" >/dev/null 2>&1; then
+            owner_group="$(id -gn "$DEPLOY_OWNER")"
+            privileged chown -R "$DEPLOY_OWNER:$owner_group" "$APP_DIR"
+            privileged chmod 2775 "$APP_DIR"
+          fi
+
+          # Build as the regular deploy owner whenever possible so later deploys stay unprivileged.
+          RUN_AS=()
+          if [[ "$(id -u)" -eq 0 && "$DEPLOY_OWNER" != "root" ]] && id "$DEPLOY_OWNER" >/dev/null 2>&1; then
+            RUN_AS=(runuser -u "$DEPLOY_OWNER" --)
+          fi
+
+          if [[ -d "$APP_DIR/.git" ]]; then
+            current_remote="$("${RUN_AS[@]}" git -C "$APP_DIR" remote get-url origin 2>/dev/null || true)"
+            if [[ "$current_remote" != "$REPOSITORY" && "$current_remote" != "git@github.com:petertecnetdev/kryvion.petertecnet.com.br.git" ]]; then
+              backup="${APP_DIR}.backup-$(date +%Y%m%d%H%M%S)"
+              privileged mv "$APP_DIR" "$backup"
+              privileged install -d -m 2775 "$APP_DIR"
+              if [[ "$DEPLOY_OWNER" != "root" ]] && id "$DEPLOY_OWNER" >/dev/null 2>&1; then
+                owner_group="$(id -gn "$DEPLOY_OWNER")"
+                privileged chown "$DEPLOY_OWNER:$owner_group" "$APP_DIR"
+              fi
+              echo "Existing mismatched application directory moved to $backup"
+            fi
+          elif [[ -n "$(find "$APP_DIR" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
+            backup="${APP_DIR}.backup-$(date +%Y%m%d%H%M%S)"
+            privileged mv "$APP_DIR" "$backup"
+            privileged install -d -m 2775 "$APP_DIR"
+            if [[ "$DEPLOY_OWNER" != "root" ]] && id "$DEPLOY_OWNER" >/dev/null 2>&1; then
+              owner_group="$(id -gn "$DEPLOY_OWNER")"
+              privileged chown "$DEPLOY_OWNER:$owner_group" "$APP_DIR"
+            fi
+            echo "Existing non-Git application directory moved to $backup"
+          fi
+
+          if [[ ! -d "$APP_DIR/.git" ]]; then
+            privileged rmdir "$APP_DIR" 2>/dev/null || true
+            "${RUN_AS[@]}" git clone --branch main --single-branch "$REPOSITORY" "$APP_DIR"
+          fi
+
+          "${RUN_AS[@]}" git -C "$APP_DIR" fetch --prune origin main
+          "${RUN_AS[@]}" git -C "$APP_DIR" checkout main
+          "${RUN_AS[@]}" git -C "$APP_DIR" reset --hard origin/main
+
+          cd "$APP_DIR"
+          export CI=true
+          export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=4096}"
+          if [[ -f package-lock.json ]]; then
+            "${RUN_AS[@]}" npm ci --no-audit --no-fund || "${RUN_AS[@]}" npm install --no-audit --no-fund --package-lock=false
+          else
+            "${RUN_AS[@]}" npm install --no-audit --no-fund --package-lock=false
+          fi
+          "${RUN_AS[@]}" npm run build
+          test -f "$APP_DIR/dist/index.html"
+          grep -Fq "Kryvion | Market Intelligence by Peter Tecnet" "$APP_DIR/dist/index.html"
+
+          NGINX_TMP="$(mktemp)"
+          cat > "$NGINX_TMP" <<NGINX
+          server {
+              listen 80;
+              listen [::]:80;
+              server_name $DOMAIN;
+
+              root $APP_DIR/dist;
+              index index.html;
+
+              location / {
+                  try_files \$uri \$uri/ /index.html;
+              }
+
+              location ~* \\.(?:js|css|png|jpg|jpeg|gif|svg|ico|webp|woff2?)$ {
+                  try_files \$uri =404;
+                  expires 7d;
+                  add_header Cache-Control "public, max-age=604800, immutable";
+              }
+
+              add_header X-Content-Type-Options nosniff always;
+              add_header Referrer-Policy strict-origin-when-cross-origin always;
+              add_header X-Frame-Options SAMEORIGIN always;
+          }
+          NGINX
+
+          if ! privileged cp "$NGINX_TMP" "$NGINX_SITE"; then
+            rm -f "$NGINX_TMP"
+            fail_permissions
+          fi
+          rm -f "$NGINX_TMP"
+          privileged ln -sfn "$NGINX_SITE" "$NGINX_ENABLED"
+          privileged nginx -t
+          privileged systemctl reload nginx
+
+          echo "DNS seen from VPS:"
+          getent ahostsv4 "$DOMAIN" | awk '{print $1}' | sort -u || true
+
+          if command -v certbot >/dev/null 2>&1 && getent ahostsv4 "$DOMAIN" >/dev/null 2>&1; then
+            if ! privileged certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --register-unsafely-without-email --redirect; then
+              echo "Certbot could not issue/attach the Kryvion certificate yet; HTTP remains configured." >&2
+            fi
+            privileged nginx -t
+            privileged systemctl reload nginx
+          else
+            echo "Kryvion DNS is not resolving from the VPS yet; skipping certificate issuance for now."
+          fi
+
+          if [[ -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]]; then
+            curl --fail --silent --show-error --location --insecure \
+              --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/" | grep -Fq "Kryvion | Market Intelligence by Peter Tecnet"
+          else
+            curl --fail --silent --show-error -H "Host: $DOMAIN" http://127.0.0.1/ | grep -Fq "Kryvion | Market Intelligence by Peter Tecnet"
+          fi
+
+          if [[ "$DEPLOY_OWNER" != "root" ]] && id "$DEPLOY_OWNER" >/dev/null 2>&1; then
+            owner_group="$(id -gn "$DEPLOY_OWNER")"
+            privileged chown -R "$DEPLOY_OWNER:$owner_group" "$APP_DIR"
+            privileged find "$APP_DIR" -type d -exec chmod g+rwx {} +
+            privileged find "$APP_DIR" -type f -exec chmod g+rw {} +
+          fi
+
+          echo "Kryvion provisioned from $(git -C "$APP_DIR" rev-parse HEAD)"
+          REMOTE
+
+          chmod 600 "$REMOTE_SCRIPT"
+          ssh \
+            -o StrictHostKeyChecking=accept-new \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            -o ConnectTimeout=20 \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=8 \
+            -p "$VPS_PORT" "$REMOTE_USER@$VPS_HOST" \
+            "bash -s -- '$VPS_USER' '$PRIVILEGE_MODE'" < "$REMOTE_SCRIPT"
+
+      - name: Verify public Kryvion
+        shell: bash
+        run: |
+          set -euo pipefail
+          DOMAIN="kryvion.petertecnet.com.br"
+
+          if html="$(curl --fail --silent --show-error --location --retry 4 --retry-all-errors --retry-delay 2 --max-time 20 "https://$DOMAIN/" 2>/dev/null)"; then
+            grep -Fq "Kryvion | Market Intelligence by Peter Tecnet" <<<"$html"
+            echo "Kryvion HTTPS frontend is healthy."
+            exit 0
+          fi
+
+          html="$(curl --fail --silent --show-error --location --retry 4 --retry-all-errors --retry-delay 2 --max-time 20 "http://$DOMAIN/")"
+          grep -Fq "Kryvion | Market Intelligence by Peter Tecnet" <<<"$html"
+          echo "Kryvion HTTP frontend is healthy; HTTPS can be issued after DNS is ready."
