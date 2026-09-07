@@ -9,11 +9,16 @@ const TOKEN_KEY = 'petertecnet_admin_token'
 const VALIDATION_TIMEOUT_MS = 10000
 
 export default function AdminSessionGuard() {
-  const [authorized, setAuthorized] = useState(false)
+  const [authorized, setAuthorized] = useState(() => Boolean(localStorage.getItem(TOKEN_KEY)))
 
   const validateSession = useCallback(async () => {
     const token = localStorage.getItem(TOKEN_KEY) || ''
     if (!token) { setAuthorized(false); return }
+
+    // Keep already-authenticated admin modules mounted while the background
+    // validation runs. Transient API/network failures must not make privileged
+    // navigation entries disappear from an otherwise valid Admin Center session.
+    setAuthorized(true)
 
     const controller = new AbortController()
     const timeout = window.setTimeout(() => controller.abort(), VALIDATION_TIMEOUT_MS)
@@ -26,13 +31,19 @@ export default function AdminSessionGuard() {
 
       if (response.ok) { setAuthorized(true); return }
 
-      setAuthorized(false)
       if (response.status === 401 || response.status === 403) {
+        setAuthorized(false)
         localStorage.removeItem(TOKEN_KEY)
         window.dispatchEvent(new Event('admin-session-expired'))
+        return
       }
+
+      // For temporary 5xx/rate-limit responses, preserve the current session UI.
+      // Individual admin endpoints still enforce authorization server-side.
+      setAuthorized(Boolean(localStorage.getItem(TOKEN_KEY)))
     } catch {
-      setAuthorized(false)
+      // A timeout/offline validation must not hide Estabelecimentos/Itens.
+      setAuthorized(Boolean(localStorage.getItem(TOKEN_KEY)))
     } finally {
       window.clearTimeout(timeout)
     }
@@ -40,9 +51,13 @@ export default function AdminSessionGuard() {
 
   useEffect(() => {
     void validateSession()
-    const authenticated = () => { void validateSession() }
+    const authenticated = () => { setAuthorized(Boolean(localStorage.getItem(TOKEN_KEY))); void validateSession() }
     const expired = () => setAuthorized(false)
-    const storage = event => { if (event.key === TOKEN_KEY) void validateSession() }
+    const storage = event => {
+      if (event.key !== TOKEN_KEY) return
+      setAuthorized(Boolean(event.newValue))
+      void validateSession()
+    }
 
     window.addEventListener('admin-session-authenticated', authenticated)
     window.addEventListener('admin-session-expired', expired)
