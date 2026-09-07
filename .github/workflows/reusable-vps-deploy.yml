@@ -142,6 +142,26 @@ jobs:
           fi
           echo "Peter Tecnet VPS deployment slot acquired."
 
+          # Protect the shared VPS from deployments that could exhaust the root filesystem.
+          # A full disk can interrupt databases, queues, logs and payment-critical API writes.
+          disk_probe="$DEPLOY_PATH"
+          [[ -e "$disk_probe" ]] || disk_probe="/var/www"
+          free_kb="$(df -Pk "$disk_probe" | awk 'NR==2 {print $4}')"
+          min_free_kb=$((3 * 1024 * 1024))
+          warn_free_kb=$((5 * 1024 * 1024))
+          if [[ ! "$free_kb" =~ ^[0-9]+$ ]]; then
+            echo "Could not determine free disk space for $disk_probe." >&2
+            exit 28
+          fi
+          echo "VPS free disk before deploy: $((free_kb / 1024)) MiB"
+          if (( free_kb < min_free_kb )); then
+            echo "Refusing deploy: less than 3 GiB free on the VPS filesystem. Free space before retrying." >&2
+            exit 28
+          fi
+          if (( free_kb < warn_free_kb )); then
+            echo "WARNING: VPS has less than 5 GiB free. Capacity cleanup should be prioritized."
+          fi
+
           if [[ ! -d "$DEPLOY_PATH/.git" ]]; then
             if [[ -d "$DEPLOY_PATH" && -n "$(ls -A "$DEPLOY_PATH" 2>/dev/null)" ]]; then
               echo "$DEPLOY_PATH exists, is not a Git repository and is not empty." >&2
