@@ -16,6 +16,7 @@ import { installPeterWhatsappFallback } from './utils/peterWhatsappFallback.js'
 const PublicExperienceRouter = lazy(() => import('./PublicExperienceRouter.jsx'))
 const AdminTicketSalesPage = lazy(() => import('./AdminTicketSalesPage.jsx'))
 const AdminEventSeriesPage = lazy(() => import('./AdminEventSeriesPage.jsx'))
+const AdminCreativeStudioPage = lazy(() => import('./AdminCreativeStudioPage.jsx'))
 const API_BASE_URL = 'https://api.petertecnet.com.br/api'
 const APP_SLUG = 'peter-tecnet'
 const PETRINIA_STORY_SLUG = 'petrinia-cutinapp-persistencia-tecnologia'
@@ -26,7 +27,8 @@ installPeterWhatsappFallback()
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 const isAdminTicketSales = ['/admin/events/tickets', '/admin/tickets', '/admin/ingressos'].includes(path)
 const isAdminEventSeries = ['/admin/events/agenda', '/admin/events/series', '/admin/agenda'].includes(path)
-const isAdminSurface = isAdminTicketSales || isAdminEventSeries
+const isAdminCreativeStudio = ['/admin/creative', '/admin/ia/imagens', '/admin/marketing/creative'].includes(path)
+const isAdminSurface = isAdminTicketSales || isAdminEventSeries || isAdminCreativeStudio
 const isBlogIndex = path === '/blog'
 const blogArticleMatch = path.match(/^\/blog\/([^/]+)$/)
 const blogArticleSlug = blogArticleMatch ? (() => {
@@ -47,13 +49,15 @@ const appPage = isAdminTicketSales
   ? <Suspense fallback={lazyFallback}><AdminTicketSalesPage /></Suspense>
   : isAdminEventSeries
     ? <Suspense fallback={lazyFallback}><AdminEventSeriesPage /></Suspense>
-    : isBlogIndex
-      ? <PublicBlogIndex />
-      : isPetriniaStory
-        ? <PetriniaCutinappStory />
-        : blogArticleSlug
-          ? <PublicBlogArticle slug={blogArticleSlug} />
-          : <Suspense fallback={lazyFallback}><PublicExperienceRouter /></Suspense>
+    : isAdminCreativeStudio
+      ? <Suspense fallback={lazyFallback}><AdminCreativeStudioPage /></Suspense>
+      : isBlogIndex
+        ? <PublicBlogIndex />
+        : isPetriniaStory
+          ? <PetriniaCutinappStory />
+          : blogArticleSlug
+            ? <PublicBlogArticle slug={blogArticleSlug} />
+            : <Suspense fallback={lazyFallback}><PublicExperienceRouter /></Suspense>
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
