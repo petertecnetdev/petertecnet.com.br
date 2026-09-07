@@ -40,7 +40,6 @@ function validateHttpsUrl(value) {
 export default function AdminUserDetailExperience(props) {
   const { userId, apiRequest } = props
   const [user, setUser] = useState(null)
-  const [actionsTarget, setActionsTarget] = useState(null)
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({ ...EMPTY_FORM })
   const [sending, setSending] = useState(false)
@@ -63,21 +62,6 @@ export default function AdminUserDetailExperience(props) {
       })
     return () => { active = false }
   }, [apiRequest, userId])
-
-  useEffect(() => {
-    let frame = 0
-    const locate = () => {
-      const target = document.querySelector('.aud-page .aud-head-actions')
-      setActionsTarget(current => current === target ? current : target)
-    }
-    frame = window.requestAnimationFrame(locate)
-    const observer = new MutationObserver(locate)
-    observer.observe(document.body, { childList: true, subtree: true })
-    return () => {
-      window.cancelAnimationFrame(frame)
-      observer.disconnect()
-    }
-  }, [userId])
 
   useEffect(() => {
     if (!open) return undefined
@@ -281,8 +265,19 @@ export default function AdminUserDetailExperience(props) {
   </div>, document.body) : null
 
   return <>
+    <div className="aud-page auc-communication-direct" data-user-communication-direct="true">
+      <section className="aud-card">
+        <header>
+          <div>
+            <span>COMUNICAÇÃO DIRETA</span>
+            <h3>{loadingUser ? 'Carregando destinatário…' : `Falar com ${fullName(user)}`}</h3>
+            <p>{user?.email ? `Envie e-mail, notificação ou os dois canais para ${user.email}.` : 'Envie informações diretamente para este usuário sem sair da ficha.'}</p>
+          </div>
+          {quickActions}
+        </header>
+      </section>
+    </div>
     <AdminUserDetailPage {...props}/>
-    {actionsTarget ? createPortal(quickActions, actionsTarget) : null}
     {modal}
   </>
 }
