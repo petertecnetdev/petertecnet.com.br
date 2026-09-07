@@ -11,12 +11,22 @@
     <meta name="theme-color" content="#02080c" />
     <meta name="color-scheme" content="dark" />
     <link rel="canonical" href="https://petertecnet.com.br/" />
-    <link rel="icon" type="image/png" href="/petertecnetlogo.png?v=20260907-official" />
-    <link rel="shortcut icon" type="image/png" href="/petertecnetlogo.png?v=20260907-official" />
-    <link rel="apple-touch-icon" href="/petertecnetlogo.png?v=20260907-official" />
-    <link rel="manifest" href="/manifest.json?v=20260907-official-brand" />
-    <link rel="preload" href="/petertecnetlogo.png?v=20260907-official" as="image" fetchpriority="high" />
-    <link rel="stylesheet" href="/ecosystem/processing-indicator.css?v=20260907-2" />
+    <link rel="icon" type="image/png" href="/petertecnetlogo.png?v=20260907-official-loader" />
+    <link rel="shortcut icon" type="image/png" href="/petertecnetlogo.png?v=20260907-official-loader" />
+    <link rel="apple-touch-icon" href="/petertecnetlogo.png?v=20260907-official-loader" />
+    <link rel="manifest" href="/manifest.json?v=20260907-official-loader" />
+    <link rel="preload" href="/petertecnetlogo.png?v=20260907-official-loader" as="image" fetchpriority="high" />
+    <link rel="stylesheet" href="/ecosystem/processing-indicator.css?v=20260907-3" />
+    <script>
+      try {
+        const cacheFix = 'pt-brand-cache-fix-20260907-1';
+        if (localStorage.getItem(cacheFix) !== '1' && 'caches' in window) {
+          caches.keys().then(keys => Promise.all(keys.map(key => caches.delete(key)))).finally(() => {
+            try { localStorage.setItem(cacheFix, '1'); } catch (_) {}
+          });
+        }
+      } catch (_) {}
+    </script>
     <link rel="preconnect" href="https://api.petertecnet.com.br" crossorigin />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="pt_BR" />
@@ -32,9 +42,9 @@
     <meta name="twitter:image" content="https://petertecnet.com.br/thumbnail.jpg" />
     <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://petertecnet.com.br/#organization","name":"Peter Tecnet","url":"https://petertecnet.com.br/","logo":{"@type":"ImageObject","url":"https://petertecnet.com.br/petertecnetlogo.png"},"taxID":"42.595.409/0001-48","description":"Empresa de tecnologia que desenvolve software, aplicativos, sites, plataformas, automações, integrações, soluções com inteligência artificial, análise de dados e tecnologia para o ecossistema crypto e ativos digitais.","knowsAbout":["Desenvolvimento de software","Aplicativos","Inteligência artificial","Automação","APIs e integrações","Análise de dados","Tecnologia para criptomoedas e ativos digitais"],"sameAs":["https://www.instagram.com/petertecnet/"]},{"@type":"WebSite","@id":"https://petertecnet.com.br/#website","url":"https://petertecnet.com.br/","name":"Peter Tecnet","publisher":{"@id":"https://petertecnet.com.br/#organization"},"inLanguage":"pt-BR"},{"@type":"WebPage","@id":"https://petertecnet.com.br/#homepage","url":"https://petertecnet.com.br/","name":"Peter Tecnet | Software, IA, automações e tecnologia para o mercado crypto","description":"Conheça os produtos, plataformas e serviços da Peter Tecnet para negócios, automação, inteligência artificial, dados e ecossistema crypto.","isPartOf":{"@id":"https://petertecnet.com.br/#website"},"about":{"@id":"https://petertecnet.com.br/#organization"},"inLanguage":"pt-BR"},{"@type":"SoftwareApplication","name":"Nexus","url":"https://petertecnet.com.br/plataformas/nexus","applicationCategory":"BusinessApplication","creator":{"@id":"https://petertecnet.com.br/#organization"}},{"@type":"SoftwareApplication","name":"Rasoio","url":"https://petertecnet.com.br/plataformas/rasoio","applicationCategory":"BusinessApplication","creator":{"@id":"https://petertecnet.com.br/#organization"}},{"@type":"SoftwareApplication","name":"Cutinapp","url":"https://petertecnet.com.br/plataformas/cutinapp","applicationCategory":"BusinessApplication","creator":{"@id":"https://petertecnet.com.br/#organization"}},{"@type":"SoftwareApplication","name":"PayFlow","url":"https://petertecnet.com.br/plataformas/payflow","applicationCategory":"BusinessApplication","creator":{"@id":"https://petertecnet.com.br/#organization"}},{"@type":"SoftwareApplication","name":"Laora","url":"https://petertecnet.com.br/plataformas/laora","applicationCategory":"LifestyleApplication","creator":{"@id":"https://petertecnet.com.br/#organization"}}]}</script>
     <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.3/dist/sweetalert2.all.min.js"></script>
-    <script defer src="/ecosystem/processing-indicator.js?v=20260907-2"></script>
+    <script defer src="/ecosystem/processing-indicator.js?v=20260907-3"></script>
     <script defer src="/ecosystem/address-forms.js?v=20260904"></script>
-    <script defer src="/ecosystem/install-app.js?v=20260905-installed-registry" data-app-name="Peter Tecnet" data-app-slug="peter-tecnet" data-sw="/service-worker.js" data-manifest="/manifest.json" data-detect-installed="related-app"></script>
+    <script defer src="/ecosystem/install-app.js?v=20260905-installed-registry" data-app-name="Peter Tecnet" data-app-slug="peter-tecnet" data-sw="/service-worker.js?v=20260907-cache-reset" data-manifest="/manifest.json" data-detect-installed="related-app"></script>
     <script defer src="/ecosystem/app-store.js?v=20260905-installed-open"></script>
     <script defer src="/ecosystem/app-store-install-state.js?v=20260905-installed-open-2"></script>
   </head>
