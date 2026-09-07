@@ -27,8 +27,13 @@
       const eyebrow = this.getAttribute('eyebrow') || 'PETER TECNET · PROCESSANDO'
 
       this.innerHTML = `
-        <div class="pt-processing${screen ? ' pt-processing--screen' : ''}${compact ? ' pt-processing--compact' : ''}" role="status" aria-live="polite" aria-busy="true">
+        <div class="pt-processing${screen ? ' pt-processing--screen' : ''}${compact ? ' pt-processing--compact' : ''}" role="status" aria-live="polite" aria-busy="true" aria-label="${this._escape(this._messages[0])}">
           ${screen ? '<div class="pt-processing__grid" aria-hidden="true"></div>' : ''}
+          <div class="pt-processing__ambient" aria-hidden="true">
+            <i class="pt-processing__spark pt-processing__spark--one"></i>
+            <i class="pt-processing__spark pt-processing__spark--two"></i>
+            <i class="pt-processing__spark pt-processing__spark--three"></i>
+          </div>
           <div class="pt-processing__card">
             <div class="pt-processing__visual" aria-hidden="true">
               <span class="pt-processing__orbit"></span>
@@ -39,13 +44,15 @@
             <strong class="pt-processing__title">${this._escape(title)}</strong>
             <p class="pt-processing__message">${this._escape(this._messages[0])}</p>
             <div class="pt-processing__bar" aria-hidden="true"></div>
+            <div class="pt-processing__beat" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
             <div class="pt-processing__status"><span class="pt-processing__dot"></span><span>experiência em preparação</span></div>
           </div>
         </div>`
 
+      this._root = this.querySelector('.pt-processing')
       this._messageNode = this.querySelector('.pt-processing__message')
       if (this._messages.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        this._timer = window.setInterval(() => this._nextMessage(), 2100)
+        this._timer = window.setInterval(() => this._nextMessage(), 2400)
       }
     }
 
@@ -60,7 +67,9 @@
       window.setTimeout(() => {
         if (!this._messageNode || !this.isConnected) return
         this._index = (this._index + 1) % this._messages.length
-        this._messageNode.textContent = this._messages[this._index]
+        const next = this._messages[this._index]
+        this._messageNode.textContent = next
+        this._root?.setAttribute('aria-label', next)
         this._messageNode.classList.remove('is-changing')
       }, 220)
     }
