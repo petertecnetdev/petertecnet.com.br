@@ -1,0 +1,20 @@
+.mkt-command-core img {
+  width: 96px;
+  height: 96px;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 50%;
+  clip-path: circle(50% at 50% 50%);
+  background: radial-gradient(circle at 50% 45%, rgba(8, 20, 32, 0.96), rgba(1, 6, 11, 0.98));
+  border: 1px solid rgba(126, 233, 249, 0.3);
+  box-shadow:
+    0 0 0 7px rgba(85, 232, 255, 0.025),
+    0 0 34px rgba(85, 232, 255, 0.28);
+}
+
+@media (max-width: 720px) {
+  .mkt-command-core img {
+    width: 84px;
+    height: 84px;
+  }
+}
