@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useMemo, useState } from 'react'
+import { Component, StrictMode, useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import './MarketingExperience.css'
@@ -381,6 +381,46 @@ function NotFound({ contact }) {
   return <Chrome contact={contact}><main className="mkt-page-state"><img src="/petertecnetlogo.png" alt="" /><h1>Página não encontrada.</h1><p>Volte para a Peter Tecnet e encontre produtos, serviços e plataformas.</p><a className="mkt-btn is-primary" href="/">Ir para o início</a></main></Chrome>
 }
 
+class MarketingRuntimeBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { failed: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+
+  componentDidCatch(error, info) {
+    console.error('[Peter Tecnet] marketing runtime boundary', error)
+    try {
+      window.PeterTecnetTelemetry?.track?.('frontend_error', {
+        label: error?.message || 'Falha protegida na landing Peter Tecnet',
+        metadata: {
+          source: 'marketing_error_boundary',
+          component_stack: String(info?.componentStack || '').slice(0, 500),
+          outcome: 'error',
+        },
+      })
+      window.PeterTecnetTelemetry?.flush?.()
+    } catch { /* never let observability break the fallback */ }
+  }
+
+  render() {
+    if (!this.state.failed) return this.props.children
+    return <main className="mkt-page-state">
+      <img src="/petertecnetlogo.png" alt="Peter Tecnet" />
+      <p className="mkt-kicker">PETER TECNET</p>
+      <h1>Nossas soluções continuam disponíveis.</h1>
+      <p>Uma parte complementar da página encontrou um erro, mas você ainda pode acessar nossos produtos, serviços e solicitar atendimento.</p>
+      <div className="mkt-hero-actions">
+        <a className="mkt-btn is-primary" href="/#plataformas">Ver plataformas <span>↗</span></a>
+        <a className="mkt-btn is-ghost" href="/orcamento">Pedir orçamento <span>↗</span></a>
+      </div>
+    </main>
+  }
+}
+
 function MarketingHubRouter() {
   const data = useHubData()
   const serviceMatch = path.match(/^\/servicos\/([^/]+)$/)
@@ -396,4 +436,4 @@ installGlobalImageFallbacks()
 installPasswordVisibilityToggles()
 installWebVitals(APP_SLUG)
 
-createRoot(document.getElementById('root')).render(<StrictMode><PeterAccountGateway apiBaseUrl={API_BASE_URL} appSlug={APP_SLUG}><MarketingHubRouter /></PeterAccountGateway></StrictMode>)
+createRoot(document.getElementById('root')).render(<StrictMode><MarketingRuntimeBoundary><PeterAccountGateway apiBaseUrl={API_BASE_URL} appSlug={APP_SLUG}><MarketingHubRouter /></PeterAccountGateway></MarketingRuntimeBoundary></StrictMode>)

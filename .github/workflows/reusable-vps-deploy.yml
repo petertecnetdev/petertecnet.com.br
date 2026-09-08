@@ -258,6 +258,17 @@ jobs:
               # avoids writing over files that may be owned/read-only from older deployments.
               rm -rf "$NEXT_OUTPUT"
               cp -a "$NEW_OUTPUT" "$NEXT_OUTPUT"
+
+              # Keep recently published Vite content hashes reachable while open browser tabs
+              # transition between releases. Hashed filenames are immutable, so retaining them
+              # cannot replace the new release; files older than seven days are pruned.
+              if [[ -d "$LIVE_OUTPUT/assets" && -d "$NEXT_OUTPUT/assets" ]]; then
+                echo "Retaining compatible Vite assets from the previous release..."
+                cp -a -n "$LIVE_OUTPUT/assets/." "$NEXT_OUTPUT/assets/" 2>/dev/null || true
+                find "$NEXT_OUTPUT/assets" -type f -mtime +7 -delete 2>/dev/null || true
+                find "$NEXT_OUTPUT/assets" -type d -empty -delete 2>/dev/null || true
+              fi
+
               [[ -f "$NEXT_OUTPUT/index.html" ]] || { echo "Prepared frontend release has no index.html." >&2; exit 31; }
 
               if [[ -e "$LIVE_OUTPUT" ]]; then

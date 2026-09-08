@@ -94,7 +94,7 @@ jobs:
 
           worker="$(curl --fail --silent --show-error --location --max-time 20 \
             https://petertecnet.com.br/service-worker.js)"
-          assert_contains "landing service worker cache namespace" "petertecnet-landing-pwa-v1" "$worker"
+          assert_contains "landing service worker cache namespace" "petertecnet-landing-pwa-v2" "$worker"
           assert_contains "landing service worker admin bypass" "url.pathname.startsWith('/admin')" "$worker"
           assert_not_contains "landing service worker identity" "<title>Admin Center" "$worker"
           assert_not_contains "landing service worker active cache" "const CACHE_VERSION = 'petertecnet-admin-pwa" "$worker"

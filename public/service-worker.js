@@ -80,12 +80,13 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.startsWith('/assets/')) {
     event.respondWith(
       fetch(request, { cache: 'no-cache' })
-        .then((response) => {
+        .then(async (response) => {
           if (response.ok) {
             const copy = response.clone();
             caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy)).catch(() => undefined);
+            return response;
           }
-          return response;
+          return (await caches.match(request)) || response;
         })
         .catch(() => caches.match(request))
     );
