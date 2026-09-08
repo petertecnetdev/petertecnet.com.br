@@ -94,7 +94,7 @@ export default function PublicBlogIndex() {
   useEffect(() => {
     const controller = new AbortController()
 
-    fetchContentEntries({ type: 'article', per_page: 50 }, controller.signal)
+    fetchContentEntries({ application: 'peter-tecnet', type: 'article', per_page: 50 }, controller.signal)
       .then(payload => setRemoteEntries(normalizeRemote(payload)))
       .catch(() => setRemoteEntries([]))
 
