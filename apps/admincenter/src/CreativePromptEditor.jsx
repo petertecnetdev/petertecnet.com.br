@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { confirmAction } from './utils/uiDialog.js'
 import './CreativePromptEditor.css'
 
 const PROMPT_KEY = 'event_flyer_background'
@@ -82,7 +83,14 @@ export default function CreativePromptEditor({ request }) {
 
   async function reset() {
     if (resetting) return
-    const confirmed = window.confirm('Restaurar o prompt padrão da Peter Tecnet? O prompt personalizado atual deixará de ser usado nas próximas imagens.')
+    const confirmed = await confirmAction({
+      tone: 'danger',
+      eyebrow: 'PROMPT DA IA',
+      title: 'Restaurar prompt padrão?',
+      message: 'O prompt personalizado atual deixará de ser usado nas próximas imagens e o padrão da Peter Tecnet voltará a valer.',
+      confirmLabel: 'Restaurar padrão',
+      cancelLabel: 'Cancelar',
+    })
     if (!confirmed) return
 
     setResetting(true)
