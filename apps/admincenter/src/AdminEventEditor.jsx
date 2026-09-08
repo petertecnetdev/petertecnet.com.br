@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import CreativePromptEditor from './CreativePromptEditor.jsx'
 import './AdminEventEditor.css'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
@@ -160,21 +161,20 @@ export default function AdminEventEditor({ establishment, app, onMutated }) {
     setError('')
     setSuccess('')
     try {
-      const payload = await apiRequest('/creative/images', {
+      const payload = await apiRequest('/admin/ecosystem/creative/images', {
         method: 'POST',
         body: JSON.stringify({
+          app_id: Number(app.id),
           purpose: 'event_flyer_background',
-          provider: 'auto',
-          title: form.title.trim(),
-          metadata: {
-            event_id: Number(event.id),
-            event_title: form.title.trim(),
-            event_category: form.category.trim() || null,
-            event_venue: form.venue.trim() || null,
-            event_city: form.city.trim() || null,
-            event_uf: form.uf.trim().toUpperCase() || null,
-            event_start: form.start_date || null,
-          },
+          subject: form.title.trim(),
+          description: form.description.trim() || null,
+          category: form.category.trim() || null,
+          style: 'neon',
+          production_name: establishment?.fantasy || establishment?.name || null,
+          venue: form.venue.trim() || null,
+          city: form.city.trim() || null,
+          uf: form.uf.trim().toUpperCase() || null,
+          format: 'cover',
         }),
       })
       const dataUri = payload?.image?.data_uri
@@ -271,6 +271,8 @@ export default function AdminEventEditor({ establishment, app, onMutated }) {
     {error && <div className="aie-notice error" role="alert">{error}<button type="button" onClick={() => setError('')}>×</button></div>}
     {success && <div className="aie-notice success" role="status">{success}<button type="button" onClick={() => setSuccess('')}>×</button></div>}
 
+    <CreativePromptEditor request={apiRequest} />
+
     {event && <form className="aie-editor" onSubmit={save}>
       <div className="aie-editor-heading">
         <div><span>Evento #{event.id}</span><h4>{form.title || 'Evento sem nome'}</h4></div>
@@ -300,7 +302,7 @@ export default function AdminEventEditor({ establishment, app, onMutated }) {
           <div className="aie-ai-actions">
             <span className="aie-ai-label">GERADOR DE IMAGEM</span>
             <h5>Crie a capa sem sair do Admin Center</h5>
-            <p>A IA usa nome, categoria, local, cidade e data do evento como contexto visual.</p>
+            <p>A IA usa nome, categoria, descrição, produção, local e cidade do evento como contexto visual, junto do prompt global configurado acima.</p>
             <button type="button" className="aie-ai-button" disabled={generating || saving} onClick={generateImage}>
               <span aria-hidden="true">✦</span>
               {generating ? 'Criando imagem com IA…' : generatedImage ? 'Gerar outra imagem com IA' : 'Criar imagem do evento com IA'}
