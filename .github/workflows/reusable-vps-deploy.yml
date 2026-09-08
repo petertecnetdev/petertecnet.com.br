@@ -74,6 +74,76 @@ jobs:
           : > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
 
+      - name: Checkout frontend source
+        if: steps.config.outputs.enabled == 'true' && inputs.deploy_type == 'frontend'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node for frontend build
+        if: steps.config.outputs.enabled == 'true' && inputs.deploy_type == 'frontend'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch frontend build environment
+        if: steps.config.outputs.enabled == 'true' && inputs.deploy_type == 'frontend'
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ steps.config.outputs.port }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          DEPLOY_PATH: ${{ inputs.deploy_path }}
+        run: |
+          set -euo pipefail
+          for env_file in .env .env.local .env.production .env.production.local .npmrc; do
+            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "test -f '$DEPLOY_PATH/$env_file'"; then
+              scp -q -P "$VPS_PORT" -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" "$VPS_USER@$VPS_HOST:$DEPLOY_PATH/$env_file" "$env_file"
+            fi
+          done
+
+      - name: Build frontend on GitHub runner
+        id: frontend_build
+        if: steps.config.outputs.enabled == 'true' && inputs.deploy_type == 'frontend'
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ steps.config.outputs.port }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          DEPLOY_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          export CI=true
+          export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=4096}"
+          if [[ -f package-lock.json ]]; then
+            npm ci --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund --package-lock=false
+          fi
+          npm run build
+          npm run perf:budget --if-present
+          if [[ -d dist && -f dist/index.html ]]; then
+            output=dist
+          elif [[ -d build && -f build/index.html ]]; then
+            output=build
+          else
+            echo "Frontend build produced neither dist/index.html nor build/index.html." >&2
+            exit 31
+          fi
+          oversized="$(find "$output" -type f \( -name '*.js' -o -name '*.css' -o -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' -o -name '*.avif' -o -name '*.gif' -o -name '*.ico' \) -size +2048k -print -quit)"
+          if [[ -n "$oversized" ]]; then
+            echo "Performance budget exceeded: $oversized is larger than 2 MiB." >&2
+            exit 32
+          fi
+          artifact="$RUNNER_TEMP/petertecnet-frontend-release.tgz"
+          tar -czf "$artifact" "$output"
+          repository_checksum="$(printf '%s' "$DEPLOY_REPOSITORY" | cksum | awk '{print $1}')"
+          remote_artifact="/tmp/petertecnet-frontend-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${repository_checksum}.tgz"
+          scp -q -P "$VPS_PORT" -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" "$artifact" "$VPS_USER@$VPS_HOST:$remote_artifact"
+          echo "output_name=$output" >> "$GITHUB_OUTPUT"
+          echo "remote_artifact=$remote_artifact" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+
       - name: Deploy application
         if: steps.config.outputs.enabled == 'true'
         shell: bash
@@ -85,6 +155,9 @@ jobs:
           DEPLOY_TYPE: ${{ inputs.deploy_type }}
           DEPLOY_BRANCH: ${{ inputs.deploy_branch }}
           DEPLOY_REPOSITORY: ${{ github.repository }}
+          FRONTEND_OUTPUT: ${{ steps.frontend_build.outputs.output_name }}
+          FRONTEND_ARTIFACT: ${{ steps.frontend_build.outputs.remote_artifact }}
+          FRONTEND_SOURCE_SHA: ${{ steps.frontend_build.outputs.source_sha }}
         run: |
           set -euo pipefail
 
@@ -102,18 +175,18 @@ jobs:
           DEPLOY_TYPE="$2"
           DEPLOY_BRANCH="$3"
           DEPLOY_REPOSITORY="$4"
-          BUILD_WORKTREE=""
-
-          cleanup_worktree() {
-            if [[ -n "$BUILD_WORKTREE" && -d "$BUILD_WORKTREE" ]]; then
-              cd "$DEPLOY_PATH" 2>/dev/null || true
-              git worktree remove --force "$BUILD_WORKTREE" >/dev/null 2>&1 || rm -rf "$BUILD_WORKTREE" || true
-              git worktree prune >/dev/null 2>&1 || true
-            fi
-          }
+          FRONTEND_ARTIFACT="${5:-}"
+          FRONTEND_OUTPUT_HINT="${6:-}"
+          FRONTEND_SOURCE_SHA="${7:-}"
+          RELEASE_EXTRACT=""
 
           on_exit() {
-            cleanup_worktree
+            if [[ -n "$RELEASE_EXTRACT" && -d "$RELEASE_EXTRACT" ]]; then
+              rm -rf "$RELEASE_EXTRACT" 2>/dev/null || true
+            fi
+            if [[ -n "$FRONTEND_ARTIFACT" && "$FRONTEND_ARTIFACT" == /tmp/petertecnet-frontend-*.tgz ]]; then
+              rm -f "$FRONTEND_ARTIFACT" 2>/dev/null || true
+            fi
           }
           trap on_exit EXIT
 
@@ -235,20 +308,20 @@ jobs:
 
           case "$DEPLOY_TYPE" in
             frontend)
-              # Build the fetched target in isolation. Do not checkout/reset the live
-              # source repository: concurrent automations may legitimately use it.
-              safe_name="$(basename "$DEPLOY_PATH" | tr -c 'A-Za-z0-9._-' '-')"
-              BUILD_WORKTREE="/tmp/petertecnet-build-${safe_name}-$$-$RANDOM"
-              git worktree add --detach "$BUILD_WORKTREE" "$TARGET_SHA"
-              for env_file in .env .env.local .env.production .env.production.local .npmrc; do [[ -f "$DEPLOY_PATH/$env_file" ]] && cp -f "$DEPLOY_PATH/$env_file" "$BUILD_WORKTREE/$env_file"; done
-              cd "$BUILD_WORKTREE"
-              [[ -f package.json ]] || { echo "package.json not found in release worktree." >&2; exit 30; }
-              if grep -Eq '"vite"[[:space:]]*:' package.json; then FRONTEND_OUTPUT="dist"; else FRONTEND_OUTPUT="build"; fi
-              export CI=true
-              export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=4096}"
-              if [[ -f package-lock.json ]]; then npm ci --no-audit --no-fund || npm install --no-audit --no-fund --package-lock=false; else npm install --no-audit --no-fund --package-lock=false; fi
-              npm run build
-              NEW_OUTPUT="$BUILD_WORKTREE/$FRONTEND_OUTPUT"
+              # Frontend compilation runs on the GitHub-hosted runner. The production VPS
+              # only verifies the target SHA, extracts the ready release and swaps it atomically.
+              [[ -n "$FRONTEND_ARTIFACT" && -f "$FRONTEND_ARTIFACT" ]] || { echo "Frontend artifact was not uploaded." >&2; exit 30; }
+              [[ "$FRONTEND_OUTPUT_HINT" == "build" || "$FRONTEND_OUTPUT_HINT" == "dist" ]] || { echo "Invalid frontend output name." >&2; exit 30; }
+              [[ -n "$FRONTEND_SOURCE_SHA" && "$TARGET_SHA" == "$FRONTEND_SOURCE_SHA" ]] || {
+                echo "Frontend artifact SHA $FRONTEND_SOURCE_SHA does not match deploy target $TARGET_SHA." >&2
+                exit 30
+              }
+              FRONTEND_OUTPUT="$FRONTEND_OUTPUT_HINT"
+              RELEASE_EXTRACT="/tmp/petertecnet-release-$(basename "$DEPLOY_PATH" | tr -c 'A-Za-z0-9._-' '-')-$$-$RANDOM"
+              mkdir -p "$RELEASE_EXTRACT"
+              tar -xzf "$FRONTEND_ARTIFACT" -C "$RELEASE_EXTRACT"
+              NEW_OUTPUT="$RELEASE_EXTRACT/$FRONTEND_OUTPUT"
+
               LIVE_OUTPUT="$DEPLOY_PATH/$FRONTEND_OUTPUT"
               NEXT_OUTPUT="$DEPLOY_PATH/.${FRONTEND_OUTPUT}.next.$$-$RANDOM"
               PREVIOUS_OUTPUT="$DEPLOY_PATH/.${FRONTEND_OUTPUT}.previous.$$-$RANDOM"
@@ -323,7 +396,7 @@ jobs:
               if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then git checkout "$DEPLOY_BRANCH"; else git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"; fi
               git reset --hard "$TARGET_SHA"
               [[ -f artisan && -f composer.json ]] || { echo "Laravel application files were not found in $DEPLOY_PATH" >&2; exit 40; }
-              composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+              nice -n 10 composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
               chmod -R ug+rwX storage bootstrap/cache || true
               sudo -u www-data -- php artisan optimize:clear
               sudo -u www-data -- php artisan migrate --force
@@ -348,7 +421,7 @@ jobs:
           max_attempts=3
           for attempt in $(seq 1 "$max_attempts"); do
             echo "SSH deploy attempt $attempt/$max_attempts"
-            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=20 -o ConnectionAttempts=1 -o ServerAliveInterval=30 -o ServerAliveCountMax=8 -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH' '$DEPLOY_REPOSITORY'" < "$REMOTE_SCRIPT_FILE"; then exit 0; else exit_code=$?; fi
+            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=20 -o ConnectionAttempts=1 -o ServerAliveInterval=30 -o ServerAliveCountMax=8 -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH' '$DEPLOY_REPOSITORY' '$FRONTEND_ARTIFACT' '$FRONTEND_OUTPUT' '$FRONTEND_SOURCE_SHA'" < "$REMOTE_SCRIPT_FILE"; then exit 0; else exit_code=$?; fi
             if [[ "$exit_code" -ne 75 && "$exit_code" -ne 255 ]]; then exit "$exit_code"; fi
             [[ "$attempt" -eq "$max_attempts" ]] && exit "$exit_code"
             sleep_seconds=$((10 + (repository_checksum + attempt * 7) % 11))
