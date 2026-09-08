@@ -42,11 +42,14 @@
     const name = normalize(field.name);
     const id = normalize(field.id);
     const label = fieldLabel(field);
+    const placeholder = normalize(field.getAttribute('placeholder'));
+    const dataRole = normalize(field.dataset?.locationRole || field.dataset?.addressRole);
     const key = name || id;
+    const tokens = [name, id, dataRole].filter(Boolean);
 
-    if (['cep', 'postal_code', 'postalcode', 'zipcode', 'zip_code'].includes(key) || /^cep\b/.test(label)) return 'cep';
-    if (['city', 'cidade', 'merchant_city'].includes(key) || /^cidade\b/.test(label)) return 'city';
-    if (['uf', 'state'].includes(key) || label === 'uf' || /^uf\b/.test(label) || /^estado\s*\(uf\)/.test(label)) return 'uf';
+    if (tokens.some((value) => ['cep', 'postal_code', 'postalcode', 'zipcode', 'zip_code'].includes(value) || /(^|[_-])(cep|postal_code|postalcode|zipcode|zip_code)$/.test(value)) || /^cep\b/.test(label) || /^cep\b/.test(placeholder)) return 'cep';
+    if (tokens.some((value) => ['city', 'cidade', 'merchant_city'].includes(value) || /(^|[_-])(city|cidade)$/.test(value) || /^(city|cidade)([_-]|$)/.test(value)) || /^cidade\b/.test(label) || /^cidade\b/.test(placeholder)) return 'city';
+    if (tokens.some((value) => ['uf', 'state'].includes(value) || /(^|[_-])(uf|state)$/.test(value)) || label === 'uf' || /^uf\b/.test(label) || /^estado\s*\(uf\)/.test(label) || placeholder === 'uf') return 'uf';
     if (['address_number', 'number', 'numero'].includes(key) || /^numero\b/.test(label)) return 'number';
     if (['neighborhood', 'bairro'].includes(key) || /^bairro\b/.test(label)) return 'neighborhood';
     if (['address_complement', 'complement', 'complemento'].includes(key) || /^complemento\b/.test(label)) return 'complement';
@@ -197,6 +200,39 @@
     positionMenu(input);
   };
 
+  const exactCityMatch = async (input) => {
+    const query = input.value.trim();
+    if (query.length < 2 || input.dataset.ptCityValidated === '1') return false;
+
+    const state = cityState.get(input);
+    if (!state) return false;
+    state.controller?.abort();
+    state.controller = new AbortController();
+    const requestId = ++state.requestId;
+
+    try {
+      const response = await fetch(`${locationApi}/cities?q=${encodeURIComponent(query)}`, {
+        headers: { Accept: 'application/json' },
+        signal: state.controller.signal,
+        credentials: 'omit',
+      });
+      if (!response.ok) return false;
+      const payload = await response.json();
+      if (requestId !== state.requestId) return false;
+      const items = Array.isArray(payload?.cities) ? payload.cities : [];
+      const exact = items.filter((city) => normalize(city?.name) === normalize(query));
+      if (exact.length === 1) {
+        setOfficialCity(input, exact[0]);
+        hideMenu();
+        return true;
+      }
+      if (document.activeElement === input) renderCities(input, items);
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
   const searchCities = async (input) => {
     const state = cityState.get(input);
     const query = input.value.trim();
@@ -255,6 +291,11 @@
 
     input.addEventListener('focus', () => {
       if (input.value.trim().length >= 2 && input.dataset.ptCityValidated !== '1') searchCities(input);
+    });
+    input.addEventListener('blur', () => {
+      if (input.value.trim().length >= 2 && input.dataset.ptCityValidated !== '1') {
+        window.setTimeout(() => exactCityMatch(input), 80);
+      }
     });
 
     input.addEventListener('keydown', (event) => {
