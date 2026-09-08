@@ -209,7 +209,7 @@ export default function PublicBlogArticle({ slug }) {
   useEffect(() => {
     const controller = new AbortController()
 
-    fetchContentEntry(slug, {}, controller.signal)
+    fetchContentEntry(slug, { application: 'peter-tecnet' }, controller.signal)
       .then(payload => setArticle(normalizeRemote(payload, fallback)))
       .catch(() => setArticle(fallback))
       .finally(() => setLoading(false))
