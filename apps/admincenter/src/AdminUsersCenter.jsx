@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import AdminUserDetailPage from './AdminUserDetailExperience.jsx'
+import AdminProspectInvitation from './AdminProspectInvitation.jsx'
 import { confirmAction } from './utils/uiDialog.js'
 import './AdminUsersCenter.css'
 
@@ -221,6 +222,8 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   }
 
   return <div className="acu-root">
+    <AdminProspectInvitation apiRequest={apiRequest} applications={applications}/>
+
     <div className="acu-stats">
       <Stat label="Usuários encontrados" value={pagination.total ?? users.length} detail="resultado dos filtros atuais"/>
       <Stat label="Com aplicações" value={pageStats.withApplications} detail="na página atual"/>
