@@ -55,20 +55,29 @@ export async function installPeterWhatsappFallback() {
   button.id = ID;
   button.target = '_blank';
   button.rel = 'noreferrer';
-  button.textContent = 'WA';
   button.title = 'Falar com a Peter Tecnet no WhatsApp';
   button.setAttribute('aria-label', button.title);
+  button.innerHTML = '<span aria-hidden="true">WA</span><strong>Falar no WhatsApp</strong>';
+
   Object.assign(button.style, {
-    position: 'fixed', right: '20px', bottom: '22px', width: '58px', height: '58px',
-    borderRadius: '50%', background: '#25D366', color: '#fff', display: 'flex',
-    alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '14px',
-    textDecoration: 'none', boxShadow: '0 12px 32px rgba(0,0,0,.32)', zIndex: '2147483000'
+    position: 'fixed', right: 'max(16px, env(safe-area-inset-right))', bottom: 'max(18px, env(safe-area-inset-bottom))',
+    minHeight: '58px', padding: '8px 18px 8px 10px', borderRadius: '999px', background: '#25D366',
+    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', fontSize: '14px',
+    fontWeight: '800', lineHeight: '1', textDecoration: 'none', boxShadow: '0 14px 36px rgba(0,0,0,.34)',
+    zIndex: '2147483000', border: '1px solid rgba(255,255,255,.18)'
+  });
+
+  const badge = button.querySelector('span');
+  Object.assign(badge.style, {
+    width: '40px', height: '40px', borderRadius: '50%', display: 'grid', placeItems: 'center',
+    background: 'rgba(0,0,0,.12)', color: '#fff', fontSize: '12px', fontWeight: '900', flex: '0 0 40px'
   });
 
   const sync = () => {
     button.style.display = hasSpecificButton() ? 'none' : 'flex';
     const separator = base.includes('?') ? '&' : '?';
-    const message = `Olá! Gostaria de saber mais informações sobre "${pageLabel()}". Você poderia me ajudar?`;
+    const message = `Olá! Vim pelo site da Peter Tecnet e gostaria de falar com um agente sobre "${pageLabel()}".`;
     button.href = `${base}${separator}text=${encodeURIComponent(message)}`;
   };
 
