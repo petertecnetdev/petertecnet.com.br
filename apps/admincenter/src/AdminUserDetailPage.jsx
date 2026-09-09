@@ -122,6 +122,8 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
   const [emailDeferralState, setEmailDeferralState] = useState(null)
   const [emailDeferralBusy, setEmailDeferralBusy] = useState(false)
   const [emailDeferralNotice, setEmailDeferralNotice] = useState('')
+  const [passwordResetBusy, setPasswordResetBusy] = useState(false)
+  const [passwordResetNotice, setPasswordResetNotice] = useState('')
 
   async function loadDetail({ quiet = false } = {}) {
     if (!quiet) setLoading(true)
@@ -236,6 +238,36 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
     const next = { ...EMPTY_ACTIVITY_FILTERS }
     setActivityFilters(next)
     await loadActivity(1, next)
+  }
+
+  async function sendPasswordReset() {
+    if (!user?.email) return
+
+    const confirmed = await confirmAction({
+      tone: 'warning',
+      eyebrow: 'SEGURANÇA DA CONTA',
+      title: 'Enviar redefinição de senha?',
+      message: `Será enviado para ${user.email} um link seguro e um código de validação para o cliente cadastrar uma nova senha.`,
+      confirmLabel: 'Enviar redefinição',
+      cancelLabel: 'Cancelar',
+    })
+    if (!confirmed) return
+
+    setPasswordResetBusy(true)
+    setPasswordResetNotice('')
+    setError('')
+
+    try {
+      const payload = await apiRequest('/auth/password-email', {
+        method: 'POST',
+        body: JSON.stringify({ email: user.email }),
+      })
+      setPasswordResetNotice(payload?.message || `E-mail de redefinição enviado para ${user.email}.`)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setPasswordResetBusy(false)
+    }
   }
 
   async function resetEmailVerificationDeferrals() {
@@ -430,6 +462,17 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
         <header><div><span>SEGURANÇA</span><h3>Sinais da conta</h3><p>Leitura baseada na telemetria recente.</p></div></header>
         <div className="aud-security-alerts">{detail.security?.alerts?.length ? detail.security.alerts.map((alert, index) => <div key={index} className={`aud-security-alert ${tone(alert.level)}`}>{alert.message}</div>) : <div className="aud-security-alert success">Nenhum alerta de segurança detectado no recorte recente.</div>}</div>
         <div className="aud-security-metrics"><Metric label="Logins · 7d" value={summary.logins_7d || 0} detail="últimos 7 dias"/><Metric label="Logins · 30d" value={summary.logins_30d || 0} detail="últimos 30 dias"/><Metric label="Logins · 90d" value={summary.logins_90d || 0} detail="últimos 90 dias"/><Metric label="Primeira atividade" value={dateOnly(summary.first_activity_at)} detail={dateTime(summary.first_activity_at)}/></div>
+      </section>
+
+      <section className="aud-card">
+        <header><div><span>REDEFINIÇÃO DE SENHA</span><h3>Enviar nova senha ao cliente</h3><p>O cliente recebe um link seguro e um código para validar o e-mail e cadastrar uma nova senha em um único fluxo.</p></div></header>
+        {passwordResetNotice && <div className="aud-security-alert success">{passwordResetNotice}</div>}
+        <div className="aud-filter-actions">
+          <button type="button" className="aud-primary" onClick={sendPasswordReset} disabled={passwordResetBusy || !user.email}>
+            {passwordResetBusy ? 'Enviando…' : 'Resetar senha'}
+          </button>
+          <span>Destino: {user.email || 'e-mail indisponível'}</span>
+        </div>
       </section>
 
       <section className="aud-card">
