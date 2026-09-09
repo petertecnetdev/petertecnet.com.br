@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import AdminUserDetailPage from './AdminUserDetailExperience.jsx'
 import AdminProspectInvitation from './AdminProspectInvitation.jsx'
+import { AdminImpersonationDialog, AdminImpersonationHistory, canImpersonate } from './AdminImpersonation.jsx'
 import { confirmAction } from './utils/uiDialog.js'
 import './AdminUsersCenter.css'
 
@@ -49,6 +50,8 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   const [form, setForm] = useState({ ...EMPTY_USER })
   const [editingId, setEditingId] = useState(null)
   const [detailUserId, setDetailUserId] = useState(detailUserFromUrl)
+  const [impersonationUser, setImpersonationUser] = useState(null)
+  const [impersonationHistoryKey, setImpersonationHistoryKey] = useState(0)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -267,8 +270,18 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
 
     <section className="acu-card acu-table-card">
       <header><div><span>ECOSSISTEMA</span><h3>Todos os usuários</h3><p>{pagination.from && pagination.to ? `Exibindo ${pagination.from}–${pagination.to} de ${pagination.total}` : `${pagination.total || 0} usuários encontrados`}</p></div><button className="acu-secondary" onClick={() => loadUsers(pagination.current_page || 1, filters)} disabled={loading}>↻ Atualizar</button></header>
-      {loading ? <div className="acu-loading">Carregando usuários…</div> : users.length ? <div className="acu-table-wrap"><table><thead><tr><th>Usuário</th><th>Perfil</th><th>Atividade</th><th>Recursos</th><th>Aplicações</th><th>Ações</th></tr></thead><tbody>{users.map(user => <tr key={user.id}><td><div className="acu-user"><span>{fullName(user).slice(0, 2).toUpperCase()}</span><div><b>{fullName(user)}</b><small>#{user.id} · {user.email}</small></div></div></td><td><span className="acu-badge">{user.profile?.name || 'Sem perfil'}</span></td><td><b>{dateTime(user.last_activity_at)}</b><small>{user.interactions_count || 0} interações</small></td><td><b>{user.establishments_count || 0}</b><small>estabelecimento(s)</small></td><td><b>{user.applications?.length || 0}</b><small>vínculo(s)</small></td><td><div className="acu-actions"><button onClick={() => openDetail(user.id)}>Detalhes</button><button onClick={() => beginEdit(user)}>Editar</button><button className="acu-danger" disabled={String(user.email || '').toLowerCase() === OWNER_EMAIL || busy} onClick={() => deleteUser(user)}>Excluir</button></div></td></tr>)}</tbody></table></div> : <div className="acu-empty">Nenhum usuário encontrado com os filtros atuais.</div>}
+      {loading ? <div className="acu-loading">Carregando usuários…</div> : users.length ? <div className="acu-table-wrap"><table><thead><tr><th>Usuário</th><th>Perfil</th><th>Atividade</th><th>Recursos</th><th>Aplicações</th><th>Ações</th></tr></thead><tbody>{users.map(user => <tr key={user.id}><td><div className="acu-user"><span>{fullName(user).slice(0, 2).toUpperCase()}</span><div><b>{fullName(user)}</b><small>#{user.id} · {user.email}</small></div></div></td><td><span className="acu-badge">{user.profile?.name || 'Sem perfil'}</span></td><td><b>{dateTime(user.last_activity_at)}</b><small>{user.interactions_count || 0} interações</small></td><td><b>{user.establishments_count || 0}</b><small>estabelecimento(s)</small></td><td><b>{user.applications?.length || 0}</b><small>vínculo(s)</small></td><td><div className="acu-actions"><button disabled={!canImpersonate(user)} onClick={() => setImpersonationUser(user)}>Entrar como usuário</button><button onClick={() => openDetail(user.id)}>Detalhes</button><button onClick={() => beginEdit(user)}>Editar</button><button className="acu-danger" disabled={String(user.email || '').toLowerCase() === OWNER_EMAIL || busy} onClick={() => deleteUser(user)}>Excluir</button></div></td></tr>)}</tbody></table></div> : <div className="acu-empty">Nenhum usuário encontrado com os filtros atuais.</div>}
       <footer className="acu-pagination"><span>Página {pagination.current_page || 1} de {pagination.last_page || 1}</span><div><button className="acu-secondary" disabled={!pagination.previous_page || loading} onClick={() => loadUsers(pagination.previous_page, filters)}>← Anterior</button><button className="acu-secondary" disabled={!pagination.next_page || loading} onClick={() => loadUsers(pagination.next_page, filters)}>Próxima →</button></div></footer>
     </section>
+
+    <AdminImpersonationHistory apiRequest={apiRequest} refreshKey={impersonationHistoryKey}/>
+
+    <AdminImpersonationDialog
+      user={impersonationUser}
+      applications={applications}
+      apiRequest={apiRequest}
+      onClose={() => setImpersonationUser(null)}
+      onStarted={() => setImpersonationHistoryKey(value => value + 1)}
+    />
   </div>
 }
