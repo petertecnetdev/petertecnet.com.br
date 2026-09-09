@@ -1,9 +1,11 @@
-const CACHE_VERSION = 'petertecnet-landing-pwa-v2';
+const CACHE_VERSION = 'petertecnet-landing-pwa-v3-circular-logo';
 const CACHE_PREFIX = 'petertecnet-landing-pwa-';
 const ADMIN_CACHE_PREFIX = 'petertecnet-admin-pwa-';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/petertecnetlogo.png',
+  '/petertecnet-logo-circular.jpg',
+  '/landing-logo-fix.css',
   '/ecosystem/processing-indicator.css',
   '/ecosystem/processing-indicator.js',
 ];
@@ -19,10 +21,10 @@ const OFFLINE_HTML = `<!doctype html>
     :root{color-scheme:dark;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#02080c;color:#effcff}
     *{box-sizing:border-box}body{min-height:100vh;margin:0;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 0,rgba(53,223,242,.1),transparent 38%),#02080c}
     main{width:min(520px,100%);padding:28px;border:1px solid rgba(116,217,234,.16);border-radius:22px;background:rgba(5,20,29,.96);box-shadow:0 26px 80px rgba(0,0,0,.35)}
-    img{width:72px;height:72px;object-fit:contain;margin-bottom:12px}small{color:#35dff2;font-weight:800;letter-spacing:.16em;text-transform:uppercase}h1{margin:10px 0 12px;font-size:clamp(26px,6vw,38px)}p{margin:0 0 20px;color:#91adb5;line-height:1.6}a{display:inline-flex;min-height:44px;align-items:center;justify-content:center;padding:0 18px;border-radius:12px;background:#dffbff;color:#041217;font-weight:900;text-decoration:none}
+    img{width:72px;height:72px;aspect-ratio:1;object-fit:cover;border-radius:50%;clip-path:circle(50% at 50% 50%);margin-bottom:12px}small{color:#35dff2;font-weight:800;letter-spacing:.16em;text-transform:uppercase}h1{margin:10px 0 12px;font-size:clamp(26px,6vw,38px)}p{margin:0 0 20px;color:#91adb5;line-height:1.6}a{display:inline-flex;min-height:44px;align-items:center;justify-content:center;padding:0 18px;border-radius:12px;background:#dffbff;color:#041217;font-weight:900;text-decoration:none}
   </style>
 </head>
-<body><main><img src="/petertecnetlogo.png" alt="Peter Tecnet"><small>Peter Tecnet</small><h1>Você está offline</h1><p>Assim que sua conexão voltar, recarregue a página para acessar a experiência mais recente da Peter Tecnet.</p><a href="/">Tentar novamente</a></main></body>
+<body><main><img src="/petertecnet-logo-circular.jpg" alt="Peter Tecnet"><small>Peter Tecnet</small><h1>Você está offline</h1><p>Assim que sua conexão voltar, recarregue a página para acessar a experiência mais recente da Peter Tecnet.</p><a href="/">Tentar novamente</a></main></body>
 </html>`;
 
 self.addEventListener('install', (event) => {

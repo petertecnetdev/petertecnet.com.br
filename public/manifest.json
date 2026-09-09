@@ -16,10 +16,10 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/petertecnetlogo.png?v=20260907-pwa-v1",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "src": "/petertecnet-logo-circular.jpg?v=20260908-circular-1",
+      "sizes": "768x768",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     }
   ],
   "shortcuts": [

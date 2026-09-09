@@ -1,6 +1,8 @@
 (() => {
   const TAG = 'pt-processing-indicator'
-  const OFFICIAL_LOGO = '/petertecnetlogo.png?v=20260907-official-loader'
+  const LEGACY_LOGO_PATH = '/petertecnetlogo.png'
+  const OFFICIAL_LOGO_PATH = '/petertecnet-logo-circular.jpg'
+  const OFFICIAL_LOGO = `${OFFICIAL_LOGO_PATH}?v=20260908-circular-1`
   if (customElements.get(TAG)) return
 
   const DEFAULT_MESSAGES = [
@@ -46,7 +48,7 @@
             <div class="pt-processing__visual" aria-hidden="true">
               <span class="pt-processing__orbit"></span>
               <span class="pt-processing__pulse"></span>
-              <img class="pt-processing__logo" src="${OFFICIAL_LOGO}" alt="" decoding="async" fetchpriority="high" />
+              <img class="pt-processing__logo" src="${OFFICIAL_LOGO}" alt="" decoding="async" fetchpriority="high" data-peter-brand-logo="true" />
             </div>
             <p class="pt-processing__eyebrow">${this._escape(eyebrow)}</p>
             <strong class="pt-processing__title">${this._escape(title)}</strong>
@@ -146,6 +148,27 @@
 
   customElements.define(TAG, PeterProcessingIndicator)
 
+  const logoPathname = value => {
+    try {
+      return new URL(value, window.location.href).pathname
+    } catch {
+      return ''
+    }
+  }
+
+  const upgradePeterBrandLogos = () => {
+    document.querySelectorAll('img').forEach(img => {
+      const source = img.getAttribute('src') || ''
+      const pathname = logoPathname(source)
+      if (pathname === LEGACY_LOGO_PATH) {
+        img.setAttribute('src', OFFICIAL_LOGO)
+        img.dataset.peterBrandLogo = 'true'
+        return
+      }
+      if (pathname === OFFICIAL_LOGO_PATH) img.dataset.peterBrandLogo = 'true'
+    })
+  }
+
   const upgradeLegacyStates = () => {
     document.querySelectorAll('.mkt-state:not([data-pt-processing-upgraded])').forEach(node => {
       const text = node.textContent?.trim() || ''
@@ -159,10 +182,20 @@
     })
   }
 
-  const observer = new MutationObserver(upgradeLegacyStates)
-  const start = () => {
+  const upgradePage = () => {
+    upgradePeterBrandLogos()
     upgradeLegacyStates()
-    observer.observe(document.documentElement, { childList: true, subtree: true })
+  }
+
+  const observer = new MutationObserver(upgradePage)
+  const start = () => {
+    upgradePage()
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['src'],
+    })
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true })
   else start()
