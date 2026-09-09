@@ -7,88 +7,6 @@ export default function useLandingMotion(active = true) {
     const root = document.documentElement
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const tiltHandlers = new Map()
-    const normalizedPath = window.location.pathname.replace(/\/+$/, '') || '/'
-    let floatingCta = null
-    let floatingCtaStyle = null
-
-    if (normalizedPath === '/') {
-      floatingCta = document.createElement('a')
-      floatingCta.className = 'pt-floating-cta'
-      floatingCta.href = '#comece'
-      floatingCta.setAttribute('aria-label', 'Encontrar uma solução Peter Tecnet')
-      floatingCta.innerHTML = '<span class="pt-floating-cta__pulse" aria-hidden="true"></span><span class="pt-floating-cta__label">Encontrar solução</span><span class="pt-floating-cta__arrow" aria-hidden="true">↗</span>'
-
-      floatingCtaStyle = document.createElement('style')
-      floatingCtaStyle.dataset.ptFloatingCta = 'true'
-      floatingCtaStyle.textContent = `
-        .pt-floating-cta {
-          position: fixed;
-          right: max(20px, env(safe-area-inset-right));
-          bottom: max(20px, env(safe-area-inset-bottom));
-          z-index: 950;
-          min-height: 54px;
-          padding: 0 18px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 11px;
-          border: 1px solid rgba(111, 236, 255, .34);
-          border-radius: 999px;
-          color: var(--pt-text, #eefcff);
-          background: linear-gradient(135deg, rgba(7, 29, 39, .96), rgba(1, 11, 17, .96));
-          box-shadow: 0 18px 48px rgba(0, 0, 0, .38), 0 0 30px rgba(25, 216, 242, .12);
-          backdrop-filter: blur(18px) saturate(140%);
-          -webkit-backdrop-filter: blur(18px) saturate(140%);
-          font: 800 11px/1 'Space Grotesk', sans-serif;
-          letter-spacing: .04em;
-          text-decoration: none;
-          transform: translateZ(0);
-          transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease, background .22s ease;
-        }
-        .pt-floating-cta:hover,
-        .pt-floating-cta:focus-visible {
-          transform: translateY(-3px);
-          border-color: rgba(111, 236, 255, .62);
-          background: linear-gradient(135deg, rgba(9, 40, 52, .98), rgba(2, 18, 26, .98));
-          box-shadow: 0 24px 60px rgba(0, 0, 0, .44), 0 0 38px rgba(25, 216, 242, .2);
-          outline: none;
-        }
-        .pt-floating-cta__pulse {
-          width: 9px;
-          height: 9px;
-          flex: 0 0 9px;
-          border-radius: 50%;
-          background: var(--pt-green, #52efaa);
-          box-shadow: 0 0 0 5px rgba(82, 239, 170, .08), 0 0 16px rgba(82, 239, 170, .68);
-        }
-        .pt-floating-cta__arrow {
-          color: var(--pt-cyan-2, #6ef0ff);
-          font-size: 15px;
-          transition: transform .22s ease;
-        }
-        .pt-floating-cta:hover .pt-floating-cta__arrow,
-        .pt-floating-cta:focus-visible .pt-floating-cta__arrow {
-          transform: translate(2px, -2px);
-        }
-        @media (max-width: 640px) {
-          .pt-floating-cta {
-            right: max(14px, env(safe-area-inset-right));
-            bottom: max(14px, env(safe-area-inset-bottom));
-            min-height: 50px;
-            padding: 0 15px;
-            gap: 9px;
-            font-size: 10px;
-          }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .pt-floating-cta,
-          .pt-floating-cta__arrow { transition: none; }
-        }
-      `
-
-      document.head.appendChild(floatingCtaStyle)
-      document.body.appendChild(floatingCta)
-    }
 
     const updatePointer = event => {
       root.style.setProperty('--pointer-x', `${event.clientX}px`)
@@ -173,8 +91,6 @@ export default function useLandingMotion(active = true) {
         element.removeEventListener('pointerleave', onLeave)
       })
       tiltHandlers.clear()
-      floatingCta?.remove()
-      floatingCtaStyle?.remove()
     }
   }, [active])
 }
