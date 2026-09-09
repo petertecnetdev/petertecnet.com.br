@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './AdminProspectInvitation.css'
 
 const CUTINAPP_PERSONAS = [
@@ -14,6 +14,13 @@ const GENERIC_PERSONAS = [
   { value: 'partner', label: 'Parceiro', hint: 'Foco em parceria comercial e integração com o ecossistema.' },
 ]
 
+const STATUS_LABELS = {
+  pending: 'Pendente',
+  accepted: 'Aceito',
+  expired: 'Expirado',
+  revoked: 'Revogado',
+}
+
 const CUTINAPP_SLUGS = new Set(['cutinapp', 'cutin-app', 'catchnap', 'catinapp'])
 
 function isCutinapp(application) {
@@ -22,12 +29,30 @@ function isCutinapp(application) {
   return CUTINAPP_SLUGS.has(slug) || name.includes('cutin') || name.includes('catchnap')
 }
 
+function formatDate(value) {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+
 export default function AdminProspectInvitation({ apiRequest, applications = [] }) {
   const activeApplications = useMemo(() => applications.filter(app => app?.is_active !== false), [applications])
   const [form, setForm] = useState({ email: '', recipient_name: '', application_id: '', persona: '' })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [invitations, setInvitations] = useState([])
+  const [loadingInvitations, setLoadingInvitations] = useState(true)
+  const [historyError, setHistoryError] = useState('')
+  const [actionId, setActionId] = useState(null)
 
   const selectedApplication = useMemo(
     () => activeApplications.find(app => String(app.id) === String(form.application_id)) || null,
@@ -40,6 +65,42 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
   )
 
   const selectedPersona = personas.find(persona => persona.value === form.persona) || null
+
+  async function refreshInvitations({ silent = false } = {}) {
+    if (!silent) setLoadingInvitations(true)
+    setHistoryError('')
+
+    try {
+      const payload = await apiRequest('/admin/ecosystem/invitations?limit=10')
+      setInvitations(Array.isArray(payload?.data) ? payload.data : [])
+    } catch (err) {
+      setHistoryError(err?.message || 'Não foi possível carregar os convites recentes.')
+    } finally {
+      if (!silent) setLoadingInvitations(false)
+    }
+  }
+
+  useEffect(() => {
+    let active = true
+
+    async function load() {
+      setLoadingInvitations(true)
+      try {
+        const payload = await apiRequest('/admin/ecosystem/invitations?limit=10')
+        if (active) {
+          setInvitations(Array.isArray(payload?.data) ? payload.data : [])
+          setHistoryError('')
+        }
+      } catch (err) {
+        if (active) setHistoryError(err?.message || 'Não foi possível carregar os convites recentes.')
+      } finally {
+        if (active) setLoadingInvitations(false)
+      }
+    }
+
+    void load()
+    return () => { active = false }
+  }, [apiRequest])
 
   function change(field, value) {
     setForm(current => {
@@ -73,10 +134,48 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
       })
       setSuccess(payload?.message || 'Convite enviado com sucesso.')
       setForm(current => ({ ...current, email: '', recipient_name: '' }))
+      await refreshInvitations({ silent: true })
     } catch (err) {
       setError(err?.message || 'Não foi possível enviar o convite.')
+      await refreshInvitations({ silent: true })
     } finally {
       setBusy(false)
+    }
+  }
+
+  async function resend(invitation) {
+    setActionId(invitation.id)
+    setHistoryError('')
+    setSuccess('')
+
+    try {
+      const payload = await apiRequest(`/admin/ecosystem/invitations/${invitation.id}/resend`, {
+        method: 'POST',
+      })
+      setSuccess(payload?.message || 'Convite reenviado com sucesso.')
+      await refreshInvitations({ silent: true })
+    } catch (err) {
+      setHistoryError(err?.message || 'Não foi possível reenviar o convite.')
+    } finally {
+      setActionId(null)
+    }
+  }
+
+  async function revoke(invitation) {
+    setActionId(invitation.id)
+    setHistoryError('')
+    setSuccess('')
+
+    try {
+      const payload = await apiRequest(`/admin/ecosystem/invitations/${invitation.id}`, {
+        method: 'DELETE',
+      })
+      setSuccess(payload?.message || 'Convite revogado.')
+      await refreshInvitations({ silent: true })
+    } catch (err) {
+      setHistoryError(err?.message || 'Não foi possível revogar o convite.')
+    } finally {
+      setActionId(null)
     }
   }
 
@@ -85,9 +184,9 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
       <div>
         <span>PROSPECÇÃO E CONVITES</span>
         <h3>Convidar para uma plataforma</h3>
-        <p>Envie um e-mail comercial específico para a plataforma e para o tipo de pessoa que você quer atrair.</p>
+        <p>Crie o primeiro acesso, escolha a plataforma e envie um link seguro para o usuário confirmar o e-mail e definir a própria senha.</p>
       </div>
-      <span className="api-badge">E-mail direcionado</span>
+      <span className="api-badge">Acesso seguro</span>
     </header>
 
     <div className="api-grid">
@@ -118,21 +217,74 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
         {success && <div className="api-feedback api-feedback--success api-wide">{success}</div>}
 
         <button className="api-submit api-wide" disabled={busy || !selectedApplication || !selectedPersona}>
-          {busy ? 'Enviando…' : 'Enviar convite por e-mail'}
+          {busy ? 'Criando e enviando…' : 'Criar acesso e enviar convite'}
         </button>
       </form>
 
       <aside className="api-preview">
-        <span>PRÉVIA DO DIRECIONAMENTO</span>
+        <span>COMO O ACESSO SERÁ CRIADO</span>
         <h4>{selectedApplication?.name || 'Selecione uma plataforma'}</h4>
         <strong>{selectedPersona?.label || 'Perfil ainda não selecionado'}</strong>
-        <p>{selectedPersona?.hint || 'Ao escolher a plataforma e o perfil, o e-mail será montado com argumentos e benefícios adequados para esse público.'}</p>
+        <p>{selectedPersona?.hint || 'O usuário receberá um link temporário e um código de verificação. A senha só será definida pelo próprio destinatário.'}</p>
         {selectedApplication?.url && <a href={selectedApplication.url} target="_blank" rel="noreferrer">Abrir plataforma ↗</a>}
         {selectedApplication && isCutinapp(selectedApplication) && <div className="api-context-note">
           <b>Cutinapp</b>
-          <small>Templates específicos para participante, produtor, artista e promoter.</small>
+          <small>O perfil selecionado também fica associado ao vínculo inicial com a plataforma.</small>
         </div>}
       </aside>
+    </div>
+
+    <div className="api-history">
+      <div className="api-history-head">
+        <div>
+          <span>HISTÓRICO</span>
+          <h4>Convites recentes</h4>
+        </div>
+        <button type="button" className="api-history-refresh" onClick={() => refreshInvitations()} disabled={loadingInvitations}>
+          {loadingInvitations ? 'Atualizando…' : 'Atualizar'}
+        </button>
+      </div>
+
+      {historyError && <div className="api-feedback api-feedback--error">{historyError}</div>}
+
+      {loadingInvitations ? (
+        <div className="api-history-empty">Carregando convites…</div>
+      ) : invitations.length === 0 ? (
+        <div className="api-history-empty">Nenhum convite registrado ainda.</div>
+      ) : (
+        <div className="api-history-list">
+          {invitations.map(invitation => {
+            const canManage = invitation.status !== 'accepted'
+            const processing = actionId === invitation.id
+
+            return <article className="api-history-row" key={invitation.id}>
+              <div className="api-history-main">
+                <div className="api-history-email">{invitation.email}</div>
+                <div className="api-history-meta">
+                  <span>{invitation.application?.name || 'Plataforma removida'}</span>
+                  {invitation.persona && <span>{invitation.persona}</span>}
+                  <span>Enviado em {formatDate(invitation.created_at)}</span>
+                  {invitation.status === 'pending' && <span>Expira em {formatDate(invitation.expires_at)}</span>}
+                </div>
+              </div>
+
+              <div className="api-history-side">
+                <span className={`api-status api-status--${invitation.status}`}>
+                  {STATUS_LABELS[invitation.status] || invitation.status}
+                </span>
+                {canManage && <div className="api-history-actions">
+                  <button type="button" onClick={() => resend(invitation)} disabled={processing}>
+                    {processing ? 'Processando…' : 'Reenviar'}
+                  </button>
+                  {invitation.status !== 'revoked' && <button type="button" className="api-history-danger" onClick={() => revoke(invitation)} disabled={processing}>
+                    Revogar
+                  </button>}
+                </div>}
+              </div>
+            </article>
+          })}
+        </div>
+      )}
     </div>
   </section>
 }
