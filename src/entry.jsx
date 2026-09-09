@@ -143,7 +143,12 @@ async function boot() {
   // Non-critical bridges must never block the primary application boot.
   void import('./MarketingConversionBridge.js').catch(error => console.warn('[Peter Tecnet] marketing conversion bridge unavailable', error))
   void import('./MarketingQuoteDraftBridge.js').catch(error => console.warn('[Peter Tecnet] marketing quote bridge unavailable', error))
-  void import('./SupportLinkBridge.js').catch(error => console.warn('[Peter Tecnet] support bridge unavailable', error))
+
+  if (path !== '/suporte') {
+    void import('./utils/peterWhatsappFallback.js')
+      .then(({ installPeterWhatsappFallback }) => installPeterWhatsappFallback())
+      .catch(error => console.warn('[Peter Tecnet] WhatsApp CTA unavailable', error))
+  }
 
   const isMarketingHub = path === '/'
     || path === '/sobre'
