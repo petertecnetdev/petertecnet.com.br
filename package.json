@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/validate-marketing-runtime.mjs && vite build && node scripts/generate-seo-pages.mjs && node scripts/generate-discovery-pages.mjs && node scripts/generate-intent-pages.mjs && node scripts/generate-marketing-pages.mjs && node scripts/validate-landing-pwa.mjs",
+    "build": "node scripts/validate-marketing-runtime.mjs && vite build && node scripts/generate-seo-pages.mjs && node scripts/generate-discovery-pages.mjs && node scripts/generate-intent-pages.mjs && node scripts/generate-marketing-pages.mjs && node scripts/generate-entity-seo.mjs && node scripts/validate-landing-pwa.mjs",
     "lint": "oxlint",
     "test:ecosystem": "node scripts/validate-ecosystem-sdk.mjs && node scripts/validate-frontend-core.mjs",
     "test:frontend-core": "node scripts/validate-frontend-core.mjs",
