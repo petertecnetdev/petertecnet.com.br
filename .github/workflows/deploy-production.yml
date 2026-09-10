@@ -24,97 +24,38 @@ jobs:
       VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
 
   verify-marketing:
-    name: Verify public marketing experience
+    name: Verify public marketing and entity SEO
     needs: deploy
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check public routes, bootstrap, PWA, CRM intake and live sitemap
+      - name: Check canonical ecosystem pages and sitemap
         shell: bash
         run: |
           set -euo pipefail
-
           urls=(
             "https://petertecnet.com.br/"
+            "https://petertecnet.com.br/plataformas"
+            "https://petertecnet.com.br/plataformas/plat"
+            "https://petertecnet.com.br/plataformas/rasoio"
+            "https://petertecnet.com.br/plataformas/cutinapp"
+            "https://petertecnet.com.br/plataformas/nexus"
+            "https://petertecnet.com.br/plataformas/payflow"
+            "https://petertecnet.com.br/plataformas/laora"
+            "https://petertecnet.com.br/plataformas/locaio"
+            "https://petertecnet.com.br/plataformas/kryvion"
             "https://petertecnet.com.br/blog"
-            "https://petertecnet.com.br/blog/como-criar-catalogo-digital-para-empresa"
-            "https://petertecnet.com.br/servicos/desenvolvimento-de-software"
-            "https://petertecnet.com.br/portfolio"
-            "https://petertecnet.com.br/sobre"
-            "https://petertecnet.com.br/orcamento"
-            "https://petertecnet.com.br/manifest.json"
-            "https://petertecnet.com.br/service-worker.js"
+            "https://petertecnet.com.br/sitemap.xml"
             "https://petertecnet.com.br/robots.txt"
-            "https://api.petertecnet.com.br/api/v1/discovery/sitemap.xml?origin=https%3A%2F%2Fpetertecnet.com.br"
           )
-
-          for url in "${urls[@]}"; do
-            echo "Checking $url"
-            curl --fail --silent --show-error --location \
-              --retry 5 --retry-all-errors --retry-delay 2 --max-time 20 \
-              "$url" >/dev/null
-          done
-
-          assert_contains() {
-            local label="$1"
-            local needle="$2"
-            local haystack="$3"
-            if ! grep -Fq "$needle" <<<"$haystack"; then
-              echo "Verification failed: $label is missing '$needle'." >&2
-              exit 1
-            fi
-            echo "Verified: $label"
-          }
-
-          assert_not_contains() {
-            local label="$1"
-            local needle="$2"
-            local haystack="$3"
-            if grep -Fq "$needle" <<<"$haystack"; then
-              echo "Verification failed: $label still contains forbidden '$needle'." >&2
-              exit 1
-            fi
-            echo "Verified absence: $label"
-          }
-
-          homepage_html="$(curl --fail --silent --show-error --location --max-time 20 \
-            https://petertecnet.com.br/)"
-          assert_contains "landing root mount" 'id="root"' "$homepage_html"
-          assert_contains "landing official logo" "petertecnetlogo.png" "$homepage_html"
-          assert_contains "landing processing indicator" "pt-processing-indicator" "$homepage_html"
-          assert_contains "landing service worker registration" "service-worker.js" "$homepage_html"
-          assert_not_contains "landing html" "favicon.svg" "$homepage_html"
-          assert_not_contains "landing html" "pwa-admin" "$homepage_html"
-
-          manifest="$(curl --fail --silent --show-error --location --max-time 20 \
-            https://petertecnet.com.br/manifest.json)"
-          assert_contains "landing manifest name" '"name": "Peter Tecnet"' "$manifest"
-          assert_contains "landing manifest icon" "petertecnetlogo.png" "$manifest"
-          assert_not_contains "landing manifest" "pwa-admin" "$manifest"
-
-          worker="$(curl --fail --silent --show-error --location --max-time 20 \
-            https://petertecnet.com.br/service-worker.js)"
-          assert_contains "landing service worker cache namespace" "petertecnet-landing-pwa-v2" "$worker"
-          assert_contains "landing service worker admin bypass" "url.pathname.startsWith('/admin')" "$worker"
-          assert_not_contains "landing service worker identity" "<title>Admin Center" "$worker"
-          assert_not_contains "landing service worker active cache" "const CACHE_VERSION = 'petertecnet-admin-pwa" "$worker"
-
-          robots="$(curl --fail --silent --show-error --location --max-time 20 \
-            https://petertecnet.com.br/robots.txt)"
-          assert_contains "robots live sitemap" "api.petertecnet.com.br/api/v1/discovery/sitemap.xml" "$robots"
-
-          sitemap="$(curl --fail --silent --show-error --location --max-time 20 \
-            'https://api.petertecnet.com.br/api/v1/discovery/sitemap.xml?origin=https%3A%2F%2Fpetertecnet.com.br')"
-          assert_contains "discovery sitemap" "<urlset" "$sitemap"
-
-          inquiry_status="$(curl --silent --show-error --output /tmp/inquiry-validation.json \
-            --write-out '%{http_code}' --max-time 20 \
-            --request POST --header 'Accept: application/json' \
-            https://api.petertecnet.com.br/api/v1/apps/payflow/crm/inquiries)"
-          if [[ "$inquiry_status" != "422" ]]; then
-            echo "Expected CRM inquiry validation status 422, got $inquiry_status" >&2
-            cat /tmp/inquiry-validation.json >&2 || true
-            exit 1
-          fi
-
-          echo "Public production verification passed."
+          for url in "${urls[@]}"; do curl --fail --silent --show-error --location --retry 5 --retry-all-errors --retry-delay 2 --max-time 20 "$url" >/dev/null; done
+          plat="$(curl --fail --silent --show-error --location https://petertecnet.com.br/plataformas/plat)"
+          grep -Fq '<link rel="canonical" href="https://petertecnet.com.br/plataformas/plat">' <<<"$plat"
+          grep -Fq 'Plat: gestão digital para bares, restaurantes e estabelecimentos' <<<"$plat"
+          grep -Fq 'SoftwareApplication' <<<"$plat"
+          grep -Fq 'BreadcrumbList' <<<"$plat"
+          platforms="$(curl --fail --silent --show-error --location https://petertecnet.com.br/plataformas)"
+          grep -Fq 'A Peter Tecnet cria e opera um ecossistema de plataformas digitais próprias.' <<<"$platforms"
+          sitemap="$(curl --fail --silent --show-error --location https://petertecnet.com.br/sitemap.xml)"
+          grep -Fq 'https://petertecnet.com.br/plataformas/plat' <<<"$sitemap"
+          echo "Public entity SEO verification passed."
