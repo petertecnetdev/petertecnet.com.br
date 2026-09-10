@@ -1,5 +1,4 @@
 name: Bootstrap Locaio Production
-# Impersonation rollout redeploy: 2026-09-10
 
 on:
   push:
@@ -14,11 +13,12 @@ permissions:
 
 jobs:
   provision:
-    name: Provision Locaio on VPS
+    name: Publish Locaio frontend on VPS
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
     steps:
-      - name: Check VPS configuration
+      - name: Validate VPS configuration
         id: config
         shell: bash
         env:
@@ -28,11 +28,39 @@ jobs:
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           set -euo pipefail
-          if [[ -z "${VPS_HOST}" || -z "${VPS_USER}" || -z "${VPS_SSH_KEY}" ]]; then
-            echo "Missing VPS deployment secrets." >&2
-            exit 1
-          fi
+          test -n "$VPS_HOST"
+          test -n "$VPS_USER"
+          test -n "$VPS_SSH_KEY"
           echo "port=${VPS_PORT:-22}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout current Locaio main
+        uses: actions/checkout@v4
+        with:
+          repository: petertecnetdev/locaio.petertecnet.com.br
+          ref: main
+          fetch-depth: 1
+          path: locaio
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: locaio/package-lock.json
+
+      - name: Build production frontend
+        working-directory: locaio
+        shell: bash
+        env:
+          CI: true
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          npm run build
+          test -f dist/index.html
+          grep -Fq "peter-impersonation.js" index.html
+          grep -Fq "Locaio" dist/index.html
+          git rev-parse HEAD > "$RUNNER_TEMP/locaio-source-sha"
 
       - name: Configure SSH
         shell: bash
@@ -46,7 +74,7 @@ jobs:
           : > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
 
-      - name: Deploy frontend and configure Nginx
+      - name: Publish atomic frontend release
         shell: bash
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
@@ -54,129 +82,66 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           set -euo pipefail
-          REMOTE_SCRIPT="$RUNNER_TEMP/bootstrap-locaio.sh"
-          cat > "$REMOTE_SCRIPT" <<'REMOTE'
-          set -Eeuo pipefail
+          SOURCE_SHA="$(cat "$RUNNER_TEMP/locaio-source-sha")"
+          ARCHIVE="$RUNNER_TEMP/locaio-${SOURCE_SHA}.tar.gz"
+          REMOTE_ARCHIVE="/tmp/locaio-${SOURCE_SHA}.tar.gz"
+          tar -C locaio/dist -czf "$ARCHIVE" .
 
-          DOMAIN="locaio.petertecnet.com.br"
-          APP_DIR="/var/www/locaio.petertecnet.com.br"
-          REPOSITORY="https://github.com/petertecnetdev/locaio.petertecnet.com.br.git"
-          NGINX_SITE="/etc/nginx/sites-available/locaio.petertecnet.com.br"
-          NGINX_ENABLED="/etc/nginx/sites-enabled/locaio.petertecnet.com.br"
+          scp -q -P "$VPS_PORT" \
+            -o StrictHostKeyChecking=accept-new \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            "$ARCHIVE" "$VPS_USER@$VPS_HOST:$REMOTE_ARCHIVE"
 
-          if [[ "$(id -u)" -eq 0 ]]; then
-            SUDO=""
-          elif command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
-            SUDO="sudo"
-          else
-            echo "Deploy user needs root or passwordless sudo to configure Nginx/Certbot." >&2
-            exit 10
-          fi
-
-          exec 9>/tmp/petertecnet-vps-deploy.lock
-          flock -w 1800 9
-
-          if [[ -d "$APP_DIR/.git" ]]; then
-            current_remote="$(git -C "$APP_DIR" remote get-url origin 2>/dev/null || true)"
-            if [[ "$current_remote" != "$REPOSITORY" && "$current_remote" != "git@github.com:petertecnetdev/locaio.petertecnet.com.br.git" ]]; then
-              backup="${APP_DIR}.backup-$(date +%Y%m%d%H%M%S)"
-              mv "$APP_DIR" "$backup"
-              echo "Existing mismatched application directory moved to $backup"
-            fi
-          elif [[ -d "$APP_DIR" && -n "$(find "$APP_DIR" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
-            backup="${APP_DIR}.backup-$(date +%Y%m%d%H%M%S)"
-            mv "$APP_DIR" "$backup"
-            echo "Existing non-Git application directory moved to $backup"
-          fi
-
-          if [[ ! -d "$APP_DIR/.git" ]]; then
-            mkdir -p "$(dirname "$APP_DIR")"
-            git clone --branch main --single-branch "$REPOSITORY" "$APP_DIR"
-          fi
-
-          git -C "$APP_DIR" fetch --prune origin main
-          git -C "$APP_DIR" checkout main
-          git -C "$APP_DIR" reset --hard origin/main
-
-          cd "$APP_DIR"
-          export CI=true
-          export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=4096}"
-          if [[ -f package-lock.json ]]; then
-            npm ci --no-audit --no-fund || npm install --no-audit --no-fund --package-lock=false
-          else
-            npm install --no-audit --no-fund --package-lock=false
-          fi
-          npm run build
-          test -f "$APP_DIR/dist/index.html"
-          grep -Fq "Locaio" "$APP_DIR/dist/index.html"
-
-          $SUDO tee "$NGINX_SITE" >/dev/null <<NGINX
-          server {
-              listen 80;
-              listen [::]:80;
-              server_name $DOMAIN;
-
-              root $APP_DIR/dist;
-              index index.html;
-
-              location / {
-                  try_files \$uri \$uri/ /index.html;
-              }
-
-              location ~* \\.(?:js|css|png|jpg|jpeg|gif|svg|ico|webp|woff2?)$ {
-                  try_files \$uri =404;
-                  expires 7d;
-                  add_header Cache-Control "public, max-age=604800, immutable";
-              }
-
-              add_header X-Content-Type-Options nosniff always;
-              add_header Referrer-Policy strict-origin-when-cross-origin always;
-              add_header X-Frame-Options SAMEORIGIN always;
-          }
-          NGINX
-
-          $SUDO ln -sfn "$NGINX_SITE" "$NGINX_ENABLED"
-          $SUDO nginx -t
-          $SUDO systemctl reload nginx
-
-          if command -v certbot >/dev/null 2>&1; then
-            $SUDO certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --register-unsafely-without-email --redirect
-            $SUDO nginx -t
-            $SUDO systemctl reload nginx
-          fi
-
-          if [[ -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]]; then
-            curl --fail --silent --show-error --location --insecure \
-              --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/" | grep -Fq "Locaio"
-          else
-            curl --fail --silent --show-error -H "Host: $DOMAIN" http://127.0.0.1/ | grep -Fq "Locaio"
-          fi
-
-          echo "Locaio provisioned from $(git -C "$APP_DIR" rev-parse HEAD)"
-          REMOTE
-
-          chmod 600 "$REMOTE_SCRIPT"
           ssh \
+            -p "$VPS_PORT" \
             -o StrictHostKeyChecking=accept-new \
             -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
             -o ConnectTimeout=20 \
-            -o ServerAliveInterval=30 \
-            -o ServerAliveCountMax=8 \
-            -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
-            'bash -s' < "$REMOTE_SCRIPT"
+            "$VPS_USER@$VPS_HOST" \
+            "bash -s -- '$SOURCE_SHA' '$REMOTE_ARCHIVE'" <<'REMOTE'
+          set -Eeuo pipefail
+          SHA="$1"
+          ARCHIVE="$2"
+          TARGET="/var/www/locaio.petertecnet.com.br"
+          LIVE="$TARGET/dist"
+          NEXT="$TARGET/.dist.next.$SHA"
+          PREVIOUS="$TARGET/.dist.previous.$SHA.$$"
+
+          [[ "$TARGET" == /var/www/* ]] || exit 20
+          [[ "$ARCHIVE" == /tmp/locaio-*.tar.gz ]] || exit 21
+          test -d "$TARGET"
+          test -w "$TARGET"
+          test -f "$ARCHIVE"
+
+          rm -rf "$NEXT" 2>/dev/null || true
+          mkdir -p "$NEXT"
+          tar -xzf "$ARCHIVE" -C "$NEXT"
+          rm -f "$ARCHIVE"
+          test -f "$NEXT/index.html"
+          grep -Fq "Locaio" "$NEXT/index.html"
+
+          if [[ -e "$LIVE" ]]; then mv "$LIVE" "$PREVIOUS"; fi
+          if ! mv "$NEXT" "$LIVE"; then
+            [[ -e "$PREVIOUS" ]] && mv "$PREVIOUS" "$LIVE" || true
+            exit 22
+          fi
+
+          printf '%s\n' "$SHA" > "$TARGET/.locaio-main-release"
+          rm -rf "$PREVIOUS" 2>/dev/null || true
+          REMOTE
 
       - name: Verify public Locaio
         shell: bash
         run: |
           set -euo pipefail
           html="$(curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 20 https://locaio.petertecnet.com.br/)"
-          grep -Fq "Locaio | Gestão de imóveis, contratos e aluguéis" <<<"$html"
+          grep -Fq "Locaio" <<<"$html"
+
+          script_status="$(curl --silent --show-error --output /tmp/impersonation-runtime.js --write-out '%{http_code}' --max-time 20 https://petertecnet.com.br/ecosystem/peter-impersonation.js)"
+          test "$script_status" = "200"
+          grep -Fq "PeterTecnetImpersonation" /tmp/impersonation-runtime.js
 
           config_status="$(curl --silent --show-error --output /tmp/locaio-config.json --write-out '%{http_code}' --max-time 20 https://api.petertecnet.com.br/api/v1/apps/locaio/config)"
-          if [[ "$config_status" != "200" ]]; then
-            echo "Locaio API context returned HTTP $config_status" >&2
-            cat /tmp/locaio-config.json >&2 || true
-            exit 1
-          fi
+          test "$config_status" = "200"
 
-          echo "Locaio frontend and API context are healthy."
+          echo "Locaio frontend, shared impersonation runtime and API context are healthy."
