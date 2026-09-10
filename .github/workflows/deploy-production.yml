@@ -63,23 +63,23 @@ jobs:
             local label="$1" needle="$2" haystack="$3"
             if ! grep -Fq "$needle" <<<"$haystack"; then echo "Verification failed: $label missing '$needle'." >&2; exit 1; fi
           }
-          homepage="$(curl --fail --silent --show-error https://petertecnet.com.br/)"
+          homepage="$(curl --fail --silent --show-error --location https://petertecnet.com.br/)"
           assert_contains "homepage ecosystem identity" "Ecossistema de plataformas digitais" "$homepage"
           assert_contains "homepage Plat entity" '"name":"Plat"' "$homepage"
-          plat="$(curl --fail --silent --show-error https://petertecnet.com.br/plataformas/plat)"
+          plat="$(curl --fail --silent --show-error --location https://petertecnet.com.br/plataformas/plat)"
           assert_contains "Plat canonical" '<link rel="canonical" href="https://petertecnet.com.br/plataformas/plat"' "$plat"
           assert_contains "Plat definition" "Plat é a plataforma Peter Tecnet para organizar e digitalizar a operação de estabelecimentos" "$plat"
           assert_contains "Plat software schema" "SoftwareApplication" "$plat"
           assert_contains "Plat product schema" '"Product"' "$plat"
           assert_contains "Plat breadcrumb schema" "BreadcrumbList" "$plat"
           assert_contains "Plat FAQ" "FAQPage" "$plat"
-          platforms="$(curl --fail --silent --show-error https://petertecnet.com.br/plataformas)"
+          platforms="$(curl --fail --silent --show-error --location https://petertecnet.com.br/plataformas)"
           assert_contains "platform directory H1" "Plataformas próprias para problemas específicos" "$platforms"
           assert_contains "platform directory structured list" "ItemList" "$platforms"
-          sitemap="$(curl --fail --silent --show-error https://petertecnet.com.br/sitemap.xml)"
+          sitemap="$(curl --fail --silent --show-error --location https://petertecnet.com.br/sitemap.xml)"
           for route in /plataformas/plat /plataformas/rasoio /plataformas/cutinapp /plataformas/nexus /plataformas/payflow /plataformas/laora /plataformas/locaio /plataformas/kryvion /blog/agendamento-online-para-empresas-de-servicos; do
             assert_contains "sitemap $route" "https://petertecnet.com.br$route" "$sitemap"
           done
-          robots="$(curl --fail --silent --show-error https://petertecnet.com.br/robots.txt)"
+          robots="$(curl --fail --silent --show-error --location https://petertecnet.com.br/robots.txt)"
           assert_contains "robots static sitemap" "https://petertecnet.com.br/sitemap.xml" "$robots"
           echo "Public production and SEO verification passed."
