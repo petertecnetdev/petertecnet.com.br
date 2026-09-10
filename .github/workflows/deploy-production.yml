@@ -24,12 +24,12 @@ jobs:
       VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
 
   verify-marketing:
-    name: Verify public marketing and entity SEO
+    name: Verify public marketing and SEO experience
     needs: deploy
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
-      - name: Check canonical ecosystem pages and sitemap
+      - name: Check public routes, canonical entities, PWA and sitemap
         shell: bash
         run: |
           set -euo pipefail
@@ -45,17 +45,41 @@ jobs:
             "https://petertecnet.com.br/plataformas/locaio"
             "https://petertecnet.com.br/plataformas/kryvion"
             "https://petertecnet.com.br/blog"
+            "https://petertecnet.com.br/blog/agendamento-online-para-empresas-de-servicos"
+            "https://petertecnet.com.br/blog/sistema-para-bares-restaurantes-e-estabelecimentos"
+            "https://petertecnet.com.br/blog/plataforma-para-vender-ingressos-online"
+            "https://petertecnet.com.br/blog/crm-para-pequenas-empresas-follow-up-propostas-cobrancas"
+            "https://petertecnet.com.br/portfolio"
+            "https://petertecnet.com.br/sobre"
+            "https://petertecnet.com.br/orcamento"
             "https://petertecnet.com.br/sitemap.xml"
             "https://petertecnet.com.br/robots.txt"
           )
-          for url in "${urls[@]}"; do curl --fail --silent --show-error --location --retry 5 --retry-all-errors --retry-delay 2 --max-time 20 "$url" >/dev/null; done
-          plat="$(curl --fail --silent --show-error --location https://petertecnet.com.br/plataformas/plat)"
-          grep -Fq '<link rel="canonical" href="https://petertecnet.com.br/plataformas/plat">' <<<"$plat"
-          grep -Fq 'Plat: gestão digital para bares, restaurantes e estabelecimentos' <<<"$plat"
-          grep -Fq 'SoftwareApplication' <<<"$plat"
-          grep -Fq 'BreadcrumbList' <<<"$plat"
-          platforms="$(curl --fail --silent --show-error --location https://petertecnet.com.br/plataformas)"
-          grep -Fq 'A Peter Tecnet cria e opera um ecossistema de plataformas digitais próprias.' <<<"$platforms"
-          sitemap="$(curl --fail --silent --show-error --location https://petertecnet.com.br/sitemap.xml)"
-          grep -Fq 'https://petertecnet.com.br/plataformas/plat' <<<"$sitemap"
-          echo "Public entity SEO verification passed."
+          for url in "${urls[@]}"; do
+            echo "Checking $url"
+            curl --fail --silent --show-error --location --retry 5 --retry-all-errors --retry-delay 2 --max-time 20 "$url" >/dev/null
+          done
+          assert_contains() {
+            local label="$1" needle="$2" haystack="$3"
+            if ! grep -Fq "$needle" <<<"$haystack"; then echo "Verification failed: $label missing '$needle'." >&2; exit 1; fi
+          }
+          homepage="$(curl --fail --silent --show-error https://petertecnet.com.br/)"
+          assert_contains "homepage ecosystem identity" "Ecossistema de plataformas digitais" "$homepage"
+          assert_contains "homepage Plat entity" '"name":"Plat"' "$homepage"
+          plat="$(curl --fail --silent --show-error https://petertecnet.com.br/plataformas/plat)"
+          assert_contains "Plat canonical" '<link rel="canonical" href="https://petertecnet.com.br/plataformas/plat"' "$plat"
+          assert_contains "Plat definition" "Plat é a plataforma Peter Tecnet para organizar e digitalizar a operação de estabelecimentos" "$plat"
+          assert_contains "Plat software schema" "SoftwareApplication" "$plat"
+          assert_contains "Plat product schema" '"Product"' "$plat"
+          assert_contains "Plat breadcrumb schema" "BreadcrumbList" "$plat"
+          assert_contains "Plat FAQ" "FAQPage" "$plat"
+          platforms="$(curl --fail --silent --show-error https://petertecnet.com.br/plataformas)"
+          assert_contains "platform directory H1" "Plataformas próprias para problemas específicos" "$platforms"
+          assert_contains "platform directory structured list" "ItemList" "$platforms"
+          sitemap="$(curl --fail --silent --show-error https://petertecnet.com.br/sitemap.xml)"
+          for route in /plataformas/plat /plataformas/rasoio /plataformas/cutinapp /plataformas/nexus /plataformas/payflow /plataformas/laora /plataformas/locaio /plataformas/kryvion /blog/agendamento-online-para-empresas-de-servicos; do
+            assert_contains "sitemap $route" "https://petertecnet.com.br$route" "$sitemap"
+          done
+          robots="$(curl --fail --silent --show-error https://petertecnet.com.br/robots.txt)"
+          assert_contains "robots static sitemap" "https://petertecnet.com.br/sitemap.xml" "$robots"
+          echo "Public production and SEO verification passed."
