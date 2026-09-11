@@ -175,21 +175,25 @@ function ActivationPage() {
   async function submit(event) {
     event.preventDefault()
 
-    const normalizedCode = code.trim().toUpperCase()
+    const isWhatsApp = invitation?.channel === 'whatsapp'
+    const requiresPassword = invitation?.requires_password !== false
+    const normalizedCode = isWhatsApp ? code.replace(/\D/g, '') : code.trim().toUpperCase()
     if (!normalizedCode) {
-      await showErrorAlert('Código obrigatório', 'Digite o código de verificação recebido por e-mail.')
+      await showErrorAlert('Código obrigatório', `Digite o código de verificação recebido por ${isWhatsApp ? 'WhatsApp' : 'e-mail'}.`)
       return
     }
 
-    const passwordError = passwordValidationMessage(password)
-    if (passwordError) {
-      await showErrorAlert('Senha fora do padrão', passwordError)
-      return
-    }
+    if (requiresPassword) {
+      const passwordError = passwordValidationMessage(password)
+      if (passwordError) {
+        await showErrorAlert('Senha fora do padrão', passwordError)
+        return
+      }
 
-    if (password !== confirmation) {
-      await showErrorAlert('As senhas não coincidem', 'Digite a mesma senha nos campos “Nova senha” e “Confirmar nova senha”.')
-      return
+      if (password !== confirmation) {
+        await showErrorAlert('As senhas não coincidem', 'Digite a mesma senha nos campos “Nova senha” e “Confirmar nova senha”.')
+        return
+      }
     }
 
     setSubmitting(true)
@@ -198,8 +202,8 @@ function ActivationPage() {
         method: 'POST',
         body: JSON.stringify({
           verification_code: normalizedCode,
-          password,
-          password_confirmation: confirmation,
+          password: requiresPassword ? password : null,
+          password_confirmation: requiresPassword ? confirmation : null,
         }),
       })
 
@@ -207,7 +211,7 @@ function ActivationPage() {
       await showAlert({
         icon: 'success',
         title: 'Conta ativada com sucesso',
-        text: `Seu e-mail foi validado e sua senha foi criada. O acesso ao ${result?.application?.name || 'aplicativo'} está liberado.`,
+        text: `${isWhatsApp ? 'Seu WhatsApp foi confirmado' : 'Seu e-mail foi validado'}${requiresPassword ? ' e sua senha foi criada' : ''}. O acesso ao ${result?.application?.name || 'aplicativo'} está liberado.`,
         confirmButtonText: 'Continuar',
       })
     } catch (err) {
@@ -226,7 +230,9 @@ function ActivationPage() {
       <AccountShell
         eyebrow="Acesso liberado"
         title="Conta ativada com sucesso"
-        description="Seu e-mail foi validado e sua nova senha já está valendo."
+        description={invitation?.channel === 'whatsapp'
+          ? 'Seu WhatsApp foi confirmado e seu acesso está liberado.'
+          : 'Seu e-mail foi validado e seu acesso está liberado.'}
       >
         <div className="account-access-success">
           <div className="account-access-success-icon">✓</div>
@@ -246,57 +252,70 @@ function ActivationPage() {
       eyebrow="Primeiro acesso"
       title="Ative sua conta"
       description={invitation?.application?.name
-        ? `Valide seu e-mail e crie sua senha para acessar ${invitation.application.name}.`
-        : 'Valide seu e-mail e crie sua senha para acessar o ecossistema Peter Tecnet.'}
+        ? `Confirme seu ${invitation?.channel === 'whatsapp' ? 'WhatsApp' : 'e-mail'}${invitation?.requires_password === false ? '' : ' e crie sua senha'} para acessar ${invitation.application.name}.`
+        : `Confirme seu ${invitation?.channel === 'whatsapp' ? 'WhatsApp' : 'e-mail'} para acessar o ecossistema Peter Tecnet.`}
     >
       {loading ? (
         <div className="account-access-status">Validando o convite...</div>
       ) : invitation ? (
         <form className="account-access-form" onSubmit={submit} noValidate>
-          <Field label="E-mail">
-            <input type="email" value={invitation.email || ''} readOnly />
-          </Field>
+          {invitation.channel === 'whatsapp' ? (
+            <Field label="WhatsApp">
+              <input type="text" value={invitation.phone || ''} readOnly />
+            </Field>
+          ) : (
+            <Field label="E-mail">
+              <input type="email" value={invitation.email || ''} readOnly />
+            </Field>
+          )}
 
-          <Field label="Código de verificação" hint="Digite o código que foi enviado no mesmo e-mail do convite.">
+          <Field label="Código de verificação" hint={`Digite o código enviado por ${invitation.channel === 'whatsapp' ? 'WhatsApp' : 'e-mail'}.`}>
             <input
               type="text"
               value={code}
-              onChange={(event) => setCode(event.target.value.toUpperCase())}
+              onChange={(event) => setCode(invitation.channel === 'whatsapp' ? event.target.value.replace(/\D/g, '') : event.target.value.toUpperCase())}
               autoComplete="one-time-code"
-              maxLength={12}
+              inputMode={invitation.channel === 'whatsapp' ? 'numeric' : undefined}
+              maxLength={invitation.channel === 'whatsapp' ? 6 : 12}
               required
               className="account-access-code"
-              placeholder="Ex.: A7K9P2QX"
+              placeholder={invitation.channel === 'whatsapp' ? 'Ex.: 483921' : 'Ex.: A7K9P2QX'}
             />
           </Field>
 
-          <Field label="Nova senha">
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              autoComplete="new-password"
-              minLength={8}
-              required
-            />
-          </Field>
+          {invitation.requires_password !== false && <>
+            <Field label="Nova senha">
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="new-password"
+                minLength={8}
+                required
+              />
+            </Field>
 
-          <Field
-            label="Confirmar nova senha"
-            hint="Use pelo menos 8 caracteres, com maiúscula, minúscula, número e símbolo."
-          >
-            <input
-              type="password"
-              value={confirmation}
-              onChange={(event) => setConfirmation(event.target.value)}
-              autoComplete="new-password"
-              minLength={8}
-              required
-            />
-          </Field>
+            <Field
+              label="Confirmar nova senha"
+              hint="Use pelo menos 8 caracteres, com maiúscula, minúscula, número e símbolo."
+            >
+              <input
+                type="password"
+                value={confirmation}
+                onChange={(event) => setConfirmation(event.target.value)}
+                autoComplete="new-password"
+                minLength={8}
+                required
+              />
+            </Field>
+          </>}
 
           <button className="account-access-primary" type="submit" disabled={submitting}>
-            {submitting ? 'Validando e salvando...' : 'Validar e criar minha senha'}
+            {submitting
+              ? 'Validando e salvando...'
+              : invitation.requires_password === false
+                ? 'Confirmar e liberar acesso'
+                : 'Validar e criar minha senha'}
           </button>
         </form>
       ) : (
