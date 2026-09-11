@@ -21,6 +21,14 @@ const STATUS_LABELS = {
   revoked: 'Revogado',
 }
 
+const DELIVERY_LABELS = {
+  queued: 'Na fila',
+  sent: 'Enviado',
+  delivered: 'Entregue',
+  read: 'Lido',
+  failed: 'Falhou',
+}
+
 const CUTINAPP_SLUGS = new Set(['cutinapp', 'cutin-app', 'catchnap', 'catinapp'])
 
 function isCutinapp(application) {
@@ -43,9 +51,21 @@ function formatDate(value) {
   }).format(date)
 }
 
+function channelLabel(channel) {
+  return channel === 'whatsapp' ? 'WhatsApp' : 'E-mail'
+}
+
 export default function AdminProspectInvitation({ apiRequest, applications = [] }) {
   const activeApplications = useMemo(() => applications.filter(app => app?.is_active !== false), [applications])
-  const [form, setForm] = useState({ email: '', recipient_name: '', application_id: '', persona: '' })
+  const [form, setForm] = useState({
+    channel: 'whatsapp',
+    phone: '',
+    email: '',
+    recipient_name: '',
+    application_id: '',
+    persona: '',
+    whatsapp_consent: false,
+  })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -65,6 +85,7 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
   )
 
   const selectedPersona = personas.find(persona => persona.value === form.persona) || null
+  const isWhatsApp = form.channel === 'whatsapp'
 
   async function refreshInvitations({ silent = false } = {}) {
     if (!silent) setLoadingInvitations(true)
@@ -105,6 +126,7 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
   function change(field, value) {
     setForm(current => {
       if (field === 'application_id') return { ...current, application_id: value, persona: '' }
+      if (field === 'channel') return { ...current, channel: value, whatsapp_consent: value === 'whatsapp' ? current.whatsapp_consent : false }
       return { ...current, [field]: value }
     })
     setError('')
@@ -121,19 +143,43 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
       return
     }
 
+    if (isWhatsApp && !form.phone.trim()) {
+      setError('Informe o número do WhatsApp com DDD.')
+      return
+    }
+
+    if (!isWhatsApp && !form.email.trim()) {
+      setError('Informe o e-mail do destinatário.')
+      return
+    }
+
+    if (isWhatsApp && !form.whatsapp_consent) {
+      setError('Confirme que este WhatsApp foi fornecido para contato e onboarding.')
+      return
+    }
+
     setBusy(true)
     try {
       const payload = await apiRequest('/admin/ecosystem/invitations/prospect', {
         method: 'POST',
         body: JSON.stringify({
-          email: form.email.trim().toLowerCase(),
+          channel: form.channel,
+          phone: form.phone.trim() || null,
+          email: form.email.trim().toLowerCase() || null,
+          whatsapp_consent: isWhatsApp ? form.whatsapp_consent : null,
           recipient_name: form.recipient_name.trim() || null,
           application_id: Number(form.application_id),
           persona: form.persona,
         }),
       })
       setSuccess(payload?.message || 'Convite enviado com sucesso.')
-      setForm(current => ({ ...current, email: '', recipient_name: '' }))
+      setForm(current => ({
+        ...current,
+        phone: '',
+        email: '',
+        recipient_name: '',
+        whatsapp_consent: false,
+      }))
       await refreshInvitations({ silent: true })
     } catch (err) {
       setError(err?.message || 'Não foi possível enviar o convite.')
@@ -184,20 +230,44 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
       <div>
         <span>PROSPECÇÃO E CONVITES</span>
         <h3>Convidar para uma plataforma</h3>
-        <p>Crie o primeiro acesso, escolha a plataforma e envie um link seguro para o usuário confirmar o e-mail e definir a própria senha.</p>
+        <p>Cadastre pelo WhatsApp ou e-mail. O usuário recebe um código, confirma o contato e cria a própria senha no primeiro acesso.</p>
       </div>
-      <span className="api-badge">Acesso seguro</span>
+      <span className="api-badge">WhatsApp + e-mail</span>
     </header>
 
     <div className="api-grid">
       <form className="api-form" onSubmit={submit}>
-        <label className="api-wide">E-mail do destinatário
-          <input type="email" value={form.email} onChange={event => change('email', event.target.value)} placeholder="contato@exemplo.com" required/>
-        </label>
+        <div className="api-wide api-channel-field">
+          <span>Canal do convite</span>
+          <div className="api-channel-options">
+            <button type="button" className={isWhatsApp ? 'is-active' : ''} onClick={() => change('channel', 'whatsapp')}>
+              <strong>WhatsApp</strong>
+              <small>Mais rápido para primeiro acesso</small>
+            </button>
+            <button type="button" className={!isWhatsApp ? 'is-active' : ''} onClick={() => change('channel', 'email')}>
+              <strong>E-mail</strong>
+              <small>Fluxo tradicional</small>
+            </button>
+          </div>
+        </div>
 
         <label>Nome <small>opcional</small>
           <input value={form.recipient_name} onChange={event => change('recipient_name', event.target.value)} maxLength={120} placeholder="Nome da pessoa ou contato"/>
         </label>
+
+        {isWhatsApp ? (
+          <label>WhatsApp
+            <input type="tel" value={form.phone} onChange={event => change('phone', event.target.value)} placeholder="(62) 99999-9999" required/>
+          </label>
+        ) : (
+          <label>E-mail
+            <input type="email" value={form.email} onChange={event => change('email', event.target.value)} placeholder="contato@exemplo.com" required/>
+          </label>
+        )}
+
+        {isWhatsApp && <label className="api-wide">E-mail <small>opcional</small>
+          <input type="email" value={form.email} onChange={event => change('email', event.target.value)} placeholder="Pode ser adicionado depois"/>
+        </label>}
 
         <label>Plataforma
           <select value={form.application_id} onChange={event => change('application_id', event.target.value)} required>
@@ -206,18 +276,27 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
           </select>
         </label>
 
-        <label className="api-wide">Perfil do convite
+        <label>Perfil do convite
           <select value={form.persona} onChange={event => change('persona', event.target.value)} disabled={!selectedApplication} required>
             <option value="">{selectedApplication ? 'Selecione o perfil' : 'Escolha primeiro a plataforma'}</option>
             {personas.map(persona => <option key={persona.value} value={persona.value}>{persona.label}</option>)}
           </select>
         </label>
 
+        {isWhatsApp && <label className="api-wide api-consent">
+          <input
+            type="checkbox"
+            checked={form.whatsapp_consent}
+            onChange={event => change('whatsapp_consent', event.target.checked)}
+          />
+          <span>Confirmo que o titular forneceu este número para contato e onboarding pelo WhatsApp.</span>
+        </label>}
+
         {error && <div className="api-feedback api-feedback--error api-wide">{error}</div>}
         {success && <div className="api-feedback api-feedback--success api-wide">{success}</div>}
 
         <button className="api-submit api-wide" disabled={busy || !selectedApplication || !selectedPersona}>
-          {busy ? 'Criando e enviando…' : 'Criar acesso e enviar convite'}
+          {busy ? 'Criando e enviando…' : isWhatsApp ? 'Enviar convite pelo WhatsApp' : 'Enviar convite por e-mail'}
         </button>
       </form>
 
@@ -225,7 +304,9 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
         <span>COMO O ACESSO SERÁ CRIADO</span>
         <h4>{selectedApplication?.name || 'Selecione uma plataforma'}</h4>
         <strong>{selectedPersona?.label || 'Perfil ainda não selecionado'}</strong>
-        <p>{selectedPersona?.hint || 'O usuário receberá um link temporário e um código de verificação. A senha só será definida pelo próprio destinatário.'}</p>
+        <p>{isWhatsApp
+          ? 'O usuário receberá no WhatsApp uma mensagem de boas-vindas, o link seguro e um código de 6 dígitos. O número só será marcado como confirmado após validar o código.'
+          : selectedPersona?.hint || 'O usuário receberá um link temporário e um código de verificação por e-mail. A senha será definida pelo próprio destinatário.'}</p>
         {selectedApplication?.url && <a href={selectedApplication.url} target="_blank" rel="noreferrer">Abrir plataforma ↗</a>}
         {selectedApplication && isCutinapp(selectedApplication) && <div className="api-context-note">
           <b>Cutinapp</b>
@@ -256,15 +337,21 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
           {invitations.map(invitation => {
             const canManage = invitation.status !== 'accepted'
             const processing = actionId === invitation.id
+            const destination = invitation.channel === 'whatsapp'
+              ? (invitation.phone || invitation.destination)
+              : (invitation.email || invitation.destination)
 
             return <article className="api-history-row" key={invitation.id}>
               <div className="api-history-main">
-                <div className="api-history-email">{invitation.email}</div>
+                <div className="api-history-email">{destination || 'Contato indisponível'}</div>
                 <div className="api-history-meta">
+                  <span>{channelLabel(invitation.channel)}</span>
                   <span>{invitation.application?.name || 'Plataforma removida'}</span>
                   {invitation.persona && <span>{invitation.persona}</span>}
-                  <span>Enviado em {formatDate(invitation.created_at)}</span>
-                  {invitation.status === 'pending' && <span>Expira em {formatDate(invitation.expires_at)}</span>}
+                  {invitation.delivery_status && <span>{DELIVERY_LABELS[invitation.delivery_status] || invitation.delivery_status}</span>}
+                  <span>Enviado em {formatDate(invitation.last_sent_at || invitation.created_at)}</span>
+                  {invitation.status === 'pending' && <span>Convite expira em {formatDate(invitation.expires_at)}</span>}
+                  {invitation.status === 'pending' && invitation.code_expires_at && <span>Código expira em {formatDate(invitation.code_expires_at)}</span>}
                 </div>
               </div>
 
