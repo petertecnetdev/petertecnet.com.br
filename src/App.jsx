@@ -7,6 +7,7 @@ import AdminFilesManager from './AdminFilesManager.jsx'
 import AdminCutinappCenter from './AdminCutinappCenter.jsx'
 import AdminModuleBoundary from './AdminModuleBoundary.jsx'
 import ExecutiveOverview from './ExecutiveOverview.jsx'
+import ApplicationRuntimeControl from './ApplicationRuntimeControl.jsx'
 import { useAdminAuth } from './adminAuth.js'
 import { useAdminData } from './adminData.js'
 import { ADMIN_RELEASE_LABEL } from './adminVersion.js'
@@ -454,6 +455,7 @@ function Dashboard({ user, onLogout }) {
                 </div>
               </Panel>
             </div>
+            <AdminModuleBoundary name="Controle operacional"><ApplicationRuntimeControl applications={applications} request={request}/></AdminModuleBoundary>
           </section>
 
           <section id="financial" className="section-anchor" data-admin-page-key="financial">
