@@ -6,6 +6,56 @@ const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
 const SLOT_ID = 'admin-applications-experience-slot'
 
+const RUNTIME_MODE_PRESETS = {
+  off: {
+    mode: 'off',
+    processing_enabled: false,
+    scheduled_processing_enabled: false,
+    market_scanner_enabled: false,
+    ai_enabled: false,
+    notifications_enabled: false,
+    emails_enabled: false,
+    reports_enabled: false,
+    realtime_enabled: false,
+  },
+  on_demand: {
+    mode: 'on_demand',
+    processing_enabled: true,
+    scheduled_processing_enabled: false,
+    market_scanner_enabled: true,
+    ai_enabled: true,
+    notifications_enabled: false,
+    emails_enabled: false,
+    reports_enabled: false,
+    realtime_enabled: false,
+  },
+  normal: {
+    mode: 'normal',
+    processing_enabled: true,
+    scheduled_processing_enabled: true,
+    market_scanner_enabled: true,
+    ai_enabled: true,
+    notifications_enabled: true,
+    emails_enabled: true,
+    reports_enabled: true,
+    realtime_enabled: true,
+    scan_interval_minutes: 5,
+  },
+  realtime: {
+    mode: 'realtime',
+    processing_enabled: true,
+    scheduled_processing_enabled: true,
+    market_scanner_enabled: true,
+    ai_enabled: true,
+    notifications_enabled: true,
+    emails_enabled: true,
+    reports_enabled: true,
+    realtime_enabled: true,
+    scan_interval_minutes: 1,
+  },
+}
+
+
 const SORT_OPTIONS = [
   ['activity', 'Interações · 30 dias'],
   ['users', 'Número de usuários'],
@@ -63,15 +113,19 @@ function matchesApplication(row, application) {
   )
 }
 
-async function request(path) {
+async function request(path, options = {}) {
   const token = localStorage.getItem(TOKEN_KEY)
   if (!token) throw new Error('Sessão administrativa indisponível.')
   const controller = new AbortController()
   const timeout = window.setTimeout(() => controller.abort(), 18000)
   try {
+    const headers = { Accept: 'application/json', Authorization: `Bearer ${token}` }
+    if (options.body) headers['Content-Type'] = 'application/json'
     const response = await fetch(`${API}${path}`, {
       signal: controller.signal,
-      headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+      method: options.method || 'GET',
+      headers,
+      body: options.body,
     })
     const payload = await response.json().catch(() => ({}))
     if (!response.ok) throw new Error(payload?.message || payload?.error || 'Não foi possível consultar os dados da aplicação.')
@@ -176,6 +230,196 @@ function Progress({ label, value, display }) {
   </div>
 }
 
+function RuntimeToggle({ label, detail, checked, disabled, onChange }) {
+  return <label className={`runtime-toggle ${disabled ? 'disabled' : ''}`}>
+    <span><b>{label}</b><small>{detail}</small></span>
+    <input type="checkbox" checked={Boolean(checked)} disabled={disabled} onChange={event => onChange(event.target.checked)}/>
+    <i aria-hidden="true"/>
+  </label>
+}
+
+function RuntimeControlPanel({ application }) {
+  const [runtime, setRuntime] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
+  const marketCapable = useMemo(() => {
+    if (normalize(application?.slug) === 'kryvion') return true
+    return (Array.isArray(application?.capabilities) ? application.capabilities : [])
+      .some(capability => normalize(typeof capability === 'string' ? capability : capability?.key || capability?.name) === 'market_data')
+  }, [application])
+
+  const loadRuntime = useCallback(async () => {
+    if (!application?.id) return
+    setLoading(true)
+    setError('')
+    try {
+      const payload = await request(`/admin/ecosystem/applications/${application.id}/runtime`)
+      setRuntime(payload?.runtime || null)
+    } catch (err) {
+      setError(err?.message || 'Não foi possível carregar o controle operacional.')
+    } finally {
+      setLoading(false)
+    }
+  }, [application?.id])
+
+  useEffect(() => {
+    void loadRuntime()
+  }, [loadRuntime])
+
+  const saveRuntime = useCallback(async nextRuntime => {
+    if (!application?.id || !nextRuntime) return
+    setSaving(true)
+    setMessage('')
+    setError('')
+    try {
+      const payload = await request(`/admin/ecosystem/applications/${application.id}/runtime`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          mode: nextRuntime.mode,
+          processing_enabled: Boolean(nextRuntime.processing_enabled),
+          scheduled_processing_enabled: Boolean(nextRuntime.scheduled_processing_enabled),
+          market_scanner_enabled: Boolean(nextRuntime.market_scanner_enabled),
+          ai_enabled: Boolean(nextRuntime.ai_enabled),
+          notifications_enabled: Boolean(nextRuntime.notifications_enabled),
+          emails_enabled: Boolean(nextRuntime.emails_enabled),
+          reports_enabled: Boolean(nextRuntime.reports_enabled),
+          realtime_enabled: Boolean(nextRuntime.realtime_enabled),
+          scan_interval_minutes: Number(nextRuntime.scan_interval_minutes || 5),
+          idle_timeout_minutes: Number(nextRuntime.idle_timeout_minutes || 15),
+          reason: nextRuntime.reason || null,
+        }),
+      })
+      setRuntime(payload?.runtime || nextRuntime)
+      setMessage(payload?.message || 'Controle operacional atualizado.')
+    } catch (err) {
+      setError(err?.message || 'Não foi possível salvar o controle operacional.')
+    } finally {
+      setSaving(false)
+    }
+  }, [application?.id])
+
+  const applyMode = mode => {
+    const next = { ...(runtime || {}), ...(RUNTIME_MODE_PRESETS[mode] || RUNTIME_MODE_PRESETS.normal), mode }
+    if (mode === 'off' && !next.reason) next.reason = 'Suspenso temporariamente pelo Admin Center para reduzir consumo de infraestrutura.'
+    setRuntime(next)
+    setMessage('')
+  }
+
+  const updateField = (field, value) => {
+    setRuntime(current => ({ ...(current || {}), [field]: value }))
+    setMessage('')
+  }
+
+  const suspendNow = () => {
+    const next = {
+      ...(runtime || {}),
+      ...RUNTIME_MODE_PRESETS.off,
+      reason: runtime?.reason || 'Suspenso temporariamente pelo Admin Center para reduzir consumo de infraestrutura.',
+    }
+    setRuntime(next)
+    void saveRuntime(next)
+  }
+
+  if (loading) {
+    return <section className="application-detail-panel runtime-control-panel">
+      <header><div><p>CONTROLE OPERACIONAL</p><h2>Carregando estado da aplicação</h2></div><span>API CENTRAL</span></header>
+      <div className="runtime-loading"><span className="detail-loader"/><p>Consultando processamento, automações e realtime.</p></div>
+    </section>
+  }
+
+  if (!runtime) {
+    return <section className="application-detail-panel runtime-control-panel">
+      <header><div><p>CONTROLE OPERACIONAL</p><h2>Estado indisponível</h2></div><span>ATENÇÃO</span></header>
+      <div className="runtime-feedback error">{error || 'Não foi possível consultar o estado operacional.'}</div>
+      <button className="runtime-secondary-button" type="button" onClick={() => void loadRuntime()}>Tentar novamente</button>
+    </section>
+  }
+
+  const suspended = runtime.mode === 'off' || !runtime.processing_enabled
+
+  return <section className={`application-detail-panel runtime-control-panel ${suspended ? 'suspended' : ''}`}>
+    <header>
+      <div>
+        <p>CONTROLE OPERACIONAL</p>
+        <h2>Processamento e consumo de infraestrutura</h2>
+      </div>
+      <span className={`runtime-mode-badge ${runtime.mode}`}>{runtime.mode === 'off' ? 'OFF' : runtime.mode === 'on_demand' ? 'SOB DEMANDA' : runtime.mode === 'realtime' ? 'TEMPO REAL' : 'NORMAL'}</span>
+    </header>
+
+    <div className="runtime-control-head">
+      <div>
+        <b>{suspended ? 'Processamento pesado suspenso' : 'Processamento habilitado'}</b>
+        <p>{suspended
+          ? 'Site, login e dados permanecem disponíveis; scanners, jobs e envios controlados por este painel ficam bloqueados.'
+          : 'A aplicação pode executar os recursos habilitados abaixo conforme o modo operacional selecionado.'}</p>
+      </div>
+      <button className="runtime-danger-button" type="button" disabled={saving || suspended} onClick={suspendNow}>
+        {saving ? 'Salvando…' : 'Suspender agora'}
+      </button>
+    </div>
+
+    <div className="runtime-mode-grid">
+      <label>
+        <span>Modo operacional</span>
+        <select value={runtime.mode || 'normal'} disabled={saving} onChange={event => applyMode(event.target.value)}>
+          <option value="off">Desligado</option>
+          <option value="on_demand">Sob demanda</option>
+          <option value="normal">Normal</option>
+          <option value="realtime">Tempo real</option>
+        </select>
+      </label>
+      <label>
+        <span>Intervalo de varredura</span>
+        <select value={String(runtime.scan_interval_minutes || 5)} disabled={saving || suspended} onChange={event => updateField('scan_interval_minutes', Number(event.target.value))}>
+          <option value="1">1 minuto</option>
+          <option value="5">5 minutos</option>
+          <option value="15">15 minutos</option>
+          <option value="60">1 hora</option>
+        </select>
+      </label>
+      <label>
+        <span>Idle automático</span>
+        <select value={String(runtime.idle_timeout_minutes || 15)} disabled={saving || suspended} onChange={event => updateField('idle_timeout_minutes', Number(event.target.value))}>
+          <option value="5">5 minutos</option>
+          <option value="15">15 minutos</option>
+          <option value="30">30 minutos</option>
+          <option value="60">1 hora</option>
+        </select>
+      </label>
+    </div>
+
+    <div className="runtime-toggle-grid">
+      <RuntimeToggle label="Processamento" detail="Chave mestre para trabalhos pesados." checked={runtime.processing_enabled} disabled={saving || runtime.mode === 'off'} onChange={value => updateField('processing_enabled', value)}/>
+      <RuntimeToggle label="Jobs agendados" detail="Permite tarefas automáticas recorrentes." checked={runtime.scheduled_processing_enabled} disabled={saving || suspended} onChange={value => updateField('scheduled_processing_enabled', value)}/>
+      {marketCapable && <RuntimeToggle label="Scanner de mercado" detail="Consultas e varreduras de ativos." checked={runtime.market_scanner_enabled} disabled={saving || suspended} onChange={value => updateField('market_scanner_enabled', value)}/>}
+      {marketCapable && <RuntimeToggle label="Análises de IA" detail="Processamento inteligente da aplicação." checked={runtime.ai_enabled} disabled={saving || suspended} onChange={value => updateField('ai_enabled', value)}/>}
+      <RuntimeToggle label="Notificações" detail="Alertas automáticos para usuários." checked={runtime.notifications_enabled} disabled={saving || suspended} onChange={value => updateField('notifications_enabled', value)}/>
+      <RuntimeToggle label="E-mails" detail="Envios automáticos e relatórios por e-mail." checked={runtime.emails_enabled} disabled={saving || suspended} onChange={value => updateField('emails_enabled', value)}/>
+      <RuntimeToggle label="Relatórios" detail="Geração e distribuição recorrente." checked={runtime.reports_enabled} disabled={saving || suspended} onChange={value => updateField('reports_enabled', value)}/>
+      <RuntimeToggle label="Realtime" detail="Atualizações em tempo real específicas da aplicação." checked={runtime.realtime_enabled} disabled={saving || suspended} onChange={value => updateField('realtime_enabled', value)}/>
+    </div>
+
+    <label className="runtime-reason-field">
+      <span>Motivo / observação operacional</span>
+      <textarea value={runtime.reason || ''} disabled={saving} maxLength={500} onChange={event => updateField('reason', event.target.value)} placeholder="Ex.: suspenso temporariamente por ausência de usuários ativos."/>
+    </label>
+
+    <div className="runtime-control-footer">
+      <div>
+        {runtime.updated_at && <small>Última alteração: {dateTime(runtime.updated_at)}</small>}
+        {error && <span className="runtime-feedback error">{error}</span>}
+        {message && <span className="runtime-feedback success">{message}</span>}
+      </div>
+      <button className="runtime-save-button" type="button" disabled={saving} onClick={() => void saveRuntime(runtime)}>
+        {saving ? 'Salvando…' : 'Salvar controle operacional'}
+      </button>
+    </div>
+  </section>
+}
+
 function ApplicationDetailPage({ application, activityRows, alertRows, onBack }) {
   if (!application) return <div className="application-detail-overlay"><main className="application-detail-page application-detail-loading"><button onClick={onBack}>← Voltar</button><div><span className="detail-loader"/><h1>Carregando aplicação…</h1><p>Consultando a telemetria central do ecossistema.</p></div></main></div>
 
@@ -216,6 +460,8 @@ function ApplicationDetailPage({ application, activityRows, alertRows, onBack })
         <DetailMetric label="Receita bruta" value={currency(financial.gross)} detail="volume processado"/>
         <DetailMetric label="Receita Peter" value={currency(financial.platform_fees)} detail="taxas da plataforma"/>
       </section>
+
+      <RuntimeControlPanel application={application}/>
 
       <section className="application-detail-grid">
         <article className="application-detail-panel">
