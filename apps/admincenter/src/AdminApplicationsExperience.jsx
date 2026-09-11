@@ -380,15 +380,6 @@ function RuntimeControlPanel({ application }) {
           <option value="60">1 hora</option>
         </select>
       </label>
-      <label>
-        <span>Idle automático</span>
-        <select value={String(runtime.idle_timeout_minutes || 15)} disabled={saving || suspended} onChange={event => updateField('idle_timeout_minutes', Number(event.target.value))}>
-          <option value="5">5 minutos</option>
-          <option value="15">15 minutos</option>
-          <option value="30">30 minutos</option>
-          <option value="60">1 hora</option>
-        </select>
-      </label>
     </div>
 
     <div className="runtime-toggle-grid">
