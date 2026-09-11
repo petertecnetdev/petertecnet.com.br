@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import NotificationAudienceExclusions from './NotificationAudienceExclusions'
 import './NotificationsCenter.css'
 
 const notificationTypes = [
@@ -67,6 +68,13 @@ export default function NotificationsCenter({ request, applications = [] }) {
   const [userResults, setUserResults] = useState([])
   const [userSearching, setUserSearching] = useState(false)
   const [selectedUsers, setSelectedUsers] = useState([])
+  const [exclusions, setExclusions] = useState({
+    exclude_user_ids: [],
+    exclusion_rules: [],
+    exclusion_match: 'any',
+    count: 0,
+    invalid: false,
+  })
   const searchTimer = useRef(null)
 
   const activeApplications = useMemo(
@@ -74,11 +82,20 @@ export default function NotificationsCenter({ request, applications = [] }) {
     [applications],
   )
 
+  const handleExclusionsChange = useCallback(nextExclusions => {
+    setExclusions(nextExclusions)
+    setPreview(null)
+    setSuccess('')
+  }, [])
+
   const audiencePayload = useMemo(() => ({
     audience_type: form.audience_type,
     app_id: form.app_id ? Number(form.app_id) : null,
     user_ids: form.audience_type === 'users' ? selectedUsers.map(user => Number(user.id)) : [],
-  }), [form.audience_type, form.app_id, selectedUsers])
+    exclude_user_ids: exclusions.exclude_user_ids || [],
+    exclusion_rules: exclusions.exclusion_rules || [],
+    exclusion_match: exclusions.exclusion_match || 'any',
+  }), [form.audience_type, form.app_id, selectedUsers, exclusions])
 
   async function loadCampaigns(targetPage = page) {
     setLoading(true)
@@ -184,6 +201,10 @@ export default function NotificationsCenter({ request, applications = [] }) {
       setError('Selecione pelo menos um usuário.')
       return
     }
+    if (exclusions.invalid) {
+      setError('Complete ou remova as condições de “menos para” antes de calcular o alcance.')
+      return
+    }
     setPreviewing(true)
     try {
       const payload = await request('/admin/ecosystem/notifications/preview', {
@@ -285,9 +306,11 @@ export default function NotificationsCenter({ request, applications = [] }) {
             </div>}
           </div>}
 
+          <NotificationAudienceExclusions request={request} onChange={handleExclusionsChange}/>
+
           <div className="preview-row">
             <button type="button" className="secondary-notification-button" onClick={calculatePreview} disabled={previewing}>{previewing ? 'Calculando…' : 'Calcular alcance'}</button>
-            {preview && <div className="audience-preview"><b>{formatNumber(preview.users_count)} usuário{Number(preview.users_count) === 1 ? '' : 's'}</b><span>{formatNumber(preview.deliveries_count)} entrega{Number(preview.deliveries_count) === 1 ? '' : 's'} efetiva{Number(preview.deliveries_count) === 1 ? '' : 's'}</span></div>}
+            {preview && <div className="audience-preview"><b>{formatNumber(preview.users_count)} usuário{Number(preview.users_count) === 1 ? '' : 's'}</b><span>{formatNumber(preview.deliveries_count)} entrega{Number(preview.deliveries_count) === 1 ? '' : 's'} efetiva{Number(preview.deliveries_count) === 1 ? '' : 's'}</span>{Number(preview.excluded_users_count || 0) > 0 && <span>− {formatNumber(preview.excluded_users_count)} por “menos para”</span>}</div>}
           </div>
         </fieldset>
 
@@ -305,14 +328,14 @@ export default function NotificationsCenter({ request, applications = [] }) {
         {success && <div className="notification-message success" role="status">{success}</div>}
 
         <footer>
-          <div><b>{preview?.deliveries_count ? `${formatNumber(preview.deliveries_count)} entregas prontas` : 'Alcance ainda não calculado'}</b><small>O envio cria uma notificação individual rastreável para cada destino.</small></div>
+          <div><b>{preview?.deliveries_count ? `${formatNumber(preview.deliveries_count)} entregas prontas` : 'Alcance ainda não calculado'}</b><small>{exclusions.count ? `“Menos para” ativo com ${exclusions.count} exclusão(ões). ` : ''}O envio cria uma notificação individual rastreável para cada destino.</small></div>
           <button className="send-notification-button" type="submit" disabled={sending || !preview?.deliveries_count}>{sending ? 'Enviando…' : preview?.deliveries_count ? `Enviar agora · ${formatNumber(preview.deliveries_count)}` : 'Enviar agora'}</button>
         </footer>
       </form>
 
       <aside className="notification-guidance">
-        <div className="guidance-mark">!</div><h3>Envio controlado</h3><p>O Admin Center não envia para usuários sem vínculo ativo. Em um comunicado global, a mesma pessoa pode receber a mensagem em mais de uma aplicação que utiliza.</p>
-        <div className="guidance-list"><span><i>1</i> Escolha o público</span><span><i>2</i> Calcule o alcance</span><span><i>3</i> Revise título, mensagem e link</span><span><i>4</i> Envie e acompanhe a leitura</span></div>
+        <div className="guidance-mark">!</div><h3>Envio controlado</h3><p>O Admin Center não envia para usuários sem vínculo ativo. As regras de “menos para” são aplicadas no servidor antes de criar qualquer entrega.</p>
+        <div className="guidance-list"><span><i>1</i> Escolha o público</span><span><i>2</i> Defina quem fica de fora</span><span><i>3</i> Calcule o alcance final</span><span><i>4</i> Envie e acompanhe a leitura</span></div>
       </aside>
     </div>
 
