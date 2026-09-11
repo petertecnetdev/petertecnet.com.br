@@ -96,9 +96,20 @@ jobs:
           DEPLOY_PATH: ${{ inputs.deploy_path }}
         run: |
           set -euo pipefail
+          ssh_opts=(-o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=3)
+          retry() {
+            local attempt=1 max_attempts=4 delay=10
+            until "$@"; do
+              if (( attempt >= max_attempts )); then return 1; fi
+              echo "SSH transport failed (attempt ${attempt}/${max_attempts}); retrying in ${delay}s..." >&2
+              sleep "$delay"
+              attempt=$((attempt + 1))
+              delay=$((delay * 2))
+            done
+          }
           for env_file in .env .env.local .env.production .env.production.local .npmrc; do
-            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "test -f '$DEPLOY_PATH/$env_file'"; then
-              scp -q -P "$VPS_PORT" -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" "$VPS_USER@$VPS_HOST:$DEPLOY_PATH/$env_file" "$env_file"
+            if retry ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "test -f '$DEPLOY_PATH/$env_file'"; then
+              retry scp -q -P "$VPS_PORT" "${ssh_opts[@]}" "$VPS_USER@$VPS_HOST:$DEPLOY_PATH/$env_file" "$env_file"
             fi
           done
 
@@ -139,7 +150,21 @@ jobs:
           tar -czf "$artifact" "$output"
           repository_checksum="$(printf '%s' "$DEPLOY_REPOSITORY" | cksum | awk '{print $1}')"
           remote_artifact="/tmp/petertecnet-frontend-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${repository_checksum}.tgz"
-          scp -q -P "$VPS_PORT" -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" "$artifact" "$VPS_USER@$VPS_HOST:$remote_artifact"
+          ssh_opts=(-o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=3)
+          upload_release() {
+            local attempt=1 max_attempts=4 delay=10
+            until scp -q -P "$VPS_PORT" "${ssh_opts[@]}" "$artifact" "$VPS_USER@$VPS_HOST:$remote_artifact"; do
+              if (( attempt >= max_attempts )); then
+                echo "Could not upload frontend artifact after ${max_attempts} attempts." >&2
+                return 1
+              fi
+              echo "Frontend artifact upload failed (attempt ${attempt}/${max_attempts}); retrying in ${delay}s..." >&2
+              sleep "$delay"
+              attempt=$((attempt + 1))
+              delay=$((delay * 2))
+            done
+          }
+          upload_release
           echo "output_name=$output" >> "$GITHUB_OUTPUT"
           echo "remote_artifact=$remote_artifact" >> "$GITHUB_OUTPUT"
           echo "source_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
