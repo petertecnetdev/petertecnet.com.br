@@ -14,6 +14,7 @@ import { installPasswordVisibilityToggles } from './utils/passwordVisibility.js'
 import { installPeterWhatsappFallback } from './utils/peterWhatsappFallback.js'
 
 const PublicExperienceRouter = lazy(() => import('./PublicExperienceRouter.jsx'))
+const AccountAccessPage = lazy(() => import('./AccountAccessPage.jsx'))
 const AdminTicketSalesPage = lazy(() => import('./AdminTicketSalesPage.jsx'))
 const AdminEventSeriesPage = lazy(() => import('./AdminEventSeriesPage.jsx'))
 const AdminCreativeStudioPage = lazy(() => import('./AdminCreativeStudioPage.jsx'))
@@ -29,6 +30,7 @@ const isAdminTicketSales = ['/admin/events/tickets', '/admin/tickets', '/admin/i
 const isAdminEventSeries = ['/admin/events/agenda', '/admin/events/series', '/admin/agenda'].includes(path)
 const isAdminCreativeStudio = ['/admin/creative', '/admin/ia/imagens', '/admin/marketing/creative'].includes(path)
 const isAdminSurface = isAdminTicketSales || isAdminEventSeries || isAdminCreativeStudio
+const isAccountAccess = path === '/account/activate' || path === '/account/password/reset'
 const isBlogIndex = path === '/blog'
 const blogArticleMatch = path.match(/^\/blog\/([^/]+)$/)
 const blogArticleSlug = blogArticleMatch ? (() => {
@@ -45,7 +47,9 @@ if (!isAdminSurface && (path === '/admin' || path.startsWith('/admin/') || path 
 installWebVitals(APP_SLUG)
 const lazyFallback = <main style={{ minHeight: '70vh', display: 'grid', placeItems: 'center', background: '#02090d', color: '#e9fbff' }}><p>Carregando experiência…</p></main>
 
-const appPage = isAdminTicketSales
+const appPage = isAccountAccess
+  ? <Suspense fallback={lazyFallback}><AccountAccessPage /></Suspense>
+  : isAdminTicketSales
   ? <Suspense fallback={lazyFallback}><AdminTicketSalesPage /></Suspense>
   : isAdminEventSeries
     ? <Suspense fallback={lazyFallback}><AdminEventSeriesPage /></Suspense>
