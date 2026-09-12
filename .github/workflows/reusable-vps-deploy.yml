@@ -107,11 +107,13 @@ jobs:
               delay=$((delay * 2))
             done
           }
-          for env_file in .env .env.local .env.production .env.production.local .npmrc; do
-            if retry ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "test -f '$DEPLOY_PATH/$env_file'"; then
-              retry scp -q -P "$VPS_PORT" "${ssh_opts[@]}" "$VPS_USER@$VPS_HOST:$DEPLOY_PATH/$env_file" "$env_file"
-            fi
-          done
+          available_env_files="$(retry ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
+            "for env_file in .env .env.local .env.production .env.production.local .npmrc; do if test -f '$DEPLOY_PATH/'\"\$env_file\"; then printf '%s\\n' \"\$env_file\"; fi; done")"
+
+          while IFS= read -r env_file; do
+            [[ -n "$env_file" ]] || continue
+            retry scp -q -P "$VPS_PORT" "${ssh_opts[@]}" "$VPS_USER@$VPS_HOST:$DEPLOY_PATH/$env_file" "$env_file"
+          done <<< "$available_env_files"
 
       - name: Build frontend on GitHub runner
         id: frontend_build
