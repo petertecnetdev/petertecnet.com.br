@@ -6,6 +6,7 @@ import AdminApplicationsExperience from './AdminApplicationsExperience.jsx'
 import AdminApplicationManager from './AdminApplicationManager.jsx'
 import PwaInstallButton from './PwaInstallButton.jsx'
 import SupportAdminApp, { AdminSupportLauncher } from './SupportAdminApp.jsx'
+import GlobalImageInputEnhancer from './components/GlobalImageInputEnhancer.jsx'
 import './App.css'
 import './AdminEstablishmentsFeedback.css'
 import './AdminResponsive.css'
@@ -22,5 +23,6 @@ createRoot(document.getElementById('root')).render(
     {path === '/support' ? <SupportAdminApp /> : <><App /><AdminApplicationsExperience /><AdminApplicationManager /><AdminSupportLauncher /></>}
     <AdminSessionGuard />
     <PwaInstallButton />
+    <GlobalImageInputEnhancer />
   </StrictMode>,
 )

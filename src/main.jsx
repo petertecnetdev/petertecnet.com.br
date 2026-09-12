@@ -8,6 +8,7 @@ import PublicBlogArticle from './PublicBlogArticle.jsx'
 import PetriniaCutinappStory from './PetriniaCutinappStory.jsx'
 import PublicErrorBoundary from './PublicErrorBoundary.jsx'
 import PeterAccountGateway from './components/PeterAccountGateway.jsx'
+import GlobalImageInputEnhancer from './components/GlobalImageInputEnhancer.jsx'
 import { installWebVitals } from './discoveryApi.js'
 import { installGlobalImageFallbacks } from './utils/imageFallback.js'
 import { installPasswordVisibilityToggles } from './utils/passwordVisibility.js'
@@ -68,6 +69,7 @@ createRoot(document.getElementById('root')).render(
     <PublicErrorBoundary>
       <PeterAccountGateway apiBaseUrl={API_BASE_URL} appSlug={APP_SLUG}>
         {appPage}
+        <GlobalImageInputEnhancer />
       </PeterAccountGateway>
     </PublicErrorBoundary>
   </StrictMode>,
