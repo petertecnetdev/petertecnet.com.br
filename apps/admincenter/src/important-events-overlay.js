@@ -204,7 +204,7 @@ function renderDetailPanel(item) {
     <section class="pt-ie-details" aria-label="Detalhes do evento importante">
       <div class="pt-ie-detail-head">
         <div><h4>Detalhes da venda</h4><p>Informações do comprador, pedido, pagamento e ingressos.</p></div>
-        <span class="pt-ie-detail-status">${esc(statusLabel(order?.status || item.severity === 'success' ? 'paid' : item.severity))}</span>
+        <span class="pt-ie-detail-status">${esc(statusLabel(order?.status || (item.severity === 'success' ? 'paid' : item.severity)))}</span>
       </div>
       ${loading && !full ? '<div class="pt-ie-detail-loading">Carregando todos os detalhes…</div>' : ''}
       ${error ? `<div class="pt-ie-detail-error">${esc(error)}</div>` : ''}
