@@ -1,79 +1,50 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 
-const root = process.cwd()
-const dist = join(root, 'dist')
-const origin = 'https://petertecnet.com.br'
-const logo = `${origin}/petertecnet-logo-circular.jpg`
-const escapeHtml = value => String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')
+const root=process.cwd(), dist=join(root,'dist'), origin='https://petertecnet.com.br', logo=`${origin}/petertecnet-logo-circular.jpg`
+const esc=v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')
 
-const pages = [
-  { slug:'empresa-de-desenvolvimento-de-software', title:'Empresa de Desenvolvimento de Software | Peter Tecnet', h1:'Empresa de desenvolvimento de software, sistemas e produtos digitais', description:'A Peter Tecnet desenvolve software sob medida, sistemas, aplicativos, sites, APIs, integrações, automações e também cria e opera plataformas digitais próprias.', intents:['empresa de desenvolvimento de software','empresa de software','desenvolvedora de sistemas','fábrica de software'], services:['Software e sistemas sob medida','Aplicativos e plataformas digitais','APIs, integrações e automações','Sites e experiências web'] },
-  { slug:'fabrica-de-software', title:'Fábrica de Software e Sistemas Sob Medida | Peter Tecnet', h1:'Fábrica de software para transformar necessidades de negócio em sistemas reais', description:'Desenvolvimento de software, sistemas web, painéis, portais, APIs e integrações sob medida pela Peter Tecnet.', intents:['fábrica de software','software house','empresa de sistemas','desenvolvimento sob medida'], services:['Descoberta e escopo','Arquitetura e UX','Frontend e backend','Publicação e evolução'] },
-  { slug:'desenvolvimento-de-sistemas', title:'Desenvolvimento de Sistemas para Empresas | Peter Tecnet', h1:'Desenvolvimento de sistemas para empresas', description:'Criamos sistemas web, painéis administrativos, portais, bancos de dados e integrações alinhados à operação da sua empresa.', intents:['desenvolvimento de sistemas','empresa que desenvolve sistemas','sistema para empresa','sistema personalizado'], services:['Sistemas web','Painéis administrativos','Portais e áreas autenticadas','Integrações e dados'] },
-  { slug:'software-sob-medida', title:'Software Sob Medida para Empresas | Peter Tecnet', h1:'Software sob medida para a rotina da sua empresa', description:'Projetamos software personalizado para processos que não cabem em ferramentas genéricas, com arquitetura preparada para evolução.', intents:['software sob medida','software personalizado','sistema sob medida','programa para empresa'], services:['Mapeamento do processo','Regras de negócio','Interface e experiência','Infraestrutura e evolução'] },
-  { slug:'desenvolvimento-de-aplicativos', title:'Empresa de Desenvolvimento de Aplicativos | Peter Tecnet', h1:'Desenvolvimento de aplicativos e plataformas digitais', description:'A Peter Tecnet desenvolve aplicativos e plataformas digitais com autenticação, dados, pagamentos, notificações, APIs e administração.', intents:['empresa de desenvolvimento de aplicativos','criar aplicativo','desenvolvimento de app','aplicativo para empresa'], services:['Experiência do usuário','Aplicação responsiva/PWA','Backend e APIs','Pagamentos e notificações'] },
-  { slug:'empresa-de-criacao-de-sites', title:'Empresa de Criação de Sites Profissionais | Peter Tecnet', h1:'Criação de sites profissionais para empresas', description:'Sites institucionais, landing pages e experiências web rápidas, responsivas, mensuráveis e preparadas para SEO e conversão.', intents:['empresa de criação de sites','desenvolvimento de sites','site profissional','criar site para empresa'], services:['Arquitetura de conteúdo','UI/UX responsiva','SEO técnico','Medição e conversão'] },
-  { slug:'desenvolvimento-de-software-goiania', title:'Desenvolvimento de Software em Goiânia | Peter Tecnet', h1:'Desenvolvimento de software em Goiânia e atendimento digital para todo o Brasil', description:'Peter Tecnet desenvolve software, sistemas, aplicativos, sites, APIs e automações para empresas em Goiânia e projetos atendidos digitalmente em todo o Brasil.', intents:['desenvolvimento de software Goiânia','empresa de software Goiânia','desenvolvimento de sistemas Goiânia','criação de aplicativos Goiânia'], services:['Software sob medida','Aplicativos','Sites','APIs e automações'] },
-]
+const products=[
+ ['Cutinapp','cutinapp','eventos, ingressos, participantes e check-in por QR Code'],['Plat','plat','gestão digital para bares, restaurantes e estabelecimentos'],['Nexus','nexus','catálogo digital, produtos, serviços, links e QR Codes'],['Rasoio','rasoio','agendamento online, profissionais, serviços e disponibilidade'],['PayFlow','payflow','CRM, oportunidades, propostas, cobranças e follow-up'],['Locaio','locaio','descoberta e agendamento de serviços locais'],['Kryvion','kryvion','monitoramento e inteligência para mercado cripto'],['Laora','laora','conexões e experiências sociais']]
 
-const products = [
-  ['Cutinapp','/plataformas/cutinapp','eventos, ingressos, participantes e check-in por QR Code'],
-  ['Plat','/plataformas/plat','gestão digital de estabelecimentos, incluindo bares e restaurantes'],
-  ['Nexus','/plataformas/nexus','catálogo digital, produtos, serviços, links e QR Codes'],
-  ['Rasoio','/plataformas/rasoio','agendamento online, profissionais, serviços e disponibilidade'],
-  ['PayFlow','/plataformas/payflow','clientes, oportunidades, propostas, cobranças e follow-up'],
-  ['Locaio','/plataformas/locaio','descoberta e agendamento de serviços locais'],
-  ['Kryvion','/plataformas/kryvion','monitoramento e inteligência de mercado cripto'],
-  ['Laora','/plataformas/laora','descoberta, conexões e experiências sociais'],
-]
+const pages=[
+ ['desenvolvimento-de-software','Empresa de Desenvolvimento de Software | Peter Tecnet','Empresa de desenvolvimento de software e sistemas','Software, sistemas web, painéis, portais, APIs e produtos digitais sob medida para empresas.',['empresa de desenvolvimento de software','desenvolvimento de software','empresa de software','software house']],
+ ['desenvolvimento-de-sistemas','Desenvolvimento de Sistemas para Empresas | Peter Tecnet','Desenvolvimento de sistemas para empresas','Sistemas web, administrativos e operacionais conectados aos processos reais da empresa.',['desenvolvimento de sistemas','empresa que desenvolve sistemas','sistema para empresa','sistema personalizado']],
+ ['criacao-de-sites','Criação de Sites Profissionais | Peter Tecnet','Criação de sites profissionais para empresas','Sites institucionais e experiências web rápidas, responsivas, indexáveis e orientadas à conversão.',['criação de sites','empresa de criação de sites','desenvolvimento de sites','site profissional']],
+ ['desenvolvimento-de-aplicativos','Desenvolvimento de Aplicativos | Peter Tecnet','Desenvolvimento de aplicativos e plataformas digitais','Aplicativos e plataformas com autenticação, dados, pagamentos, notificações, APIs e administração.',['desenvolvimento de aplicativos','empresa que cria aplicativos','criar aplicativo','aplicativo para empresa']],
+ ['fabrica-de-software','Fábrica de Software | Peter Tecnet','Fábrica de software para projetos digitais','Da descoberta à produção: arquitetura, UX, frontend, backend, integrações, testes e evolução.',['fábrica de software','software house','empresa de sistemas','desenvolvimento sob medida']],
+ ['software-sob-medida','Software Sob Medida | Peter Tecnet','Software sob medida para empresas','Software personalizado para processos que não cabem em ferramentas genéricas.',['software sob medida','software personalizado','sistema sob medida','programa para empresa']],
+ ['desenvolvimento-web','Desenvolvimento Web | Peter Tecnet','Desenvolvimento web para empresas e produtos digitais','Portais, sistemas, sites e aplicações web modernas integradas a APIs e dados.',['desenvolvimento web','empresa desenvolvimento web','aplicação web','sistema web']],
+ ['automacao-de-processos','Automação de Processos | Peter Tecnet','Automação de processos empresariais','Integrações e automações para reduzir tarefas repetitivas, retrabalho e falhas operacionais.',['automação de processos','automatizar empresa','automação empresarial','integração de processos']],
+ ['inteligencia-artificial','Inteligência Artificial para Empresas | Peter Tecnet','Inteligência artificial aplicada a empresas','IA integrada a produtos e operações para classificação, atendimento, conteúdo, análise e automação.',['inteligência artificial para empresas','empresa de inteligência artificial','IA empresarial','automação com IA']],
+ ['apis-e-integracoes','APIs e Integrações | Peter Tecnet','Desenvolvimento de APIs e integrações','APIs, webhooks e integrações para conectar sistemas, pagamentos, autenticação e dados.',['desenvolvimento de API','integração de sistemas','API para empresa','webhooks']],
+ ['desenvolvimento-de-software-goiania','Desenvolvimento de Software em Goiânia | Peter Tecnet','Desenvolvimento de software em Goiânia','Software, sistemas, aplicativos e sites para empresas de Goiânia, com atendimento digital também para todo o Brasil.',['desenvolvimento de software Goiânia','empresa de software Goiânia','desenvolvimento de sistemas Goiânia','aplicativos Goiânia']]
+].map(([slug,title,h1,description,intents])=>({slug,title,h1,description,intents}))
 
-function meta(html, attr, key, value) {
-  const re = new RegExp(`<meta\\s+${attr}=["']${key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}["'][^>]*>`, 'i')
-  const tag = `<meta ${attr}="${key}" content="${escapeHtml(value)}">`
-  return re.test(html) ? html.replace(re, tag) : html.replace('</head>', `  ${tag}\n</head>`)
-}
+const articles=[
+ ['quanto-custa-desenvolver-um-aplicativo','Quanto custa desenvolver um aplicativo?','O custo depende do escopo, experiência, integrações, administração, infraestrutura e evolução. Um orçamento responsável começa pelo problema e pelos fluxos que o produto precisa resolver.','desenvolvimento-de-aplicativos'],
+ ['quanto-custa-criar-um-sistema','Quanto custa criar um sistema para uma empresa?','Sistemas variam conforme regras de negócio, perfis, dados, integrações e criticidade. Mapear o processo antes de estimar reduz retrabalho e torna a proposta comparável.','desenvolvimento-de-sistemas'],
+ ['como-contratar-uma-fabrica-de-software','Como contratar uma fábrica de software','Avalie clareza de escopo, arquitetura, segurança, comunicação, propriedade do código, publicação e capacidade de manter o produto depois do lançamento.','fabrica-de-software'],
+ ['site-ou-sistema-web','Site ou sistema web: qual a diferença?','Sites priorizam presença e conteúdo; sistemas executam processos, permissões e regras de negócio. Muitos projetos combinam as duas necessidades.','desenvolvimento-web'],
+ ['como-automatizar-processos-da-empresa','Como automatizar processos da empresa','Comece por tarefas repetitivas e mensuráveis, identifique a fonte dos dados e automatize com rastreabilidade para saber o que executou e o que falhou.','automacao-de-processos']
+].map(([slug,title,description,service])=>({slug,title,description,service}))
 
-function render(base, page) {
-  const route = `/servicos/${page.slug}`
-  const url = `${origin}${route}`
-  let html = base.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtml(page.title)}</title>`)
-  html = html.replace(/<link\s+rel=["']canonical["'][^>]*>/i, `<link rel="canonical" href="${url}">`)
-  html = meta(html,'name','description',page.description)
-  html = meta(html,'name','robots','index, follow, max-image-preview:large, max-snippet:-1')
-  html = meta(html,'property','og:title',page.title)
-  html = meta(html,'property','og:description',page.description)
-  html = meta(html,'property','og:url',url)
-  html = meta(html,'property','og:type','website')
-  html = meta(html,'property','og:image',logo)
-  html = meta(html,'name','twitter:card','summary_large_image')
-  const schema = {
-    '@context':'https://schema.org','@graph':[
-      {'@type':'Organization','@id':`${origin}/#organization`,name:'Peter Tecnet',url:origin,logo,taxID:'42.595.409/0001-48',description:'Empresa de tecnologia, desenvolvimento de software e operadora de plataformas digitais próprias.'},
-      {'@type':'Service','@id':`${url}#service`,name:page.h1,description:page.description,url,provider:{'@id':`${origin}/#organization`},areaServed:{'@type':'Country',name:'Brasil'}},
-      {'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Peter Tecnet',item:origin},{'@type':'ListItem',position:2,name:'Serviços',item:`${origin}/servicos`},{'@type':'ListItem',position:3,name:page.h1,item:url}]}
-    ]
-  }
-  const productsHtml = products.map(([name,path,text]) => `<article><h3><a href="${path}">${name}</a></h3><p>${escapeHtml(text)}.</p></article>`).join('')
-  const body = `<main style="max-width:1100px;margin:auto;padding:48px 22px;font-family:system-ui;color:#eef6ff;background:#03070c"><nav><a href="/">Peter Tecnet</a> · <a href="/servicos/desenvolvimento-de-software">Serviços</a> · <a href="/plataformas">Plataformas</a> · <a href="/portfolio">Cases</a></nav><header><p>Peter Tecnet · Tecnologia e produtos digitais</p><h1>${escapeHtml(page.h1)}</h1><p>${escapeHtml(page.description)}</p><p><a href="/orcamento?origem=${encodeURIComponent(page.slug)}">Solicitar orçamento</a></p></header><section><h2>O que desenvolvemos</h2><ul>${page.services.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul></section><section><h2>Projetos para clientes e plataformas próprias</h2><p>A Peter Tecnet atua em duas frentes complementares: desenvolve soluções digitais sob medida para clientes e cria, mantém e opera plataformas próprias. Os produtos do ecossistema demonstram experiência prática na construção e evolução de software em produção.</p><div>${productsHtml}</div></section><section><h2>Como podemos ser encontrados</h2><p>Esta página responde a necessidades relacionadas a ${page.intents.map(escapeHtml).join(', ')}. O conteúdo descreve serviços reais da Peter Tecnet sem criar páginas artificiais ou promessas de posicionamento.</p></section><section><h2>Próximo passo</h2><p>Explique o problema, processo ou produto que precisa ser criado. A partir disso definimos escopo, arquitetura, integrações, experiência e publicação.</p><p><a href="/orcamento?servico=${encodeURIComponent(page.slug)}">Pedir orçamento</a></p></section></main>`
-  html = html.replace('</head>', `  <script type="application/ld+json">${JSON.stringify(schema).replaceAll('<','\\u003c')}</script>\n</head>`)
-  html = html.replace(/<div id=["']root["']>[\s\S]*?<\/div>\s*(?=<\/body>)/i, `<div id="root">${body}</div>`)
-  return { html, route }
-}
+function meta(html,attr,key,value){const re=new RegExp(`<meta\\s+${attr}=["']${key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}["'][^>]*>`,'i'),tag=`<meta ${attr}="${key}" content="${esc(value)}">`;return re.test(html)?html.replace(re,tag):html.replace('</head>',`  ${tag}\n</head>`)}
+function frame(base,{route,title,description,schema,body}){const url=`${origin}${route}`;let h=base.replace(/<title>[^<]*<\/title>/i,`<title>${esc(title)}</title>`).replace(/<link\s+rel=["']canonical["'][^>]*>/i,`<link rel="canonical" href="${url}">`);[['name','description',description],['name','robots','index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'],['property','og:title',title],['property','og:description',description],['property','og:url',url],['property','og:type','website'],['property','og:image',logo],['name','twitter:card','summary_large_image'],['name','twitter:title',title],['name','twitter:description',description],['name','twitter:image',logo]].forEach(x=>h=meta(h,...x));h=h.replace('</head>',`<script type="application/ld+json">${JSON.stringify(schema).replaceAll('<','\\u003c')}</script></head>`);return h.replace(/<div id=["']root["']>[\s\S]*?<\/div>\s*(?=<\/body>)/i,`<div id="root">${body}</div>`)}
+const nav='<nav><a href="/">Peter Tecnet</a> · <a href="/servicos">Serviços</a> · <a href="/plataformas">Plataformas</a> · <a href="/portfolio">Cases</a> · <a href="/blog">Conteúdos</a> · <a href="/orcamento">Orçamento</a></nav>'
+const shell=body=>`<main style="max-width:1100px;margin:auto;padding:48px 22px;font-family:system-ui;line-height:1.65">${nav}${body}<footer><hr><p>Peter Tecnet · CNPJ 42.595.409/0001-48 · contato@petertecnet.com.br</p></footer></main>`
+const org={'@type':'Organization','@id':`${origin}/#organization`,name:'Peter Tecnet',url:origin,logo,taxID:'42.595.409/0001-48',email:'contato@petertecnet.com.br',description:'Empresa de desenvolvimento de software, sistemas, aplicativos, sites, APIs, automações e operadora de plataformas digitais próprias.'}
+const breadcrumb=(route,name)=>({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Peter Tecnet',item:origin},{'@type':'ListItem',position:2,name,item:`${origin}${route}`} ]})
+const base=await readFile(join(dist,'index.html'),'utf8'), routes=[]
+async function write(route,payload){const target=join(dist,route.replace(/^\//,''),'index.html');await mkdir(dirname(target),{recursive:true});await writeFile(target,frame(base,{route,...payload}),'utf8');routes.push(route)}
 
-const base = await readFile(join(dist,'index.html'),'utf8')
-const routes=[]
-for (const page of pages) {
-  const {html,route}=render(base,page)
-  const target=join(dist,route.replace(/^\//,''),'index.html')
-  await mkdir(dirname(target),{recursive:true})
-  await writeFile(target,html,'utf8')
-  routes.push(route)
-}
+await write('/servicos',{title:'Serviços de Desenvolvimento e Tecnologia | Peter Tecnet',description:'Desenvolvimento de software, sistemas, aplicativos, sites, APIs, automações, IA e integrações.',schema:{'@context':'https://schema.org','@graph':[org,breadcrumb('/servicos','Serviços')]},body:shell(`<h1>Serviços de desenvolvimento e tecnologia</h1><p>A Peter Tecnet desenvolve projetos sob medida e também cria produtos digitais próprios.</p>${pages.slice(0,10).map(p=>`<article><h2><a href="/servicos/${p.slug}">${esc(p.h1)}</a></h2><p>${esc(p.description)}</p></article>`).join('')}`)})
 
-const sitemapPath=join(dist,'sitemap.xml')
-let sitemap=await readFile(sitemapPath,'utf8')
-const today=new Date().toISOString().slice(0,10)
-const additions=routes.filter(route=>!sitemap.includes(`<loc>${origin}${route}</loc>`)).map(route=>`  <url><loc>${origin}${route}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.90</priority></url>`).join('\n')
-if(additions){ sitemap=sitemap.replace('</urlset>',`${additions}\n</urlset>`); await writeFile(sitemapPath,sitemap,'utf8') }
-console.log(`[commercial-seo] ${routes.length} páginas comerciais adicionais geradas.`)
+for(const p of pages){const route=`/servicos/${p.slug}`,url=`${origin}${route}`,faq=[['A Peter Tecnet desenvolve projetos para clientes?','Sim. Desenvolvemos software, sistemas, aplicativos, sites, APIs, integrações, automações e soluções digitais sob medida.'],['A Peter Tecnet também possui plataformas próprias?','Sim. O ecossistema inclui produtos próprios como Cutinapp, Plat, Nexus, Rasoio, PayFlow, Locaio, Kryvion e Laora.'],['Como solicitar orçamento?','Use a página de orçamento e descreva o problema, os usuários e o processo que precisa ser digitalizado.']];const schema={'@context':'https://schema.org','@graph':[org,{'@type':'Service','@id':`${url}#service`,name:p.h1,description:p.description,url,provider:{'@id':`${origin}/#organization`},areaServed:{'@type':'Country',name:'Brasil'}},breadcrumb(route,p.h1),{'@type':'FAQPage',mainEntity:faq.map(([q,a])=>({'@type':'Question',name:q,acceptedAnswer:{'@type':'Answer',text:a}}))}]};const productCards=products.map(([n,s,d])=>`<article><h3><a href="/plataformas/${s}">${n}</a></h3><p>${esc(d)}.</p></article>`).join('');await write(route,{title:p.title,description:p.description,schema,body:shell(`<p>Peter Tecnet · desenvolvimento para clientes + plataformas próprias</p><h1>${esc(p.h1)}</h1><p>${esc(p.description)}</p><p><strong>Buscas relacionadas:</strong> ${p.intents.map(esc).join(' · ')}</p><p><a href="/orcamento?servico=${encodeURIComponent(p.slug)}">Solicitar orçamento</a></p><h2>Como trabalhamos</h2><p>Mapeamos objetivo, usuários, regras de negócio, dados e integrações; projetamos a experiência; desenvolvemos frontend e backend; testamos, publicamos e evoluímos o produto.</p><h2>Experiência demonstrada em produtos próprios</h2><p>Além de projetos sob medida, criamos e operamos plataformas em diferentes mercados. Elas demonstram experiência prática com software em produção.</p>${productCards}<h2>Perguntas frequentes</h2>${faq.map(([q,a])=>`<h3>${q}</h3><p>${a}</p>`).join('')}<h2>Conteúdos relacionados</h2>${articles.filter(a=>a.service===p.slug).map(a=>`<p><a href="/blog/${a.slug}">${a.title}</a></p>`).join('')||'<p><a href="/blog">Ver conteúdos da Peter Tecnet</a></p>'}`)})}
+
+await write('/plataformas',{title:'Plataformas e Produtos Próprios | Peter Tecnet',description:'Conheça as plataformas digitais próprias desenvolvidas e operadas pela Peter Tecnet.',schema:{'@context':'https://schema.org','@graph':[org,breadcrumb('/plataformas','Plataformas'),...products.map(([n,s,d])=>({'@type':'SoftwareApplication',name:n,description:d,url:`${origin}/plataformas/${s}`,applicationCategory:'BusinessApplication',publisher:{'@id':`${origin}/#organization`}}))]},body:shell(`<h1>Plataformas próprias Peter Tecnet</h1><p>Além de desenvolver projetos para clientes, a Peter Tecnet cria, mantém e opera produtos digitais próprios.</p>${products.map(([n,s,d])=>`<article><h2><a href="/plataformas/${s}">${n}</a></h2><p>${esc(d)}.</p></article>`).join('')}`)})
+
+for(const a of articles){const route=`/blog/${a.slug}`;await write(route,{title:`${a.title} | Peter Tecnet`,description:a.description,schema:{'@context':'https://schema.org','@graph':[org,{'@type':'BlogPosting',headline:a.title,description:a.description,url:`${origin}${route}`,publisher:{'@id':`${origin}/#organization`}},breadcrumb(route,a.title)]},body:shell(`<article><p>Guia Peter Tecnet</p><h1>${a.title}</h1><p>${a.description}</p><h2>Como avaliar</h2><p>Defina objetivo, usuários, fluxo atual, regras de negócio, dados, integrações, requisitos de segurança e indicadores de sucesso. Evite escolher tecnologia antes de entender o problema.</p><h2>Próximo passo</h2><p>Se a necessidade exigir desenvolvimento, consulte <a href="/servicos/${a.service}">nosso serviço relacionado</a> ou <a href="/orcamento">solicite um orçamento</a>.</p></article>`)})}
+
+const sitemapPath=join(dist,'sitemap.xml');let sitemap=await readFile(sitemapPath,'utf8');const today=new Date().toISOString().slice(0,10);const additions=routes.filter(r=>!sitemap.includes(`<loc>${origin}${r}</loc>`)).map(r=>`  <url><loc>${origin}${r}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>${r.startsWith('/servicos/')?'0.90':'0.80'}</priority></url>`).join('\n');if(additions){sitemap=sitemap.replace('</urlset>',`${additions}\n</urlset>`);await writeFile(sitemapPath,sitemap,'utf8')}
+console.log(`[commercial-seo] ${routes.length} páginas comerciais, produto e conteúdo geradas.`)
