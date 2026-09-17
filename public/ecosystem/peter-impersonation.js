@@ -1,7 +1,7 @@
 (() => {
   'use strict'
 
-  const VERSION = '1.0.0'
+  const VERSION = '1.1.0'
   const API_FALLBACK = 'https://api.petertecnet.com.br/api'
   const ADMIN_URL = 'https://admincenter.petertecnet.com.br/'
   const TOKEN_KEYS = ['token', 'petertecnet_token', 'access_token', 'auth_token', 'petertecnet_admin_token']
@@ -137,6 +137,18 @@
     redirectAdmin()
   }
 
+  const setExpanded = expanded => {
+    if (!host?.shadowRoot) return
+    const bar = host.shadowRoot.querySelector('.bar')
+    const toggle = host.shadowRoot.querySelector('.toggle')
+    bar?.classList.toggle('expanded', expanded)
+    if (toggle) {
+      toggle.textContent = expanded ? 'Minimizar' : 'Detalhes'
+      toggle.setAttribute('aria-expanded', String(expanded))
+      toggle.setAttribute('title', expanded ? 'Minimizar aviso administrativo' : 'Mostrar detalhes do acesso administrativo')
+    }
+  }
+
   const render = session => {
     currentSession = session
     writeJson(STATE_KEY, session)
@@ -146,21 +158,29 @@
       host = document.createElement('div')
       host.id = 'peter-impersonation-banner'
       host.style.position = 'fixed'
-      host.style.inset = '0 0 auto 0'
+      host.style.top = 'max(8px, env(safe-area-inset-top))'
+      host.style.right = '8px'
+      host.style.left = 'auto'
+      host.style.bottom = 'auto'
+      host.style.width = 'min(560px, calc(100vw - 16px))'
+      host.style.maxWidth = 'calc(100vw - 16px)'
       host.style.zIndex = '2147483647'
       host.style.pointerEvents = 'none'
       const shadow = host.attachShadow({ mode: 'open' })
       shadow.innerHTML = '<style>' +
         ':host{all:initial;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}' +
-        '.bar{pointer-events:auto;display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:58px;padding:9px 16px;background:linear-gradient(90deg,#32100f,#5b1b14 52%,#271010);color:#fff;border-bottom:1px solid rgba(255,194,159,.35);box-shadow:0 10px 28px rgba(0,0,0,.32)}' +
-        '.main{display:flex;align-items:center;gap:11px;min-width:0}.dot{width:10px;height:10px;border-radius:50%;background:#fb923c;box-shadow:0 0 0 5px rgba(251,146,60,.15);flex:0 0 auto}' +
-        '.copy{min-width:0}.eyebrow{display:block;font-size:10px;letter-spacing:.13em;font-weight:900;color:#fdba74}.title{display:block;margin-top:2px;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{display:block;margin-top:2px;font-size:11px;color:#fed7aa}' +
-        '.actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}.time{font:800 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:#ffedd5;padding:7px 9px;border-radius:9px;background:rgba(0,0,0,.18)}' +
-        'button,a{appearance:none;border:1px solid rgba(255,255,255,.18);border-radius:9px;padding:8px 11px;background:rgba(255,255,255,.08);color:#fff;font:700 12px inherit;text-decoration:none;cursor:pointer}button:hover,a:hover{background:rgba(255,255,255,.15)}button.end{background:#fff;color:#431407;border-color:#fff}button:disabled{opacity:.55;cursor:wait}' +
-        '.error{display:none;padding:7px 14px;background:#7f1d1d;color:#fee2e2;font-size:12px}.error.show{display:block}' +
-        '@media(max-width:720px){.bar{align-items:flex-start;flex-direction:column;padding:10px 12px}.actions{width:100%;display:grid;grid-template-columns:auto 1fr 1fr}.time{text-align:center}.title{white-space:normal}.actions a,.actions button{text-align:center}}' +
-        '</style><div class="bar"><div class="main"><span class="dot"></span><div class="copy"><span class="eyebrow">MODO ADMINISTRATIVO TEMPORÁRIO</span><strong class="title"></strong><span class="meta"></span></div></div><div class="actions"><span class="time"></span><a class="admin" href="' + ADMIN_URL + '">Admin Center</a><button class="end" type="button">Encerrar</button></div></div><div class="error"></div>'
+        '.shell{display:flex;flex-direction:column;align-items:flex-end;pointer-events:none}' +
+        '.bar{pointer-events:auto;display:flex;align-items:center;justify-content:flex-end;gap:8px;max-width:100%;min-height:42px;padding:6px 8px 6px 10px;background:linear-gradient(90deg,#32100f,#5b1b14 52%,#271010);color:#fff;border:1px solid rgba(255,194,159,.35);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.28)}' +
+        '.main{display:flex;align-items:center;gap:9px;min-width:0}.dot{width:8px;height:8px;border-radius:50%;background:#fb923c;box-shadow:0 0 0 4px rgba(251,146,60,.15);flex:0 0 auto}' +
+        '.copy{min-width:0}.eyebrow,.meta{display:none}.title{display:block;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:270px}.meta{margin-top:3px;font-size:11px;line-height:1.35;color:#fed7aa}.eyebrow{margin-bottom:2px;font-size:9px;letter-spacing:.12em;font-weight:900;color:#fdba74}' +
+        '.actions{display:flex;align-items:center;gap:6px;flex:0 0 auto}.time{font:800 11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#ffedd5;padding:6px 7px;border-radius:8px;background:rgba(0,0,0,.18)}' +
+        'button,a{appearance:none;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:6px 8px;background:rgba(255,255,255,.08);color:#fff;font:700 11px Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-decoration:none;cursor:pointer}button:hover,a:hover{background:rgba(255,255,255,.15)}button.end{background:#fff;color:#431407;border-color:#fff}.admin,.end{display:none}button:disabled{opacity:.55;cursor:wait}' +
+        '.bar.expanded{align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 12px;width:100%;min-height:58px}.bar.expanded .eyebrow,.bar.expanded .meta{display:block}.bar.expanded .title{font-size:13px;max-width:330px}.bar.expanded .admin,.bar.expanded .end{display:inline-flex;align-items:center;justify-content:center}' +
+        '.error{display:none;pointer-events:auto;width:100%;box-sizing:border-box;margin-top:6px;padding:7px 10px;border-radius:9px;background:#7f1d1d;color:#fee2e2;font-size:11px;box-shadow:0 6px 18px rgba(0,0,0,.24)}.error.show{display:block}' +
+        '@media(max-width:720px){.bar{max-width:100%;padding:5px 7px}.title{max-width:150px}.time{padding:5px 6px}.bar.expanded{display:grid;grid-template-columns:1fr;gap:8px}.bar.expanded .title{max-width:none;white-space:normal}.bar.expanded .actions{width:100%;display:grid;grid-template-columns:auto 1fr 1fr 1fr}.bar.expanded .actions a,.bar.expanded .actions button{text-align:center}}' +
+        '</style><div class="shell"><div class="bar"><div class="main"><span class="dot"></span><div class="copy"><span class="eyebrow">MODO ADMINISTRATIVO TEMPORÁRIO</span><strong class="title"></strong><span class="meta"></span></div></div><div class="actions"><span class="time"></span><button class="toggle" type="button" aria-expanded="false">Detalhes</button><a class="admin" href="' + ADMIN_URL + '">Admin Center</a><button class="end" type="button">Encerrar</button></div></div><div class="error"></div></div>'
       document.body.appendChild(host)
+      shadow.querySelector('.toggle').addEventListener('click', () => setExpanded(!shadow.querySelector('.bar').classList.contains('expanded')))
       shadow.querySelector('.end').addEventListener('click', endImpersonation)
     }
 
@@ -168,7 +188,7 @@
     const actor = session?.actor?.name || session?.actor?.email || 'Super Admin'
     const effective = session?.effective_user?.name || session?.effective_user?.email || 'Usuário'
     const application = session?.application?.name || appSlug
-    shadow.querySelector('.title').textContent = 'Você está acessando como ' + effective + ' · ' + application
+    shadow.querySelector('.title').textContent = effective + ' · ' + application
     shadow.querySelector('.meta').textContent = 'Operador real: ' + actor + ' · motivo: ' + (session?.reason || 'suporte administrativo')
 
     const tick = () => {
@@ -191,6 +211,7 @@
     const element = host.shadowRoot.querySelector('.error')
     element.textContent = message
     element.classList.add('show')
+    setExpanded(true)
   }
 
   async function endImpersonation() {
