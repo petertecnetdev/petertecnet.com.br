@@ -1,11 +1,12 @@
 (() => {
   'use strict'
 
-  const VERSION = '1.1.0'
+  const VERSION = '1.2.0'
   const API_FALLBACK = 'https://api.petertecnet.com.br/api'
   const ADMIN_URL = 'https://admincenter.petertecnet.com.br/'
   const TOKEN_KEYS = ['token', 'petertecnet_token', 'access_token', 'auth_token', 'petertecnet_admin_token']
   const PARAM = 'pt_impersonation'
+  const EDGE_GAP = 12
 
   if (window.PeterTecnetImpersonation?.version === VERSION) return
 
@@ -20,11 +21,13 @@
   const STATE_KEY = 'peter.impersonation.state.v1.' + appSlug
   const BACKUP_KEY = 'peter.impersonation.backup.v1.' + appSlug
   const RESTORE_GUARD = 'peter.impersonation.restore.v1.' + appSlug
+  const POSITION_KEY = 'peter.impersonation.position.v1.' + appSlug
   let host = null
   let countdownTimer = null
   let syncTimer = null
   let currentSession = null
   let ending = false
+  let dragState = null
 
   const readJson = (key, fallback = null) => {
     try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback } catch { return fallback }
@@ -68,6 +71,7 @@
   const clearRuntimeState = () => {
     try { localStorage.removeItem(STATE_KEY) } catch {}
     currentSession = null
+    dragState = null
     if (countdownTimer) clearInterval(countdownTimer)
     countdownTimer = null
     if (host) host.remove()
@@ -137,6 +141,90 @@
     redirectAdmin()
   }
 
+  const hasCustomPosition = () => Boolean(host && host.style.left && host.style.left !== 'auto' && host.style.top && host.style.top !== 'auto')
+
+  const applyDefaultPosition = () => {
+    if (!host) return
+    host.style.left = 'auto'
+    host.style.top = 'auto'
+    host.style.right = 'max(12px, env(safe-area-inset-right))'
+    host.style.bottom = 'max(12px, env(safe-area-inset-bottom))'
+  }
+
+  const clampCustomPosition = () => {
+    if (!host || !hasCustomPosition()) return
+    const rect = host.getBoundingClientRect()
+    const maxLeft = Math.max(EDGE_GAP, window.innerWidth - rect.width - EDGE_GAP)
+    const maxTop = Math.max(EDGE_GAP, window.innerHeight - rect.height - EDGE_GAP)
+    const left = Math.min(Math.max(rect.left, EDGE_GAP), maxLeft)
+    const top = Math.min(Math.max(rect.top, EDGE_GAP), maxTop)
+    host.style.left = Math.round(left) + 'px'
+    host.style.top = Math.round(top) + 'px'
+    host.style.right = 'auto'
+    host.style.bottom = 'auto'
+  }
+
+  const savePosition = () => {
+    if (!host || !hasCustomPosition()) return
+    const rect = host.getBoundingClientRect()
+    writeJson(POSITION_KEY, { left: Math.round(rect.left), top: Math.round(rect.top) })
+  }
+
+  const restorePosition = () => {
+    if (!host) return
+    const saved = readJson(POSITION_KEY, null)
+    if (Number.isFinite(saved?.left) && Number.isFinite(saved?.top)) {
+      host.style.left = saved.left + 'px'
+      host.style.top = saved.top + 'px'
+      host.style.right = 'auto'
+      host.style.bottom = 'auto'
+      requestAnimationFrame(clampCustomPosition)
+      return
+    }
+    applyDefaultPosition()
+  }
+
+  const resetPosition = () => {
+    try { localStorage.removeItem(POSITION_KEY) } catch {}
+    applyDefaultPosition()
+  }
+
+  const beginDrag = event => {
+    if (!host || event.button !== 0) return
+    const rect = host.getBoundingClientRect()
+    dragState = {
+      pointerId: event.pointerId,
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+    }
+    host.style.left = Math.round(rect.left) + 'px'
+    host.style.top = Math.round(rect.top) + 'px'
+    host.style.right = 'auto'
+    host.style.bottom = 'auto'
+    event.currentTarget.setPointerCapture?.(event.pointerId)
+    host.shadowRoot?.querySelector('.bar')?.classList.add('dragging')
+    event.preventDefault()
+  }
+
+  const moveDrag = event => {
+    if (!host || !dragState || dragState.pointerId !== event.pointerId) return
+    const rect = host.getBoundingClientRect()
+    const maxLeft = Math.max(EDGE_GAP, window.innerWidth - rect.width - EDGE_GAP)
+    const maxTop = Math.max(EDGE_GAP, window.innerHeight - rect.height - EDGE_GAP)
+    const left = Math.min(Math.max(event.clientX - dragState.offsetX, EDGE_GAP), maxLeft)
+    const top = Math.min(Math.max(event.clientY - dragState.offsetY, EDGE_GAP), maxTop)
+    host.style.left = Math.round(left) + 'px'
+    host.style.top = Math.round(top) + 'px'
+    event.preventDefault()
+  }
+
+  const endDrag = event => {
+    if (!dragState || dragState.pointerId !== event.pointerId) return
+    dragState = null
+    host?.shadowRoot?.querySelector('.bar')?.classList.remove('dragging')
+    savePosition()
+  }
+
   const setExpanded = expanded => {
     if (!host?.shadowRoot) return
     const bar = host.shadowRoot.querySelector('.bar')
@@ -147,6 +235,7 @@
       toggle.setAttribute('aria-expanded', String(expanded))
       toggle.setAttribute('title', expanded ? 'Minimizar aviso administrativo' : 'Mostrar detalhes do acesso administrativo')
     }
+    if (hasCustomPosition()) requestAnimationFrame(clampCustomPosition)
   }
 
   const render = session => {
@@ -158,28 +247,33 @@
       host = document.createElement('div')
       host.id = 'peter-impersonation-banner'
       host.style.position = 'fixed'
-      host.style.top = 'max(8px, env(safe-area-inset-top))'
-      host.style.right = '8px'
-      host.style.left = 'auto'
-      host.style.bottom = 'auto'
-      host.style.width = 'min(560px, calc(100vw - 16px))'
-      host.style.maxWidth = 'calc(100vw - 16px)'
+      host.style.width = 'fit-content'
+      host.style.maxWidth = 'calc(100vw - 24px)'
       host.style.zIndex = '2147483647'
       host.style.pointerEvents = 'none'
       const shadow = host.attachShadow({ mode: 'open' })
       shadow.innerHTML = '<style>' +
         ':host{all:initial;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}' +
-        '.shell{display:flex;flex-direction:column;align-items:flex-end;pointer-events:none}' +
-        '.bar{pointer-events:auto;display:flex;align-items:center;justify-content:flex-end;gap:8px;max-width:100%;min-height:42px;padding:6px 8px 6px 10px;background:linear-gradient(90deg,#32100f,#5b1b14 52%,#271010);color:#fff;border:1px solid rgba(255,194,159,.35);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.28)}' +
+        '.shell{display:flex;flex-direction:column;align-items:flex-end;pointer-events:none;max-width:100%}' +
+        '.bar{pointer-events:auto;display:flex;align-items:center;justify-content:flex-end;gap:8px;max-width:100%;min-height:42px;padding:6px 8px;background:linear-gradient(90deg,#32100f,#5b1b14 52%,#271010);color:#fff;border:1px solid rgba(255,194,159,.35);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.28);box-sizing:border-box}' +
+        '.drag-handle{display:flex;align-items:center;gap:7px;min-width:0;cursor:grab;touch-action:none;user-select:none}.bar.dragging .drag-handle{cursor:grabbing}.grip{display:inline-flex;align-items:center;justify-content:center;width:14px;font-size:13px;line-height:1;color:#fdba74;opacity:.78;flex:0 0 auto}' +
         '.main{display:flex;align-items:center;gap:9px;min-width:0}.dot{width:8px;height:8px;border-radius:50%;background:#fb923c;box-shadow:0 0 0 4px rgba(251,146,60,.15);flex:0 0 auto}' +
-        '.copy{min-width:0}.eyebrow,.meta{display:none}.title{display:block;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:270px}.meta{margin-top:3px;font-size:11px;line-height:1.35;color:#fed7aa}.eyebrow{margin-bottom:2px;font-size:9px;letter-spacing:.12em;font-weight:900;color:#fdba74}' +
+        '.copy{min-width:0}.eyebrow,.meta{display:none}.title{display:block;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:250px}.meta{margin-top:3px;font-size:11px;line-height:1.35;color:#fed7aa}.eyebrow{margin-bottom:2px;font-size:9px;letter-spacing:.12em;font-weight:900;color:#fdba74}' +
         '.actions{display:flex;align-items:center;gap:6px;flex:0 0 auto}.time{font:800 11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#ffedd5;padding:6px 7px;border-radius:8px;background:rgba(0,0,0,.18)}' +
         'button,a{appearance:none;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:6px 8px;background:rgba(255,255,255,.08);color:#fff;font:700 11px Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-decoration:none;cursor:pointer}button:hover,a:hover{background:rgba(255,255,255,.15)}button.end{background:#fff;color:#431407;border-color:#fff}.admin,.end{display:none}button:disabled{opacity:.55;cursor:wait}' +
-        '.bar.expanded{align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 12px;width:100%;min-height:58px}.bar.expanded .eyebrow,.bar.expanded .meta{display:block}.bar.expanded .title{font-size:13px;max-width:330px}.bar.expanded .admin,.bar.expanded .end{display:inline-flex;align-items:center;justify-content:center}' +
+        '.bar.expanded{align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 12px;width:min(520px,calc(100vw - 24px));min-height:58px}.bar.expanded .eyebrow,.bar.expanded .meta{display:block}.bar.expanded .title{font-size:13px;max-width:300px}.bar.expanded .admin,.bar.expanded .end{display:inline-flex;align-items:center;justify-content:center}' +
         '.error{display:none;pointer-events:auto;width:100%;box-sizing:border-box;margin-top:6px;padding:7px 10px;border-radius:9px;background:#7f1d1d;color:#fee2e2;font-size:11px;box-shadow:0 6px 18px rgba(0,0,0,.24)}.error.show{display:block}' +
-        '@media(max-width:720px){.bar{max-width:100%;padding:5px 7px}.title{max-width:150px}.time{padding:5px 6px}.bar.expanded{display:grid;grid-template-columns:1fr;gap:8px}.bar.expanded .title{max-width:none;white-space:normal}.bar.expanded .actions{width:100%;display:grid;grid-template-columns:auto 1fr 1fr 1fr}.bar.expanded .actions a,.bar.expanded .actions button{text-align:center}}' +
-        '</style><div class="shell"><div class="bar"><div class="main"><span class="dot"></span><div class="copy"><span class="eyebrow">MODO ADMINISTRATIVO TEMPORÁRIO</span><strong class="title"></strong><span class="meta"></span></div></div><div class="actions"><span class="time"></span><button class="toggle" type="button" aria-expanded="false">Detalhes</button><a class="admin" href="' + ADMIN_URL + '">Admin Center</a><button class="end" type="button">Encerrar</button></div></div><div class="error"></div></div>'
+        '@media(max-width:720px){.bar{max-width:calc(100vw - 24px);padding:5px 7px}.grip{width:11px;font-size:11px}.title{max-width:130px}.time{padding:5px 6px}.bar.expanded{display:grid;grid-template-columns:1fr;gap:8px;width:min(360px,calc(100vw - 24px))}.bar.expanded .title{max-width:none;white-space:normal}.bar.expanded .actions{width:100%;display:grid;grid-template-columns:auto 1fr 1fr 1fr}.bar.expanded .actions a,.bar.expanded .actions button{text-align:center}}' +
+        '</style><div class="shell"><div class="bar"><div class="drag-handle" title="Arraste para mover · clique duas vezes para restaurar a posição"><span class="grip" aria-hidden="true">⠿</span><div class="main"><span class="dot"></span><div class="copy"><span class="eyebrow">MODO ADMINISTRATIVO TEMPORÁRIO</span><strong class="title"></strong><span class="meta"></span></div></div></div><div class="actions"><span class="time"></span><button class="toggle" type="button" aria-expanded="false">Detalhes</button><a class="admin" href="' + ADMIN_URL + '">Admin Center</a><button class="end" type="button">Encerrar</button></div></div><div class="error"></div></div>'
       document.body.appendChild(host)
+      restorePosition()
+
+      const handle = shadow.querySelector('.drag-handle')
+      handle.addEventListener('pointerdown', beginDrag)
+      handle.addEventListener('pointermove', moveDrag)
+      handle.addEventListener('pointerup', endDrag)
+      handle.addEventListener('pointercancel', endDrag)
+      handle.addEventListener('dblclick', resetPosition)
       shadow.querySelector('.toggle').addEventListener('click', () => setExpanded(!shadow.querySelector('.bar').classList.contains('expanded')))
       shadow.querySelector('.end').addEventListener('click', endImpersonation)
     }
@@ -305,8 +399,10 @@
     await sync()
     syncTimer = setInterval(sync, 30000)
     window.addEventListener('focus', sync)
+    window.addEventListener('resize', clampCustomPosition, { passive: true })
     window.addEventListener('storage', event => {
       if (TOKEN_KEYS.includes(event.key) || event.key === STATE_KEY) sync()
+      if (event.key === POSITION_KEY && host) restorePosition()
     })
   }
 
@@ -314,6 +410,7 @@
     version: VERSION,
     sync,
     end: endImpersonation,
+    resetPosition,
     get current() { return currentSession },
   }
 
