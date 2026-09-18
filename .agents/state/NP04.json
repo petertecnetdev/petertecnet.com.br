@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "agent_id": "NP04",
+  "display_name": "NP04 · Security Engineering",
+  "role": "security_engineering",
+  "status": "WAITING",
+  "current_task_id": null,
+  "last_seen_at": null,
+  "last_read_at": null,
+  "last_message_id": null,
+  "checkpoint": "Aguardando a próxima execução desta conta.",
+  "next_action": "Executar o bootstrap obrigatório e verificar o Agent Chat.",
+  "last_commit": null,
+  "last_error": null,
+  "tasks_completed_today": 0,
+  "updated_at": "2026-09-18T14:05:00-03:00"
+}
