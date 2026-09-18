@@ -284,6 +284,7 @@ jobs:
                   continue
               state = states.get(agent_id) or {}
               last_read = parse_iso(state.get("last_read_at"))
+              read_message_ids = set(str(value) for value in (state.get("read_message_ids") or []))
               targeted = [
                   message for message in parsed_messages
                   if message["to"] in {"@todos", f"@{agent_id}"}
@@ -300,7 +301,10 @@ jobs:
               unread = 0
               for message in reversed(targeted):
                   sent_at = parse_brt(message["timestamp"])
-                  is_read = bool(last_read and sent_at and last_read >= sent_at)
+                  is_read = bool(
+                      (message.get("id") and message.get("id") in read_message_ids)
+                      or (last_read and sent_at and last_read >= sent_at)
+                  )
                   if not is_read:
                       unread += 1
                   marker = "✓ READ" if is_read else "● UNREAD"
