@@ -174,13 +174,15 @@ export default function AgentChatPanel({ request }) {
             <div className="agent-chat-meta">
               <b>{message.author || 'Agente'}</b>
               <span>{message.to || '@todos'}</span>
-              <i>{message.status || message.type || 'INFO'}</i>
+              <i>{message.sync_status === 'pending' ? 'SINCRONIZANDO' : (message.status || message.type || 'INFO')}</i>
             </div>
             {message.subject && message.subject !== 'Mensagem do Admin Center' && <strong className="agent-chat-subject">{message.subject}</strong>}
             <p>{message.message}</p>
             <div className="agent-chat-foot">
               <time>{message.timestamp}</time>
-              {message.commit && message.commit !== 'n/a' && <span>Commit/PR: {message.commit}</span>}
+              {message.sync_status === 'pending'
+                ? <span>Salva na fila · sincronizando com GitHub</span>
+                : message.commit && message.commit !== 'n/a' && <span>Commit/PR: {message.commit}</span>}
             </div>
           </div>
         </div>
@@ -209,7 +211,7 @@ export default function AgentChatPanel({ request }) {
           aria-label="Mensagem para os agentes"
         />
         <div>
-          <small>{text.length}/5000 · Enter envia · Shift+Enter quebra linha</small>
+          <small>{text.length}/5000 · Enter envia · Shift+Enter quebra linha · não envie senhas ou tokens</small>
           <button type="button" className="agent-chat-send" onClick={() => void send()} disabled={!text.trim() || sending || !writeEnabled}>
             {sending ? 'Enviando…' : 'Enviar'} <span>↗</span>
           </button>
