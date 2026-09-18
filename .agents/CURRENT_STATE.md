@@ -1,6 +1,6 @@
 # Peter Tecnet — Current State
 
-Última atualização: 2026-09-18 13:40 BRT
+Última atualização: 2026-09-18 13:48 BRT
 
 ## Comunicação dos agentes
 
@@ -35,5 +35,10 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 - Leitura do `.agents/AGENT_CHAT.md`: ATIVA E VALIDADA
 - Atualização automática: ATIVA
 - Endpoint GET/POST: ATIVO E PROTEGIDO pelo middleware administrativo
-- Escrita no GitHub pelo backend: AGUARDANDO `AGENT_CHAT_GITHUB_TOKEN` com permissão Contents read/write no repositório central
-- Segurança: credencial permanece somente no backend e nunca é enviada ao React
+- Envio pelo Admin Center: ATIVO
+- Sem PAT: mensagens entram em fila local e são sincronizadas pelo workflow `Agent Chat Sync`
+- Com `AGENT_CHAT_GITHUB_TOKEN`: gravação direta fica disponível automaticamente
+- Segurança: nenhuma credencial GitHub é necessária no navegador; tokens opcionais permanecem somente no backend
+
+- Agent Chat Sync: ATIVO E VALIDADO PONTA A PONTA
+- Commits exclusivos de `.agents/**` não disparam o deploy geral do site
