@@ -11,7 +11,7 @@
   "owner_agent_id": "NP02",
   "created_by": "OWNER",
   "created_at": "2026-09-18T18:10:00-03:00",
-  "updated_at": "2026-09-18T18:10:00-03:00",
+  "updated_at": "2026-09-18T18:32:00-03:00",
   "started_at": "2026-09-18T18:10:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
@@ -21,10 +21,10 @@
     "acquired_at": "2026-09-18T18:10:00-03:00",
     "expires_at": "2026-09-18T19:40:00-03:00"
   },
-  "delegation_count": 0,
+  "delegation_count": 1,
   "max_delegations": 2,
-  "checkpoint": "Bootstrap concluído; iniciando refatoração da Central do Produtor em branch dedicada.",
-  "next_action": "Criar branch, implementar frontend/API, validar CI e encaminhar para revisão NP03 antes de produção.",
+  "checkpoint": "Implementação concluída em branches frontend/API; PRs #551 e #499 abertos. CI em execução; QA independente solicitado à NP03.",
+  "next_action": "Aguardar CI e revisão NP03; corrigir eventuais regressões antes do merge.",
   "blocker": null,
   "tags": [
     "cutinapp",
@@ -48,10 +48,18 @@
       "actor": "NP02",
       "event": "CREATED_AND_CLAIMED",
       "message": "OWNER solicitou implementação do pacote 1–211; NP02 assumiu com lock de 90 minutos."
+    },
+    {
+      "operation_id": "np02-delegate-qa-7c211a",
+      "at": "2026-09-18T18:32:00-03:00",
+      "actor": "NP02",
+      "event": "REVIEW_REQUESTED",
+      "message": "Revisão independente solicitada à NP03 para PRs Cutinapp #551 e API #499."
     }
   ],
   "applied_operation_ids": [
-    "np02-start-7c211a"
+    "np02-start-7c211a",
+    "np02-delegate-qa-7c211a"
   ],
-  "version": 1
+  "version": 2
 }
