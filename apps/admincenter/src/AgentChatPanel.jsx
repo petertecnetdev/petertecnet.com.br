@@ -13,6 +13,8 @@ const STATUS_LABELS = {
   CANCELLED: 'Cancelada',
 }
 
+const EMPTY_LIST = Object.freeze([])
+
 const PRIORITY_LABELS = {
   CRITICAL: 'Crítica',
   HIGH: 'Alta',
@@ -96,9 +98,9 @@ export default function AgentChatPanel({ request }) {
   const mountedRef = useRef(true)
   const previousMessageIds = useRef(new Set())
 
-  const agents = control?.agents || []
-  const tasks = control?.tasks || []
-  const applications = control?.registry?.applications || []
+  const agents = control?.agents || EMPTY_LIST
+  const tasks = control?.tasks || EMPTY_LIST
+  const applications = control?.registry?.applications || EMPTY_LIST
   const metrics = control?.metrics || {}
   const selectedTaskRow = tasks.find(task => task.task_id === selectedTask) || null
 
