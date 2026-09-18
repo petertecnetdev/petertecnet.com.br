@@ -1,0 +1,193 @@
+{
+  "version": 2,
+  "updated_at": "2026-09-18T14:05:00-03:00",
+  "source_of_truth": "github",
+  "owner": {
+    "id": "OWNER",
+    "display_name": "Pedro / Peter Tecnet",
+    "priority": 1000
+  },
+  "agents": [
+    {
+      "id": "NP01",
+      "display_name": "NP01 · API Core",
+      "role": "api_core",
+      "capabilities": [
+        "laravel",
+        "api",
+        "database",
+        "payments",
+        "architecture"
+      ],
+      "status": "scheduled",
+      "priority": 90
+    },
+    {
+      "id": "NP02",
+      "display_name": "NP02 · Frontend Platform",
+      "role": "frontend_platform",
+      "capabilities": [
+        "react",
+        "vite",
+        "pwa",
+        "ux",
+        "responsive"
+      ],
+      "status": "scheduled",
+      "priority": 80
+    },
+    {
+      "id": "NP03",
+      "display_name": "NP03 · Quality Engineering",
+      "role": "quality_engineering",
+      "capabilities": [
+        "qa",
+        "tests",
+        "regression",
+        "review",
+        "release-validation"
+      ],
+      "status": "scheduled",
+      "priority": 85
+    },
+    {
+      "id": "NP04",
+      "display_name": "NP04 · Security Engineering",
+      "role": "security_engineering",
+      "capabilities": [
+        "auth",
+        "input-security",
+        "uploads",
+        "webhooks",
+        "secrets",
+        "dependencies"
+      ],
+      "status": "scheduled",
+      "priority": 95
+    },
+    {
+      "id": "NP05",
+      "display_name": "NP05 · Performance Engineering",
+      "role": "performance_engineering",
+      "capabilities": [
+        "performance",
+        "profiling",
+        "caching",
+        "frontend-performance",
+        "api-performance"
+      ],
+      "status": "scheduled",
+      "priority": 85
+    },
+    {
+      "id": "NP08",
+      "display_name": "NP08 · SEO & Distribution",
+      "role": "seo_distribution",
+      "capabilities": [
+        "seo",
+        "structured-data",
+        "content",
+        "distribution",
+        "search-console"
+      ],
+      "status": "scheduled",
+      "priority": 75
+    },
+    {
+      "id": "NP09",
+      "display_name": "NP09 · Data / Analytics / Admin",
+      "role": "data_analytics_admin",
+      "capabilities": [
+        "analytics",
+        "admin-center",
+        "telemetry",
+        "reporting",
+        "coordination"
+      ],
+      "status": "scheduled",
+      "priority": 90,
+      "coordinator": true
+    },
+    {
+      "id": "NP10",
+      "display_name": "NP10 · Integrations",
+      "role": "integrations",
+      "capabilities": [
+        "integrations",
+        "webhooks",
+        "external-apis",
+        "automation",
+        "github"
+      ],
+      "status": "scheduled",
+      "priority": 80
+    }
+  ],
+  "applications": [
+    "api",
+    "cutinapp",
+    "nexus",
+    "plat",
+    "rasoio",
+    "locaio",
+    "kryvion",
+    "payflow",
+    "laora",
+    "petertecnet",
+    "admincenter"
+  ],
+  "statuses": [
+    "OFFLINE",
+    "WAITING",
+    "READING",
+    "AVAILABLE",
+    "RUNNING",
+    "REVIEW",
+    "BLOCKED"
+  ],
+  "task_statuses": [
+    "NEW",
+    "ASSIGNED",
+    "RUNNING",
+    "WAITING",
+    "REVIEW",
+    "DONE",
+    "BLOCKED",
+    "NEEDS_OWNER_DECISION",
+    "CANCELLED"
+  ],
+  "priorities": [
+    "CRITICAL",
+    "HIGH",
+    "NORMAL",
+    "LOW"
+  ],
+  "message_states": [
+    "SENT",
+    "SYNCED",
+    "READ",
+    "CLAIMED",
+    "RUNNING",
+    "DONE",
+    "BLOCKED"
+  ],
+  "rules": {
+    "owner_priority": true,
+    "source_of_truth": [
+      ".agents/AGENT_CHAT.md",
+      ".agents/CURRENT_STATE.md",
+      ".agents/tasks/"
+    ],
+    "max_default_delegations": 2,
+    "default_lock_minutes": 90,
+    "no_secrets_in_chat": true,
+    "no_infinite_delegation": true,
+    "evidence_required_for_done": true,
+    "review_required_for": [
+      "CRITICAL",
+      "security",
+      "payments",
+      "production"
+    ]
+  }
+}
