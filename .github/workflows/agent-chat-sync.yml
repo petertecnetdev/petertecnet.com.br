@@ -19,9 +19,9 @@ concurrency:
 
 jobs:
   sync:
-    name: Sync Admin Center agent control to GitHub
+    name: Sync and derive shared agent control state
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,6 +41,11 @@ jobs:
           import re
           import urllib.request
 
+          ROOT = pathlib.Path(".agents")
+          TASKS_DIR = ROOT / "tasks"
+          STATE_DIR = ROOT / "state"
+          INBOX_DIR = ROOT / "inbox"
+
           def fetch_json(url):
               request = urllib.request.Request(
                   url,
@@ -49,13 +54,36 @@ jobs:
               with urllib.request.urlopen(request, timeout=20) as response:
                   return json.load(response)
 
+          def load_json(path, default=None):
+              try:
+                  return json.loads(path.read_text(encoding="utf-8"))
+              except Exception:
+                  return {} if default is None else default
+
+          def write_if_changed(path, content):
+              path.parent.mkdir(parents=True, exist_ok=True)
+              old = path.read_text(encoding="utf-8") if path.exists() else None
+              if old != content:
+                  path.write_text(content, encoding="utf-8")
+                  return True
+              return False
+
+          def replace_auto_section(path, start, end, section):
+              content = path.read_text(encoding="utf-8") if path.exists() else ""
+              payload = f"{start}\n{section.rstrip()}\n{end}"
+              pattern = re.compile(re.escape(start) + r".*?" + re.escape(end), re.S)
+              if pattern.search(content):
+                  next_content = pattern.sub(payload, content)
+              else:
+                  next_content = content.rstrip() + "\n\n" + payload + "\n"
+              return write_if_changed(path, next_content)
+
           chat_payload = fetch_json(os.environ["AGENT_CHAT_SYNC_URL"])
           control_payload = fetch_json(os.environ["AGENT_CONTROL_SYNC_URL"])
-
           chat_entries = chat_payload.get("entries") or []
           operations = control_payload.get("operations") or []
 
-          chat_path = pathlib.Path(".agents/AGENT_CHAT.md")
+          chat_path = ROOT / "AGENT_CHAT.md"
           chat_content = chat_path.read_text(encoding="utf-8")
           chat_appended = 0
 
@@ -84,40 +112,34 @@ jobs:
               operation_id = str(operation.get("id") or "").strip()
               operation_type = str(operation.get("type") or "").strip()
               task_id = str(operation.get("task_id") or "").strip()
-
               if not operation_id or not task_id_pattern.match(task_id):
                   continue
 
-              task_path = pathlib.Path(".agents/tasks") / f"{task_id}.json"
+              task_path = TASKS_DIR / f"{task_id}.json"
 
               if operation_type == "task_create":
                   task = operation.get("task")
                   if not isinstance(task, dict):
                       continue
-
                   if task_path.exists():
-                      existing = json.loads(task_path.read_text(encoding="utf-8"))
+                      existing = load_json(task_path)
                       if operation_id in (existing.get("applied_operation_ids") or []):
                           continue
                       print(f"Refusing to overwrite existing task {task_id} for create operation {operation_id}.")
                       continue
-
-                  task_path.parent.mkdir(parents=True, exist_ok=True)
                   applied = list(task.get("applied_operation_ids") or [])
                   if operation_id not in applied:
                       applied.append(operation_id)
                   task["applied_operation_ids"] = applied
-                  task_path.write_text(
-                      json.dumps(task, ensure_ascii=False, indent=2) + "\n",
-                      encoding="utf-8",
-                  )
+                  TASKS_DIR.mkdir(parents=True, exist_ok=True)
+                  task_path.write_text(json.dumps(task, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
                   task_changes += 1
                   continue
 
               if operation_type != "task_patch" or not task_path.exists():
                   continue
 
-              task = json.loads(task_path.read_text(encoding="utf-8"))
+              task = load_json(task_path)
               applied = list(task.get("applied_operation_ids") or [])
               if operation_id in applied:
                   continue
@@ -134,14 +156,16 @@ jobs:
               created_at = operation.get("created_at") or datetime.datetime.now(datetime.timezone.utc).isoformat()
               task["updated_at"] = created_at
               task["version"] = int(task.get("version") or 0) + 1
-
               new_status = task.get("status")
+
               if new_status == "RUNNING" and not task.get("started_at"):
                   task["started_at"] = created_at
               if new_status == "DONE" and not task.get("completed_at"):
                   task["completed_at"] = created_at
               if new_status == "REVIEW" and not task.get("reviewed_at"):
                   task["reviewed_at"] = created_at
+              if new_status in {"CANCELLED", "DONE"}:
+                  task["lock"] = {"owner_agent_id": None, "acquired_at": None, "expires_at": None}
 
               event = operation.get("history_event")
               if isinstance(event, dict):
@@ -155,31 +179,232 @@ jobs:
 
               applied.append(operation_id)
               task["applied_operation_ids"] = applied[-300:]
-
-              task_path.write_text(
-                  json.dumps(task, ensure_ascii=False, indent=2) + "\n",
-                  encoding="utf-8",
-              )
+              task_path.write_text(json.dumps(task, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
               task_changes += 1
 
+          # Load canonical registry, states and tasks after applying operations.
+          registry = load_json(ROOT / "AGENTS_REGISTRY.json", {"agents": []})
+          agents = registry.get("agents") or []
+          states = {}
+          for agent in agents:
+              agent_id = str(agent.get("id") or "")
+              if agent_id:
+                  states[agent_id] = load_json(STATE_DIR / f"{agent_id}.json", {})
+
+          tasks = []
+          if TASKS_DIR.exists():
+              for path in sorted(TASKS_DIR.glob("TASK-*.json")):
+                  task = load_json(path, {})
+                  if task.get("task_id"):
+                      tasks.append(task)
+
+          priority_rank = {"CRITICAL": 0, "HIGH": 1, "NORMAL": 2, "LOW": 3}
+          status_rank = {
+              "RUNNING": 0, "BLOCKED": 1, "NEEDS_OWNER_DECISION": 1, "REVIEW": 2,
+              "ASSIGNED": 3, "NEW": 4, "WAITING": 5, "DONE": 8, "CANCELLED": 9,
+          }
+          tasks.sort(key=lambda task: (
+              status_rank.get(task.get("status"), 6),
+              priority_rank.get(task.get("priority"), 2),
+              str(task.get("created_at") or ""),
+          ))
+
+          # Machine-readable task index for agents and dashboards.
+          task_index = {
+              "schema_version": 1,
+              "counts": {},
+              "open_task_ids": [],
+              "tasks": [
+                  {
+                      "task_id": task.get("task_id"),
+                      "title": task.get("title"),
+                      "status": task.get("status"),
+                      "priority": task.get("priority"),
+                      "assigned_agent_id": task.get("assigned_agent_id"),
+                      "owner_agent_id": task.get("owner_agent_id"),
+                      "application_context": task.get("application_context"),
+                      "updated_at": task.get("updated_at"),
+                  }
+                  for task in tasks
+              ],
+          }
+          for task in tasks:
+              status = str(task.get("status") or "UNKNOWN")
+              task_index["counts"][status] = task_index["counts"].get(status, 0) + 1
+              if status not in {"DONE", "CANCELLED"}:
+                  task_index["open_task_ids"].append(task.get("task_id"))
+          write_if_changed(ROOT / "TASK_INDEX.json", json.dumps(task_index, ensure_ascii=False, indent=2) + "\n")
+
+          # Parse messages enough to produce one inbox per external ChatGPT account.
+          message_pattern = re.compile(
+              r"(?:(?:\*\*Mensagem-ID:\*\*\s*(?P<id>[^\n]+)\n))?"
+              r"### (?P<timestamp>[^\n]+?)\s+—\s+(?P<author>.+?)\s+—\s+(?P<type>[A-Z_]+)\n"
+              r"(?P<body>.*?)(?=(?:\*\*Mensagem-ID:\*\*[^\n]*\n)?### |\Z)",
+              re.S,
+          )
+          parsed_messages = []
+          for match in message_pattern.finditer(chat_content):
+              body = match.group("body")
+              meta = {}
+              for key, value in re.findall(r"^\*\*([^*]+):\*\*\s*(.*)$", body, re.M):
+                  meta[key.strip()] = value.strip()
+              parsed_messages.append({
+                  "id": (match.group("id") or "").strip() or None,
+                  "timestamp": match.group("timestamp").strip(),
+                  "author": match.group("author").strip(),
+                  "type": match.group("type").strip(),
+                  "to": meta.get("Para", "@todos"),
+                  "subject": meta.get("Assunto", ""),
+                  "task_id": None if meta.get("Tarefa") in {None, "", "n/a"} else meta.get("Tarefa"),
+                  "context": None if meta.get("Contexto") in {None, "", "geral"} else meta.get("Contexto"),
+                  "priority": meta.get("Prioridade", "NORMAL"),
+                  "status": meta.get("Status", match.group("type").strip()),
+              })
+
+          def parse_brt(value):
+              try:
+                  return datetime.datetime.strptime(value, "%Y-%m-%d %H:%M BRT").replace(
+                      tzinfo=datetime.timezone(datetime.timedelta(hours=-3))
+                  )
+              except Exception:
+                  return None
+
+          def parse_iso(value):
+              if not value:
+                  return None
+              try:
+                  return datetime.datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+              except Exception:
+                  return None
+
+          INBOX_DIR.mkdir(parents=True, exist_ok=True)
+          for agent in agents:
+              agent_id = str(agent.get("id") or "")
+              if not agent_id:
+                  continue
+              state = states.get(agent_id) or {}
+              last_read = parse_iso(state.get("last_read_at"))
+              targeted = [
+                  message for message in parsed_messages
+                  if message["to"] in {"@todos", f"@{agent_id}"}
+              ][-40:]
+
+              lines = [
+                  f"# Inbox — {agent_id}",
+                  "",
+                  f"Função: {agent.get('display_name') or agent.get('role') or agent_id}",
+                  "",
+                  "> Gerado automaticamente a partir do Agent Chat. Atualize seu state ao ler.",
+                  "",
+              ]
+              unread = 0
+              for message in reversed(targeted):
+                  sent_at = parse_brt(message["timestamp"])
+                  is_read = bool(last_read and sent_at and last_read >= sent_at)
+                  if not is_read:
+                      unread += 1
+                  marker = "✓ READ" if is_read else "● UNREAD"
+                  refs = []
+                  if message["task_id"]:
+                      refs.append(message["task_id"])
+                  if message["context"]:
+                      refs.append(message["context"])
+                  refs.append(message["priority"])
+                  lines.extend([
+                      f"## {marker} · {message['timestamp']} · {message['author']}",
+                      f"- **Tipo:** {message['status']}",
+                      f"- **Assunto:** {message['subject'] or 'Sem assunto'}",
+                      f"- **Refs:** {' · '.join(refs)}",
+                      "",
+                  ])
+              lines.insert(5, f"**Não lidas estimadas:** {unread}")
+              lines.insert(6, "")
+              write_if_changed(INBOX_DIR / f"{agent_id}.md", "\n".join(lines).rstrip() + "\n")
+
+          # Auto blocker register section.
+          blocked = [task for task in tasks if task.get("status") in {"BLOCKED", "NEEDS_OWNER_DECISION"}]
+          blocker_lines = ["## Bloqueios derivados das tarefas", ""]
+          if not blocked:
+              blocker_lines.append("Nenhum bloqueio ativo.")
+          else:
+              for task in blocked:
+                  blocker_lines.extend([
+                      f"### {task.get('task_id')} — {task.get('title')}",
+                      f"- **Agente:** {task.get('assigned_agent_id') or task.get('owner_agent_id') or 'não atribuído'}",
+                      f"- **Contexto:** {task.get('application_context') or 'geral'}",
+                      f"- **Prioridade:** {task.get('priority') or 'NORMAL'}",
+                      f"- **Status:** {task.get('status')}",
+                      f"- **Bloqueio:** {task.get('blocker') or 'Detalhe não informado'}",
+                      f"- **Próxima ação:** {task.get('next_action') or 'Aguardando atualização'}",
+                      "",
+                  ])
+          replace_auto_section(
+              ROOT / "BLOCKERS.md",
+              "<!-- AUTO-BLOCKERS:START -->",
+              "<!-- AUTO-BLOCKERS:END -->",
+              "\n".join(blocker_lines),
+          )
+
+          # Compact state for continuity between daily executions.
+          open_tasks = [task for task in tasks if task.get("status") not in {"DONE", "CANCELLED"}]
+          state_lines = [
+              "## Snapshot operacional automático",
+              "",
+              f"- Agentes registrados: **{len(agents)}**",
+              f"- Tarefas abertas: **{len(open_tasks)}**",
+              f"- Executando: **{sum(1 for task in tasks if task.get('status') == 'RUNNING')}**",
+              f"- Em revisão: **{sum(1 for task in tasks if task.get('status') == 'REVIEW')}**",
+              f"- Bloqueadas/decisão: **{sum(1 for task in tasks if task.get('status') in {'BLOCKED', 'NEEDS_OWNER_DECISION'})}**",
+              "",
+              "### Agentes",
+          ]
+          for agent in agents:
+              agent_id = str(agent.get("id") or "")
+              state = states.get(agent_id) or {}
+              state_lines.append(
+                  f"- **{agent_id}** · {state.get('status') or 'WAITING'} · "
+                  f"task: {state.get('current_task_id') or '—'} · "
+                  f"last_seen: {state.get('last_seen_at') or 'nunca'} · "
+                  f"next: {state.get('next_action') or '—'}"
+              )
+
+          state_lines.extend(["", "### Próximas tarefas"])
+          if not open_tasks:
+              state_lines.append("- Nenhuma tarefa aberta.")
+          else:
+              for task in open_tasks[:20]:
+                  state_lines.append(
+                      f"- **{task.get('task_id')}** · {task.get('priority')} · {task.get('status')} · "
+                      f"{task.get('assigned_agent_id') or 'fila'} · {task.get('application_context') or 'geral'} · "
+                      f"{task.get('title')}"
+                  )
+
+          replace_auto_section(
+              ROOT / "CURRENT_STATE.md",
+              "<!-- AUTO-STATE:START -->",
+              "<!-- AUTO-STATE:END -->",
+              "\n".join(state_lines),
+          )
+
           print(
-              f"Chat pending={len(chat_entries)} appended={chat_appended}; "
-              f"control pending={len(operations)} task_changes={task_changes}"
+              f"chat_pending={len(chat_entries)} chat_appended={chat_appended} "
+              f"control_pending={len(operations)} task_changes={task_changes} "
+              f"tasks={len(tasks)} agents={len(agents)}"
           )
           PY
 
-      - name: Commit synchronized control state
+      - name: Commit synchronized and derived control state
         run: |
           set -euo pipefail
           if git diff --quiet -- .agents; then
-            echo "No pending Agent Control changes to commit."
+            echo "No Agent Control changes to commit."
             exit 0
           fi
 
           git config user.name "Peter Tecnet Agent Sync"
           git config user.email "petertecnet@gmail.com"
           git add .agents
-          git commit -m "chore(agent-control): sync Admin Center operations [skip ci]"
+          git commit -m "chore(agent-control): sync shared control state [skip ci]"
 
           for attempt in 1 2 3; do
             if git pull --rebase origin main && git push origin HEAD:main; then
