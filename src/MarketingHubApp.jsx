@@ -116,19 +116,32 @@ function useHubData() {
         setApplications(apps)
         if (sitePayload?.site?.contact) setContact(current => ({ ...current, ...sitePayload.site.contact }))
 
-        const [catalogPayload, articlePayload, casesPayload, pagesPayload] = await Promise.all([
-          fetchPeterCatalog(apps, controller.signal).catch(() => ({ items: [] })),
-          fetchContentEntries({ type: 'article', per_page: 12 }, controller.signal).catch(() => null),
-          fetchContentEntries({ type: 'case-study', per_page: 20 }, controller.signal).catch(() => null),
-          fetchContentEntries({ type: 'page', per_page: 50 }, controller.signal).catch(() => null),
-        ])
-
-        setCatalog(Array.isArray(catalogPayload?.items) ? catalogPayload.items : [])
-        const dynamicArticles = extractCollection(articlePayload)
-        if (dynamicArticles.length) setArticles(dynamicArticles.map(normalizeArticle))
-        setCaseStudies(extractCollection(casesPayload))
-        setPageEntries(extractCollection(pagesPayload))
+        // The first paint must not wait for catalog/blog/case-study APIs.
+        // Static SEO/content fallbacks render immediately; live content hydrates
+        // after the browser has had a chance to paint and become interactive.
         setStatus('success')
+
+        const hydrateSecondaryContent = async () => {
+          if (controller.signal.aborted) return
+          const [catalogPayload, articlePayload, casesPayload, pagesPayload] = await Promise.all([
+            fetchPeterCatalog(apps, controller.signal).catch(() => ({ items: [] })),
+            fetchContentEntries({ type: 'article', per_page: 12 }, controller.signal).catch(() => null),
+            fetchContentEntries({ type: 'case-study', per_page: 20 }, controller.signal).catch(() => null),
+            fetchContentEntries({ type: 'page', per_page: 50 }, controller.signal).catch(() => null),
+          ])
+          if (controller.signal.aborted) return
+          setCatalog(Array.isArray(catalogPayload?.items) ? catalogPayload.items : [])
+          const dynamicArticles = extractCollection(articlePayload)
+          if (dynamicArticles.length) setArticles(dynamicArticles.map(normalizeArticle))
+          setCaseStudies(extractCollection(casesPayload))
+          setPageEntries(extractCollection(pagesPayload))
+        }
+
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(() => void hydrateSecondaryContent(), { timeout: 1200 })
+        } else {
+          window.setTimeout(() => void hydrateSecondaryContent(), 80)
+        }
       } catch (error) {
         if (error?.name !== 'AbortError') setStatus('error')
       }
