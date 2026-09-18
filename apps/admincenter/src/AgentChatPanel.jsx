@@ -315,6 +315,8 @@ export default function AgentChatPanel({ request }) {
     if (!recipients.length) return null
 
     const read = recipients.filter(agent => {
+      const exactReceipts = Array.isArray(agent?.state?.read_message_ids) ? agent.state.read_message_ids : []
+      if (message.message_id && exactReceipts.includes(message.message_id)) return true
       const readAt = agent.last_read_at ? new Date(agent.last_read_at) : null
       return readAt && !Number.isNaN(readAt.getTime()) && readAt >= sentAt
     })
@@ -486,6 +488,7 @@ export default function AgentChatPanel({ request }) {
             <b>{task.title}</b>
             <small>{task.task_id}</small>
             <p>{task.application_context || 'geral'} · {task.assigned_agent_id || 'não atribuída'}</p>
+            {task.assigned_agent_id && agents.find(agent => agent.id === task.assigned_agent_id)?.state?.received_task_ids?.includes(task.task_id) && <em>✓ Recebida pelo agente</em>}
             {task.lock?.owner_agent_id && <em>{task.lock_expired ? 'Lock expirado' : `Lock: ${task.lock.owner_agent_id}`}</em>}
             {task.sync_status === 'pending' && <em>Sincronizando…</em>}
           </button>) : <div className="agent-task-empty">Nenhuma tarefa neste filtro.</div>}
