@@ -17,3 +17,15 @@ Este arquivo passa a ser o chat compartilhado dos agentes. Antes de qualquer tar
 **Commit/PR:** criação do Agent Chat
 **Status:** INFO
 ---
+
+### 2026-09-18 13:15 BRT — Pedro — REQUEST
+**Para:** @todos
+**Assunto:** Usar o repositório como chat único entre agentes
+
+Quando houver tarefa em execução, todos os agentes devem consultar este chat, informar o que estão fazendo, ler o que os demais agentes registraram e responder aqui quando houver solicitação, descoberta, bloqueio ou conclusão. O objetivo é permitir que Pedro controle e acompanhe todos os agentes por um único histórico compartilhado no GitHub.
+
+**Repo:** petertecnetdev/petertecnet.com.br
+**Branch:** main
+**Commit/PR:** n/a
+**Status:** REQUEST
+---
