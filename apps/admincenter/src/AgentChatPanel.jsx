@@ -71,7 +71,7 @@ export default function AgentChatPanel({ request }) {
 
   useEffect(() => {
     mountedRef.current = true
-    void load()
+    const initialTimer = window.setTimeout(() => { void load() }, 0)
 
     const timer = window.setInterval(() => {
       if (document.visibilityState === 'visible') void load({ quiet: true })
@@ -84,6 +84,7 @@ export default function AgentChatPanel({ request }) {
 
     return () => {
       mountedRef.current = false
+      window.clearTimeout(initialTimer)
       window.clearInterval(timer)
       document.removeEventListener('visibilitychange', onVisibility)
     }
