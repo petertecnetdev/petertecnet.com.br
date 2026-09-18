@@ -6,12 +6,12 @@
   "application_context": "cutinapp",
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br + petertecnetdev/api.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "assigned_agent_id": "NP02",
   "owner_agent_id": "NP02",
   "created_by": "OWNER",
   "created_at": "2026-09-18T18:10:00-03:00",
-  "updated_at": "2026-09-18T18:32:00-03:00",
+  "updated_at": "2026-09-18T18:36:00-03:00",
   "started_at": "2026-09-18T18:10:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
@@ -23,9 +23,9 @@
   },
   "delegation_count": 1,
   "max_delegations": 2,
-  "checkpoint": "Implementação concluída em branches frontend/API; PRs #551 e #499 abertos. CI em execução; QA independente solicitado à NP03.",
-  "next_action": "Aguardar CI e revisão NP03; corrigir eventuais regressões antes do merge.",
-  "blocker": null,
+  "checkpoint": "Implementação 1–211 concluída na branch feat/event-manager-211-20260918. Frontend PR #551 no head ff0f2276: npm ci, gate de paths legados e testes passaram; build/perf ainda em execução. API PR #499: syntax/migrations/auditoria/rotas passaram; suíte global segue vermelha por 32 falhas preexistentes fora do diff. QA NP03 pendente.",
+  "next_action": "Aguardar conclusão do CI frontend e revisão independente NP03; só então decidir merge/deploy.",
+  "blocker": "Aguardando QA NP03. API CI global possui falhas preexistentes fora do diff do PR #499.",
   "tags": [
     "cutinapp",
     "meus-eventos",
@@ -34,7 +34,32 @@
     "artists",
     "producer"
   ],
-  "evidence": [],
+  "evidence": [
+    {
+      "type": "pull_request_frontend",
+      "value": "https://github.com/petertecnetdev/cutinapp.petertecnet.com.br/pull/551"
+    },
+    {
+      "type": "pull_request_api",
+      "value": "https://github.com/petertecnetdev/api.petertecnet.com.br/pull/499"
+    },
+    {
+      "type": "commit_frontend",
+      "value": "ff0f227692e8a3ed0e45b82961646adbfa498b66"
+    },
+    {
+      "type": "commit_api",
+      "value": "1baedb3d83a2ab12cdc2de053b6b29c5bd879e5b"
+    },
+    {
+      "type": "ci_frontend",
+      "value": "run 35397300251: tests passed; build/perf in progress"
+    },
+    {
+      "type": "ci_api",
+      "value": "run 35396634303: syntax/migrations/routes passed; full suite baseline failures"
+    }
+  ],
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
@@ -55,11 +80,19 @@
       "actor": "NP02",
       "event": "REVIEW_REQUESTED",
       "message": "Revisão independente solicitada à NP03 para PRs Cutinapp #551 e API #499."
+    },
+    {
+      "operation_id": "np02-review-checkpoint-7c211a",
+      "at": "2026-09-18T18:36:00-03:00",
+      "actor": "NP02",
+      "event": "READY_FOR_REVIEW",
+      "message": "Pacote 1–211 implementado; PRs #551/#499 atualizados; frontend unit tests passaram e QA NP03 permanece pendente."
     }
   ],
   "applied_operation_ids": [
     "np02-start-7c211a",
-    "np02-delegate-qa-7c211a"
+    "np02-delegate-qa-7c211a",
+    "np02-review-checkpoint-7c211a"
   ],
-  "version": 2
+  "version": 3
 }
