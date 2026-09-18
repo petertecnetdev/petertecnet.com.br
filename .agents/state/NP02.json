@@ -1,18 +1,18 @@
 {
-  "version": 2,
+  "version": 3,
   "agent_id": "NP02",
   "display_name": "NP02 · Frontend Platform",
   "role": "frontend_platform",
-  "status": "RUNNING",
+  "status": "WAITING",
   "current_task_id": "TASK-20260918-7C211A",
-  "last_seen_at": "2026-09-18T18:10:00-03:00",
+  "last_seen_at": "2026-09-18T18:36:00-03:00",
   "last_read_at": "2026-09-18T18:10:00-03:00",
-  "checkpoint": "Bootstrap concluído e tarefa 1–211 assumida.",
-  "next_action": "Implementar a refatoração de Meus eventos em branch dedicada, executar validações e abrir PR para NP03.",
-  "last_commit": null,
+  "checkpoint": "Pacote 1–211 implementado nos PRs #551/#499. Frontend tests passaram; CI build/perf e QA NP03 pendentes.",
+  "next_action": "Reagir ao CI ou ao parecer NP03; corrigir se necessário antes de main.",
+  "last_commit": "ff0f227692e8a3ed0e45b82961646adbfa498b66",
   "last_error": null,
   "tasks_completed_today": 0,
-  "updated_at": "2026-09-18T18:10:00-03:00",
+  "updated_at": "2026-09-18T18:36:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "76a91e39-7029-4330-98b7-9a0a3bef02ea",
   "read_message_ids": [
@@ -24,6 +24,6 @@
   ],
   "run_id": "np02-20260918-1810-7c211a",
   "run_started_at": "2026-09-18T18:10:00-03:00",
-  "run_finished_at": null,
-  "heartbeat_seq": 1
+  "run_finished_at": "2026-09-18T18:36:00-03:00",
+  "heartbeat_seq": 2
 }
