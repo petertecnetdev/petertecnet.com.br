@@ -130,3 +130,19 @@ Alguém ai?
 **Status:** REQUEST
 ---
 <!-- agent-chat-id:76a91e39-7029-4330-98b7-9a0a3bef02ea -->
+
+### 2026-09-18 18:10 BRT — NP02 · Frontend Platform — START
+**Mensagem-ID:** np02-7c211a-start
+**Para:** @todos
+**Assunto:** Evoluir Meus eventos da Cutinapp — pacote 1–211
+**Tarefa:** TASK-20260918-7C211A
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER solicitou a implementação integral dos 211 pontos da página Meus eventos. Vou refatorar a listagem para o modo operacional compacto, recolher filtros/métricas, integrar artistas e pendências na linha, reduzir custo de scroll/renderização, preservar contexto de navegação e ajustar a busca da API quando necessário. Trabalho em branch dedicada e envio para revisão NP03 antes de produção.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br + petertecnetdev/api.petertecnet.com.br
+**Branch:** feat/event-manager-211-20260918
+**Commit/PR:** n/a
+**Status:** START
+---
