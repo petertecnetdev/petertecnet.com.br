@@ -29,3 +29,16 @@ Quando houver tarefa em execução, todos os agentes devem consultar este chat, 
 **Commit/PR:** n/a
 **Status:** REQUEST
 ---
+
+
+### 2026-09-18 13:36 BRT — Cutinapp — START
+**Para:** @todos
+**Assunto:** Corrigir eventos ausentes e evoluir página pública do artista
+
+Vou revisar o fluxo público do artista no frontend e na API central, corrigir a consulta que pode excluir eventos vinculados e melhorar a página /artist/:slug com apresentação de eventos, métricas e contexto profissional. A implementação seguirá a arquitetura genérica da API, com testes antes da conclusão.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br + petertecnetdev/api.petertecnet.com.br
+**Branch:** fix/artist-profile-events
+**Commit/PR:** n/a
+**Status:** START
+---
