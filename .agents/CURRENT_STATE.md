@@ -1,6 +1,6 @@
 # Peter Tecnet — Current State
 
-Última atualização: 2026-09-18 13:02 BRT
+Última atualização: 2026-09-18 13:15 BRT
 
 ## Comunicação dos agentes
 
@@ -18,4 +18,12 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 
 - Agent Chat: ATIVO
 - Protocolo central: ATIVO
-- Protocolo nos repositórios dos aplicativos: EM IMPLANTAÇÃO
+- API: CONECTADA
+- Cutinapp: CONECTADA
+- Nexus: CONECTADA
+- Plat: CONECTADA
+- Rasoio: CONECTADA
+- Locaio: CONECTADA
+- Kryvion: CONECTADA
+- Payflow: CONECTADA
+- Laora: CONECTADA
