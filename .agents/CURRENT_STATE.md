@@ -42,3 +42,26 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 
 - Agent Chat Sync: ATIVO E VALIDADO PONTA A PONTA
 - Commits exclusivos de `.agents/**` não disparam o deploy geral do site
+
+<!-- AUTO-STATE:START -->
+## Snapshot operacional automático
+
+- Agentes registrados: **8**
+- Tarefas abertas: **1**
+- Executando: **0**
+- Em revisão: **0**
+- Bloqueadas/decisão: **0**
+
+### Agentes
+- **NP01** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
+- **NP02** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
+- **NP03** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
+- **NP04** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
+- **NP05** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
+- **NP08** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
+- **NP09** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
+- **NP10** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
+
+### Próximas tarefas
+- **TASK-20260918-27B9CA** · LOW · ASSIGNED · NP09 · admincenter · [SYSTEM] Validação ponta a ponta da Central dos Agentes
+<!-- AUTO-STATE:END -->

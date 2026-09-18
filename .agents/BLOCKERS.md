@@ -13,3 +13,9 @@ Formato:
 - **Necessário:** ação necessária
 - **Owner decision:** yes/no
 - **Status:** OPEN/RESOLVED
+
+<!-- AUTO-BLOCKERS:START -->
+## Bloqueios derivados das tarefas
+
+Nenhum bloqueio ativo.
+<!-- AUTO-BLOCKERS:END -->

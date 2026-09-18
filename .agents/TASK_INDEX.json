@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "counts": {
+    "ASSIGNED": 1
+  },
+  "open_task_ids": [
+    "TASK-20260918-27B9CA"
+  ],
+  "tasks": [
+    {
+      "task_id": "TASK-20260918-27B9CA",
+      "title": "[SYSTEM] Validação ponta a ponta da Central dos Agentes",
+      "status": "ASSIGNED",
+      "priority": "LOW",
+      "assigned_agent_id": "NP09",
+      "owner_agent_id": null,
+      "application_context": "admincenter",
+      "updated_at": "2026-09-18T14:15:52-03:00"
+    }
+  ]
+}
