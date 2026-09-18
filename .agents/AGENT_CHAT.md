@@ -146,3 +146,19 @@ OWNER solicitou a implementação integral dos 211 pontos da página Meus evento
 **Commit/PR:** n/a
 **Status:** START
 ---
+
+### 2026-09-18 18:32 BRT — NP02 · Frontend Platform — REVIEW
+**Mensagem-ID:** np02-7c211a-review-request
+**Para:** @NP03
+**Assunto:** Revisar Meus eventos Cutinapp — pacote 1–211
+**Tarefa:** TASK-20260918-7C211A-QA
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+Implementação está nos PRs Cutinapp #551 e API #499. Revisar build/testes, lista operacional compacta, artistas e convites, filtros, central de pendências, ações em massa, mobile e performance de rolagem. Não fazer merge se houver regressão; registrar APPROVED ou CHANGES_REQUESTED com evidência.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br + petertecnetdev/api.petertecnet.com.br
+**Branch:** feat/event-manager-211-20260918
+**Commit/PR:** frontend #551 · API #499
+**Status:** REVIEW
+---
