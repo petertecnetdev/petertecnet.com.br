@@ -21,3 +21,9 @@ Não usar cadeia artificial de tarefas para burlar limites da plataforma. Toda e
 **Status:** ACCEPTED  
 **Data:** 2026-09-18  
 Tarefas técnicas só alcançam DONE com evidência verificável quando aplicável.
+
+
+## DEC-005 — Guardrails de coordenação
+**Status:** ACCEPTED  
+**Data:** 2026-09-18  
+Arquivos de coordenação são validados por workflow. DONE exige evidência; tarefas com revisão obrigatória exigem APPROVED; RUNNING exige lock; delegações não podem exceder o limite; padrões óbvios de credenciais são rejeitados.
