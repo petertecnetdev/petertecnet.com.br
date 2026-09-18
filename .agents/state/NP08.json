@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "agent_id": "NP08",
+  "display_name": "NP08 · SEO & Distribution",
+  "role": "seo_distribution",
+  "status": "WAITING",
+  "current_task_id": null,
+  "last_seen_at": null,
+  "last_read_at": null,
+  "last_message_id": null,
+  "checkpoint": "Aguardando a próxima execução desta conta.",
+  "next_action": "Executar o bootstrap obrigatório e verificar o Agent Chat.",
+  "last_commit": null,
+  "last_error": null,
+  "tasks_completed_today": 0,
+  "updated_at": "2026-09-18T14:05:00-03:00"
+}
