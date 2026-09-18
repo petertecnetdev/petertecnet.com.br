@@ -1,6 +1,4 @@
-name: Agent Chat Sync
-
-# Initial production sync trigger
+name: Agent Control Sync
 
 on:
   push:
@@ -16,12 +14,12 @@ permissions:
   contents: write
 
 concurrency:
-  group: agent-chat-sync
+  group: agent-control-sync
   cancel-in-progress: false
 
 jobs:
   sync:
-    name: Sync Admin Center messages to Agent Chat
+    name: Sync Admin Center agent control to GitHub
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -29,61 +27,159 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Fetch pending Admin Center messages
+      - name: Fetch pending chat and control operations
         env:
           AGENT_CHAT_SYNC_URL: https://api.petertecnet.com.br/api/ecosystem/agent-chat/sync-feed
+          AGENT_CONTROL_SYNC_URL: https://api.petertecnet.com.br/api/ecosystem/agent-control/sync-feed
         run: |
           set -euo pipefail
           python3 - <<'PY'
+          import datetime
           import json
           import os
           import pathlib
+          import re
           import urllib.request
 
-          url = os.environ["AGENT_CHAT_SYNC_URL"]
-          request = urllib.request.Request(
-              url,
-              headers={"Accept": "application/json", "User-Agent": "Peter-Tecnet-Agent-Chat-Sync"},
-          )
-          with urllib.request.urlopen(request, timeout=20) as response:
-              payload = json.load(response)
+          def fetch_json(url):
+              request = urllib.request.Request(
+                  url,
+                  headers={"Accept": "application/json", "User-Agent": "Peter-Tecnet-Agent-Control-Sync"},
+              )
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  return json.load(response)
 
-          entries = payload.get("entries") or []
-          path = pathlib.Path(".agents/AGENT_CHAT.md")
-          content = path.read_text(encoding="utf-8")
-          appended = 0
+          chat_payload = fetch_json(os.environ["AGENT_CHAT_SYNC_URL"])
+          control_payload = fetch_json(os.environ["AGENT_CONTROL_SYNC_URL"])
 
-          for item in entries:
+          chat_entries = chat_payload.get("entries") or []
+          operations = control_payload.get("operations") or []
+
+          chat_path = pathlib.Path(".agents/AGENT_CHAT.md")
+          chat_content = chat_path.read_text(encoding="utf-8")
+          chat_appended = 0
+
+          for item in chat_entries:
               identifier = str(item.get("id") or "").strip()
               entry = str(item.get("entry") or "").strip()
               if not identifier or not entry:
                   continue
-
               marker = f"<!-- agent-chat-id:{identifier} -->"
-              if marker in content:
+              if marker in chat_content:
+                  continue
+              chat_content = chat_content.rstrip() + "\n\n" + entry.rstrip() + "\n"
+              chat_appended += 1
+
+          if chat_appended:
+              chat_path.write_text(chat_content, encoding="utf-8")
+
+          allowed_patch_keys = {
+              "title", "description", "application_context", "repository", "priority",
+              "status", "assigned_agent_id", "due_at", "next_action", "blocker",
+          }
+          task_id_pattern = re.compile(r"^TASK-[0-9]{8}-[A-Z0-9]{6}$")
+          task_changes = 0
+
+          for operation in operations:
+              operation_id = str(operation.get("id") or "").strip()
+              operation_type = str(operation.get("type") or "").strip()
+              task_id = str(operation.get("task_id") or "").strip()
+
+              if not operation_id or not task_id_pattern.match(task_id):
                   continue
 
-              content = content.rstrip() + "\n\n" + entry.rstrip() + "\n"
-              appended += 1
+              task_path = pathlib.Path(".agents/tasks") / f"{task_id}.json"
 
-          if appended:
-              path.write_text(content, encoding="utf-8")
+              if operation_type == "task_create":
+                  task = operation.get("task")
+                  if not isinstance(task, dict):
+                      continue
 
-          print(f"Pending entries: {len(entries)}; appended: {appended}")
+                  if task_path.exists():
+                      existing = json.loads(task_path.read_text(encoding="utf-8"))
+                      if operation_id in (existing.get("applied_operation_ids") or []):
+                          continue
+                      print(f"Refusing to overwrite existing task {task_id} for create operation {operation_id}.")
+                      continue
+
+                  task_path.parent.mkdir(parents=True, exist_ok=True)
+                  applied = list(task.get("applied_operation_ids") or [])
+                  if operation_id not in applied:
+                      applied.append(operation_id)
+                  task["applied_operation_ids"] = applied
+                  task_path.write_text(
+                      json.dumps(task, ensure_ascii=False, indent=2) + "\n",
+                      encoding="utf-8",
+                  )
+                  task_changes += 1
+                  continue
+
+              if operation_type != "task_patch" or not task_path.exists():
+                  continue
+
+              task = json.loads(task_path.read_text(encoding="utf-8"))
+              applied = list(task.get("applied_operation_ids") or [])
+              if operation_id in applied:
+                  continue
+
+              patch = operation.get("patch") or {}
+              if not isinstance(patch, dict):
+                  continue
+
+              previous_status = task.get("status")
+              for key, value in patch.items():
+                  if key in allowed_patch_keys:
+                      task[key] = value
+
+              created_at = operation.get("created_at") or datetime.datetime.now(datetime.timezone.utc).isoformat()
+              task["updated_at"] = created_at
+              task["version"] = int(task.get("version") or 0) + 1
+
+              new_status = task.get("status")
+              if new_status == "RUNNING" and not task.get("started_at"):
+                  task["started_at"] = created_at
+              if new_status == "DONE" and not task.get("completed_at"):
+                  task["completed_at"] = created_at
+              if new_status == "REVIEW" and not task.get("reviewed_at"):
+                  task["reviewed_at"] = created_at
+
+              event = operation.get("history_event")
+              if isinstance(event, dict):
+                  event = dict(event)
+                  if previous_status != new_status:
+                      event["from_status"] = previous_status
+                      event["to_status"] = new_status
+                  history = list(task.get("history") or [])
+                  history.append(event)
+                  task["history"] = history[-200:]
+
+              applied.append(operation_id)
+              task["applied_operation_ids"] = applied[-300:]
+
+              task_path.write_text(
+                  json.dumps(task, ensure_ascii=False, indent=2) + "\n",
+                  encoding="utf-8",
+              )
+              task_changes += 1
+
+          print(
+              f"Chat pending={len(chat_entries)} appended={chat_appended}; "
+              f"control pending={len(operations)} task_changes={task_changes}"
+          )
           PY
 
-      - name: Commit synchronized messages
+      - name: Commit synchronized control state
         run: |
           set -euo pipefail
-          if git diff --quiet -- .agents/AGENT_CHAT.md; then
-            echo "No pending Agent Chat messages to commit."
+          if git diff --quiet -- .agents; then
+            echo "No pending Agent Control changes to commit."
             exit 0
           fi
 
           git config user.name "Peter Tecnet Agent Sync"
           git config user.email "petertecnet@gmail.com"
-          git add .agents/AGENT_CHAT.md
-          git commit -m "chore(agent-chat): sync Admin Center messages [skip ci]"
+          git add .agents
+          git commit -m "chore(agent-control): sync Admin Center operations [skip ci]"
 
           for attempt in 1 2 3; do
             if git pull --rebase origin main && git push origin HEAD:main; then
@@ -92,5 +188,5 @@ jobs:
             sleep $((attempt * 2))
           done
 
-          echo "Unable to push Agent Chat synchronization after retries." >&2
+          echo "Unable to push Agent Control synchronization after retries." >&2
           exit 1
