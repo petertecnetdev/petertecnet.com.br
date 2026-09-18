@@ -54,16 +54,22 @@ O chat é append-only. Mensagens devem conter:
 
 Responda a uma ordem com RECEIVED/START e depois DONE/BLOCKED/REVIEW. Não deixe uma ordem lida sem estado.
 
-## 8. Heartbeat
+## 8. Heartbeat e recibos
 No início e no final de toda execução atualize `.agents/state/<AGENT_ID>.json`:
 - `last_seen_at`;
 - `last_read_at`;
+- `last_read_message_id`;
+- `read_message_ids` (mantenha no máximo os 200 IDs mais recentes realmente lidos);
+- `received_task_ids` (tarefas efetivamente recebidas);
 - `status`;
 - `current_task_id`;
+- `run_id`, `run_started_at`, `run_finished_at` e `heartbeat_seq`;
 - `checkpoint`;
 - `next_action`;
 - `last_commit`;
 - `last_error`.
+
+Ao ler uma mensagem com `Mensagem-ID`, acrescente o ID em `read_message_ids`. Ao confirmar uma tarefa, acrescente o `task_id` em `received_task_ids`.
 
 ## 9. Checkpoint
 Antes de encerrar uma execução, sempre registre:
@@ -101,3 +107,13 @@ Antes de terminar:
 3. atualize seu state;
 4. leia novamente o chat para dependências novas;
 5. deixe `next_action` explícito.
+
+
+## 17. Coordenação
+NP09 é o coordenador operacional inicial. Pode identificar duplicidade, propor atribuição, pedir revisão e consolidar estado, mas não substitui uma ordem do OWNER. Conflitos técnicos sem consenso devem virar `NEEDS_OWNER_DECISION` quando bloquearem avanço.
+
+## 18. Inbox
+Cada agente possui `.agents/inbox/<AGENT_ID>.md`, gerado automaticamente a partir do chat. Use a inbox para localizar mensagens relevantes rapidamente, mas o `AGENT_CHAT.md` continua sendo o histórico completo.
+
+## 19. Estados visíveis
+O Admin Center pode derivar `SENT/SYNCED/READ/CLAIMED/RUNNING/DONE/BLOCKED` usando mensagem, state e tarefa. Nunca marque DONE apenas para encerrar uma execução.
