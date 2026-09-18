@@ -1,72 +1,35 @@
-# Peter Tecnet — Protocolo de Comunicação dos Agentes
+# Peter Tecnet — Instruções obrigatórias para agentes externos
 
-Este repositório contém o canal central de comunicação entre os agentes do ecossistema Peter Tecnet.
+Os agentes deste ecossistema são **contas externas do ChatGPT identificadas por NPxx**. Cutinapp, API, Nexus, Plat, Rasoio, Locaio, Kryvion, Payflow, Laora, Peter Tecnet e Admin Center são plataformas/contextos, não identidades de agente.
 
-## Fonte da verdade
+## Antes de qualquer tarefa
 
-Antes de iniciar QUALQUER tarefa, todo agente deve consultar:
+1. Leia `.agents/CONTROL_PROTOCOL.md`.
+2. Leia `.agents/AGENTS_REGISTRY.json` e confirme seu `agent_id`.
+3. Leia `.agents/CURRENT_STATE.md`, `.agents/DECISIONS.md` e `.agents/state/<AGENT_ID>.json`.
+4. Leia as mensagens novas de `.agents/AGENT_CHAT.md` para `@todos` ou `@<AGENT_ID>`.
+5. Verifique `.agents/tasks/` e continue primeiro a tarefa RUNNING/ASSIGNED de maior prioridade.
+6. Atualize seu state/heartbeat antes de executar alterações.
 
-1. `.agents/AGENT_CHAT.md` no repositório `petertecnetdev/petertecnet.com.br`
-2. `.agents/CURRENT_STATE.md` no mesmo repositório
+## Durante a tarefa
 
-## Regra obrigatória de execução
+- Registre RECEIVED/START ao assumir ordem.
+- Use lock da tarefa antes de trabalhar; não duplique trabalho com outro agente.
+- Owner/Pedro tem prioridade máxima.
+- Respeite limite de delegações e não crie loops.
+- Registre checkpoint, bloqueio e evidências.
+- Para mudanças críticas, pagamentos, segurança ou produção, use revisão independente quando aplicável.
 
-Ao iniciar uma tarefa:
-- ler as mensagens mais recentes do chat central;
-- identificar mensagens para `@todos`, para o próprio agente/app ou relacionadas ao trabalho atual;
-- registrar no chat um evento `START` informando o que será feito.
+## Antes de encerrar
 
-Durante a tarefa:
-- registrar apenas descobertas relevantes, bloqueios, pedidos a outro agente ou decisões;
-- antes de alterar arquitetura compartilhada, verificar se outro agente já está trabalhando no mesmo ponto;
-- respeitar a arquitetura genérica/reutilizável da API central.
+1. Atualize a tarefa com status, checkpoint, next_action e evidências.
+2. Publique DONE/REVIEW/BLOCKED no Agent Chat.
+3. Atualize `.agents/state/<AGENT_ID>.json`.
+4. Releia o Agent Chat uma última vez.
+5. Deixe o próximo passo exato para a próxima execução.
 
-Ao concluir:
-- registrar `DONE`, `BLOCKED` ou `REVIEW`;
-- informar resumo objetivo, repositório, branch, commit/PR quando existir, testes executados e qualquer próximo passo;
-- atualizar `.agents/CURRENT_STATE.md` quando a mudança afetar o estado global do ecossistema.
+## Segurança
 
-## Formato das mensagens
+Nunca grave senhas, tokens, chaves privadas, cookies ou segredos em arquivos públicos. Não tente encadear tarefas para contornar limites da plataforma; a continuidade é feita por checkpoint na próxima execução autorizada.
 
-Adicionar novas mensagens ao FINAL de `.agents/AGENT_CHAT.md`, sem apagar ou reescrever o histórico existente.
-
-Formato:
-
-```md
-### YYYY-MM-DD HH:mm BRT — <autor/agente> — <tipo>
-**Para:** @todos | @nome-do-agente | @app
-**Assunto:** resumo curto
-
-Mensagem objetiva.
-
-**Repo:** owner/repo
-**Branch:** branch
-**Commit/PR:** sha, #PR ou n/a
-**Status:** START | INFO | QUESTION | REQUEST | REVIEW | DONE | BLOCKED
----
-```
-
-## Concorrência
-
-O chat é append-only. Antes de salvar:
-1. buscar novamente a versão atual do arquivo;
-2. usar o SHA atual;
-3. anexar a nova mensagem ao final;
-4. se houver conflito, buscar novamente, preservar todas as mensagens e tentar outra vez.
-
-Nunca sobrescrever mensagens de outro agente.
-
-## Prioridade de comandos
-
-1. Ordens explícitas de Pedro/Peter Tecnet
-2. Segurança, disponibilidade e prevenção de perda de dados/receita
-3. Tarefas já em execução registradas no chat
-4. Sugestões dos agentes
-
-## Continuidade
-
-Nenhum agente deve depender somente do histórico do seu chat do ChatGPT. O contexto operacional compartilhado fica no GitHub, principalmente em:
-- `.agents/AGENT_CHAT.md`
-- `.agents/CURRENT_STATE.md`
-
-Se uma tarefa for retomada em outra execução ou outro dia, começar por esses arquivos.
+Bootstrap completo: `.agents/TASK_BOOTSTRAP.md`.
