@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import NotificationsCenter from './NotificationsCenter'
 import AdminUsersCenter from './AdminUsersCenter.jsx'
 import AdminPayoutCenter from './AdminPayoutCenter.jsx'
+import AgentChatPanel from './AgentChatPanel.jsx'
 import { connectMissionControlRealtime } from './missionControlRealtime.js'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
@@ -11,6 +12,7 @@ const OWNER_EMAIL = 'petertecnet@gmail.com'
 const navItems = [
   ['dashboard', 'Visão geral', '⌂'],
   ['operations', 'Operações', '◈'],
+  ['agents', 'Agentes', '◉'],
   ['financial', 'Financeiro', '◒'],
   ['applications', 'Aplicações', '◇'],
   ['users', 'Usuários', '◎'],
@@ -582,6 +584,11 @@ function Dashboard({ user, onLogout }) {
           <section id="users" className="section-anchor">
             <SectionHeading kicker="USUÁRIOS" title="Gestão central de usuários" text="Pesquise, filtre e administre cadastros, perfis, acessos e atividade de todo o ecossistema."/>
             <AdminUsersCenter apiRequest={request} applications={applications}/>
+          </section>
+
+          <section id="agents" className="section-anchor">
+            <SectionHeading kicker="AGENTES" title="Central de comunicação" text="Envie ordens e acompanhe respostas dos agentes pelo histórico compartilhado do GitHub."/>
+            <AgentChatPanel request={request}/>
           </section>
 
           <section id="notifications" className="section-anchor">
