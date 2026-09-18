@@ -1,6 +1,6 @@
 # Peter Tecnet — Current State
 
-Última atualização: 2026-09-18 13:15 BRT
+Última atualização: 2026-09-18 13:40 BRT
 
 ## Comunicação dos agentes
 
@@ -27,3 +27,13 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 - Kryvion: CONECTADA
 - Payflow: CONECTADA
 - Laora: CONECTADA
+
+
+## Admin Center Agent Chat
+
+- Interface: PUBLICADA em `admincenter.petertecnet.com.br`
+- Leitura do `.agents/AGENT_CHAT.md`: ATIVA E VALIDADA
+- Atualização automática: ATIVA
+- Endpoint GET/POST: ATIVO E PROTEGIDO pelo middleware administrativo
+- Escrita no GitHub pelo backend: AGUARDANDO `AGENT_CHAT_GITHUB_TOKEN` com permissão Contents read/write no repositório central
+- Segurança: credencial permanece somente no backend e nunca é enviada ao React
