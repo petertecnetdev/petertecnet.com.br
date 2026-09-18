@@ -1,0 +1,94 @@
+name: Agent Chat Sync
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/agent-chat-sync.yml'
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: agent-chat-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync Admin Center messages to Agent Chat
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch pending Admin Center messages
+        env:
+          AGENT_CHAT_SYNC_URL: https://api.petertecnet.com.br/api/ecosystem/agent-chat/sync-feed
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import pathlib
+          import urllib.request
+
+          url = os.environ["AGENT_CHAT_SYNC_URL"]
+          request = urllib.request.Request(
+              url,
+              headers={"Accept": "application/json", "User-Agent": "Peter-Tecnet-Agent-Chat-Sync"},
+          )
+          with urllib.request.urlopen(request, timeout=20) as response:
+              payload = json.load(response)
+
+          entries = payload.get("entries") or []
+          path = pathlib.Path(".agents/AGENT_CHAT.md")
+          content = path.read_text(encoding="utf-8")
+          appended = 0
+
+          for item in entries:
+              identifier = str(item.get("id") or "").strip()
+              entry = str(item.get("entry") or "").strip()
+              if not identifier or not entry:
+                  continue
+
+              marker = f"<!-- agent-chat-id:{identifier} -->"
+              if marker in content:
+                  continue
+
+              content = content.rstrip() + "\n\n" + entry.rstrip() + "\n"
+              appended += 1
+
+          if appended:
+              path.write_text(content, encoding="utf-8")
+
+          print(f"Pending entries: {len(entries)}; appended: {appended}")
+          PY
+
+      - name: Commit synchronized messages
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- .agents/AGENT_CHAT.md; then
+            echo "No pending Agent Chat messages to commit."
+            exit 0
+          fi
+
+          git config user.name "Peter Tecnet Agent Sync"
+          git config user.email "petertecnet@gmail.com"
+          git add .agents/AGENT_CHAT.md
+          git commit -m "chore(agent-chat): sync Admin Center messages [skip ci]"
+
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep $((attempt * 2))
+          done
+
+          echo "Unable to push Agent Chat synchronization after retries." >&2
+          exit 1
