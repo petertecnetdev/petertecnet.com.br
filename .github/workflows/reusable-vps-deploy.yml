@@ -464,3 +464,23 @@ jobs:
           set -euo pipefail
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 20 "$HEALTH_URL" >/dev/null
           echo "Health check passed: $HEALTH_URL"
+
+      - name: Post-deploy safe disk cleanup
+        if: steps.config.outputs.enabled == 'true'
+        continue-on-error: true
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ steps.config.outputs.port }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          ssh_opts=(-o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=3)
+          ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" 'bash -se' <<'REMOTE'
+          set -Eeuo pipefail
+          if [[ -x /usr/local/sbin/petertecnet-safe-disk-cleanup ]]; then
+            sudo -n /usr/local/sbin/petertecnet-safe-disk-cleanup 2>/dev/null \
+              || /usr/local/sbin/petertecnet-safe-disk-cleanup 2>/dev/null \
+              || echo "Post-deploy disk cleanup skipped: insufficient privileges."
+          fi
+          REMOTE
