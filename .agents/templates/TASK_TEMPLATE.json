@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "task_id": "TASK-YYYYMMDD-ABC123",
+  "title": "Título objetivo",
+  "description": "Resultado esperado e critérios de conclusão.",
+  "application_context": "cutinapp",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "priority": "NORMAL",
+  "status": "ASSIGNED",
+  "assigned_agent_id": "NP02",
+  "owner_agent_id": null,
+  "created_by": "OWNER",
+  "created_at": "ISO-8601",
+  "updated_at": "ISO-8601",
+  "started_at": null,
+  "completed_at": null,
+  "reviewed_at": null,
+  "due_at": null,
+  "lock": {
+    "owner_agent_id": null,
+    "acquired_at": null,
+    "expires_at": null
+  },
+  "delegation_count": 0,
+  "max_delegations": 2,
+  "checkpoint": null,
+  "next_action": "Confirmar recebimento e assumir com lock.",
+  "blocker": null,
+  "tags": [],
+  "evidence": [],
+  "review": {
+    "required": false,
+    "reviewer_agent_id": null,
+    "status": "NOT_REQUIRED",
+    "notes": null
+  },
+  "history": [],
+  "applied_operation_ids": [],
+  "version": 1
+}
