@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "task_id": "TASK-20260918-7C211A-QA",
+  "title": "QA — Meus eventos Cutinapp pacote 1–211",
+  "description": "Revisar PR Cutinapp #551 e API #499: build/testes, layout desktop/mobile, filtros, artistas, pendências, ações em massa, regressões e performance de scroll. Aprovar ou registrar correções.",
+  "application_context": "cutinapp",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br + petertecnetdev/api.petertecnet.com.br",
+  "priority": "HIGH",
+  "status": "ASSIGNED",
+  "assigned_agent_id": "NP03",
+  "owner_agent_id": null,
+  "created_by": "NP02",
+  "created_at": "2026-09-18T18:32:00-03:00",
+  "updated_at": "2026-09-18T18:32:00-03:00",
+  "started_at": null,
+  "completed_at": null,
+  "reviewed_at": null,
+  "due_at": null,
+  "lock": {
+    "owner_agent_id": null,
+    "acquired_at": null,
+    "expires_at": null
+  },
+  "delegation_count": 0,
+  "max_delegations": 2,
+  "checkpoint": "PRs prontos para revisão: frontend #551, API #499.",
+  "next_action": "NP03 deve executar bootstrap, assumir lock, revisar os dois PRs e registrar APPROVED ou CHANGES_REQUESTED.",
+  "blocker": null,
+  "tags": [
+    "qa",
+    "cutinapp",
+    "events",
+    "performance",
+    "responsive"
+  ],
+  "evidence": [
+    {
+      "type": "pull_request",
+      "value": "https://github.com/petertecnetdev/cutinapp.petertecnet.com.br/pull/551"
+    },
+    {
+      "type": "pull_request",
+      "value": "https://github.com/petertecnetdev/api.petertecnet.com.br/pull/499"
+    }
+  ],
+  "review": {
+    "required": false,
+    "reviewer_agent_id": null,
+    "status": "NOT_REQUIRED",
+    "notes": null
+  },
+  "history": [
+    {
+      "operation_id": "np02-create-qa-7c211a",
+      "at": "2026-09-18T18:32:00-03:00",
+      "actor": "NP02",
+      "event": "CREATED",
+      "message": "NP02 solicitou revisão independente obrigatória antes de produção."
+    }
+  ],
+  "applied_operation_ids": [
+    "np02-create-qa-7c211a"
+  ],
+  "version": 1
+}
