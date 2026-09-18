@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '.agents/**'
+      - 'AGENTS.md'
+      - '.github/workflows/agent-chat-sync.yml'
   workflow_dispatch:
 
 permissions:
