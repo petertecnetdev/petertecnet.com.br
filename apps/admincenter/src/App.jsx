@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import NotificationsCenter from './NotificationsCenter'
 import AdminUsersCenter from './AdminUsersCenter.jsx'
+import AdminPayoutCenter from './AdminPayoutCenter.jsx'
 import { connectMissionControlRealtime } from './missionControlRealtime.js'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
@@ -563,6 +564,7 @@ function Dashboard({ user, onLogout }) {
             <Panel title="Receita por aplicação" subtitle="Ranking por volume bruto processado">
               <div className="table-wrap"><table><thead><tr><th>Aplicação</th><th>Transações</th><th>Volume bruto</th><th>Taxa Peter</th><th>Líquido</th></tr></thead><tbody>{financial?.applications?.length ? financial.applications.map(row => <tr key={row.app_slug || row.application_name}><td><b>{row.application_name || row.app_slug}</b></td><td>{compactNumber(row.transactions)}</td><td>{currency(row.gross)}</td><td>{currency(row.platform_fees)}</td><td>{currency(row.seller_net)}</td></tr>) : <tr><td colSpan="5"><Empty text="Ainda não há movimentação financeira consolidada por aplicação."/></td></tr>}</tbody></table></div>
             </Panel>
+            <AdminPayoutCenter request={request}/>
           </section>
 
           <section id="applications" className="section-anchor">
