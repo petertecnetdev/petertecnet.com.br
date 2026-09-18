@@ -1,24 +1,29 @@
 {
-  "version": 1,
+  "version": 2,
   "agent_id": "NP02",
   "display_name": "NP02 · Frontend Platform",
   "role": "frontend_platform",
-  "status": "WAITING",
-  "current_task_id": null,
-  "last_seen_at": null,
-  "last_read_at": null,
-  "checkpoint": "Aguardando a próxima execução desta conta.",
-  "next_action": "Executar o bootstrap obrigatório e verificar o Agent Chat.",
+  "status": "RUNNING",
+  "current_task_id": "TASK-20260918-7C211A",
+  "last_seen_at": "2026-09-18T18:10:00-03:00",
+  "last_read_at": "2026-09-18T18:10:00-03:00",
+  "checkpoint": "Bootstrap concluído e tarefa 1–211 assumida.",
+  "next_action": "Implementar a refatoração de Meus eventos em branch dedicada, executar validações e abrir PR para NP03.",
   "last_commit": null,
   "last_error": null,
   "tasks_completed_today": 0,
-  "updated_at": "2026-09-18T14:05:00-03:00",
+  "updated_at": "2026-09-18T18:10:00-03:00",
   "schema_version": 2,
-  "last_read_message_id": null,
-  "read_message_ids": [],
-  "received_task_ids": [],
-  "run_id": null,
-  "run_started_at": null,
+  "last_read_message_id": "76a91e39-7029-4330-98b7-9a0a3bef02ea",
+  "read_message_ids": [
+    "1d5f7b47-ccf6-4fd2-a84f-b0cf0395fefe",
+    "76a91e39-7029-4330-98b7-9a0a3bef02ea"
+  ],
+  "received_task_ids": [
+    "TASK-20260918-7C211A"
+  ],
+  "run_id": "np02-20260918-1810-7c211a",
+  "run_started_at": "2026-09-18T18:10:00-03:00",
   "run_finished_at": null,
-  "heartbeat_seq": 0
+  "heartbeat_seq": 1
 }
