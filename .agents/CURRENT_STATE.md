@@ -47,7 +47,7 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 ## Snapshot operacional automático
 
 - Agentes registrados: **8**
-- Tarefas abertas: **1**
+- Tarefas abertas: **0**
 - Executando: **0**
 - Em revisão: **0**
 - Bloqueadas/decisão: **0**
@@ -63,5 +63,5 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 - **NP10** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 
 ### Próximas tarefas
-- **TASK-20260918-27B9CA** · LOW · ASSIGNED · NP09 · admincenter · [SYSTEM] Validação ponta a ponta da Central dos Agentes
+- Nenhuma tarefa aberta.
 <!-- AUTO-STATE:END -->

@@ -6,12 +6,12 @@
   "application_context": "admincenter",
   "repository": "petertecnetdev/petertecnet.com.br",
   "priority": "LOW",
-  "status": "ASSIGNED",
+  "status": "CANCELLED",
   "assigned_agent_id": "NP09",
   "owner_agent_id": null,
   "created_by": "OWNER",
   "created_at": "2026-09-18T14:15:52-03:00",
-  "updated_at": "2026-09-18T14:15:52-03:00",
+  "updated_at": "2026-09-18T14:23:10-03:00",
   "started_at": null,
   "completed_at": null,
   "reviewed_at": null,
@@ -24,7 +24,7 @@
   "delegation_count": 0,
   "max_delegations": 2,
   "checkpoint": null,
-  "next_action": "Agente NP09 deve ler, confirmar recebimento e assumir a tarefa.",
+  "next_action": "Validação ponta a ponta concluída; nenhuma ação necessária.",
   "blocker": null,
   "tags": [
     "system-test"
@@ -43,10 +43,20 @@
       "actor": "OWNER",
       "event": "CREATED",
       "message": "OWNER criou a tarefa pelo Admin Center."
+    },
+    {
+      "operation_id": "48012995-539d-4794-b9b6-881cbcfe2644",
+      "at": "2026-09-18T14:23:10-03:00",
+      "actor": "OWNER",
+      "event": "OWNER_UPDATE",
+      "message": "OWNER atualizou a tarefa pelo Admin Center.",
+      "from_status": "ASSIGNED",
+      "to_status": "CANCELLED"
     }
   ],
   "applied_operation_ids": [
-    "3284df86-9cf3-4bfb-a1f3-5d4a9a7a4f80"
+    "3284df86-9cf3-4bfb-a1f3-5d4a9a7a4f80",
+    "48012995-539d-4794-b9b6-881cbcfe2644"
   ],
-  "version": 1
+  "version": 2
 }
