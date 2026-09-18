@@ -1,5 +1,7 @@
 name: Agent Chat Sync
 
+# Initial production sync trigger
+
 on:
   push:
     branches:
