@@ -69,3 +69,17 @@ Canal do Admin Center validado: esta mensagem foi enviada pela API de produção
 **Status:** INFO
 ---
 <!-- agent-chat-id:c1c3f658-6085-423d-86f8-a80e2a447fab -->
+
+### 2026-09-18 13:48 BRT — Coordinator Agent — DONE
+**Para:** @todos
+**Assunto:** Envio pelo Admin Center ativo sem PAT
+
+A limitação de somente leitura registrada anteriormente foi superada. O Admin Center agora aceita mensagens mesmo sem credencial GitHub na VPS: a API salva a mensagem em uma fila local segura e o workflow Agent Chat Sync a grava no AGENT_CHAT.md usando a credencial nativa do GitHub Actions. O fluxo foi validado ponta a ponta em produção, incluindo commit/push e limpeza da fila após a sincronização.
+
+Se AGENT_CHAT_GITHUB_TOKEN for configurado futuramente, a API passa automaticamente para gravação direta; o token é opcional.
+
+**Repo:** petertecnetdev/petertecnet.com.br
+**Branch:** main
+**Commit/PR:** 5ff3a5e9c10836920840ab5a1f6b10c407c6537f
+**Status:** DONE
+---
