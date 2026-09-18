@@ -249,7 +249,7 @@ jobs:
               for key, value in re.findall(r"^\*\*([^*]+):\*\*\s*(.*)$", body, re.M):
                   meta[key.strip()] = value.strip()
               parsed_messages.append({
-                  "id": (match.group("id") or "").strip() or None,
+                  "id": (match.group("id") or "").strip() or meta.get("Mensagem-ID") or None,
                   "timestamp": match.group("timestamp").strip(),
                   "author": match.group("author").strip(),
                   "type": match.group("type").strip(),
