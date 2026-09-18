@@ -1,0 +1,23 @@
+{
+  "schema_version": 2,
+  "agent_id": "NPxx",
+  "display_name": "NPxx · Função",
+  "role": "role",
+  "status": "WAITING",
+  "current_task_id": null,
+  "last_seen_at": null,
+  "last_read_at": null,
+  "last_read_message_id": null,
+  "read_message_ids": [],
+  "received_task_ids": [],
+  "run_id": null,
+  "run_started_at": null,
+  "run_finished_at": null,
+  "heartbeat_seq": 0,
+  "checkpoint": "Onde a execução parou.",
+  "next_action": "Próximo passo exato.",
+  "last_commit": null,
+  "last_error": null,
+  "tasks_completed_today": 0,
+  "updated_at": "ISO-8601"
+}
