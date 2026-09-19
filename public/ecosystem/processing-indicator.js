@@ -1,8 +1,9 @@
 (() => {
   const TAG = 'pt-processing-indicator'
   const LEGACY_LOGO_PATH = '/petertecnetlogo.png'
-  const OFFICIAL_LOGO_PATH = '/petertecnet-logo-circular.jpg'
-  const OFFICIAL_LOGO = `${OFFICIAL_LOGO_PATH}?v=20260908-circular-1`
+  const PREVIOUS_OFFICIAL_LOGO_PATH = '/petertecnet-logo-circular.jpg'
+  const OFFICIAL_LOGO_PATH = '/logopetertecnet.png'
+  const OFFICIAL_LOGO = `${OFFICIAL_LOGO_PATH}?v=20260918-brand-1`
   if (customElements.get(TAG)) return
 
   const DEFAULT_MESSAGES = [
@@ -160,7 +161,7 @@
     document.querySelectorAll('img').forEach(img => {
       const source = img.getAttribute('src') || ''
       const pathname = logoPathname(source)
-      if (pathname === LEGACY_LOGO_PATH) {
+      if (pathname === LEGACY_LOGO_PATH || pathname === PREVIOUS_OFFICIAL_LOGO_PATH) {
         img.setAttribute('src', OFFICIAL_LOGO)
         img.dataset.peterBrandLogo = 'true'
         return
