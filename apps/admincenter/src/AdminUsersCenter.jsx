@@ -1,32 +1,25 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { readAdminSessionState, writeAdminSessionState } from './adminPersistence.js'
+import { useEffect, useRef, useState } from 'react'
 import AdminUserDetailPage from './AdminUserDetailExperience.jsx'
 import AdminProspectInvitation from './AdminProspectInvitation.jsx'
-import { AdminImpersonationDialog, AdminImpersonationHistory, canImpersonate } from './AdminImpersonation.jsx'
-import { confirmAction } from './utils/uiDialog.js'
 import './AdminUsersCenter.css'
-
-const OWNER_EMAIL = 'petertecnet@gmail.com'
-const EMPTY_USER = { first_name: '', last_name: '', user_name: '', email: '', password: '', profile_id: '' }
-const EMPTY_FILTERS = { search: '', profile_id: '', app_id: '', access_status: '', has_establishment: '', activity_from: '', activity_to: '', sort: 'newest', per_page: '25' }
 
 function fullName(user) {
   return [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.user_name || user?.email || 'Usuário'
 }
 
-function dateTime(value) {
-  if (!value) return '—'
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+function initials(user) {
+  const name = fullName(user).trim()
+  if (!name) return 'U'
+  const parts = name.split(/\s+/).filter(Boolean)
+  return (parts.length > 1 ? `${parts[0][0]}${parts[1][0]}` : name.slice(0, 2)).toUpperCase()
 }
 
-function buildQuery(filters, page = 1) {
-  const params = new URLSearchParams()
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value !== '' && value !== null && value !== undefined) params.set(key, String(value))
-  })
-  params.set('page', String(page))
-  return params.toString()
+function dateTime(value) {
+  if (!value) return 'Sem atividade'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime())
+    ? 'Sem atividade'
+    : date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
 }
 
 function detailUserFromUrl() {
@@ -34,56 +27,47 @@ function detailUserFromUrl() {
   return value && /^\d+$/.test(value) ? Number(value) : null
 }
 
-function Stat({ label, value, detail }) {
-  return <div className="acu-stat"><span>{label}</span><strong>{value ?? 0}</strong><small>{detail}</small></div>
-}
-
-function Notice({ tone = 'info', children }) {
-  if (!children) return null
-  return <div className={`acu-notice acu-notice--${tone}`}>{children}</div>
+function applicationNames(user) {
+  const applications = Array.isArray(user?.applications) ? user.applications : []
+  if (!applications.length) return 'Nenhuma'
+  const names = applications.map(app => app?.name).filter(Boolean)
+  if (!names.length) return `${applications.length} acesso(s)`
+  if (names.length <= 2) return names.join(', ')
+  return `${names.slice(0, 2).join(', ')} +${names.length - 2}`
 }
 
 export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   const [users, setUsers] = useState([])
-  const [profiles, setProfiles] = useState([])
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 })
-  const [filters, setFilters] = useState(() => readAdminSessionState('users-filters', EMPTY_FILTERS))
-  const [form, setForm] = useState({ ...EMPTY_USER })
-  const [editingId, setEditingId] = useState(null)
   const [detailUserId, setDetailUserId] = useState(detailUserFromUrl)
-  const [impersonationUser, setImpersonationUser] = useState(null)
-  const [impersonationHistoryKey, setImpersonationHistoryKey] = useState(0)
+  const [inviteOpen, setInviteOpen] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
   const loadedOnceRef = useRef(false)
   const usersSequenceRef = useRef(0)
 
-  useEffect(() => { writeAdminSessionState('users-filters', filters) }, [filters])
-
-  async function loadProfiles() {
-    try {
-      const payload = await apiRequest('/admin/ecosystem/profiles')
-      setProfiles(payload?.profiles || [])
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
-  async function loadUsers(page = 1, nextFilters = filters, { quiet = false } = {}) {
+  async function loadUsers(page = 1, { quiet = false } = {}) {
     const sequence = ++usersSequenceRef.current
     if (!quiet && !loadedOnceRef.current) setLoading(true)
     setError('')
+
     try {
-      const payload = await apiRequest(`/admin/ecosystem/users?${buildQuery(nextFilters, page)}`)
-      if (sequence !== usersSequenceRef.current) return null
+      const params = new URLSearchParams({
+        page: String(page),
+        per_page: '50',
+        sort: 'newest',
+      })
+      const payload = await apiRequest(`/admin/ecosystem/users?${params.toString()}`)
+      if (sequence !== usersSequenceRef.current) return
+
       setUsers(payload?.users || [])
-      setPagination(payload?.pagination || { current_page: page, last_page: 1, total: payload?.users?.length || 0 })
-      return payload
+      setPagination(payload?.pagination || {
+        current_page: page,
+        last_page: 1,
+        total: payload?.users?.length || 0,
+      })
     } catch (err) {
-      if (sequence === usersSequenceRef.current) setError(err.message)
-      return null
+      if (sequence === usersSequenceRef.current) setError(err?.message || 'Não foi possível carregar os usuários.')
     } finally {
       if (sequence === usersSequenceRef.current) {
         loadedOnceRef.current = true
@@ -93,41 +77,28 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   }
 
   useEffect(() => {
-    Promise.all([loadProfiles(), loadUsers(1, filters)]).catch(() => {})
+    void loadUsers(1)
   }, [])
 
   useEffect(() => {
     function onPopState() {
       setDetailUserId(detailUserFromUrl())
     }
+
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
   useEffect(() => {
-    if (!detailUserId) return undefined
-    const timer = window.setTimeout(() => document.getElementById('users')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0)
-    return () => window.clearTimeout(timer)
-  }, [detailUserId])
+    if (!inviteOpen) return undefined
 
-  const pageStats = useMemo(() => {
-    const activeAccesses = users.reduce((total, user) => total + (user.applications || []).filter(app => app.pivot?.status === 'active').length, 0)
-    const withApplications = users.filter(user => user.applications?.length).length
-    const inactiveThreshold = Date.now() - (30 * 24 * 60 * 60 * 1000)
-
-    return {
-      withApplications,
-      withEstablishments: users.filter(user => Number(user.establishments_count || 0) > 0).length,
-      activeAccesses,
-      withoutApplications: Math.max(0, users.length - withApplications),
-      withoutProfile: users.filter(user => !user.profile).length,
-      inactive: users.filter(user => {
-        if (!user.last_activity_at) return true
-        const lastActivity = new Date(user.last_activity_at).getTime()
-        return Number.isNaN(lastActivity) ? false : lastActivity < inactiveThreshold
-      }).length,
+    function closeOnEscape(event) {
+      if (event.key === 'Escape') setInviteOpen(false)
     }
-  }, [users])
+
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [inviteOpen])
 
   function openDetail(userId) {
     const url = new URL(window.location.href)
@@ -135,7 +106,6 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
     window.history.pushState({ adminUserId: userId }, '', `${url.pathname}${url.search}${url.hash}`)
     setDetailUserId(Number(userId))
     setError('')
-    setMessage('')
   }
 
   async function closeDetail() {
@@ -143,191 +113,91 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
     url.searchParams.delete('user')
     window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`)
     setDetailUserId(null)
-    await loadUsers(pagination.current_page || 1, filters, { quiet: true })
-    window.setTimeout(() => document.getElementById('users')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0)
-  }
-
-  async function applyFilters(event) {
-    event?.preventDefault()
-    setMessage('')
-    if (filters.access_status === 'none' && !filters.app_id) {
-      setError('Para filtrar usuários sem vínculo, selecione também uma aplicação.')
-      return
-    }
-    await loadUsers(1, filters)
-  }
-
-  async function clearFilters() {
-    const next = { ...EMPTY_FILTERS }
-    setFilters(next)
-    setMessage('')
-    await loadUsers(1, next)
-  }
-
-  function beginEdit(user) {
-    setEditingId(user.id)
-    setForm({
-      first_name: user.first_name || '',
-      last_name: user.last_name || '',
-      user_name: user.user_name || '',
-      email: user.email || '',
-      password: '',
-      profile_id: user.profile_id || '',
-    })
-    setMessage('')
-    setError('')
-    document.getElementById('acu-editor')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }
-
-  function resetEditor() {
-    setEditingId(null)
-    setForm({ ...EMPTY_USER })
-  }
-
-  async function saveUser(event) {
-    event.preventDefault()
-    setBusy(true)
-    setError('')
-    setMessage('')
-    try {
-      const payload = {
-        first_name: form.first_name.trim(),
-        last_name: form.last_name.trim() || null,
-        user_name: form.user_name.trim(),
-        email: form.email.trim().toLowerCase(),
-        profile_id: form.profile_id ? Number(form.profile_id) : null,
-      }
-      if (!editingId) payload.password = form.password
-      await apiRequest(`/admin/ecosystem/users${editingId ? `/${editingId}` : ''}`, {
-        method: editingId ? 'PUT' : 'POST',
-        body: JSON.stringify(payload),
-      })
-      setMessage(editingId ? 'Usuário atualizado com sucesso.' : 'Usuário criado com sucesso.')
-      const targetPage = editingId ? pagination.current_page || 1 : 1
-      resetEditor()
-      await loadUsers(targetPage, filters, { quiet: true })
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function deleteUser(user) {
-    if (String(user.email || '').toLowerCase() === OWNER_EMAIL) return
-    const confirmed = await confirmAction({
-      tone: 'danger',
-      title: 'Excluir usuário do ecossistema?',
-      message: `${fullName(user)} (${user.email}) será removido do cadastro central. Vínculos e históricos dependentes podem ser afetados conforme as regras da API.`,
-      confirmLabel: 'Excluir usuário',
-      cancelLabel: 'Manter usuário',
-      dismissOnBackdrop: false,
-    })
-    if (!confirmed) return
-
-    setBusy(true)
-    setError('')
-    setMessage('')
-    try {
-      await apiRequest(`/admin/ecosystem/users/${user.id}`, { method: 'DELETE' })
-      setMessage('Usuário excluído.')
-      const targetPage = users.length === 1 && (pagination.current_page || 1) > 1 ? pagination.current_page - 1 : pagination.current_page || 1
-      await loadUsers(targetPage, filters, { quiet: true })
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setBusy(false)
-    }
+    await loadUsers(pagination.current_page || 1, { quiet: true })
   }
 
   if (detailUserId) {
     return <AdminUserDetailPage userId={detailUserId} apiRequest={apiRequest} applications={applications} onBack={closeDetail}/>
   }
 
-  return <div className="acu-root">
-    <div className="acu-stats">
-      <Stat label="Usuários encontrados" value={pagination.total ?? users.length} detail="resultado dos filtros atuais"/>
-      <Stat label="Acessos ativos" value={pageStats.activeAccesses} detail="na página atual"/>
-      <Stat label="Com aplicações" value={pageStats.withApplications} detail="na página atual"/>
-      <Stat label="Com estabelecimento" value={pageStats.withEstablishments} detail="na página atual"/>
-      <Stat label="Sem perfil" value={pageStats.withoutProfile} detail="requer revisão"/>
-      <Stat label="Sem atividade 30d" value={pageStats.inactive} detail="na página atual"/>
-    </div>
+  return <div className="acu-root acu-root--simple">
+    {error && <div className="acu-notice acu-notice--danger">{error}</div>}
 
-    <Notice tone="danger">{error}</Notice>
-    <Notice tone="success">{message}</Notice>
-
-    <section className="acu-card acu-table-card">
-      <header>
+    <section className="acu-card acu-users-simple">
+      <header className="acu-users-simple__head">
         <div>
-          <span>ECOSSISTEMA</span>
-          <h3>Todos os usuários</h3>
-          <p>{pagination.from && pagination.to ? `Exibindo ${pagination.from}–${pagination.to} de ${pagination.total}` : `${pagination.total || 0} usuários encontrados`}</p>
+          <span>USUÁRIOS</span>
+          <h3>Lista de usuários</h3>
+          <p>{pagination.total || users.length || 0} cadastrado(s) no ecossistema</p>
         </div>
-        <div className="acu-table-toolbar">
-          <form className="acu-table-search" onSubmit={applyFilters}>
-            <input
-              aria-label="Pesquisar usuários"
-              placeholder="Nome, e-mail, usuário ou ID"
-              value={filters.search}
-              onChange={event => setFilters({ ...filters, search: event.target.value })}
-            />
-            <button className="acu-primary">Buscar</button>
-          </form>
-          <div className="acu-table-shortcuts">
-            <button type="button" className="acu-secondary" onClick={() => document.getElementById('acu-filters')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>Filtros</button>
-            <button type="button" className="acu-secondary" onClick={() => document.getElementById('acu-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>Novo usuário</button>
-            <button type="button" className="acu-secondary" onClick={() => document.getElementById('admin-prospect-invitation')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>Convidar</button>
-            <button type="button" className="acu-secondary" onClick={() => loadUsers(pagination.current_page || 1, filters)} disabled={loading}>Atualizar</button>
-          </div>
-        </div>
+        <button type="button" className="acu-invite-button" onClick={() => setInviteOpen(true)}>
+          + Convidar usuário
+        </button>
       </header>
-      {loading ? <div className="acu-loading">Carregando usuários…</div> : users.length ? <div className="acu-table-wrap"><table><thead><tr><th scope="col">Usuário</th><th scope="col">Perfil</th><th scope="col">Atividade</th><th scope="col">Recursos</th><th scope="col">Aplicações</th><th scope="col">Ações</th></tr></thead><tbody>{users.map(user => <tr key={user.id}><td data-label="Usuário"><div className="acu-user"><span>{fullName(user).slice(0, 2).toUpperCase()}</span><div><b>{fullName(user)}</b><small>#{user.id} · {user.email}</small></div></div></td><td data-label="Perfil"><span className="acu-badge">{user.profile?.name || 'Sem perfil'}</span></td><td data-label="Atividade"><b>{dateTime(user.last_activity_at)}</b><small>{user.interactions_count || 0} interações</small></td><td data-label="Recursos"><b>{user.establishments_count || 0}</b><small>estabelecimento(s)</small></td><td data-label="Aplicações"><b>{user.applications?.length || 0}</b><small>vínculo(s)</small></td><td data-label="Ações"><div className="acu-actions"><button disabled={!canImpersonate(user)} onClick={() => setImpersonationUser(user)}>Entrar como usuário</button><button onClick={() => openDetail(user.id)}>Detalhes</button><button onClick={() => beginEdit(user)}>Editar</button><button className="acu-danger" disabled={String(user.email || '').toLowerCase() === OWNER_EMAIL || busy} onClick={() => deleteUser(user)}>Excluir</button></div></td></tr>)}</tbody></table></div> : <div className="acu-empty">Nenhum usuário encontrado com os filtros atuais.</div>}
-      <footer className="acu-pagination"><span>Página {pagination.current_page || 1} de {pagination.last_page || 1}</span><div><button className="acu-secondary" disabled={!pagination.previous_page || loading} onClick={() => loadUsers(pagination.previous_page, filters)}>← Anterior</button><button className="acu-secondary" disabled={!pagination.next_page || loading} onClick={() => loadUsers(pagination.next_page, filters)}>Próxima →</button></div></footer>
+
+      {loading ? (
+        <div className="acu-loading">Carregando usuários…</div>
+      ) : users.length ? (
+        <div className="acu-simple-list">
+          {users.map(user => (
+            <button type="button" className="acu-simple-user" key={user.id} onClick={() => openDetail(user.id)}>
+              <span className="acu-simple-user__avatar">{initials(user)}</span>
+              <span className="acu-simple-user__identity">
+                <strong>{fullName(user)}</strong>
+                <small>{user.email}</small>
+              </span>
+              <span className="acu-simple-user__meta">
+                <small>Perfil</small>
+                <strong>{user.profile?.name || 'Sem perfil'}</strong>
+              </span>
+              <span className="acu-simple-user__meta">
+                <small>Plataformas</small>
+                <strong>{applicationNames(user)}</strong>
+              </span>
+              <span className="acu-simple-user__meta acu-simple-user__activity">
+                <small>Última atividade</small>
+                <strong>{dateTime(user.last_activity_at)}</strong>
+              </span>
+              <span className="acu-simple-user__open" aria-hidden="true">›</span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="acu-empty">
+          <strong>Nenhum usuário encontrado.</strong>
+          <span>Convide o primeiro usuário para começar.</span>
+        </div>
+      )}
+
+      {(pagination.last_page || 1) > 1 && (
+        <footer className="acu-pagination">
+          <span>Página {pagination.current_page || 1} de {pagination.last_page || 1}</span>
+          <div>
+            <button className="acu-secondary" disabled={!pagination.previous_page || loading} onClick={() => loadUsers(pagination.previous_page)}>
+              ← Anterior
+            </button>
+            <button className="acu-secondary" disabled={!pagination.next_page || loading} onClick={() => loadUsers(pagination.next_page)}>
+              Próxima →
+            </button>
+          </div>
+        </footer>
+      )}
     </section>
 
-
-    <div className="acu-layout">
-      <section className="acu-card" id="acu-editor">
-        <header><div><span>CADASTRO CENTRAL</span><h3>{editingId ? 'Editar usuário' : 'Novo usuário'}</h3></div>{editingId && <button className="acu-link" onClick={resetEditor}>Cancelar edição</button>}</header>
-        <form className="acu-form" onSubmit={saveUser}>
-          <label>Nome<input value={form.first_name} onChange={event => setForm({ ...form, first_name: event.target.value })} required/></label>
-          <label>Sobrenome<input value={form.last_name} onChange={event => setForm({ ...form, last_name: event.target.value })}/></label>
-          <label>Usuário<input value={form.user_name} onChange={event => setForm({ ...form, user_name: event.target.value })} required/></label>
-          <label>E-mail<input type="email" value={form.email} onChange={event => setForm({ ...form, email: event.target.value })} required/></label>
-          <label className="acu-wide">Perfil<select value={form.profile_id} onChange={event => setForm({ ...form, profile_id: event.target.value })}><option value="">Sem perfil</option>{profiles.map(profile => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></label>
-          {!editingId && <label className="acu-wide">Senha inicial<input type="password" minLength="8" autoComplete="new-password" value={form.password} onChange={event => setForm({ ...form, password: event.target.value })} required/><small>Mínimo de 8 caracteres.</small></label>}
-          <button className="acu-primary acu-wide" disabled={busy}>{busy ? 'Salvando…' : editingId ? 'Salvar alterações' : 'Criar usuário'}</button>
-        </form>
-      </section>
-
-      <section className="acu-card" id="acu-filters">
-        <header><div><span>SEGMENTAÇÃO</span><h3>Filtros globais</h3></div></header>
-        <form className="acu-filters" onSubmit={applyFilters}>
-          <label className="acu-wide">Buscar<input placeholder="ID, nome, e-mail ou usuário" value={filters.search} onChange={event => setFilters({ ...filters, search: event.target.value })}/></label>
-          <label>Perfil<select value={filters.profile_id} onChange={event => setFilters({ ...filters, profile_id: event.target.value })}><option value="">Todos</option>{profiles.map(profile => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></label>
-          <label>Aplicação<select value={filters.app_id} onChange={event => setFilters({ ...filters, app_id: event.target.value })}><option value="">Todas</option>{applications.map(app => <option key={app.id} value={app.id}>{app.name}</option>)}</select></label>
-          <label>Status do acesso<select value={filters.access_status} onChange={event => setFilters({ ...filters, access_status: event.target.value })}><option value="">Qualquer status</option><option value="active">Ativo</option><option value="blocked">Bloqueado</option><option value="suspended">Suspenso</option><option value="pending">Pendente</option><option value="none">Sem vínculo na aplicação</option></select></label>
-          <label>Estabelecimento<select value={filters.has_establishment} onChange={event => setFilters({ ...filters, has_establishment: event.target.value })}><option value="">Todos</option><option value="yes">Possui</option><option value="no">Não possui</option></select></label>
-          <label>Atividade desde<input type="date" value={filters.activity_from} onChange={event => setFilters({ ...filters, activity_from: event.target.value })}/></label>
-          <label>Atividade até<input type="date" value={filters.activity_to} onChange={event => setFilters({ ...filters, activity_to: event.target.value })}/></label>
-          <label>Ordenação<select value={filters.sort} onChange={event => setFilters({ ...filters, sort: event.target.value })}><option value="newest">Mais novos</option><option value="oldest">Mais antigos</option><option value="name">Nome</option><option value="email">E-mail</option></select></label>
-          <label>Por página<select value={filters.per_page} onChange={event => setFilters({ ...filters, per_page: event.target.value })}><option value="25">25</option><option value="50">50</option><option value="100">100</option></select></label>
-          <div className="acu-filter-actions acu-wide"><button className="acu-primary">Aplicar filtros</button><button type="button" className="acu-secondary" onClick={clearFilters}>Limpar</button></div>
-        </form>
-      </section>
-    </div>
-
-    <AdminProspectInvitation apiRequest={apiRequest} applications={applications}/>
-
-    <AdminImpersonationHistory apiRequest={apiRequest} refreshKey={impersonationHistoryKey}/>
-
-    <AdminImpersonationDialog
-      user={impersonationUser}
-      applications={applications}
-      apiRequest={apiRequest}
-      onClose={() => setImpersonationUser(null)}
-      onStarted={() => setImpersonationHistoryKey(value => value + 1)}
-    />
+    {inviteOpen && (
+      <div className="acu-invite-modal" role="dialog" aria-modal="true" aria-label="Convidar usuário" onMouseDown={event => {
+        if (event.target === event.currentTarget) setInviteOpen(false)
+      }}>
+        <div className="acu-invite-modal__panel">
+          <button type="button" className="acu-invite-modal__close" aria-label="Fechar" onClick={() => setInviteOpen(false)}>×</button>
+          <AdminProspectInvitation
+            apiRequest={apiRequest}
+            applications={applications}
+            compact
+            onSuccess={() => loadUsers(1, { quiet: true })}
+          />
+        </div>
+      </div>
+    )}
   </div>
 }
