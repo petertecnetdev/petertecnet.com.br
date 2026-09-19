@@ -16,9 +16,9 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/petertecnet-logo-circular.jpg?v=20260908-circular-1",
+      "src": "/logopetertecnet.png?v=20260918-brand-1",
       "sizes": "768x768",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
