@@ -6,12 +6,12 @@
   "application_context": "cutinapp",
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br + petertecnetdev/api.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "assigned_agent_id": "NP01",
   "owner_agent_id": "NP01",
   "created_by": "OWNER",
   "created_at": "2026-09-19T10:31:00-03:00",
-  "updated_at": "2026-09-19T10:31:00-03:00",
+  "updated_at": "2026-09-19T11:23:00-03:00",
   "started_at": "2026-09-19T10:31:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
@@ -23,8 +23,8 @@
   },
   "delegation_count": 0,
   "max_delegations": 2,
-  "checkpoint": "Causa localizada: frontend apaga city/uf ao ativar geolocalização; API filtra exclusivamente eventos com latitude/longitude, removendo eventos locais legados sem coordenadas.",
-  "next_action": "Implementar preservação de cidade no frontend, fallback seguro por cidade na API, adicionar teste de regressão e validar CI.",
+  "checkpoint": "Correção implementada. Frontend PR #578 preserva city/UF ao ativar Perto de mim; Validate Cutinapp e Lighthouse CI passaram. API PR #506 inclui fallback por cidade para eventos sem coordenadas, exclui geocodificados fora do raio e prioriza distâncias reais. O teste de regressão CutinappDiscoveryFiltersTest passou. A suíte global da API segue vermelha por 33 falhas preexistentes (arquitetura/payouts/telemetria), fora deste diff.",
+  "next_action": "NP03 revisar PRs #578 e #506. Após aprovação, mergear e validar deploy/endpoint em produção.",
   "blocker": null,
   "tags": [
     "cutinapp",
@@ -34,7 +34,39 @@
     "mobile",
     "bugfix"
   ],
-  "evidence": [],
+  "evidence": [
+    {
+      "type": "pr",
+      "repo": "petertecnetdev/cutinapp.petertecnet.com.br",
+      "number": 578,
+      "head": "154ea0471cb07ada6c98cac5a5371dd478b9fd51",
+      "status": "CI_GREEN"
+    },
+    {
+      "type": "pr",
+      "repo": "petertecnetdev/api.petertecnet.com.br",
+      "number": 506,
+      "head": "89bc1a588d4f5bce0d4f7bf06c2c7b4ba0ab2113",
+      "status": "TARGETED_TEST_GREEN"
+    },
+    {
+      "type": "test",
+      "name": "Tests\\Feature\\CutinappDiscoveryFiltersTest",
+      "result": "PASS",
+      "note": "nearby filter keeps same city events without coordinates as fallback"
+    },
+    {
+      "type": "ci",
+      "name": "Cutinapp Validate + Lighthouse",
+      "result": "PASS"
+    },
+    {
+      "type": "ci",
+      "name": "API CI global",
+      "result": "FAIL_BASELINE",
+      "note": "33 unrelated preexisting failures; targeted discovery regression passes"
+    }
+  ],
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
@@ -48,10 +80,18 @@
       "actor": "NP01",
       "event": "CREATED_AND_CLAIMED",
       "message": "OWNER reportou que Perto de mim elimina eventos locais; NP01 assumiu correção com lock de 90 minutos."
+    },
+    {
+      "operation_id": "np01-nearby01-review",
+      "at": "2026-09-19T11:23:00-03:00",
+      "actor": "NP01",
+      "event": "MOVED_TO_REVIEW",
+      "message": "PRs #578 (frontend) and #506 (API) ready. Frontend CI/Lighthouse green; API targeted discovery test green; global API failures are preexisting outside diff."
     }
   ],
   "applied_operation_ids": [
-    "np01-start-nearby01"
+    "np01-start-nearby01",
+    "np01-nearby01-review"
   ],
-  "version": 1
+  "version": 2
 }
