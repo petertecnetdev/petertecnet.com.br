@@ -175,13 +175,15 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
                 type="button"
                 className="acu-simple-user__impersonate"
                 disabled={!canImpersonate(user)}
-                onClick={() => {
+                onClick={event => {
+                  event.stopPropagation()
                   setError('')
                   setImpersonationUser(user)
                 }}
+                aria-label={`Entrar como ${fullName(user)}`}
                 title={canImpersonate(user) ? 'Entrar temporariamente como este usuário' : 'Este usuário não pode ser assumido'}
               >
-                Entrar
+                Entrar como usuário
               </button>
             </div>
           ))}
