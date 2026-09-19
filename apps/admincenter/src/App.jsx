@@ -1,24 +1,77 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import NotificationsCenter from './NotificationsCenter'
 import AdminUsersCenter from './AdminUsersCenter.jsx'
 import AdminPayoutCenter from './AdminPayoutCenter.jsx'
 import AgentChatPanel from './AgentChatPanel.jsx'
 import { connectMissionControlRealtime } from './missionControlRealtime.js'
 
+const AdminEstablishmentsPage = lazy(() => import('./AdminEstablishmentsPageV2.jsx'))
+const AdminItemsManager = lazy(() => import('./AdminItemsManager.jsx'))
+
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
 const OWNER_EMAIL = 'petertecnet@gmail.com'
 
 const navItems = [
-  ['dashboard', 'Visão geral', '⌂'],
-  ['operations', 'Operações', '◈'],
-  ['agents', 'Agentes', '◉'],
-  ['financial', 'Financeiro', '◒'],
-  ['applications', 'Aplicações', '◇'],
-  ['users', 'Usuários', '◎'],
-  ['notifications', 'Notificações', '✦'],
-  ['activity', 'Atividade', '↯'],
+  ['dashboard', 'Visão geral', 'home'],
+  ['operations', 'Operações', 'pulse'],
+  ['agents', 'Agentes', 'agents'],
+  ['financial', 'Financeiro', 'finance'],
+  ['applications', 'Aplicações', 'apps'],
+  ['users', 'Usuários', 'users'],
+  ['establishments', 'Estabelecimentos', 'building'],
+  ['items', 'Itens', 'items'],
+  ['notifications', 'Notificações', 'bell'],
+  ['activity', 'Atividade', 'activity'],
 ]
+
+const PAGE_CONFIG = {
+  dashboard: { slug: 'visao-geral', label: 'Visão geral' },
+  operations: { slug: 'operacoes', label: 'Operações' },
+  agents: { slug: 'agentes', label: 'Agentes' },
+  financial: { slug: 'financeiro', label: 'Financeiro' },
+  applications: { slug: 'aplicacoes', label: 'Aplicações' },
+  users: { slug: 'usuarios', label: 'Usuários' },
+  establishments: { slug: 'estabelecimentos', label: 'Estabelecimentos' },
+  items: { slug: 'itens', label: 'Itens' },
+  notifications: { slug: 'notificacoes', label: 'Notificações' },
+  activity: { slug: 'atividade', label: 'Atividade' },
+}
+
+const PAGE_FROM_SLUG = Object.fromEntries(Object.entries(PAGE_CONFIG).flatMap(([key, config]) => [[key, key], [config.slug, key]]))
+const BACKGROUND_REFRESH_PAGES = new Set(['dashboard', 'operations', 'financial', 'applications', 'activity'])
+const BACKGROUND_REFRESH_MS = 120000
+
+function pageFromLocation() {
+  const url = new URL(window.location.href)
+  const token = String(url.searchParams.get('page') || '').trim().toLowerCase()
+  return PAGE_FROM_SLUG[token] || 'dashboard'
+}
+
+function writePageHistory(page, mode = 'pushState') {
+  const url = new URL(window.location.href)
+  const config = PAGE_CONFIG[page] || PAGE_CONFIG.dashboard
+  if (page === 'dashboard') url.searchParams.delete('page')
+  else url.searchParams.set('page', config.slug)
+  url.hash = ''
+  window.history[mode]({ ...(window.history.state || {}), adminPage: page }, '', `${url.pathname}${url.search}`)
+}
+
+function AdminIcon({ name }) {
+  const paths = {
+    home: '<path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H4.5A1.5 1.5 0 0 1 3 19.5z"/>',
+    pulse: '<path d="M3 12h4l2-6 4 12 2-6h6"/>',
+    agents: '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20c.5-4 2.7-6 5.5-6s5 2 5.5 6M14 15c3.2-.8 5.7 1.2 6.5 4"/>',
+    finance: '<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>',
+    apps: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
+    users: '<circle cx="9" cy="8" r="3"/><path d="M3 20c.7-4 2.8-6 6-6s5.3 2 6 6M16 5.5a3 3 0 0 1 0 5.8M17 14c2.5.3 4 2.1 4 5"/>',
+    building: '<path d="M4 21V4h11v17M15 9h5v12M8 8h3M8 12h3M8 16h3M18 13h1"/>',
+    items: '<path d="m4 7 8-4 8 4-8 4zM4 7v10l8 4 8-4V7M12 11v10"/>',
+    bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
+    activity: '<path d="M3 12h4l2-5 4 10 2-5h6"/>',
+  }
+  return <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" dangerouslySetInnerHTML={{ __html: paths[name] || paths.home }} />
+}
 
 const groupLabels = {
   users: 'Usuários', applications: 'Aplicações', establishments: 'Estabelecimentos',
@@ -353,33 +406,64 @@ function Dashboard({ user, onLogout }) {
   const [query, setQuery] = useState('')
   const [searching, setSearching] = useState(false)
   const [searchResult, setSearchResult] = useState(null)
+  const [activePage, setActivePage] = useState(pageFromLocation)
+  const [realtimeState, setRealtimeState] = useState('connecting')
   const searchTimer = useRef(null)
+  const refreshTimerRef = useRef(null)
+  const refreshInFlightRef = useRef(false)
+  const refreshSequenceRef = useRef(0)
+  const lastRefreshRef = useRef(null)
+  const activePageRef = useRef(activePage)
 
-  async function loadAll({ quiet = false } = {}) {
-    if (quiet) {
-      setRefreshing(true)
-    } else {
-      setLoading(true)
-    }
-    setLoadError('')
+  useEffect(() => { activePageRef.current = activePage }, [activePage])
+
+  const loadAll = useCallback(async ({ quiet = false, indicate = false, force = false } = {}) => {
+    if (!force && refreshInFlightRef.current) return
+    if (!force && quiet && document.visibilityState !== 'visible') return
+
+    const sequence = ++refreshSequenceRef.current
+    refreshInFlightRef.current = true
+    if (!quiet) setLoading(true)
+    if (indicate) setRefreshing(true)
+
     const endpoints = [
-      ['/admin/ecosystem/dashboard', setDashboard],
-      ['/admin/ecosystem/activity', setActivity],
-      ['/admin/ecosystem/financial/dashboard', setFinancial],
-      ['/admin/ecosystem/command/overview', setCommand],
-      ['/admin/applications', payload => setApplications(payload?.applications || payload?.data || (Array.isArray(payload) ? payload : []))],
+      ['/admin/ecosystem/dashboard', 'dashboard'],
+      ['/admin/ecosystem/activity', 'activity'],
+      ['/admin/ecosystem/financial/dashboard', 'financial'],
+      ['/admin/ecosystem/command/overview', 'command'],
+      ['/admin/applications', 'applications'],
     ]
-    const settled = await Promise.allSettled(endpoints.map(([path]) => request(path)))
-    let failures = 0
-    settled.forEach((result, index) => {
-      if (result.status === 'fulfilled') endpoints[index][1](result.value)
-      else failures += 1
-    })
-    if (failures === endpoints.length) setLoadError('Não foi possível carregar a dashboard. Verifique a sessão e a API.')
-    else if (failures) setLoadError(`${failures} fonte${failures > 1 ? 's' : ''} de dados não respondeu. O restante da dashboard continua disponível.`)
-    setLoading(false)
-    setRefreshing(false)
-  }
+
+    try {
+      const settled = await Promise.allSettled(endpoints.map(([path]) => request(path)))
+      if (sequence !== refreshSequenceRef.current) return
+
+      let failures = 0
+      settled.forEach((result, index) => {
+        const key = endpoints[index][1]
+        if (result.status !== 'fulfilled') { failures += 1; return }
+        if (key === 'dashboard') setDashboard(result.value)
+        if (key === 'activity') setActivity(result.value)
+        if (key === 'financial') setFinancial(result.value)
+        if (key === 'command') setCommand(result.value)
+        if (key === 'applications') {
+          const payload = result.value
+          setApplications(payload?.applications || payload?.data || (Array.isArray(payload) ? payload : []))
+        }
+      })
+
+      if (failures === endpoints.length) setLoadError('Não foi possível atualizar as fontes administrativas. Os dados anteriores foram preservados.')
+      else if (failures) setLoadError(`${failures} fonte${failures > 1 ? 's' : ''} não respondeu. Os dados disponíveis foram preservados.`)
+      else setLoadError('')
+      lastRefreshRef.current = new Date()
+    } finally {
+      if (sequence === refreshSequenceRef.current) {
+        setLoading(false)
+        setRefreshing(false)
+        refreshInFlightRef.current = false
+      }
+    }
+  }, [])
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void loadAll() }, 0)
@@ -387,12 +471,15 @@ function Dashboard({ user, onLogout }) {
   }, [])
 
   useEffect(() => {
-    let realtimeState = 'connecting'
-    let refreshTimer = null
+    let socketState = 'connecting'
 
     const queueRefresh = () => {
-      if (refreshTimer) window.clearTimeout(refreshTimer)
-      refreshTimer = window.setTimeout(() => { void loadAll({ quiet: true }) }, 300)
+      if (document.visibilityState !== 'visible') return
+      if (!BACKGROUND_REFRESH_PAGES.has(activePageRef.current)) return
+      if (refreshTimerRef.current) window.clearTimeout(refreshTimerRef.current)
+      refreshTimerRef.current = window.setTimeout(() => {
+        void loadAll({ quiet: true })
+      }, 1600)
     }
 
     const disconnect = connectMissionControlRealtime({
@@ -405,19 +492,47 @@ function Dashboard({ user, onLogout }) {
         )
         if (eventName !== 'ecosystem.updated' || affectsDashboard) queueRefresh()
       },
-      onState: state => { realtimeState = state },
+      onState: state => {
+        socketState = state
+        setRealtimeState(state)
+      },
     })
 
     const fallback = window.setInterval(() => {
-      if (realtimeState !== 'connected') queueRefresh()
-    }, 15000)
+      if (socketState !== 'connected') queueRefresh()
+    }, BACKGROUND_REFRESH_MS)
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible' && socketState !== 'connected') queueRefresh()
+    }
+    document.addEventListener('visibilitychange', onVisibility)
 
     return () => {
-      if (refreshTimer) window.clearTimeout(refreshTimer)
+      if (refreshTimerRef.current) window.clearTimeout(refreshTimerRef.current)
       window.clearInterval(fallback)
+      document.removeEventListener('visibilitychange', onVisibility)
       disconnect?.()
     }
+  }, [loadAll])
+
+  useEffect(() => {
+    const handlePopState = () => setActivePage(pageFromLocation())
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
   }, [])
+
+  useEffect(() => {
+    const config = PAGE_CONFIG[activePage] || PAGE_CONFIG.dashboard
+    document.title = `${config.label} · Admin Center · Peter Tecnet`
+    window.dispatchEvent(new CustomEvent('admin-page-change', { detail: { page: activePage } }))
+  }, [activePage])
+
+  useEffect(() => {
+    if (!sidebarOpen || !window.matchMedia('(max-width: 980px)').matches) return undefined
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = previous }
+  }, [sidebarOpen])
 
   useEffect(() => {
     function shortcut(event) {
@@ -442,9 +557,14 @@ function Dashboard({ user, onLogout }) {
     return () => window.clearTimeout(searchTimer.current)
   }, [query])
 
-  function go(section) {
-    setSidebarOpen(false)
-    document.getElementById(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  function go(section, { replace = false } = {}) {
+    const next = PAGE_CONFIG[section] ? section : 'dashboard'
+    setActivePage(next)
+    writePageHistory(next, replace ? 'replaceState' : 'pushState')
+    if (window.matchMedia('(max-width: 980px)').matches) setSidebarOpen(false)
+    setLauncherOpen(false)
+    setSearchResult(null)
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }))
   }
 
   const summary = dashboard?.summary || {}
@@ -463,16 +583,16 @@ function Dashboard({ user, onLogout }) {
 
   const highestApp = [...appRows].sort((a, b) => number(b.activity_count_30d) - number(a.activity_count_30d))[0]
 
-  return <div className="admin-shell">
+  return <div className="admin-shell" data-admin-page={activePage}>
     <div className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)}/>
     <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-      <a className="brand" href="#dashboard" onClick={event => { event.preventDefault(); go('dashboard') }}>
+      <a className="brand" href="?page=visao-geral" onClick={event => { event.preventDefault(); go('dashboard') }}>
         <span className="brand-logo"><img src="/petertecnetlogo.png" alt=""/></span>
         <span><b>Peter Tecnet</b><small>Admin Center</small></span>
       </a>
       <nav>
         <p>GESTÃO</p>
-        {navItems.map(([id, label, icon]) => <button key={id} onClick={() => go(id)}><span>{icon}</span>{label}<i>↗</i></button>)}
+        {navItems.map(([id, label, icon]) => <button key={id} type="button" className={activePage === id ? 'active' : ''} data-admin-page-target={id} aria-current={activePage === id ? 'page' : undefined} onClick={() => go(id)}><span><AdminIcon name={icon}/></span><b>{label}</b><i>→</i></button>)}
       </nav>
       <div className="sidebar-status">
         <span className={`status-dot ${status}`}/><div><b>{operationalStatus}</b><small>Estado do ecossistema</small></div>
@@ -501,7 +621,8 @@ function Dashboard({ user, onLogout }) {
           {(searchResult || searching) && <SearchPopover result={searchResult} searching={searching} onClose={() => { setQuery(''); setSearchResult(null) }}/>} 
         </div>
         <div className="top-actions">
-          <button className="icon-button" onClick={() => loadAll({ quiet: true })} aria-label="Atualizar dados" title="Atualizar dados">{refreshing ? '◌' : '↻'}</button>
+          <span className={`sync-status sync-${realtimeState}`} title={realtimeState === 'connected' ? 'Atualização em tempo real conectada' : 'Atualização em tempo real indisponível; o painel usa sincronização de segurança'}><i/><b>{realtimeState === 'connected' ? 'Ao vivo' : 'Sincronização'}</b></span>
+          <button className="icon-button" onClick={() => loadAll({ quiet: true, indicate: true, force: true })} aria-label="Atualizar dados" title="Atualizar dados">{refreshing ? '◌' : '↻'}</button>
           <div className="launcher-wrap">
             <button className="ecosystem-button" onClick={() => setLauncherOpen(value => !value)}><span>◫</span><b>Navegar no ecossistema</b><i>⌄</i></button>
             {launcherOpen && <EcosystemLauncher applications={applications} onClose={() => setLauncherOpen(false)}/>} 
@@ -510,14 +631,14 @@ function Dashboard({ user, onLogout }) {
       </header>
 
       <div className="content">
-        <section className="hero-section" id="dashboard">
+        <section className="hero-section" id="dashboard" data-admin-page-key="dashboard">
           <div><p className="eyebrow">PETER TECNET / ECOSYSTEM INTELLIGENCE</p><h1>Dashboard administrativo</h1><p>Acompanhe operação, adoção e receita do ecossistema em tempo real.</p></div>
           <div className={`health-chip ${status}`}><span/><div><small>ECOSYSTEM HEALTH</small><b>{operationalStatus}</b></div></div>
         </section>
 
-        {loadError && <div className="notice">{loadError}<button onClick={() => loadAll()}>Tentar novamente</button></div>}
+        {loadError && <div className="notice" data-admin-page-key="dashboard">{loadError}<button onClick={() => loadAll()}>Tentar novamente</button></div>}
         {loading ? <DashboardSkeleton/> : <>
-          <section className="metrics-grid">
+          <section className="metrics-grid" data-admin-page-key="dashboard">
             <MetricCard label="Receita bruta" value={currency(totals.gross)} detail={`${compactNumber(approved.count)} pagamentos confirmados`} tone="accent"/>
             <MetricCard label="Receita Peter Tecnet" value={currency(totals.platform_fees)} detail="Taxas da plataforma no período" tone="success"/>
             <MetricCard label="Usuários ativos hoje" value={compactNumber(summary.active_users_today)} detail={`${compactNumber(summary.interactions_today)} interações hoje`}/>
@@ -526,7 +647,7 @@ function Dashboard({ user, onLogout }) {
             <MetricCard label="Pagamentos em atenção" value={compactNumber(number(failed.count) + number(pending.count))} detail={`${compactNumber(failed.count)} falhas · ${compactNumber(pending.count)} pendentes`} tone={number(failed.count) ? 'danger' : 'warning'}/>
           </section>
 
-          <section className="analytics-grid">
+          <section className="analytics-grid" data-admin-page-key="dashboard">
             <Panel title="Receita nos últimos 30 dias" subtitle="Volume bruto processado pelo ecossistema" className="chart-panel">
               <LineChart rows={financial?.timeline || []} valueKey="gross" formatter={currency}/>
               <div className="chart-summary"><span><i className="dot approved"/>Aprovado <b>{currency(approved.amount)}</b></span><span><i className="dot fees"/>Taxas Peter <b>{currency(totals.platform_fees)}</b></span><span><i className="dot net"/>Líquido vendedores <b>{currency(totals.seller_net)}</b></span></div>
@@ -537,7 +658,7 @@ function Dashboard({ user, onLogout }) {
             </Panel>
           </section>
 
-          <section id="operations" className="section-anchor">
+          <section id="operations" className="section-anchor" data-admin-page-key="operations">
             <SectionHeading kicker="OPERAÇÕES" title="Saúde e sinais críticos" text="Alertas financeiros e operacionais que merecem atenção imediata."/>
             <div className="operations-grid">
               <Panel title="Alertas ativos" subtitle={`${issueRows.length + financialAlerts.length} sinais encontrados`}>
@@ -558,7 +679,7 @@ function Dashboard({ user, onLogout }) {
             </div>
           </section>
 
-          <section id="financial" className="section-anchor">
+          <section id="financial" className="section-anchor" data-admin-page-key="financial">
             <SectionHeading kicker="FINANCEIRO" title="Performance de receita" text="Distribuição financeira por aplicação e status de pagamentos."/>
             <div className="financial-strip">
               <div><span>Transações</span><b>{compactNumber(totals.transactions)}</b></div><div><span>Gross</span><b>{currency(totals.gross)}</b></div><div><span>Taxas do provedor</span><b>{currency(totals.provider_fees)}</b></div><div><span>Seller net</span><b>{currency(totals.seller_net)}</b></div>
@@ -569,7 +690,7 @@ function Dashboard({ user, onLogout }) {
             <AdminPayoutCenter request={request}/>
           </section>
 
-          <section id="applications" className="section-anchor">
+          <section id="applications" className="section-anchor" data-admin-page-key="applications">
             <SectionHeading kicker="APLICAÇÕES" title="Ecossistema em produção" text="Adoção e atividade por produto conectado à API central."/>
             <div className="apps-grid">
               {appRows.length ? appRows.map(app => <article className="app-card" key={app.id || app.slug}>
@@ -581,21 +702,33 @@ function Dashboard({ user, onLogout }) {
             </div>
           </section>
 
-          <section id="users" className="section-anchor">
+          <section id="users" className="section-anchor" data-admin-page-key="users">
             <SectionHeading kicker="USUÁRIOS" title="Gestão central de usuários" text="Pesquise, filtre e administre cadastros, perfis, acessos e atividade de todo o ecossistema."/>
             <AdminUsersCenter apiRequest={request} applications={applications}/>
           </section>
 
-          <section id="agents" className="section-anchor">
+          <section id="establishments-admin-integration" className="section-anchor admin-native-module" data-admin-page-key="establishments">
+            <Suspense fallback={<ModuleSkeleton title="Carregando estabelecimentos…" />}>
+              <AdminEstablishmentsPage />
+            </Suspense>
+          </section>
+
+          <section id="items-admin-integration" className="section-anchor admin-native-module" data-admin-page-key="items">
+            <Suspense fallback={<ModuleSkeleton title="Carregando itens…" />}>
+              <AdminItemsManager applications={applications} />
+            </Suspense>
+          </section>
+
+          <section id="agents" className="section-anchor" data-admin-page-key="agents">
             <SectionHeading kicker="AGENTES" title="Central de comunicação" text="Envie ordens e acompanhe respostas dos agentes pelo histórico compartilhado do GitHub."/>
             <AgentChatPanel request={request}/>
           </section>
 
-          <section id="notifications" className="section-anchor">
+          <section id="notifications" className="section-anchor" data-admin-page-key="notifications">
             <NotificationsCenter request={request} applications={applications}/>
           </section>
 
-          <section id="activity" className="section-anchor">
+          <section id="activity" className="section-anchor" data-admin-page-key="activity">
             <SectionHeading kicker="ATIVIDADE" title="Linha do tempo recente" text="Últimas ações registradas pela telemetria do ecossistema."/>
             <Panel title="Atividade recente" subtitle={`${compactNumber(activity?.summary?.total ?? summary.interactions_30d)} interações no recorte atual`}>
               <div className="timeline">
@@ -635,8 +768,12 @@ function EcosystemLauncher({ applications, onClose }) {
   </div>
 }
 
+function ModuleSkeleton({ title = 'Carregando módulo…' }) {
+  return <div className="admin-module-skeleton" role="status" aria-live="polite"><span/><div><b>{title}</b><small>Preparando a área administrativa sem interromper o restante do painel.</small></div></div>
+}
+
 function DashboardSkeleton() {
-  return <div className="skeleton-wrap"><div className="metrics-grid">{Array.from({ length: 6 }, (_, index) => <div className="skeleton metric-card" key={index}/>)}</div><div className="analytics-grid"><div className="skeleton panel tall"/><div className="skeleton panel tall"/></div></div>
+  return <div className="skeleton-wrap" data-admin-page-key="dashboard"><div className="metrics-grid">{Array.from({ length: 6 }, (_, index) => <div className="skeleton metric-card" key={index}/>)}</div><div className="analytics-grid"><div className="skeleton panel tall"/><div className="skeleton panel tall"/></div></div>
 }
 
 export default function App() {
@@ -658,8 +795,18 @@ export default function App() {
     }
     validate()
     const expired = () => { setUser(null); setChecking(false) }
+    const storage = event => {
+      if (event.key !== TOKEN_KEY) return
+      if (!event.newValue) { setUser(null); setChecking(false); return }
+      setChecking(true)
+      validate()
+    }
     window.addEventListener('admin-session-expired', expired)
-    return () => window.removeEventListener('admin-session-expired', expired)
+    window.addEventListener('storage', storage)
+    return () => {
+      window.removeEventListener('admin-session-expired', expired)
+      window.removeEventListener('storage', storage)
+    }
   }, [])
 
   function logout() {

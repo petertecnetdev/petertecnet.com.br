@@ -1,6 +1,6 @@
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
-const POLL_MS = 30000
+const POLL_MS = 120000
 
 const state = { open: false, loading: false, unread: 0, events: [], summary: {}, severity: '', unreadOnly: false, search: '', selectedId: null, detailById: {}, detailLoading: {}, detailErrors: {} }
 

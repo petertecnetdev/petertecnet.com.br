@@ -228,7 +228,7 @@ export default function AdminEstablishmentsPageV2() {
       }
       setNotice(editingId ? 'Establishment atualizado com sucesso.' : `Establishment #${id || ''} criado com sucesso.`)
       setMode('list'); setEditing(null); setResourceEditor(null); setReloadKey(value => value + 1)
-      document.querySelector('.top-actions .icon-button')?.click(); window.setTimeout(scrollTop, 0)
+      window.dispatchEvent(new CustomEvent('admin-entity-updated', { detail: { entity: 'establishment' } })); window.setTimeout(scrollTop, 0)
     } catch (err) { setError(err.message) }
     finally { setSaving(false) }
   }
@@ -281,7 +281,7 @@ export default function AdminEstablishmentsPageV2() {
       {...resourceEditor}
       users={users}
       onBack={() => { setMode('editor'); setResourceEditor(null); window.setTimeout(scrollTop, 0) }}
-      onCreated={message => { setNotice(message); setMode('editor'); setResourceEditor(null); document.querySelector('.top-actions .icon-button')?.click(); window.setTimeout(scrollTop, 0) }}
+      onCreated={message => { setNotice(message); setMode('editor'); setResourceEditor(null); window.dispatchEvent(new CustomEvent('admin-entity-updated', { detail: { entity: 'establishment' } })); window.setTimeout(scrollTop, 0) }}
     />
   }
 

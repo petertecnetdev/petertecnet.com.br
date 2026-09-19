@@ -121,8 +121,7 @@ export function AdminSupportLauncher() {
     const update = () => setVisible(Boolean(localStorage.getItem(TOKEN_KEY)))
     window.addEventListener('storage', update)
     window.addEventListener('admin-session-expired', update)
-    const timer = window.setInterval(update, 1500)
-    return () => { window.removeEventListener('storage', update); window.removeEventListener('admin-session-expired', update); window.clearInterval(timer) }
+    return () => { window.removeEventListener('storage', update); window.removeEventListener('admin-session-expired', update) }
   }, [])
   if (!visible || window.location.pathname.replace(/\/+$/, '') === '/support') return null
   return <a className="admin-support-launcher" href="/support"><span>?</span><b>Suporte</b></a>

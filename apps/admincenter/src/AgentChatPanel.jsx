@@ -168,11 +168,13 @@ export default function AgentChatPanel({ request }) {
     const initialTimer = window.setTimeout(() => { void load() }, 0)
 
     const timer = window.setInterval(() => {
-      if (document.visibilityState === 'visible') void load({ quiet: true })
-    }, 12000)
+      const active = document.querySelector('.admin-shell')?.dataset?.adminPage === 'agents'
+      if (document.visibilityState === 'visible' && active) void load({ quiet: true })
+    }, 60000)
 
     const onVisibility = () => {
-      if (document.visibilityState === 'visible') void load({ quiet: true })
+      const active = document.querySelector('.admin-shell')?.dataset?.adminPage === 'agents'
+      if (document.visibilityState === 'visible' && active) void load({ quiet: true })
     }
     document.addEventListener('visibilitychange', onVisibility)
 
