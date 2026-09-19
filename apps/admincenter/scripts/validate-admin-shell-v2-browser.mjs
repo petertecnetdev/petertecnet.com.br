@@ -26,10 +26,14 @@ rmSync(output, { recursive: true, force: true })
 mkdirSync(output, { recursive: true })
 
 const cases = [
-  { name: 'desktop-open', width: 1440, height: 900, open: true, mobile: false },
-  { name: 'desktop-closed', width: 1440, height: 900, open: false, mobile: false },
-  { name: 'mobile-closed', width: 390, height: 844, open: false, mobile: true },
-  { name: 'mobile-open', width: 390, height: 844, open: true, mobile: true },
+  { name: 'wide-1920-open', width: 1920, height: 1080, open: true, mobile: false },
+  { name: 'desktop-1440-open', width: 1440, height: 900, open: true, mobile: false },
+  { name: 'notebook-1366-open', width: 1366, height: 768, open: true, mobile: false },
+  { name: 'desktop-closed', width: 1280, height: 800, open: false, mobile: false },
+  { name: 'tablet-768-closed', width: 768, height: 1024, open: false, mobile: true },
+  { name: 'android-390-closed', width: 390, height: 844, open: false, mobile: true },
+  { name: 'android-390-open', width: 390, height: 844, open: true, mobile: true },
+  { name: 'iphone-360-open', width: 360, height: 800, open: true, mobile: true },
 ]
 
 function page(test) {
@@ -63,6 +67,12 @@ for (const test of cases) {
     '--dump-dom', pathToFileURL(file).href,
   ], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 })
   const result = run.status === 0 ? parse(run.stdout) : null
+  spawnSync(chrome, [
+    '--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
+    '--allow-file-access-from-files',
+    `--window-size=${Math.max(500,test.width)},${Math.max(800,test.height)}`,
+    `--screenshot=${join(output, `${test.name}.png`)}`, pathToFileURL(file).href,
+  ], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 })
   if (!result) {
     failures.push(`${test.name}: browser probe não retornou resultado`)
     continue
@@ -75,4 +85,4 @@ if (failures.length) {
   failures.forEach(item => console.error('- '+item))
   process.exit(1)
 }
-console.log('Admin shell V2 browser smoke passed.')
+console.log(`Admin shell V2 browser smoke passed in ${cases.length} viewport/state combinations.`)
