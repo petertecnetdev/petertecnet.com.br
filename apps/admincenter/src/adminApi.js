@@ -1,4 +1,4 @@
-const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
+export const ADMIN_API_BASE = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
 const DEFAULT_TIMEOUT = 18000
 const inflightReads = new Map()
@@ -24,7 +24,7 @@ async function execute(path, options, attempt = 0) {
   const timeout = window.setTimeout(() => controller.abort(), Number(options.timeout || DEFAULT_TIMEOUT))
 
   try {
-    const response = await fetch(`${API}${path}`, {
+    const response = await fetch(`${ADMIN_API_BASE}${path}`, {
       ...options,
       method,
       signal: controller.signal,
