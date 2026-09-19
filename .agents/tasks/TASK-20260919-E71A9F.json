@@ -6,25 +6,25 @@
   "application_context": "cutinapp",
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br + petertecnetdev/api.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "WAITING",
   "assigned_agent_id": "NP02",
   "owner_agent_id": "NP02",
   "created_by": "OWNER",
   "created_at": "2026-09-19T00:20:00-03:00",
-  "updated_at": "2026-09-19T00:20:00-03:00",
+  "updated_at": "2026-09-19T11:33:00-03:00",
   "started_at": "2026-09-19T00:20:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
   "due_at": null,
   "lock": {
-    "owner_agent_id": "NP02",
-    "acquired_at": "2026-09-19T00:20:00-03:00",
-    "expires_at": "2026-09-19T01:50:00-03:00"
+    "owner_agent_id": null,
+    "acquired_at": null,
+    "expires_at": null
   },
   "delegation_count": 0,
   "max_delegations": 2,
-  "checkpoint": "Requisitos confirmados. Frontend já possui fallback por iniciais em ProducerEventCard e geração manual via Creative Studio; página pública/editor ainda usam placeholder genérico. API Creative existente será reaproveitada para geração automática.",
-  "next_action": "Implementar geração automática persistida no backend e padronizar fallback de iniciais no frontend; validar testes/build e abrir PRs para QA.",
+  "checkpoint": "Requisitos confirmados. Frontend já possui fallback por iniciais em ProducerEventCard e geração manual via Creative Studio; página pública/editor ainda usam placeholder genérico. API Creative existente será reaproveitada para geração automática. Trabalho pausado temporariamente por nova ordem explícita do OWNER sobre o editor de produção; nenhum progresso técnico desta tarefa foi descartado.",
+  "next_action": "Retomar após concluir TASK-20260919-PRODEDIT01, revalidando o estado do branch e o checkpoint atual.",
   "blocker": null,
   "tags": [
     "cutinapp",
@@ -48,10 +48,18 @@
       "actor": "NP02",
       "event": "CREATED_AND_CLAIMED",
       "message": "OWNER definiu geração automática de imagem por IA e fallback por iniciais; NP02 assumiu com lock de 90 minutos."
+    },
+    {
+      "operation_id": "np02-pause-e71a9f-for-prodedit01",
+      "at": "2026-09-19T11:33:00-03:00",
+      "actor": "NP02",
+      "event": "PAUSED_FOR_OWNER_PRIORITY",
+      "message": "Tarefa pausada para atender ordem explícita e prioritária do OWNER sobre edição visual da produção."
     }
   ],
   "applied_operation_ids": [
-    "np02-start-e71a9f"
+    "np02-start-e71a9f",
+    "np02-pause-e71a9f-for-prodedit01"
   ],
-  "version": 1
+  "version": 2
 }
