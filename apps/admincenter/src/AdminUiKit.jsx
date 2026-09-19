@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 
 export function PageHeader({ eyebrow = 'Gestão', title, description, icon, breadcrumbs = [], context, count, status, actions, compact = false }) {
   return <header className={`adm-page-header${compact ? ' is-compact' : ''}`}>
@@ -70,15 +70,22 @@ export function FilterBar({ search, onSearch, searchPlaceholder = 'Pesquisar…'
   </section>
 }
 
-export function DataTable({ columns, rows = [], rowKey = 'id', loading = false, error = '', emptyTitle = 'Nenhum registro encontrado', emptyDescription = 'Ajuste os filtros ou tente novamente.', sort, onSort, selected = [], onSelect, onSelectAll, bulkActions, page = 1, pages = 1, onPage }) {
+export function DataTable({ columns, rows = [], rowKey = 'id', tableLabel = 'Tabela de registros', loading = false, error = '', emptyTitle = 'Nenhum registro encontrado', emptyDescription = 'Ajuste os filtros ou tente novamente.', sort, onSort, selected = [], onSelect, onSelectAll, bulkActions, page = 1, pages = 1, onPage }) {
+  const tableId = useId()
   const allSelected = rows.length > 0 && rows.every(row => selected.includes(row[rowKey]))
+  const getRowLabel = row => row.name ?? row.title ?? row.label ?? row[rowKey]
+  const getSortState = column => {
+    if (!column.sortable || sort?.key !== column.key) return undefined
+    return sort.direction === 'desc' ? 'descending' : 'ascending'
+  }
   if (error) return <div className="adm-inline-state is-error" role="alert"><strong>Não foi possível carregar os dados.</strong><span>{error}</span></div>
   return <section className="adm-datatable-shell">
     {selected.length > 0 && bulkActions && <div className="adm-bulkbar"><strong>{selected.length} selecionado(s)</strong>{bulkActions}</div>}
     <div className="adm-datatable-scroll">
-      <table className="adm-datatable">
-        <thead><tr>{onSelect && <th className="adm-cell-select"><input type="checkbox" aria-label="Selecionar todos" checked={allSelected} onChange={event => onSelectAll?.(event.target.checked, rows)} /></th>}{columns.map(column => <th key={column.key} className={column.sticky ? 'is-sticky' : ''}>{column.sortable ? <button type="button" onClick={() => onSort?.(column.key)}>{column.label}<span aria-hidden="true">{sort?.key === column.key ? (sort.direction === 'desc' ? ' ↓' : ' ↑') : ' ↕'}</span></button> : column.label}</th>)}</tr></thead>
-        <tbody>{loading ? Array.from({ length: 5 }, (_, index) => <tr key={`skeleton-${index}`} className="adm-table-skeleton">{onSelect && <td />}{columns.map(column => <td key={column.key}><span /></td>)}</tr>) : rows.map(row => <tr key={row[rowKey]}>{onSelect && <td className="adm-cell-select"><input type="checkbox" aria-label={`Selecionar registro ${row[rowKey]}`} checked={selected.includes(row[rowKey])} onChange={event => onSelect(row[rowKey], event.target.checked)} /></td>}{columns.map(column => <td key={column.key} data-label={column.label} className={column.sticky ? 'is-sticky' : ''}>{column.render ? column.render(row) : row[column.key]}</td>)}</tr>)}</tbody>
+      <table id={tableId} className="adm-datatable">
+        <caption className="sr-only">{tableLabel}</caption>
+        <thead><tr>{onSelect && <th scope="col" className="adm-cell-select"><input type="checkbox" aria-label={`Selecionar todos os registros da ${tableLabel.toLowerCase()}`} aria-controls={tableId} checked={allSelected} onChange={event => onSelectAll?.(event.target.checked, rows)} /></th>}{columns.map(column => <th scope="col" key={column.key} className={column.sticky ? 'is-sticky' : ''} aria-sort={getSortState(column)}>{column.sortable ? <button type="button" onClick={() => onSort?.(column.key)} aria-label={`Ordenar por ${column.label}`}>{column.label}<span aria-hidden="true">{sort?.key === column.key ? (sort.direction === 'desc' ? ' ↓' : ' ↑') : ' ↕'}</span></button> : column.label}</th>)}</tr></thead>
+        <tbody>{loading ? Array.from({ length: 5 }, (_, index) => <tr key={`skeleton-${index}`} className="adm-table-skeleton">{onSelect && <td />}{columns.map(column => <td key={column.key}><span /></td>)}</tr>) : rows.map(row => <tr key={row[rowKey]}>{onSelect && <td className="adm-cell-select"><input type="checkbox" aria-label={`Selecionar registro ${getRowLabel(row)}`} checked={selected.includes(row[rowKey])} onChange={event => onSelect(row[rowKey], event.target.checked)} /></td>}{columns.map(column => <td key={column.key} data-label={column.label} className={column.sticky ? 'is-sticky' : ''}>{column.render ? column.render(row) : row[column.key]}</td>)}</tr>)}</tbody>
       </table>
     </div>
     {!loading && rows.length === 0 && <div className="adm-inline-state"><strong>{emptyTitle}</strong><span>{emptyDescription}</span></div>}
