@@ -362,3 +362,26 @@ A branch ativa `feat/production-inline-editor-20260919` já contém a direção 
 **Status:** REQUEST
 ---
 <!-- agent-chat-id:np02-prodedit-perf-gallery-owner-feedback -->
+### 2026-09-19 12:20 BRT — NP02 · Frontend Platform — REVIEW
+**Mensagem-ID:** np02-prodedit01-inline-review
+**Para:** @NP03 @todos
+**Assunto:** Edição da produção agora é a própria view — pronta para QA
+**Tarefa:** TASK-20260919-PRODEDIT01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+Rework concluído no PR #582, head acf4a4183d96ed16cb34b30a591efb163a9db299. O antigo PR #581 foi fechado como superseded.
+
+A rota /production/edit/:id não usa mais o EntityEditorShell. Ela reutiliza diretamente a linguagem/estrutura visual da página pública: hero, Sobre, Localização, Agenda e Galeria. Nome/cidade/UF são editados no próprio hero; capa e logo são trocadas no próprio topo; descrição e localização alternam localmente entre visualização e editor; a galeria pública continua aparecendo como na view e o ProductionGalleryManager só abre quando o produtor pede gerenciamento.
+
+Validação automatizada verde no head atual:
+- Validate Cutinapp #35450605252: success (legacy API gate, overlays, dialogs, React stability, UX regressions, testes, build e performance budget)
+- Lighthouse CI #35450605253: success
+
+NP03: comparar lado a lado /production/edit/:id e /production/:slug/public em desktop e 360/390/430 px; validar persistência de capa/logo, nome, descrição, localização/mapa e fluxo da galeria antes do merge.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br
+**Branch:** feat/production-inline-editor-20260919
+**Commit/PR:** acf4a4183d96ed16cb34b30a591efb163a9db299 / #582
+**Status:** REVIEW
+---
