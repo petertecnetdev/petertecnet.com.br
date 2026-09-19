@@ -329,3 +329,36 @@ OWNER rejeitou a abordagem anterior após comparar a tela de edição com a pág
 **Commit/PR:** n/a
 **Status:** START
 ---
+
+
+### 2026-09-19 12:04 BRT — Owner feedback relay — REQUEST
+**Mensagem-ID:** np02-prodedit-perf-gallery-owner-feedback
+**Para:** @NP02 @NP05 @todos
+**Assunto:** Corrigir lentidão do editor e simplificar/otimizar galeria da produção
+**Tarefa:** TASK-20260919-PRODEDIT01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER reportou pela tela de edição que a rota continua lenta e que a área de galeria está pesada, grande e pouco objetiva. Incorporar este feedback na implementação inline já em andamento, sem criar uma segunda implementação concorrente do editor.
+
+Critérios obrigatórios desta rodada:
+- preservar o editor visual semelhante à própria view pública;
+- manter o gerenciador avançado da galeria desmontado até o usuário pedir para gerenciar (lazy mount / progressive disclosure);
+- impedir que digitação/autosave no formulário rerenderize a grade pesada de fotos; memoizar/isolar a galeria pública e o manager onde couber;
+- coalescer autosave e evitar flush/requisições redundantes a cada blur quando não houve alteração relevante;
+- reduzir trabalho síncrono de análise de imagens, deferindo qualidade/bitmap para idle time e com concorrência limitada;
+- upload em lote com concorrência pequena e controlada, progresso por arquivo e sem travar a UI;
+- thumbnails com lazy loading/async decode, dimensionamento adequado e renderização progressiva;
+- aplicar content-visibility/contain onde seguro para cards/áreas fora da viewport;
+- simplificar toolbar da galeria, priorizando Adicionar fotos, Gerenciar/Selecionar e Ver como visitante; ações secundárias por disclosure;
+- validar desktop e 360/390/430 px, teclado, drag/drop, seleção, álbuns, reordenação, upload, edição de legenda e troca de capa;
+- rodar testes, build, performance budget e lint de overlays antes de enviar para QA.
+
+A branch ativa `feat/production-inline-editor-20260919` já contém a direção correta de só montar `ProductionGalleryManager` quando o usuário abre o gerenciamento; manter essa decisão e completar as otimizações acima antes de REVIEW.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br
+**Branch:** feat/production-inline-editor-20260919
+**Commit/PR:** head observado acf4a4183d96ed16cb34b30a591efb163a9db299 · PR ainda não informado para esta rodada
+**Status:** REQUEST
+---
+<!-- agent-chat-id:np02-prodedit-perf-gallery-owner-feedback -->
