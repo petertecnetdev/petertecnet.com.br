@@ -56,28 +56,56 @@ function parse(html) {
   return JSON.parse(match[1].replaceAll('&quot;', '"').replaceAll('&amp;', '&'))
 }
 
+function runProbe(test, file, attempts = 3) {
+  let last = null
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const profile = join(output, `.chrome-${test.name}-${attempt}`)
+    rmSync(profile, { recursive: true, force: true })
+    mkdirSync(profile, { recursive: true })
+    const run = spawnSync(chrome, [
+      '--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
+      '--allow-file-access-from-files','--virtual-time-budget=3500',
+      '--disable-background-networking','--disable-component-update','--no-first-run',
+      `--user-data-dir=${profile}`,
+      `--window-size=${Math.max(500,test.width)},${Math.max(800,test.height)}`,
+      '--dump-dom', pathToFileURL(file).href,
+    ], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, timeout: 15000 })
+    last = run
+    const result = run.status === 0 ? parse(run.stdout) : null
+    rmSync(profile, { recursive: true, force: true })
+    if (result) return { result, attempt }
+  }
+  return { result: null, attempt: attempts, last }
+}
+
 const failures = []
 for (const test of cases) {
   const file = join(output, `${test.name}.html`)
   writeFileSync(file, page(test))
-  const run = spawnSync(chrome, [
-    '--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
-    '--allow-file-access-from-files','--virtual-time-budget=2500',
-    `--window-size=${Math.max(500,test.width)},${Math.max(800,test.height)}`,
-    '--dump-dom', pathToFileURL(file).href,
-  ], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 })
-  const result = run.status === 0 ? parse(run.stdout) : null
-  spawnSync(chrome, [
-    '--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
-    '--allow-file-access-from-files',
-    `--window-size=${Math.max(500,test.width)},${Math.max(800,test.height)}`,
-    `--screenshot=${join(output, `${test.name}.png`)}`, pathToFileURL(file).href,
-  ], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 })
+  const probe = runProbe(test, file)
+  const result = probe.result
+
+  if (process.env.ADMIN_CAPTURE_SCREENSHOTS === '1' && result) {
+    const profile = join(output, `.chrome-shot-${test.name}`)
+    rmSync(profile, { recursive: true, force: true })
+    mkdirSync(profile, { recursive: true })
+    spawnSync(chrome, [
+      '--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
+      '--allow-file-access-from-files','--disable-background-networking','--no-first-run',
+      `--user-data-dir=${profile}`,
+      `--window-size=${Math.max(500,test.width)},${Math.max(800,test.height)}`,
+      `--screenshot=${join(output, `${test.name}.png`)}`, pathToFileURL(file).href,
+    ], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024, timeout: 15000 })
+    rmSync(profile, { recursive: true, force: true })
+  }
+
   if (!result) {
-    failures.push(`${test.name}: browser probe não retornou resultado`)
+    const detail = probe.last?.stderr?.trim()?.slice(-400) || probe.last?.stdout?.trim()?.slice(-400) || 'sem saída do navegador'
+    failures.push(`${test.name}: browser probe não retornou resultado após ${probe.attempt} tentativas (${detail})`)
     continue
   }
-  console.log(`${result.ok ? '✓' : '✗'} ${test.name}: ${result.checks.map(c=>`${c.name}=${c.pass?'ok':'FAIL'}`).join(', ')}`)
+
+  console.log(`${result.ok ? '✓' : '✗'} ${test.name}: ${result.checks.map(c=>`${c.name}=${c.pass?'ok':'FAIL'}`).join(', ')}${probe.attempt > 1 ? ` (tentativa ${probe.attempt})` : ''}`)
   if (!result.ok) failures.push(`${test.name}: ${result.checks.filter(c=>!c.pass).map(c=>`${c.name} (${c.detail})`).join('; ')}`)
 }
 
