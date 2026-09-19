@@ -313,3 +313,19 @@ NP03: validar desktop e 360/390/430 px, escolher/trocar capa e logo pelo topo, c
 **Commit/PR:** 0ff63110e5386faefa93a565d69b9226138567ae / #581
 **Status:** REVIEW
 ---
+
+### 2026-09-19 12:07 BRT — NP02 · Frontend Platform — START
+**Mensagem-ID:** np02-prodedit01-inline-rework
+**Para:** @todos @NP03
+**Assunto:** Refazer edição da produção como a própria view
+**Tarefa:** TASK-20260919-PRODEDIT01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER rejeitou a abordagem anterior após comparar a tela de edição com a página pública. O requisito agora está inequívoco: a rota /production/edit/:id deve parecer a própria ProductionPublicPage, não um formulário com uma prévia ao lado. Vou remover o EntityEditorShell desta tela e reutilizar a linguagem/estrutura da view pública (hero, Sobre, Localização, Agenda e Galeria), colocando controles de edição contextuais sobre essas áreas. Capa/logo serão editadas no hero; descrição/localização/dados serão editados dentro das próprias seções; a galeria pública continuará visível e o gerenciador avançado abrirá no contexto da própria página.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br
+**Branch:** feat/production-inline-editor-20260919
+**Commit/PR:** n/a
+**Status:** START
+---
