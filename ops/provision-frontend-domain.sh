@@ -33,13 +33,6 @@ usage() {
 Usage:
   sudo ./ops/provision-frontend-domain.sh <domain> <repository-url> [build-dir] [health-marker]
 
-Example:
-  sudo ./ops/provision-frontend-domain.sh \
-    kryvion.petertecnet.com.br \
-    https://github.com/petertecnetdev/kryvion.petertecnet.com.br.git \
-    dist \
-    'Kryvion | Market Intelligence by Peter Tecnet'
-
 Environment overrides:
   DEPLOY_USER       Linux user that owns application checkouts.
   DEPLOY_GROUP      Web group. Defaults to www-data.

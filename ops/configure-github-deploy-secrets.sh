@@ -46,7 +46,6 @@ REPOSITORIES=(
   petertecnetdev/payflow.petertecnet.com.br
   petertecnetdev/laora.petertecnet.com.br
   petertecnetdev/locaio.petertecnet.com.br
-  petertecnetdev/kryvion.petertecnet.com.br
 )
 
 for repo in "${REPOSITORIES[@]}"; do
@@ -73,7 +72,6 @@ for repo in \
   petertecnetdev/payflow.petertecnet.com.br \
   petertecnetdev/laora.petertecnet.com.br \
   petertecnetdev/locaio.petertecnet.com.br \
-  petertecnetdev/kryvion.petertecnet.com.br
 do
   gh workflow run deploy-vps.yml --repo "$repo" --ref main
 done
