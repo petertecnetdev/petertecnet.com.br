@@ -427,22 +427,40 @@ jobs:
               chmod -R ug+rwX storage bootstrap/cache || true
               sudo -u www-data -- php artisan optimize:clear
               sudo -u www-data -- php artisan migrate --force
+              # Validate production configuration before replacing the live Laravel
+              # config cache. A missing .env or JWT secret must stop the deployment
+              # without publishing framework defaults (for example forge/forge).
+              sudo -u www-data -- php -r '
+                $env = @parse_ini_file(".env", false, INI_SCANNER_RAW);
+                if (!is_array($env)) {
+                    fwrite(STDERR, "Laravel config preflight: .env is unreadable; refusing to rebuild config cache.\n");
+                    exit(42);
+                }
+                foreach (["APP_KEY", "JWT_SECRET", "DB_HOST", "DB_DATABASE", "DB_USERNAME", "DB_PASSWORD"] as $key) {
+                    $value = trim((string) ($env[$key] ?? ""), "\"\x27");
+                    if ($value === "") {
+                        fwrite(STDERR, "Laravel config preflight: required value {$key} is empty; refusing to rebuild config cache.\n");
+                        exit(42);
+                    }
+                }
+              '
               sudo -u www-data -- php artisan config:cache
-              # Fail closed if a Laravel config cache was generated without the
-              # application's real .env values. This prevents a readable app from
-              # being replaced by framework defaults such as forge/forge.
+              # Verify that the generated cache contains the exact production values.
+              # Remove it immediately if a deploy ever builds from an incomplete env.
               sudo -u www-data -- php -r '
                 $env = @parse_ini_file(".env", false, INI_SCANNER_RAW);
                 if (!is_array($env)) {
                     @unlink("bootstrap/cache/config.php");
                     fwrite(STDERR, "Laravel config cache guard: .env is unreadable; removed generated cache.\n");
-                    exit(42);
+                    exit(43);
                 }
                 require "vendor/autoload.php";
                 $app = require "bootstrap/app.php";
                 $kernel = $app->make(Illuminate\\Contracts\\Console\\Kernel::class);
                 $kernel->bootstrap();
                 $checks = [
+                    "APP_KEY" => (string) config("app.key"),
+                    "JWT_SECRET" => (string) config("jwt.secret"),
                     "DB_HOST" => (string) config("database.connections.mysql.host"),
                     "DB_DATABASE" => (string) config("database.connections.mysql.database"),
                     "DB_USERNAME" => (string) config("database.connections.mysql.username"),
@@ -452,7 +470,7 @@ jobs:
                     $expected = trim((string) ($env[$key] ?? ""), "\"\x27");
                     if ($expected === "" || $actual !== $expected) {
                         @unlink("bootstrap/cache/config.php");
-                        fwrite(STDERR, "Laravel config cache guard: database configuration does not match .env; removed generated cache.\n");
+                        fwrite(STDERR, "Laravel config cache guard: {$key} does not match .env; removed generated cache.\n");
                         exit(43);
                     }
                 }
