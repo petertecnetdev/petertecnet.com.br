@@ -11,7 +11,7 @@
   "owner_agent_id": "NP02",
   "created_by": "OWNER",
   "created_at": "2026-09-19T11:32:00-03:00",
-  "updated_at": "2026-09-19T14:35:00-03:00",
+  "updated_at": "2026-09-19T15:39:00-03:00",
   "started_at": "2026-09-19T11:32:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
@@ -23,8 +23,8 @@
   },
   "delegation_count": 0,
   "max_delegations": 2,
-  "checkpoint": "Pacote de galeria/performance PR #590 está na main e publicado. Deploy VPS #35458414579 SUCCESS, Validate pós-merge #35458414056 SUCCESS e Lighthouse pós-merge #35458414013 SUCCESS. A edição agora possui CTAs explícitos para galeria, manager lazy com feedback de carregamento e scroll pós-commit; performance sistêmica reduz observers/efeitos/requests repetidos.",
-  "next_action": "QA humano live na produção Luxury Club e demais rotas: testar abrir/fechar gerenciador, adicionar/reordenar fotos e observar fluidez. Se não houver regressão, NP03 pode aprovar/encerrar TASK-20260919-PRODEDIT01.",
+  "checkpoint": "OWNER determinou padrão único: create/edit de evento e produção devem editar a própria experiência visual pública. PR #591 implementou ProductionCreate no layout da view/ProductionUpdate e criou EventExperienceEditorSurface compartilhado por EventCreate/EventUpdate, com banner, summary, título, datas, local, descrição e mapa na posição final; ferramentas operacionais do evento ficam em disclosure abaixo. PR mergeado como 0838c73639529fe48068cae53b113e38f264afc1. Validate pós-merge SUCCESS, Deploy VPS SUCCESS e Lighthouse SUCCESS após retry (primeira tentativa falhou somente por timeout externo da api.petertecnet.com.br durante geração SEO).",
+  "next_action": "QA humano autenticado nos quatro fluxos: production/create, production/edit/:id, event/create e event/edit/:id, confirmando equivalência visual com as respectivas views, preview imediato de imagens e persistência. Código/deploy desta rodada concluídos.",
   "blocker": null,
   "tags": [
     "cutinapp",
@@ -195,6 +195,31 @@
       "type": "workflow",
       "ref": "Lighthouse CI #35458414013",
       "status": "SUCCESS"
+    },
+    {
+      "type": "pull_request",
+      "ref": "petertecnetdev/cutinapp.petertecnet.com.br#591",
+      "status": "MERGED"
+    },
+    {
+      "type": "merge_commit",
+      "ref": "0838c73639529fe48068cae53b113e38f264afc1",
+      "status": "DEPLOYED"
+    },
+    {
+      "type": "workflow",
+      "ref": "Validate Cutinapp #35461707141",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Deploy VPS #35461707446",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Lighthouse CI #35461707144 attempt 2",
+      "status": "SUCCESS"
     }
   ],
   "review": {
@@ -280,6 +305,13 @@
       "actor": "OWNER_ASSIST",
       "event": "GALLERY_PERF_DEPLOYED",
       "message": "PR #590 publicado na VPS e validado por Validate Cutinapp + Lighthouse pós-merge."
+    },
+    {
+      "operation_id": "unify-create-edit-with-public-views-20260919-1539",
+      "at": "2026-09-19T15:39:00-03:00",
+      "actor": "OWNER_ASSIST",
+      "event": "VIEW_MODE_UNIFICATION_DEPLOYED",
+      "message": "Create/edit de evento e create de produção unificados com as respectivas views; production edit já seguia o padrão. CI e deploy concluídos."
     }
   ],
   "applied_operation_ids": [
@@ -293,7 +325,8 @@
     "fix-live-cover-preview-20260919-1344",
     "public-cover-view-fix-20260919-1417",
     "owner-gallery-perf-systemic-20260919-1432",
-    "owner-gallery-perf-deployed-20260919-1435"
+    "owner-gallery-perf-deployed-20260919-1435",
+    "unify-create-edit-with-public-views-20260919-1539"
   ],
-  "version": 11
+  "version": 12
 }
