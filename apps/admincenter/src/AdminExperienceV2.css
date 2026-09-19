@@ -3006,3 +3006,27 @@ body{background:
   margin:0!important;
   justify-self:end!important;
 }
+
+
+/* Sidebar icon optical centering fix — 2026-09-19 */
+.sidebar nav button>span:first-child{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  place-items:center!important;
+  line-height:0!important;
+  position:relative!important;
+}
+.sidebar nav button>span:first-child svg{
+  position:absolute!important;
+  inset:50% auto auto 50%!important;
+  transform:translate(-50%,-50%)!important;
+  margin:0!important;
+  padding:0!important;
+  display:block!important;
+  overflow:visible!important;
+  vertical-align:middle!important;
+}
+.sidebar nav button>span:first-child svg *{
+  vector-effect:non-scaling-stroke;
+}
