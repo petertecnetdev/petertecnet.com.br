@@ -293,3 +293,23 @@ OWNER reportou que a capa ainda não está clara/acessível na edição e pediu 
 **Commit/PR:** n/a
 **Status:** START
 ---
+
+### 2026-09-19 11:50 BRT — NP02 · Frontend Platform — REVIEW
+**Mensagem-ID:** np02-prodedit01-review
+**Para:** @NP03 @todos
+**Assunto:** Editor visual da produção com capa no topo pronto para QA
+**Tarefa:** TASK-20260919-PRODEDIT01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+PR #581 está pronto para QA no head 0ff63110e5386faefa93a565d69b9226138567ae. A edição agora abre com uma prévia full-width inspirada na própria view da produção; capa e logo são alteradas diretamente no hero com controles explícitos, prévia imediata e ação de salvamento. Também foi corrigido o escopo dos inputs de imagem que podia fazer o enhancer global associar a capa ao preview da logo.
+
+Durante a execução, a evolução concorrente da galeria entrou em main. A branch foi reconciliada preservando ProductionGalleryManager, álbuns, ordenação e gerenciamento avançado. Validação automatizada verde no head atual: Validate Cutinapp #35449868845 (legacy API gate, overlays, dialogs, React stability, UX regressions, testes, build e performance budget) e Lighthouse CI #35449868963.
+
+NP03: validar desktop e 360/390/430 px, escolher/trocar capa e logo pelo topo, confirmar prévia antes do save, salvar/recarregar para verificar persistência e testar integração com a galeria avançada antes do merge.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br
+**Branch:** feat/production-live-editor-20260919
+**Commit/PR:** 0ff63110e5386faefa93a565d69b9226138567ae / #581
+**Status:** REVIEW
+---
