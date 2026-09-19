@@ -9,6 +9,7 @@ const AgentChatPanel = lazy(() => import('./AgentChatPanel.jsx'))
 const AdminEstablishmentsPage = lazy(() => import('./AdminEstablishmentsPageV2.jsx'))
 const AdminItemsManager = lazy(() => import('./AdminItemsManager.jsx'))
 const AdminApplicationsCenter = lazy(() => import('./AdminApplicationsCenter.jsx'))
+const ImportantEventsCenter = lazy(() => import('./ImportantEventsCenter.jsx'))
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
@@ -709,6 +710,7 @@ function Dashboard({ user, onLogout }) {
           }}/>} 
         </div>
         <div className="top-actions">
+          <Suspense fallback={null}><ImportantEventsCenter request={request}/></Suspense>
           <span className={`sync-status sync-${realtimeState}`} title={realtimeState === 'connected' ? 'Atualização em tempo real conectada' : 'Atualização em tempo real indisponível; o painel usa sincronização de segurança'}><i/><b>{realtimeState === 'connected' ? 'Ao vivo' : 'Sincronização'}</b>{lastRefreshAt && <small>Atualizado {lastRefreshAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>}</span>
           <button className="icon-button" onClick={() => loadAll({ quiet: true, indicate: true, force: true })} aria-label="Atualizar dados" title="Atualizar dados">{refreshing ? '◌' : '↻'}</button>
           <div className="launcher-wrap">
