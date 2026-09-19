@@ -8,9 +8,10 @@
     "validate:responsive": "node scripts/validate-admin-responsive.mjs",
     "validate:dialogs": "node scripts/validate-no-native-dialogs.mjs",
     "validate:user-communication": "node scripts/validate-user-communication-ui.mjs",
-    "build": "npm run validate:dialogs && npm run validate:responsive && npm run validate:user-communication && npm run validate:stability && vite build",
-    "lint": "oxlint src/App.jsx src/main.jsx src/AdminSessionGuard.jsx src/AdminAppNavigation.jsx src/AdminGlobalSearch.jsx src/AdminEstablishmentsIntegration.jsx src/AdminItemsIntegration.jsx src/AdminUsersCenter.jsx src/AdminProspectInvitation.jsx src/AdminUserDetailPage.jsx src/AdminUserDetailExperience.jsx src/NotificationsCenter.jsx src/InteractionCleanup.jsx src/ApplicationBrandingManager.jsx src/CriticalEventsPanel.jsx src/AccountAccessPage.jsx src/utils/uiDialog.js scripts/validate-admin-responsive.mjs scripts/validate-no-native-dialogs.mjs scripts/validate-user-communication-ui.mjs scripts/validate-admin-stability.mjs",
-    "validate:stability": "node scripts/validate-admin-stability.mjs"
+    "build": "npm run validate:dialogs && npm run validate:responsive && npm run validate:user-communication && npm run validate:stability && npm run validate:runtime && vite build",
+    "lint": "oxlint src/App.jsx src/main.jsx src/AdminSessionGuard.jsx src/AdminAppNavigation.jsx src/AdminGlobalSearch.jsx src/AdminEstablishmentsIntegration.jsx src/AdminItemsIntegration.jsx src/AdminUsersCenter.jsx src/AdminProspectInvitation.jsx src/AdminUserDetailPage.jsx src/AdminUserDetailExperience.jsx src/NotificationsCenter.jsx src/InteractionCleanup.jsx src/ApplicationBrandingManager.jsx src/CriticalEventsPanel.jsx src/AccountAccessPage.jsx src/utils/uiDialog.js scripts/validate-admin-responsive.mjs scripts/validate-no-native-dialogs.mjs scripts/validate-user-communication-ui.mjs scripts/validate-admin-stability.mjs scripts/validate-admin-runtime-contracts.mjs",
+    "validate:stability": "node scripts/validate-admin-stability.mjs",
+    "validate:runtime": "node scripts/validate-admin-runtime-contracts.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",

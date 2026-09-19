@@ -28,6 +28,8 @@ check(!app.includes('new MutationObserver'), 'App principal não pode depender d
 check(app.includes('searchSequenceRef.current'), 'Busca global deve ignorar respostas assíncronas obsoletas.')
 check(app.includes("activePage === 'agents'") && app.includes("activePage === 'notifications'"), 'Módulos pesados devem montar somente quando ativos.')
 check(app.includes('<AdminModuleBoundary'), 'Módulos administrativos críticos devem ter Error Boundary.')
+check(app.includes('handleSidebarKeyDown') && app.includes('aria-controls="admin-navigation"'), 'Drawer deve ter foco e teclado controlados pelo React.')
+check(app.includes('navigator.onLine') && app.includes('admin-offline-banner'), 'Admin deve preservar leitura e sinalizar modo offline.')
 
 if (failures.length) {
   console.error('Admin stability validation failed:')

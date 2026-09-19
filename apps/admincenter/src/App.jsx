@@ -409,6 +409,7 @@ function Dashboard({ user, onLogout }) {
   const [searchResult, setSearchResult] = useState(null)
   const [activePage, setActivePage] = useState(pageFromLocation)
   const [realtimeState, setRealtimeState] = useState('connecting')
+  const [online, setOnline] = useState(() => navigator.onLine)
   const searchTimer = useRef(null)
   const searchSequenceRef = useRef(0)
   const refreshTimerRef = useRef(null)
@@ -416,6 +417,9 @@ function Dashboard({ user, onLogout }) {
   const refreshSequenceRef = useRef(0)
   const lastRefreshRef = useRef(null)
   const activePageRef = useRef(activePage)
+  const sidebarRef = useRef(null)
+  const menuButtonRef = useRef(null)
+  const sidebarWasOpenRef = useRef(false)
 
   useEffect(() => { activePageRef.current = activePage }, [activePage])
 
@@ -518,6 +522,38 @@ function Dashboard({ user, onLogout }) {
   }, [loadAll])
 
   useEffect(() => {
+    const onOnline = () => {
+      setOnline(true)
+      if (BACKGROUND_REFRESH_PAGES.has(activePageRef.current)) void loadAll({ quiet: true })
+    }
+    const onOffline = () => {
+      setOnline(false)
+      setRealtimeState('offline')
+    }
+    window.addEventListener('online', onOnline)
+    window.addEventListener('offline', onOffline)
+    return () => {
+      window.removeEventListener('online', onOnline)
+      window.removeEventListener('offline', onOffline)
+    }
+  }, [loadAll])
+
+  useEffect(() => {
+    if (sidebarOpen) {
+      sidebarWasOpenRef.current = true
+      const frame = window.requestAnimationFrame(() => {
+        sidebarRef.current?.querySelector('button.active')?.focus()
+      })
+      return () => window.cancelAnimationFrame(frame)
+    }
+    if (sidebarWasOpenRef.current) {
+      sidebarWasOpenRef.current = false
+      window.requestAnimationFrame(() => menuButtonRef.current?.focus())
+    }
+    return undefined
+  }, [sidebarOpen])
+
+  useEffect(() => {
     const handlePopState = () => setActivePage(pageFromLocation())
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
@@ -570,6 +606,27 @@ function Dashboard({ user, onLogout }) {
     return () => window.clearTimeout(searchTimer.current)
   }, [query])
 
+  function handleSidebarKeyDown(event) {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      setSidebarOpen(false)
+      return
+    }
+    if (event.key !== 'Tab' || !sidebarOpen) return
+    const focusable = [...(sidebarRef.current?.querySelectorAll('a[href], button:not([disabled])') || [])]
+      .filter(node => node.tabIndex !== -1)
+    if (!focusable.length) return
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
+
   function go(section, { replace = false } = {}) {
     const next = PAGE_CONFIG[section] ? section : 'dashboard'
     setActivePage(next)
@@ -598,14 +655,14 @@ function Dashboard({ user, onLogout }) {
 
   return <div className="admin-shell" data-admin-page={activePage}>
     <div className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} aria-hidden="true"/>
-    <aside id="admin-navigation" className={`sidebar ${sidebarOpen ? 'open' : ''}`} aria-label="Navegação administrativa" aria-hidden={!sidebarOpen}>
-      <a className="brand" href="?page=visao-geral" onClick={event => { event.preventDefault(); go('dashboard') }}>
+    <aside ref={sidebarRef} id="admin-navigation" className={`sidebar ${sidebarOpen ? 'open' : ''}`} aria-label="Navegação administrativa" aria-hidden={!sidebarOpen} onKeyDown={handleSidebarKeyDown}>
+      <a className="brand" href="?page=visao-geral" tabIndex={sidebarOpen ? 0 : -1} onClick={event => { event.preventDefault(); go('dashboard') }}>
         <span className="brand-logo"><img src="/petertecnetlogo.png" alt=""/></span>
         <span><b>Peter Tecnet</b><small>Admin Center</small></span>
       </a>
       <nav>
         <p>GESTÃO</p>
-        {navItems.map(([id, label, icon]) => <button key={id} type="button" className={activePage === id ? 'active' : ''} data-admin-page-target={id} aria-current={activePage === id ? 'page' : undefined} onClick={() => go(id)}><span><AdminIcon name={icon}/></span><b>{label}</b><i>→</i></button>)}
+        {navItems.map(([id, label, icon]) => <button key={id} type="button" className={activePage === id ? 'active' : ''} data-admin-page-target={id} aria-current={activePage === id ? 'page' : undefined} tabIndex={sidebarOpen ? 0 : -1} onClick={() => go(id)}><span><AdminIcon name={icon}/></span><b>{label}</b><i>→</i></button>)}
       </nav>
       <div className="sidebar-status">
         <span className={`status-dot ${status}`}/><div><b>{operationalStatus}</b><small>Estado do ecossistema</small></div>
@@ -613,13 +670,13 @@ function Dashboard({ user, onLogout }) {
       <div className="sidebar-user">
         <div className="avatar">{fullName(user).slice(0, 2).toUpperCase()}</div>
         <div><b>{fullName(user)}</b><small>{user?.email}</small></div>
-        <button onClick={onLogout} aria-label="Sair">↪</button>
+        <button onClick={onLogout} aria-label="Sair" tabIndex={sidebarOpen ? 0 : -1}>↪</button>
       </div>
     </aside>
 
     <main className="workspace">
       <header className="topbar">
-        <button className="hamburger" onClick={() => setSidebarOpen(value => !value)} aria-label={sidebarOpen ? 'Fechar menu' : 'Abrir menu'} aria-expanded={sidebarOpen} aria-controls="admin-navigation"><span/><span/><span/></button>
+        <button ref={menuButtonRef} className="hamburger" onClick={() => setSidebarOpen(value => !value)} aria-label={sidebarOpen ? 'Fechar menu' : 'Abrir menu'} aria-expanded={sidebarOpen} aria-controls="admin-navigation"><span/><span/><span/></button>
         <div className="top-search">
           <span>⌕</span><input value={query} onChange={event => {
             const value = event.target.value
@@ -648,6 +705,7 @@ function Dashboard({ user, onLogout }) {
         </div>
       </header>
 
+      {!online && <div className="admin-offline-banner" role="status"><span>Sem conexão</span><p>Os dados já carregados continuam disponíveis. A sincronização será retomada automaticamente quando a internet voltar.</p></div>}
       <div className="content">
         <section className="hero-section" id="dashboard" data-admin-page-key="dashboard">
           <div><p className="eyebrow">PETER TECNET / ECOSYSTEM INTELLIGENCE</p><h1>Dashboard administrativo</h1><p>Acompanhe operação, adoção e receita do ecossistema em tempo real.</p></div>

@@ -173,3 +173,14 @@ body{background:
 .search-result:focus-visible{background:rgba(81,211,234,.065)!important;outline:1px solid rgba(99,223,242,.30)!important;outline-offset:-1px!important}
 .section-anchor[hidden]{display:none!important}
 @media(max-width:600px){.admin-module-error{grid-template-columns:1fr;padding:20px}.admin-module-error-icon{width:42px;height:42px}}
+
+
+/* Connection resilience and drawer focus */
+.admin-offline-banner{position:sticky;top:72px;z-index:310;display:flex;align-items:center;justify-content:center;gap:10px;min-height:38px;padding:7px 16px;border-bottom:1px solid rgba(244,201,107,.18);background:rgba(38,29,12,.94);backdrop-filter:blur(14px);color:#e7d6a6}
+.admin-offline-banner span{flex:0 0 auto;padding:4px 8px;border-radius:999px;background:rgba(244,201,107,.10);color:var(--admin-warning);font-size:.57rem;font-weight:850;text-transform:uppercase;letter-spacing:.07em}
+.admin-offline-banner p{margin:0;font-size:.62rem;line-height:1.4}
+.sync-status.sync-offline i{background:var(--admin-danger)}
+.sync-status.sync-offline{color:#f0a2ab}
+.sidebar[aria-hidden="true"]{visibility:hidden}
+.sidebar[aria-hidden="false"]{visibility:visible}
+@media(max-width:760px){.admin-offline-banner{top:64px;align-items:flex-start;justify-content:flex-start}.admin-offline-banner p{font-size:.59rem}}

@@ -63,6 +63,10 @@ export function connectMissionControlRealtime({ token, onUpdate, onState, events
 
   function scheduleReconnect() {
     if (disposed || retryTimer) return
+    if (!navigator.onLine) {
+      state('offline')
+      return
+    }
     state('fallback')
     retryTimer = window.setTimeout(() => {
       retryTimer = null
@@ -127,10 +131,32 @@ export function connectMissionControlRealtime({ token, onUpdate, onState, events
     }
   }
 
+  const handleOnline = () => {
+    if (disposed) return
+    reconnectMs = 1000
+    if (retryTimer) window.clearTimeout(retryTimer)
+    retryTimer = null
+    void connect()
+  }
+  const handleOffline = () => {
+    if (retryTimer) window.clearTimeout(retryTimer)
+    retryTimer = null
+    state('offline')
+    if (socket) {
+      socket.onclose = null
+      socket.close()
+      socket = null
+    }
+  }
+
+  window.addEventListener('online', handleOnline)
+  window.addEventListener('offline', handleOffline)
   void connect()
 
   return () => {
     disposed = true
+    window.removeEventListener('online', handleOnline)
+    window.removeEventListener('offline', handleOffline)
     if (retryTimer) window.clearTimeout(retryTimer)
     retryTimer = null
     if (socket) {
