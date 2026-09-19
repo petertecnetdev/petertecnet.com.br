@@ -362,6 +362,7 @@ function Dashboard({ user, onLogout }) {
   const [activePage, setActivePage] = useState(pageFromLocation)
   const [realtimeState, setRealtimeState] = useState('connecting')
   const [online, setOnline] = useState(() => navigator.onLine)
+  const [apiStorm, setApiStorm] = useState(null)
   const [lastRefreshAt, setLastRefreshAt] = useState(null)
   const searchTimer = useRef(null)
   const searchSequenceRef = useRef(0)
@@ -509,6 +510,15 @@ function Dashboard({ user, onLogout }) {
       disconnect?.()
     }
   }, [loadAll])
+
+  useEffect(() => {
+    const onStorm = event => {
+      setApiStorm(event?.detail || null)
+      window.setTimeout(() => setApiStorm(null), 12000)
+    }
+    window.addEventListener('admin-api-storm', onStorm)
+    return () => window.removeEventListener('admin-api-storm', onStorm)
+  }, [])
 
   useEffect(() => {
     const onOnline = () => {
@@ -732,6 +742,7 @@ function Dashboard({ user, onLogout }) {
       </header>
 
       {!online && <div className="admin-offline-banner" role="status"><span>Sem conexão</span><p>Os dados já carregados continuam disponíveis. A sincronização será retomada automaticamente quando a internet voltar.</p></div>}
+      {apiStorm && <div className="admin-network-warning" role="status"><span>Rede protegida</span><p>A rota <b>{apiStorm.route}</b> fez {apiStorm.count} chamadas em um minuto. O diagnóstico foi registrado para evitar regressões de atualização excessiva.</p><button type="button" onClick={() => setApiStorm(null)} aria-label="Fechar aviso de rede">×</button></div>}
       <div className="content">
         <section className="hero-section" id="dashboard" data-admin-page-key="dashboard">
           <div><p className="eyebrow">PETER TECNET / ECOSYSTEM INTELLIGENCE</p><h1>Dashboard administrativo</h1><p>Acompanhe operação, adoção e receita do ecossistema em tempo real.</p></div>
