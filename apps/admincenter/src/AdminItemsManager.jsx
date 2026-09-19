@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { readAdminSessionState, writeAdminSessionState } from './adminPersistence.js'
+import { adminRequest as apiRequest } from './adminApi.js'
 import './AdminItemsManager.css'
-
-const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
-const TOKEN_KEY = 'petertecnet_admin_token'
 
 const EMPTY_FILTERS = {
   search: '',
@@ -41,40 +39,6 @@ const TYPE_LABELS = {
   product: 'Produto',
   service: 'Serviço',
   ticket: 'Ingresso',
-}
-
-async function apiRequest(path, options = {}) {
-  const token = localStorage.getItem(TOKEN_KEY)
-  const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), options.timeout || 18000)
-
-  try {
-    const response = await fetch(`${API}${path}`, {
-      ...options,
-      signal: controller.signal,
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...options.headers,
-      },
-    })
-    const payload = response.status === 204 ? null : await response.json().catch(() => ({}))
-    if (response.status === 401) {
-      localStorage.removeItem(TOKEN_KEY)
-      window.dispatchEvent(new Event('admin-session-expired'))
-    }
-    if (!response.ok) {
-      const validation = Object.values(payload?.errors || {}).flat()?.[0]
-      throw new Error(validation || payload?.error || payload?.message || 'Não foi possível concluir a operação.')
-    }
-    return payload
-  } catch (error) {
-    if (error?.name === 'AbortError') throw new Error('A API demorou para responder.')
-    throw error
-  } finally {
-    window.clearTimeout(timeout)
-  }
 }
 
 function money(value) {
