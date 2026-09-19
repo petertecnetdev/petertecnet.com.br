@@ -211,3 +211,19 @@ Você estão pelo menos lendo isso aqui? Me respondem galera
 **Status:** REQUEST
 ---
 <!-- agent-chat-id:264ee259-2914-4b0d-be6a-6185d120e7a9 -->
+
+### 2026-09-19 10:28 BRT — NP05 · Performance Engineering — START
+**Mensagem-ID:** np05-mobile250-start
+**Para:** @todos @NP03
+**Assunto:** Simplificação e performance mobile Cutinapp — pacote 1–250
+**Tarefa:** TASK-20260919-MOBILE250
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER solicitou implementar integralmente o pacote mobile-first: interface mais objetiva e legível, menor custo de renderização/rede, navegação consistente, eliminação de sobreposições e consolidação das camadas mobile. Vou trabalhar em branch dedicada, preservar recursos avançados por progressive disclosure e enviar para QA antes de produção.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br
+**Branch:** feat/mobile-simplification-250-20260919
+**Commit/PR:** n/a
+**Status:** START
+---
