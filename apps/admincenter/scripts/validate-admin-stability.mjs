@@ -3,6 +3,10 @@ import fs from 'node:fs'
 const read = path => fs.readFileSync(new URL(`../${path}`, import.meta.url), 'utf8')
 const app = read('src/App.jsx')
 const main = read('src/main.jsx')
+const adminApi = read('src/adminApi.js')
+const runtimeMonitor = read('src/adminRuntimeMonitor.js')
+const moduleBoundary = read('src/AdminModuleBoundary.jsx')
+const packageJson = JSON.parse(read('package.json'))
 const failures = []
 
 function check(condition, message) {
@@ -35,6 +39,25 @@ check(app.includes('SIDEBAR_PREF_KEY') && app.includes('data-sidebar-open'), 'Si
 check(app.includes('DENSITY_PREF_KEY') && app.includes('data-density'), 'Densidade visual deve ser persistente e controlada pelo React.')
 check(app.includes('RECENT_PAGES_KEY') && app.includes('recentPages'), 'Paleta de comandos deve preservar páginas recentes.')
 check(app.includes('searchOpen') && app.includes('Comandos rápidos'), 'Ctrl+K deve abrir uma paleta de comandos real mesmo sem termo de busca.')
+
+// Roadmap 201-300: turn stability/performance decisions into executable contracts.
+check(adminApi.includes('const inflightReads = new Map()'), 'API administrativa deve deduplicar GETs concorrentes (250/255).')
+check(adminApi.includes('const inflightMutations = new Map()'), 'API administrativa deve bloquear mutações concorrentes equivalentes (275/276).')
+check(adminApi.includes('const memoryCache = new Map()') && adminApi.includes('cacheMs'), 'API administrativa deve suportar cache curto explícito (256).')
+check(adminApi.includes('new AbortController()') && adminApi.includes('controller.abort()'), 'Requests administrativos devem ter cancelamento/timeout via AbortController (252/253).')
+check(adminApi.includes("window.dispatchEvent(new Event('admin-session-expired'))"), '401 deve expirar sessão por um único contrato administrativo (263).')
+check(adminApi.includes("method === 'GET' && attempt < 1"), 'Retry automático deve ser limitado a leitura idempotente (263/277).')
+check(adminApi.includes("window.dispatchEvent(new CustomEvent('admin-api-storm'"), 'API deve sinalizar tempestade de requests para diagnóstico (250/267/268).')
+check(runtimeMonitor.includes("window.addEventListener('error', onError)"), 'Runtime deve registrar erros JavaScript globais (265/267).')
+check(runtimeMonitor.includes("window.addEventListener('unhandledrejection', onRejection)"), 'Runtime deve registrar promises rejeitadas (265/267).')
+check(runtimeMonitor.includes("window.removeEventListener('error', onError)") && runtimeMonitor.includes('observer.disconnect()'), 'Runtime monitor deve remover listeners/observers no dispose (261/262).')
+check(moduleBoundary.includes('static getDerivedStateFromError') && moduleBoundary.includes('componentDidCatch'), 'Módulos devem isolar falhas com Error Boundary (264/266).')
+check(moduleBoundary.includes('O restante do Admin Center continua disponível'), 'Falha de módulo não pode derrubar todo o Admin Center (266).')
+check(packageJson.scripts?.['validate:dialogs'], 'Build deve validar ausência de alert/confirm/prompt nativos (233-236).')
+check(packageJson.scripts?.['validate:bundle'], 'Admin Center deve possuir budget executável de bundle (281/288).')
+check(packageJson.scripts?.build?.includes('validate:stability'), 'Build deve executar contratos de estabilidade antes do Vite.')
+check(packageJson.scripts?.build?.includes('validate:runtime'), 'Build deve executar contratos de runtime antes do Vite.')
+check(packageJson.scripts?.build?.includes('validate:architecture'), 'Build deve executar contratos arquiteturais antes do Vite.')
 
 if (failures.length) {
   console.error('Admin stability validation failed:')
