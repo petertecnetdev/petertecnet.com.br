@@ -2959,3 +2959,50 @@ body{background:
     min-height:50px!important;
   }
 }
+
+
+/* Sidebar icon geometry fix — keep icon tiles independent from labels */
+.sidebar nav button{
+  display:grid!important;
+  grid-template-columns:38px minmax(0,1fr) 18px!important;
+  align-items:center!important;
+  column-gap:10px!important;
+}
+.sidebar nav button>span:first-child{
+  grid-column:1!important;
+  justify-self:start!important;
+  flex:none!important;
+  min-width:36px!important;
+  max-width:36px!important;
+  width:36px!important;
+  min-height:36px!important;
+  max-height:36px!important;
+  height:36px!important;
+  padding:0!important;
+  margin:0!important;
+  aspect-ratio:1/1!important;
+  overflow:hidden!important;
+}
+.sidebar nav button>span:first-child svg{
+  display:block!important;
+  flex:none!important;
+  width:18px!important;
+  min-width:18px!important;
+  max-width:18px!important;
+  height:18px!important;
+  min-height:18px!important;
+  max-height:18px!important;
+  margin:auto!important;
+}
+.sidebar nav button>b{
+  grid-column:2!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+  align-self:center!important;
+}
+.sidebar nav button>i{
+  grid-column:3!important;
+  margin:0!important;
+  justify-self:end!important;
+}
