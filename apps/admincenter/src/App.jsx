@@ -390,6 +390,9 @@ function Dashboard({ user, onLogout }) {
   const refreshTimerRef = useRef(null)
   const refreshInFlightRef = useRef(false)
   const refreshSequenceRef = useRef(0)
+  const dashboardLoadedOnceRef = useRef(false)
+  const payloadFingerprintRef = useRef(new Map())
+  const pendingRefreshModulesRef = useRef(new Set())
   const activePageRef = useRef(activePage)
   const sidebarRef = useRef(null)
   const menuButtonRef = useRef(null)
@@ -435,22 +438,23 @@ function Dashboard({ user, onLogout }) {
     localStorage.setItem(SIDEBAR_PREF_KEY, sidebarOpen ? 'true' : 'false')
   }, [sidebarOpen])
 
-  const loadAll = useCallback(async ({ quiet = false, indicate = false, force = false } = {}) => {
+  const loadAll = useCallback(async ({ quiet = false, indicate = false, force = false, modules = null } = {}) => {
     if (!force && refreshInFlightRef.current) return
     if (!force && quiet && document.visibilityState !== 'visible') return
 
     const sequence = ++refreshSequenceRef.current
     refreshInFlightRef.current = true
-    if (!quiet) setLoading(true)
-    if (indicate) setRefreshing(true)
+    if (!quiet && !dashboardLoadedOnceRef.current) setLoading(true)
+    if (indicate || (!quiet && dashboardLoadedOnceRef.current)) setRefreshing(true)
 
+    const requested = modules ? new Set(modules) : null
     const endpoints = [
       ['/admin/ecosystem/dashboard', 'dashboard'],
       ['/admin/ecosystem/activity', 'activity'],
       ['/admin/ecosystem/financial/dashboard', 'financial'],
       ['/admin/ecosystem/command/overview', 'command'],
       ['/admin/applications', 'applications'],
-    ]
+    ].filter(([, key]) => !requested || requested.has(key))
 
     try {
       const settled = await Promise.allSettled(endpoints.map(([path]) => request(path)))
@@ -460,19 +464,24 @@ function Dashboard({ user, onLogout }) {
       settled.forEach((result, index) => {
         const key = endpoints[index][1]
         if (result.status !== 'fulfilled') { failures += 1; return }
-        if (key === 'dashboard') setDashboard(result.value)
-        if (key === 'activity') setActivity(result.value)
-        if (key === 'financial') setFinancial(result.value)
-        if (key === 'command') setCommand(result.value)
-        if (key === 'applications') {
-          const payload = result.value
-          setApplications(payload?.applications || payload?.data || (Array.isArray(payload) ? payload : []))
-        }
+        const normalized = key === 'applications'
+          ? (result.value?.applications || result.value?.data || (Array.isArray(result.value) ? result.value : []))
+          : result.value
+        let fingerprint = ''
+        try { fingerprint = JSON.stringify(normalized) } catch { fingerprint = String(Date.now()) }
+        if (payloadFingerprintRef.current.get(key) === fingerprint) return
+        payloadFingerprintRef.current.set(key, fingerprint)
+        if (key === 'dashboard') setDashboard(normalized)
+        if (key === 'activity') setActivity(normalized)
+        if (key === 'financial') setFinancial(normalized)
+        if (key === 'command') setCommand(normalized)
+        if (key === 'applications') setApplications(normalized)
       })
 
-      if (failures === endpoints.length) setLoadError('Não foi possível atualizar as fontes administrativas. Os dados anteriores foram preservados.')
+      if (endpoints.length && failures === endpoints.length) setLoadError('Não foi possível atualizar as fontes administrativas solicitadas. Os dados anteriores foram preservados.')
       else if (failures) setLoadError(`${failures} fonte${failures > 1 ? 's' : ''} não respondeu. Os dados disponíveis foram preservados.`)
       else setLoadError('')
+      dashboardLoadedOnceRef.current = true
       setLastRefreshAt(new Date())
     } finally {
       if (sequence === refreshSequenceRef.current) {
@@ -498,12 +507,22 @@ function Dashboard({ user, onLogout }) {
   useEffect(() => {
     let socketState = 'connecting'
 
-    const queueRefresh = () => {
+    const queueRefresh = (modules = []) => {
       if (document.visibilityState !== 'visible') return
       if (!BACKGROUND_REFRESH_PAGES.has(activePageRef.current)) return
+      const pending = pendingRefreshModulesRef.current
+      if (!modules.length) {
+        pending.clear()
+        pending.add('*')
+      } else if (!pending.has('*')) {
+        modules.forEach(module => pending.add(module))
+      }
       if (refreshTimerRef.current) window.clearTimeout(refreshTimerRef.current)
       refreshTimerRef.current = window.setTimeout(() => {
-        void loadAll({ quiet: true })
+        const all = pending.has('*')
+        const nextModules = all ? null : [...pending]
+        pending.clear()
+        void loadAll({ quiet: true, modules: nextModules })
       }, 1600)
     }
 
@@ -512,10 +531,19 @@ function Dashboard({ user, onLogout }) {
       events: ['ecosystem.updated'],
       onUpdate: (payload, eventName) => {
         const modules = Array.isArray(payload?.modules) ? payload.modules : []
-        const affectsDashboard = modules.length === 0 || modules.some(module =>
-          ['dashboard', 'activity', 'audit', 'applications', 'operations', 'financial'].includes(module)
-        )
-        if (eventName !== 'ecosystem.updated' || affectsDashboard) queueRefresh()
+        if (eventName !== 'ecosystem.updated' || modules.length === 0) {
+          queueRefresh()
+          return
+        }
+        const targets = new Set()
+        modules.forEach(module => {
+          if (module === 'dashboard') targets.add('dashboard')
+          if (module === 'activity' || module === 'audit') targets.add('activity')
+          if (module === 'applications') { targets.add('applications'); targets.add('dashboard') }
+          if (module === 'operations' || module === 'command') { targets.add('command'); targets.add('dashboard') }
+          if (module === 'financial') { targets.add('financial'); targets.add('dashboard') }
+        })
+        if (targets.size) queueRefresh([...targets])
       },
       onState: state => {
         socketState = state
