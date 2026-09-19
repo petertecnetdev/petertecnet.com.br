@@ -996,7 +996,7 @@ function SearchPopover({ query, result, searching, recentPages = [], favoritePag
   const favoriteMatches = favoritePages.map(page => navItems.find(([id]) => id === page)).filter(Boolean)
 
   function keyboardNavigation(event) {
-    if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
     const buttons = [...event.currentTarget.querySelectorAll('button')].filter(button => !button.disabled && !button.classList.contains('search-close'))
     const index = buttons.indexOf(document.activeElement)
     if (index < 0) return
