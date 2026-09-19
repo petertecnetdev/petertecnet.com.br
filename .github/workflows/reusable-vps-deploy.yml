@@ -428,6 +428,35 @@ jobs:
               sudo -u www-data -- php artisan optimize:clear
               sudo -u www-data -- php artisan migrate --force
               sudo -u www-data -- php artisan config:cache
+              # Fail closed if a Laravel config cache was generated without the
+              # application's real .env values. This prevents a readable app from
+              # being replaced by framework defaults such as forge/forge.
+              sudo -u www-data -- php -r '
+                $env = @parse_ini_file(".env", false, INI_SCANNER_RAW);
+                if (!is_array($env)) {
+                    @unlink("bootstrap/cache/config.php");
+                    fwrite(STDERR, "Laravel config cache guard: .env is unreadable; removed generated cache.\n");
+                    exit(42);
+                }
+                require "vendor/autoload.php";
+                $app = require "bootstrap/app.php";
+                $kernel = $app->make(Illuminate\\Contracts\\Console\\Kernel::class);
+                $kernel->bootstrap();
+                $checks = [
+                    "DB_HOST" => (string) config("database.connections.mysql.host"),
+                    "DB_DATABASE" => (string) config("database.connections.mysql.database"),
+                    "DB_USERNAME" => (string) config("database.connections.mysql.username"),
+                    "DB_PASSWORD" => (string) config("database.connections.mysql.password"),
+                ];
+                foreach ($checks as $key => $actual) {
+                    $expected = trim((string) ($env[$key] ?? ""), "\"\x27");
+                    if ($expected === "" || $actual !== $expected) {
+                        @unlink("bootstrap/cache/config.php");
+                        fwrite(STDERR, "Laravel config cache guard: database configuration does not match .env; removed generated cache.\n");
+                        exit(43);
+                    }
+                }
+              '
               sudo -u www-data -- php artisan view:cache
               if [[ -f config/cognition.php ]]; then
                 php -r 'require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class); $kernel->bootstrap(); echo "Cognitive core: ".(config("cognition.enabled") ? "enabled" : "disabled").PHP_EOL;'
