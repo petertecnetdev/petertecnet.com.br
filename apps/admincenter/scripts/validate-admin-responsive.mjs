@@ -19,7 +19,7 @@ const index = read('index.html')
 const responsive = read('src/AdminResponsive.css')
 const experience = read('src/AdminExperienceV2.css')
 const appCss = read('src/App.css')
-const establishmentsCss = read('src/AdminEstablishmentsIntegration.css')
+const establishmentsCss = read('src/AdminEstablishmentsPage.css')
 const notificationsCss = read('src/NotificationsCenter.css')
 
 const responsiveImport = main.indexOf("import './AdminResponsive.css'")
