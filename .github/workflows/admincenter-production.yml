@@ -54,6 +54,9 @@ jobs:
           test -f dist/index.html
           grep -q 'assets/' dist/index.html
 
+      - name: Browser shell regression
+        run: npm run validate:shell-browser
+
       - name: Configure SSH
         if: github.event_name != 'pull_request'
         working-directory: .
