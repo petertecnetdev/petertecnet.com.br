@@ -39,7 +39,7 @@ async function execute(path, options, attempt = 0) {
 
     const payload = response.status === 204 ? null : await response.json().catch(() => ({}))
 
-    if ((response.status === 401 || response.status === 403) && path !== '/auth/login' && path !== '/auth/google') {
+    if (response.status === 401 && path !== '/auth/login' && path !== '/auth/google') {
       localStorage.removeItem(TOKEN_KEY)
       window.dispatchEvent(new Event('admin-session-expired'))
     }
