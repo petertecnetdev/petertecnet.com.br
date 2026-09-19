@@ -46,6 +46,8 @@ const PAGE_FROM_SLUG = Object.fromEntries(Object.entries(PAGE_CONFIG).flatMap(([
 const BACKGROUND_REFRESH_PAGES = new Set(['dashboard', 'operations', 'financial', 'applications', 'activity'])
 const BACKGROUND_REFRESH_MS = 120000
 const SIDEBAR_PREF_KEY = 'petertecnet_admin_sidebar_open'
+const DENSITY_PREF_KEY = 'petertecnet_admin_density'
+const RECENT_PAGES_KEY = 'petertecnet_admin_recent_pages'
 
 function desktopNavigation() {
   return window.matchMedia('(min-width: 981px)').matches
@@ -350,6 +352,12 @@ function Dashboard({ user, onLogout }) {
   const [query, setQuery] = useState('')
   const [searching, setSearching] = useState(false)
   const [searchResult, setSearchResult] = useState(null)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [compactMode, setCompactMode] = useState(() => localStorage.getItem(DENSITY_PREF_KEY) === 'compact')
+  const [recentPages, setRecentPages] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(RECENT_PAGES_KEY) || '[]') }
+    catch { return [] }
+  })
   const [activePage, setActivePage] = useState(pageFromLocation)
   const [realtimeState, setRealtimeState] = useState('connecting')
   const [online, setOnline] = useState(() => navigator.onLine)
@@ -365,6 +373,18 @@ function Dashboard({ user, onLogout }) {
   const sidebarWasOpenRef = useRef(false)
 
   useEffect(() => { activePageRef.current = activePage }, [activePage])
+
+  useEffect(() => {
+    setRecentPages(current => {
+      const next = [activePage, ...current.filter(page => page !== activePage && PAGE_CONFIG[page])].slice(0, 5)
+      try { localStorage.setItem(RECENT_PAGES_KEY, JSON.stringify(next)) } catch {}
+      return next
+    })
+  }, [activePage])
+
+  useEffect(() => {
+    try { localStorage.setItem(DENSITY_PREF_KEY, compactMode ? 'compact' : 'comfortable') } catch {}
+  }, [compactMode])
 
   useEffect(() => {
     const media = window.matchMedia('(min-width: 981px)')
@@ -543,10 +563,13 @@ function Dashboard({ user, onLogout }) {
   useEffect(() => {
     function shortcut(event) {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
-        event.preventDefault(); document.querySelector('.top-search input')?.focus()
+        event.preventDefault()
+        setSearchOpen(true)
+        window.requestAnimationFrame(() => document.querySelector('.top-search input')?.focus())
       }
       if (event.key === 'Escape') {
         setSearchResult(null)
+        setSearchOpen(false)
         setLauncherOpen(false)
         if (!desktopNavigation()) setSidebarOpen(false)
       }
@@ -560,6 +583,8 @@ function Dashboard({ user, onLogout }) {
     const trimmed = query.trim()
     if (trimmed.length < 2) {
       searchSequenceRef.current += 1
+      setSearchResult(null)
+      setSearching(false)
       return undefined
     }
 
@@ -625,7 +650,7 @@ function Dashboard({ user, onLogout }) {
 
   const highestApp = useMemo(() => [...appRows].sort((a, b) => number(b.activity_count_30d) - number(a.activity_count_30d))[0], [appRows])
 
-  return <div className="admin-shell" data-admin-page={activePage} data-sidebar-open={sidebarOpen ? "true" : "false"}>
+  return <div className="admin-shell" data-admin-page={activePage} data-sidebar-open={sidebarOpen ? "true" : "false"} data-density={compactMode ? "compact" : "comfortable"}>
     <div className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} aria-hidden="true"/>
     <aside ref={sidebarRef} id="admin-navigation" className={`sidebar ${sidebarOpen ? 'open' : ''}`} aria-label="Navegação administrativa" aria-hidden={!sidebarOpen} onKeyDown={handleSidebarKeyDown}>
       <a className="brand" href="?page=visao-geral" tabIndex={sidebarOpen ? 0 : -1} onClick={event => { event.preventDefault(); go('dashboard') }}>
@@ -650,7 +675,7 @@ function Dashboard({ user, onLogout }) {
       <header className="topbar">
         <button ref={menuButtonRef} className="hamburger" onClick={() => setSidebarOpen(value => !value)} aria-label={sidebarOpen ? 'Fechar menu' : 'Abrir menu'} aria-expanded={sidebarOpen} aria-controls="admin-navigation"><span/><span/><span/></button>
         <div className="top-search">
-          <span>⌕</span><input value={query} onKeyDown={event => {
+          <span>⌕</span><input value={query} onFocus={() => setSearchOpen(true)} onKeyDown={event => {
             if (event.key === 'ArrowDown') {
               const first = event.currentTarget.closest('.top-search')?.querySelector('.search-popover button:not(.search-popover-head button)')
               if (first) { event.preventDefault(); first.focus() }
@@ -665,9 +690,10 @@ function Dashboard({ user, onLogout }) {
               setSearching(true)
             }
           }} placeholder="Pesquisar em todo o ecossistema…" aria-label="Pesquisar no ecossistema"/><kbd>Ctrl K</kbd>
-          {(searchResult || searching) && <SearchPopover query={query} result={searchResult} searching={searching} onClose={() => { setQuery(''); setSearchResult(null) }} onPageNavigate={page => { go(page); setQuery(''); setSearchResult(null) }} onNavigate={group => {
+          {searchOpen && <SearchPopover query={query} result={searchResult} searching={searching} recentPages={recentPages} onClose={() => { setSearchOpen(false); setQuery(''); setSearchResult(null) }} onPageNavigate={page => { go(page); setSearchOpen(false); setQuery(''); setSearchResult(null) }} onNavigate={group => {
             const destination = ({ users: 'users', applications: 'applications', establishments: 'establishments', items: 'items', events: 'establishments', orders: 'financial', payments: 'financial' })[group]
             if (destination) go(destination)
+            setSearchOpen(false)
             setQuery('')
             setSearchResult(null)
           }}/>} 
@@ -675,7 +701,7 @@ function Dashboard({ user, onLogout }) {
         <div className="top-actions">
           <Suspense fallback={null}><ImportantEventsCenter request={request}/></Suspense>
           <span className={`sync-status sync-${realtimeState}`} title={realtimeState === 'connected' ? 'Atualização em tempo real conectada' : 'Atualização em tempo real indisponível; o painel usa sincronização de segurança'}><i/><b>{realtimeState === 'connected' ? 'Ao vivo' : 'Sincronização'}</b>{lastRefreshAt && <small>Atualizado {lastRefreshAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>}</span>
-          <button className="icon-button" onClick={() => loadAll({ quiet: true, indicate: true, force: true })} aria-label="Atualizar dados" title="Atualizar dados">{refreshing ? '◌' : '↻'}</button>
+          <button className="icon-button" onClick={() => setCompactMode(value => !value)} aria-label={compactMode ? "Usar densidade confortável" : "Usar modo compacto"} title={compactMode ? "Densidade confortável" : "Modo compacto"}>{compactMode ? "↕" : "↔"}</button>\n          <button className="icon-button" onClick={() => loadAll({ quiet: true, indicate: true, force: true })} aria-label="Atualizar dados" title="Atualizar dados">{refreshing ? '◌' : '↻'}</button>
           <div className="launcher-wrap">
             <button className="ecosystem-button" onClick={() => setLauncherOpen(value => !value)}><span>◫</span><b>Navegar no ecossistema</b><i>⌄</i></button>
             {launcherOpen && <EcosystemLauncher applications={applications} onClose={() => setLauncherOpen(false)}/>} 
@@ -793,12 +819,13 @@ function SectionHeading({ kicker, title, text }) {
   return <div className="section-heading"><div><p className="eyebrow">{kicker}</p><h2>{title}</h2></div><p>{text}</p></div>
 }
 
-function SearchPopover({ query, result, searching, onClose, onNavigate, onPageNavigate }) {
+function SearchPopover({ query, result, searching, recentPages = [], onClose, onNavigate, onPageNavigate }) {
   const groups = result?.groups || {}
   const term = String(query || '').trim().toLowerCase()
   const pageMatches = term.length >= 2
     ? navItems.filter(([id, label]) => id.includes(term) || label.toLowerCase().includes(term)).slice(0, 6)
-    : []
+    : navItems.filter(([id]) => !recentPages.includes(id)).slice(0, 6)
+  const recentMatches = recentPages.map(page => navItems.find(([id]) => id === page)).filter(Boolean)
 
   function keyboardNavigation(event) {
     if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return
@@ -811,10 +838,10 @@ function SearchPopover({ query, result, searching, onClose, onNavigate, onPageNa
   }
 
   return <div className="search-popover" onKeyDown={keyboardNavigation}>
-    <div className="search-popover-head"><span>{searching ? 'Pesquisando…' : `${result?.total || 0} resultado(s)`}</span><button className="search-close" onClick={onClose} aria-label="Fechar busca">×</button></div>
+    <div className="search-popover-head"><span>{term.length < 2 ? "Comandos rápidos" : searching ? "Pesquisando…" : `${result?.total || 0} resultado(s)`}</span><button className="search-close" onClick={onClose} aria-label="Fechar busca">×</button></div>\n    {term.length < 2 && recentMatches.length > 0 && <section className="search-commands"><h4>Recentes</h4>{recentMatches.map(([id, label, icon]) => <button key={`recent-${id}`} type="button" onClick={() => onPageNavigate?.(id)}><span><AdminIcon name={icon}/></span><b>{label}</b><i>↗</i></button>)}</section>}
     {pageMatches.length > 0 && <section className="search-commands"><h4>Ir para</h4>{pageMatches.map(([id, label, icon]) => <button key={id} type="button" onClick={() => onPageNavigate?.(id)}><span><AdminIcon name={icon}/></span><b>{label}</b><i>→</i></button>)}</section>}
     {result?.error && <div className="search-error">{result.error}</div>}
-    {!searching && !result?.error && !result?.total && <Empty text="Nenhum resultado encontrado."/>}
+    {term.length >= 2 && !searching && !result?.error && !result?.total && <Empty text="Nenhum resultado encontrado."/>}
     <div className="search-groups">
       {Object.entries(groups).map(([group, rows]) => <section key={group}><h4>{groupLabels[group] || group}<span>{rows.length}</span></h4>{rows.map((row, index) => <button type="button" className="search-result" key={row.id || index} onClick={() => onNavigate?.(group)}><div><b>{row.name || row.title || row.first_name || row.email || row.public_id || row.reference || `#${row.id}`}</b><small>{row.email || row.slug || row.status || row.category || row.application_name || row.url || `ID ${row.id}`}</small></div><span>#{row.id}</span></button>)}</section>)}
     </div>
