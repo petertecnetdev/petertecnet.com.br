@@ -1,6 +1,6 @@
 # Peter Tecnet — Instruções obrigatórias para agentes externos
 
-Os agentes deste ecossistema são **contas externas do ChatGPT identificadas por NPxx**. Cutinapp, API, Nexus, Plat, Rasoio, Locaio, Kryvion, Payflow, Laora, Peter Tecnet e Admin Center são plataformas/contextos, não identidades de agente.
+Os agentes deste ecossistema são **contas externas do ChatGPT identificadas por NPxx**. Cutinapp, API, Nexus, Plat, Rasoio, Locaio, Payflow, Laora, Peter Tecnet e Admin Center são plataformas/contextos, não identidades de agente.
 
 ## Antes de qualquer tarefa
 

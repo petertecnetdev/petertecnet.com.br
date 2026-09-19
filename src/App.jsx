@@ -48,13 +48,6 @@ const solutionPaths = [
     slugs: ['rasoio'],
   },
   {
-    id: 'crypto',
-    label: 'Crypto e inteligência de mercado',
-    title: 'Quero acompanhar o mercado cripto com mais inteligência',
-    description: 'Use dados, monitoramento, análise de cenário, gestão de risco e automações para acompanhar ativos digitais com mais contexto e disciplina, sem promessas de retorno.',
-    slugs: ['kryvion'],
-  },
-  {
     id: 'conexoes',
     label: 'Comunidade e conexões',
     title: 'Quero criar conexões e experiências sociais',
@@ -139,10 +132,10 @@ function LandingPage() {
 
   useEffect(() => {
     updatePageSeo({
-      title: 'Peter Tecnet | Software, IA, automações e tecnologia para o mercado crypto',
-      description: 'Conheça o ecossistema Peter Tecnet: plataformas, software, IA, automações, integrações, produtos digitais e tecnologia para análise e inteligência no mercado cripto.',
+      title: 'Peter Tecnet | Software, IA, automações e plataformas digitais',
+      description: 'Conheça o ecossistema Peter Tecnet: plataformas, software, IA, automações, integrações e produtos digitais para empresas e usuários.',
       path: '/',
-      keywords: ['Peter Tecnet', 'software', 'aplicativos', 'inteligência artificial', 'automação', 'APIs', 'integrações', 'crypto', 'cripto', 'criptomoedas', 'análise de mercado', 'ativos digitais', 'Kryvion'],
+      keywords: ['Peter Tecnet', 'software', 'aplicativos', 'inteligência artificial', 'automação', 'APIs', 'integrações', 'plataformas digitais'],
     })
   }, [])
 

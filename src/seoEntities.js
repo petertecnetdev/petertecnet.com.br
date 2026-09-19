@@ -127,23 +127,6 @@ export const platformSeoEntities = {
       'Integração com capacidades compartilhadas do ecossistema.',
     ],
   },
-  kryvion: {
-    name: 'Kryvion',
-    domain: 'https://kryvion.petertecnet.com.br/',
-    category: 'FinanceApplication',
-    eyebrow: 'Inteligência para mercado cripto',
-    title: 'Kryvion | Análise, monitoramento e inteligência para criptomoedas | Peter Tecnet',
-    description: 'Kryvion é a plataforma da Peter Tecnet para acompanhar o mercado de criptomoedas com dados, monitoramento, análises, alertas e contexto para apoiar decisões informadas.',
-    headline: 'Kryvion transforma dados do mercado cripto em monitoramento, análises e alertas com mais contexto.',
-    intents: ['análise de criptomoedas', 'monitoramento cripto', 'alerta de criptomoedas', 'inteligência de mercado cripto'],
-    benefits: [
-      'Monitoramento de ativos e movimentos relevantes.',
-      'Análises com contexto e dados de mercado.',
-      'Alertas e notificações para acompanhar mudanças importantes.',
-      'Histórico e detalhamento para apoiar decisões com mais informação.',
-    ],
-    disclaimer: 'Conteúdo informativo. Não constitui recomendação de investimento nem promessa de retorno.',
-  },
 }
 
 export const commercialSeoArticles = [

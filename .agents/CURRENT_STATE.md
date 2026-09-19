@@ -24,7 +24,6 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 - Plat: CONECTADA
 - Rasoio: CONECTADA
 - Locaio: CONECTADA
-- Kryvion: CONECTADA
 - Payflow: CONECTADA
 - Laora: CONECTADA
 

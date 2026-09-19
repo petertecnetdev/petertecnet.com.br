@@ -8,7 +8,6 @@ const APPS={
  nexus:{accent:'#65d1ff',accent2:'#7c3aed',items:[['','Início','⌂'],['establishment/my','Catálogos','▦'],['?peterSearch=1','Buscar','⌕'],['purchases','Compras','▣'],['user/update','Perfil','●']]},
  plat:{accent:'#f59e0b',accent2:'#fb7185',items:[['','Início','⌂'],['establishment/my','Meu local','▦'],['item','Itens','◇'],['order','Pedidos','▣'],['user/update','Perfil','●']]},
  rasoio:{accent:'#38bdf8',accent2:'#14b8a6',items:[['','Início','⌂'],['establishment/my','Barbearia','▦'],['appointment','Agenda','◷'],['item','Serviços','◇'],['user/update','Perfil','●']]},
- kryvion:{accent:'#22d3ee',accent2:'#a3e635',items:[['','Início','⌂'],['market','Mercado','⌁'],['radar','Radar','⌖'],['portfolio','Portfólio','▥'],['profile','Perfil','●']]},
  payflow:{accent:'#34d399',accent2:'#60a5fa',items:[['','Início','⌂'],['clients','Clientes','♙'],['opportunities','Funil','⌁'],['charges','Cobranças','▣'],['profile','Perfil','●']]},
  laora:{accent:'#c084fc',accent2:'#f472b6',items:[['','Início','⌂'],['search','Buscar','⌕'],['services','Serviços','◇'],['messages','Mensagens','✉'],['profile','Perfil','●']]},
  locaio:{accent:'#2dd4bf',accent2:'#38bdf8',items:[['','Início','⌂'],['search','Buscar','⌕'],['appointments','Agenda','◷'],['services','Serviços','◇'],['profile','Perfil','●']]}

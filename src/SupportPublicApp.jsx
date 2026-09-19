@@ -188,7 +188,7 @@ function SupportApp() {
         <div className="support-hero-copy">
           <p className="support-eyebrow"><span/> SUPORTE / ECOSSISTEMA PETER TECNET</p>
           <h1>Um canal de suporte para <em>todas as nossas plataformas.</em></h1>
-          <p>Cutinapp, Kryvion, Nexus, Rasoio, PayFlow, Laora e todo o ecossistema compartilham a mesma central. Você abre aqui; nossa equipe recebe o contexto da aplicação e acompanha tudo pelo Admin Center.</p>
+          <p>Cutinapp, Nexus, Rasoio, PayFlow, Laora e todo o ecossistema compartilham a mesma central. Você abre aqui; nossa equipe recebe o contexto da aplicação e acompanha tudo pelo Admin Center.</p>
           <div className="support-points"><span>Chamados centralizados</span><span>Acompanhamento seguro</span><span>Histórico de conversa</span></div>
         </div>
         <aside className="support-hero-console"><small>SUPPORT / LIVE</small><strong>{ticket ? statusLabel[ticket.status] || ticket.status : 'ONLINE'}</strong><p>{ticket ? `Chamado #${ticket.public_id.slice(0, 8).toUpperCase()}` : 'Conte o que aconteceu e informe em qual plataforma precisa de ajuda.'}</p></aside>

@@ -47,7 +47,6 @@ jobs:
             "https://petertecnet.com.br/plataformas/payflow"
             "https://petertecnet.com.br/plataformas/laora"
             "https://petertecnet.com.br/plataformas/locaio"
-            "https://petertecnet.com.br/plataformas/kryvion"
             "https://petertecnet.com.br/blog"
             "https://petertecnet.com.br/blog/agendamento-online-para-empresas-de-servicos"
             "https://petertecnet.com.br/blog/sistema-para-bares-restaurantes-e-estabelecimentos"
@@ -81,7 +80,7 @@ jobs:
           assert_contains "platform directory H1" "Plataformas próprias para problemas específicos" "$platforms"
           assert_contains "platform directory structured list" "ItemList" "$platforms"
           sitemap="$(curl --fail --silent --show-error --location https://petertecnet.com.br/sitemap.xml)"
-          for route in /plataformas/plat /plataformas/rasoio /plataformas/cutinapp /plataformas/nexus /plataformas/payflow /plataformas/laora /plataformas/locaio /plataformas/kryvion /blog/agendamento-online-para-empresas-de-servicos; do
+          for route in /plataformas/plat /plataformas/rasoio /plataformas/cutinapp /plataformas/nexus /plataformas/payflow /plataformas/laora /plataformas/locaio /blog/agendamento-online-para-empresas-de-servicos; do
             assert_contains "sitemap $route" "https://petertecnet.com.br$route" "$sitemap"
           done
           robots="$(curl --fail --silent --show-error --location https://petertecnet.com.br/robots.txt)"
