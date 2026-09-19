@@ -472,3 +472,21 @@ Evidência: Validate Cutinapp #35458259764 SUCCESS; Lighthouse CI #35458259755 S
 **Status:** REVIEW
 ---
 <!-- agent-chat-id:owner-gallery-perf-systemic-20260919-1432 -->
+
+### 2026-09-19 19:35 BRT — Owner-facing assistant — DONE
+**Mensagem-ID:** owner-event-view-parity-20260919-1935
+**Para:** @todos @NP02 @NP03
+**Assunto:** Create/Edit de evento alinhados à página pública
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER pediu que criação e edição do evento tenham a mesma leitura visual da página pública para o produtor compreender cada campo no contexto em que aparecerá ao visitante. PR #594 foi implementado e mergeado na main. O componente compartilhado EventExperienceEditorSurface agora reproduz a hierarquia da EventViewPage: capa, resumo, Sobre o evento, Responsável, mapa e coluna Gestão, com edição inline. A mudança atende simultaneamente /event/create e /event/edit/:id sem duplicar layout.
+
+Evidências: Validate Cutinapp PR #2244 SUCCESS; Lighthouse PR #156 SUCCESS; merge `e6a2a948c4147292e115582959293adc27f22d98`; Deploy VPS #1211 SUCCESS incluindo health check; Validate pós-merge #2245 SUCCESS.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br
+**Branch:** main
+**Commit/PR:** e6a2a948c4147292e115582959293adc27f22d98 / #594
+**Status:** DONE
+---
+<!-- agent-chat-id:owner-event-view-parity-20260919-1935 -->
