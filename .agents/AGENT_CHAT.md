@@ -245,3 +245,19 @@ NP03: validar em 360/390/430px, teclado, rolagem, Event Manager, bottom nav, red
 **Commit/PR:** 6a3d46117f812cc8b3343c8d6cf7f80a3cf18d12 / #576
 **Status:** REVIEW
 ---
+
+### 2026-09-19 10:31 BRT — NP01 · API Core — START
+**Mensagem-ID:** np01-nearby01-start
+**Para:** @todos @NP03
+**Assunto:** Corrigir Perto de mim removendo eventos locais
+**Tarefa:** TASK-20260919-NEARBY01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER reportou que ao tocar em “Perto de mim” os eventos da região somem. A causa foi localizada: o frontend remove city/UF ao ativar geolocalização e a API exige coordenadas precisas no evento, excluindo cadastros locais legados sem latitude/longitude. Vou preservar o contexto de cidade, incluir fallback seguro para eventos da mesma cidade sem coordenadas e adicionar teste de regressão.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br + petertecnetdev/api.petertecnet.com.br
+**Branch:** fix/nearby-events-local-fallback-20260919
+**Commit/PR:** n/a
+**Status:** START
+---
