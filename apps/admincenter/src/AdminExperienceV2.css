@@ -87,6 +87,42 @@ body{background:
 .sidebar.open~.workspace .hamburger{position:relative!important;inset:auto!important;z-index:auto!important;width:44px!important;height:44px!important;border-radius:13px!important;background:rgba(10,24,33,.82)!important;box-shadow:none!important}
 .sidebar.open~.workspace .hamburger span{position:static!important;transform:none!important;opacity:1!important}
 
+
+/* Desktop navigation is persistent by default: page changes and background updates never dismiss it. */
+@media(min-width:981px){
+  .admin-shell[data-sidebar-open="true"] .sidebar{
+    width:300px!important;
+    max-width:300px!important;
+    transform:translateX(0)!important;
+    pointer-events:auto!important;
+    box-shadow:none!important;
+  }
+  .admin-shell[data-sidebar-open="true"] .sidebar-backdrop,
+  .admin-shell[data-sidebar-open="false"] .sidebar-backdrop{
+    display:none!important;
+    opacity:0!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+  }
+  .admin-shell[data-sidebar-open="true"] .workspace{
+    width:calc(100% - 300px)!important;
+    max-width:calc(100vw - 300px)!important;
+    margin-left:300px!important;
+  }
+  .admin-shell[data-sidebar-open="false"] .workspace{
+    width:100%!important;
+    max-width:100vw!important;
+    margin-left:0!important;
+  }
+  .admin-shell .workspace{
+    transition:margin-left var(--admin-normal) cubic-bezier(.2,.8,.2,1),width var(--admin-normal) cubic-bezier(.2,.8,.2,1),max-width var(--admin-normal) cubic-bezier(.2,.8,.2,1);
+  }
+  .admin-shell[data-sidebar-open="true"] .sidebar[aria-hidden="false"]{visibility:visible}
+  .admin-shell[data-sidebar-open="false"] .sidebar[aria-hidden="true"]{visibility:visible}
+  .admin-shell[data-sidebar-open="true"] .sidebar nav button{min-height:54px!important}
+  .admin-shell[data-sidebar-open="true"] .topbar{padding-left:18px!important}
+}
+
 /* Topbar */
 .topbar{position:sticky!important;top:0!important;z-index:320!important;height:72px!important;padding-inline:clamp(12px,2vw,28px)!important;background:rgba(5,12,18,.86)!important;border-bottom:1px solid rgba(145,205,219,.07)!important;backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important}
 .hamburger{width:44px;height:44px;border-radius:13px;border:1px solid var(--admin-line);background:rgba(255,255,255,.025);transition:background var(--admin-fast),border-color var(--admin-fast)}
