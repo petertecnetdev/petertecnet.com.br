@@ -25,8 +25,8 @@ img[data-peter-brand-logo="true"],
 }
 
 .mkt-command-core img {
-  width: 96px;
-  height: 96px;
+  width: 124px;
+  height: 124px;
 }
 
 .hub-hero-mark img {
@@ -36,8 +36,8 @@ img[data-peter-brand-logo="true"],
 
 @media (max-width: 720px) {
   .mkt-command-core img {
-    width: 84px;
-    height: 84px;
+    width: 108px;
+    height: 108px;
   }
 
   .hub-hero-mark img {
