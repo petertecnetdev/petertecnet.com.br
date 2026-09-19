@@ -101,7 +101,7 @@ function Status({ active, children, tone = '' }) {
   return <span className={`aep-status ${active ? 'active' : ''} ${tone}`}><i />{children}</span>
 }
 
-export default function AdminEstablishmentsPageV2() {
+export default function AdminEstablishmentsPageV2({ quickCreateToken = 0 }) {
   const [rows, setRows] = useState([])
   const [applications, setApplications] = useState([])
   const [users, setUsers] = useState([])
@@ -171,6 +171,11 @@ export default function AdminEstablishmentsPageV2() {
     setEditing(null); setResourceEditor(null); setForm({ ...EMPTY_FORM, app_id: first, app_ids: first ? [first] : [] }); setError(''); setNotice(''); setMode('editor')
     window.setTimeout(scrollTop, 0)
   }
+
+  useEffect(() => {
+    if (!quickCreateToken) return
+    startCreate()
+  }, [quickCreateToken])
 
   function startEdit(row) {
     setEditing(row); setResourceEditor(null); setForm(formFrom(row)); setError(''); setNotice(''); setMode('editor')
