@@ -17,6 +17,7 @@ const establishments = read('src/AdminEstablishmentsPageV2.jsx')
 const users = read('src/AdminUsersCenter.jsx')
 const notifications = read('src/NotificationsCenter.jsx')
 const applicationsCenter = read('src/AdminApplicationsCenter.jsx')
+const apiClient = read('src/adminApi.js')
 
 check('dashboard fallback is not aggressive', app.includes('BACKGROUND_REFRESH_MS = 120000') && !app.includes('}, 15000)'))
 check('agent polling is contextual and >= 60s', agents.includes("dataset?.adminPage === 'agents'") && agents.includes('}, 60000)'))
@@ -37,6 +38,9 @@ check('applications management is React-native without portal or observer', app.
 check('applications management reuses parent data without polling', !applicationsCenter.includes('setInterval') && applicationsCenter.includes('dashboard') && applicationsCenter.includes('financial'))
 check('user communication modal is React-owned without portal', !read('src/AdminUserDetailExperience.jsx').includes('createPortal'))
 check('application edits refresh only application data', applicationsCenter.includes("onReload?.()") && app.includes('reloadApplications'))
+check('core modules share centralized admin API client', app.includes("adminRequest as request") && items.includes("adminRequest as apiRequest") && establishments.includes("adminRequest as apiRequest"))
+check('admin API deduplicates concurrent reads', apiClient.includes('inflightReads') && apiClient.includes("method === 'GET'"))
+check('admin API retries only safe read failures', apiClient.includes("method === 'GET' && attempt < 1"))
 
 if (failures.length) {
   console.error(`\n${failures.length} contrato(s) de runtime violado(s).`)
