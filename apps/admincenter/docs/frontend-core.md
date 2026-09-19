@@ -71,7 +71,7 @@ O componente nunca é montado automaticamente.
 
 1. Fundação + Nexus piloto.
 2. Admin Center.
-3. Cutinapp e Kryvion.
+3. Cutinapp.
 4. Rasoio, Plat e Inkap.
 5. PayFlow, Laora e Locaio.
 6. Só depois extrair primitives visuais, formulários, navegação e Notification Center.
