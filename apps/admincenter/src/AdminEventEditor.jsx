@@ -1,32 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { adminRequest as apiRequest, ADMIN_API_BASE } from './adminApi.js'
 import CreativePromptEditor from './CreativePromptEditor.jsx'
 import './AdminEventEditor.css'
-
-const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
-const TOKEN_KEY = 'petertecnet_admin_token'
-
-async function apiRequest(path, options = {}) {
-  const token = localStorage.getItem(TOKEN_KEY)
-  const response = await fetch(`${API}${path}`, {
-    ...options,
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  })
-  const payload = response.status === 204 ? null : await response.json().catch(() => ({}))
-  if (response.status === 401) {
-    localStorage.removeItem(TOKEN_KEY)
-    window.dispatchEvent(new Event('admin-session-expired'))
-  }
-  if (!response.ok) {
-    const validation = Object.values(payload?.errors || {}).flat()?.[0]
-    throw new Error(validation || payload?.error || payload?.message || 'Não foi possível concluir a operação.')
-  }
-  return payload
-}
 
 const emptyForm = {
   title: '', description: '', category: '', event_format: 'in_person', start_date: '', end_date: '',
@@ -78,7 +53,7 @@ function formFromEvent(event) {
 function imageUrl(value) {
   if (!value) return ''
   if (/^(https?:|data:|blob:)/i.test(value)) return value
-  const origin = API.replace(/\/api\/?$/i, '')
+  const origin = ADMIN_API_BASE.replace(/\/api\/?$/i, '')
   const path = String(value).replace(/^\/?storage\//i, '').replace(/^\//, '')
   return `${origin}/storage/${path}`
 }
