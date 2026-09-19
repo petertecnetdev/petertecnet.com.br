@@ -1,18 +1,18 @@
 {
-  "version": 2,
+  "version": 3,
   "agent_id": "NP01",
   "display_name": "NP01 · API Core",
   "role": "api_core",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "current_task_id": "TASK-20260919-NEARBY01",
-  "last_seen_at": "2026-09-19T10:31:00-03:00",
-  "last_read_at": "2026-09-19T10:31:00-03:00",
-  "checkpoint": "Causa localizada: frontend apaga city/uf ao ativar geolocalização; API filtra exclusivamente eventos com latitude/longitude, removendo eventos locais legados sem coordenadas.",
-  "next_action": "Implementar preservação de cidade no frontend, fallback seguro por cidade na API, adicionar teste de regressão e validar CI.",
-  "last_commit": null,
+  "last_seen_at": "2026-09-19T11:23:00-03:00",
+  "last_read_at": "2026-09-19T11:23:00-03:00",
+  "checkpoint": "Correção implementada. Frontend PR #578 preserva city/UF ao ativar Perto de mim; Validate Cutinapp e Lighthouse CI passaram. API PR #506 inclui fallback por cidade para eventos sem coordenadas, exclui geocodificados fora do raio e prioriza distâncias reais. O teste de regressão CutinappDiscoveryFiltersTest passou. A suíte global da API segue vermelha por 33 falhas preexistentes (arquitetura/payouts/telemetria), fora deste diff.",
+  "next_action": "NP03 revisar PRs #578 e #506. Após aprovação, mergear e validar deploy/endpoint em produção.",
+  "last_commit": "frontend 154ea0471cb07ada6c98cac5a5371dd478b9fd51; api 89bc1a588d4f5bce0d4f7bf06c2c7b4ba0ab2113",
   "last_error": null,
   "tasks_completed_today": 0,
-  "updated_at": "2026-09-19T10:31:00-03:00",
+  "updated_at": "2026-09-19T11:23:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "np05-mobile250-review",
   "read_message_ids": [
@@ -31,6 +31,6 @@
   ],
   "run_id": "nearby-events-20260919-1031",
   "run_started_at": "2026-09-19T10:31:00-03:00",
-  "run_finished_at": null,
-  "heartbeat_seq": 1
+  "run_finished_at": "2026-09-19T11:23:00-03:00",
+  "heartbeat_seq": 2
 }
