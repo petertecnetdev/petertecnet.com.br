@@ -43,7 +43,7 @@ function formatDate(value) {
   }).format(date)
 }
 
-export default function AdminProspectInvitation({ apiRequest, applications = [] }) {
+export default function AdminProspectInvitation({ apiRequest, applications = [], compact = false, onSuccess }) {
   const activeApplications = useMemo(() => applications.filter(app => app?.is_active !== false), [applications])
   const [form, setForm] = useState({ email: '', recipient_name: '', application_id: '', persona: '' })
   const [busy, setBusy] = useState(false)
@@ -81,6 +81,11 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
   }
 
   useEffect(() => {
+    if (compact) {
+      setLoadingInvitations(false)
+      return undefined
+    }
+
     let active = true
 
     async function load() {
@@ -100,7 +105,7 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
 
     void load()
     return () => { active = false }
-  }, [apiRequest])
+  }, [apiRequest, compact])
 
   function change(field, value) {
     setForm(current => {
@@ -134,7 +139,8 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
       })
       setSuccess(payload?.message || 'Convite enviado com sucesso.')
       setForm(current => ({ ...current, email: '', recipient_name: '' }))
-      await refreshInvitations({ silent: true })
+      if (!compact) await refreshInvitations({ silent: true })
+      onSuccess?.(payload)
     } catch (err) {
       setError(err?.message || 'Não foi possível enviar o convite.')
       await refreshInvitations({ silent: true })
@@ -179,17 +185,17 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
     }
   }
 
-  return <section className="api-card" id="admin-prospect-invitation">
+  return <section className={`api-card${compact ? ' api-card--compact' : ''}`} id="admin-prospect-invitation">
     <header className="api-head">
       <div>
-        <span>PROSPECÇÃO E CONVITES</span>
-        <h3>Convidar para uma plataforma</h3>
-        <p>Crie o primeiro acesso, escolha a plataforma e envie um link seguro para o usuário confirmar o e-mail e definir a própria senha.</p>
+        <span>{compact ? 'NOVO ACESSO' : 'PROSPECÇÃO E CONVITES'}</span>
+        <h3>{compact ? 'Convidar usuário' : 'Convidar para uma plataforma'}</h3>
+        <p>{compact ? 'Informe o e-mail e escolha o acesso inicial.' : 'Crie o primeiro acesso, escolha a plataforma e envie um link seguro para o usuário confirmar o e-mail e definir a própria senha.'}</p>
       </div>
-      <span className="api-badge">Acesso seguro</span>
+      {!compact && <span className="api-badge">Acesso seguro</span>}
     </header>
 
-    <div className="api-grid">
+    <div className={`api-grid${compact ? ' api-grid--compact' : ''}`}>
       <form className="api-form" onSubmit={submit}>
         <label className="api-wide">E-mail do destinatário
           <input type="email" value={form.email} onChange={event => change('email', event.target.value)} placeholder="contato@exemplo.com" required/>
@@ -221,7 +227,7 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
         </button>
       </form>
 
-      <aside className="api-preview">
+      {!compact && <aside className="api-preview">
         <span>COMO O ACESSO SERÁ CRIADO</span>
         <h4>{selectedApplication?.name || 'Selecione uma plataforma'}</h4>
         <strong>{selectedPersona?.label || 'Perfil ainda não selecionado'}</strong>
@@ -231,10 +237,10 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
           <b>Cutinapp</b>
           <small>O perfil selecionado também fica associado ao vínculo inicial com a plataforma.</small>
         </div>}
-      </aside>
+      </aside>}
     </div>
 
-    <div className="api-history">
+    {!compact && <div className="api-history">
       <div className="api-history-head">
         <div>
           <span>HISTÓRICO</span>
@@ -285,6 +291,6 @@ export default function AdminProspectInvitation({ apiRequest, applications = [] 
           })}
         </div>
       )}
-    </div>
+    </div>}
   </section>
 }
