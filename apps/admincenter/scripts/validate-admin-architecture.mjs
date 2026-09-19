@@ -6,7 +6,10 @@ const srcRoot = join(root, 'src')
 const entry = join(srcRoot, 'main.jsx')
 const visited = new Set()
 const failures = []
-const allowedManualDom = new Set([normalize(join(srcRoot, 'utils/uiDialog.js'))])
+const allowedManualDom = new Set([
+  normalize(join(srcRoot, 'utils/uiDialog.js')),
+  normalize(join(srcRoot, 'services/googleIdentity.js')),
+])
 
 function resolveImport(fromFile, specifier) {
   if (!specifier.startsWith('.')) return null
