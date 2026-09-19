@@ -3030,3 +3030,39 @@ body{background:
 .sidebar nav button>span:first-child svg *{
   vector-effect:non-scaling-stroke;
 }
+
+
+/* Definitive sidebar SVG centering — override legacy absolute path/icon rules. */
+.sidebar nav button > span:first-child{
+  position:relative!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:0!important;
+  text-align:center!important;
+}
+.sidebar nav button > span:first-child > svg{
+  position:static!important;
+  inset:auto!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  transform:none!important;
+  translate:none!important;
+  margin:0!important;
+  padding:0!important;
+  width:18px!important;
+  height:18px!important;
+  min-width:18px!important;
+  min-height:18px!important;
+  max-width:18px!important;
+  max-height:18px!important;
+  display:block!important;
+  align-self:center!important;
+  justify-self:center!important;
+  overflow:visible!important;
+}
+.sidebar nav button > span:first-child > svg :is(path,circle,rect,line,polyline,polygon){
+  transform:none!important;
+  transform-origin:center!important;
+}
