@@ -232,3 +232,21 @@ body{background:
 .search-commands svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .search-commands b{font-size:.63rem}.search-commands i{font-size:.6rem;text-align:right}
 @media(max-width:980px){.sync-status small{display:none}}
+
+
+/* Persisted density mode for data-heavy administration. */
+.admin-shell[data-density="compact"] .content{padding-inline:clamp(10px,1.6vw,24px)}
+.admin-shell[data-density="compact"] .metric-card{min-height:108px!important;padding:14px!important}
+.admin-shell[data-density="compact"] .metric-card>strong{font-size:clamp(1.35rem,2vw,1.85rem)!important}
+.admin-shell[data-density="compact"] .panel>header{padding-block:12px!important}
+.admin-shell[data-density="compact"] .table-wrap th,
+.admin-shell[data-density="compact"] .table-wrap td,
+.admin-shell[data-density="compact"] .aep-table th,
+.admin-shell[data-density="compact"] .aep-table td{padding-block:9px!important}
+.admin-shell[data-density="compact"] .section-heading{margin-bottom:14px!important}
+.admin-shell[data-density="compact"] .hero-section{padding-top:28px!important;padding-bottom:16px!important}
+.admin-shell[data-density="compact"] .analytics-grid,
+.admin-shell[data-density="compact"] .metrics-grid{gap:10px!important}
+.admin-shell[data-density="compact"] .sidebar nav button{min-height:48px!important}
+.admin-shell[data-density="compact"] .sidebar nav button>span:first-child{width:36px!important;height:36px!important}
+
