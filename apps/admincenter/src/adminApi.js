@@ -2,6 +2,7 @@ export const ADMIN_API_BASE = import.meta.env.VITE_API_URL || 'https://api.peter
 const TOKEN_KEY = 'petertecnet_admin_token'
 const DEFAULT_TIMEOUT = 18000
 const inflightReads = new Map()
+const inflightMutations = new Map()
 const memoryCache = new Map()
 const requestHistory = new Map()
 const requestStats = new Map()
@@ -145,6 +146,13 @@ export function adminRequest(path, options = {}) {
     if (!options.force && inflightReads.has(requestKey)) return inflightReads.get(requestKey)
   } else {
     invalidateAdminApi()
+    const mutationKey = `${requestKey}:${String(options.body || '')}`
+    if (!options.force && inflightMutations.has(mutationKey)) return inflightMutations.get(mutationKey)
+    const mutationPromise = execute(path, options)
+    inflightMutations.set(mutationKey, mutationPromise)
+    return mutationPromise.finally(() => {
+      if (inflightMutations.get(mutationKey) === mutationPromise) inflightMutations.delete(mutationKey)
+    })
   }
 
   const promise = execute(path, options).then(payload => {
@@ -153,8 +161,6 @@ export function adminRequest(path, options = {}) {
     }
     return payload
   })
-
-  if (method !== 'GET') return promise
 
   inflightReads.set(requestKey, promise)
   return promise.finally(() => {
