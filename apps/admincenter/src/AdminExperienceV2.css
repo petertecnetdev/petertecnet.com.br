@@ -184,3 +184,15 @@ body{background:
 .sidebar[aria-hidden="true"]{visibility:hidden}
 .sidebar[aria-hidden="false"]{visibility:visible}
 @media(max-width:760px){.admin-offline-banner{top:64px;align-items:flex-start;justify-content:flex-start}.admin-offline-banner p{font-size:.59rem}}
+
+
+/* Search command palette and readable sync metadata */
+.sync-status small{padding-left:7px;border-left:1px solid var(--admin-line);color:var(--admin-soft);font-size:.51rem;font-weight:650;white-space:nowrap}
+.search-commands{padding:7px 8px 9px;border-bottom:1px solid var(--admin-line)}
+.search-commands h4{margin:0 7px 5px;color:var(--admin-soft);font-size:.52rem;text-transform:uppercase;letter-spacing:.09em}
+.search-commands button{width:100%;display:grid;grid-template-columns:30px minmax(0,1fr) 20px;align-items:center;gap:8px;min-height:39px;padding:4px 8px;border:0;border-radius:9px;background:transparent;color:var(--admin-muted);text-align:left}
+.search-commands button:hover,.search-commands button:focus-visible{background:rgba(99,223,242,.055);color:var(--admin-text)}
+.search-commands button>span{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:rgba(99,223,242,.05)}
+.search-commands svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.search-commands b{font-size:.63rem}.search-commands i{font-size:.6rem;text-align:right}
+@media(max-width:980px){.sync-status small{display:none}}

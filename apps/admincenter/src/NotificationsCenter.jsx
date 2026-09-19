@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { readAdminSessionState, writeAdminSessionState } from './adminPersistence.js'
 import './NotificationsCenter.css'
 
 const notificationTypes = [
@@ -54,9 +55,10 @@ export default function NotificationsCenter({ request, applications = [] }) {
   const [campaigns, setCampaigns] = useState([])
   const [summary, setSummary] = useState({})
   const [pagination, setPagination] = useState(null)
-  const [page, setPage] = useState(1)
-  const [historySearch, setHistorySearch] = useState('')
-  const [historyApp, setHistoryApp] = useState('')
+  const savedHistory = useMemo(() => readAdminSessionState('notifications-history', { page: 1, search: '', app: '' }), [])
+  const [page, setPage] = useState(() => Number(savedHistory.page || 1))
+  const [historySearch, setHistorySearch] = useState(() => savedHistory.search || '')
+  const [historyApp, setHistoryApp] = useState(() => savedHistory.app || '')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [previewing, setPreviewing] = useState(false)
@@ -68,6 +70,13 @@ export default function NotificationsCenter({ request, applications = [] }) {
   const [userSearching, setUserSearching] = useState(false)
   const [selectedUsers, setSelectedUsers] = useState([])
   const searchTimer = useRef(null)
+  const campaignSequenceRef = useRef(0)
+  const userSearchSequenceRef = useRef(0)
+  const campaignsLoadedRef = useRef(false)
+
+  useEffect(() => {
+    writeAdminSessionState('notifications-history', { page, search: historySearch, app: historyApp })
+  }, [page, historySearch, historyApp])
 
   const activeApplications = useMemo(
     () => applications.filter(application => application?.is_active !== false).sort((a, b) => String(a?.name || '').localeCompare(String(b?.name || ''))),
@@ -81,21 +90,26 @@ export default function NotificationsCenter({ request, applications = [] }) {
   }), [form.audience_type, form.app_id, selectedUsers])
 
   async function loadCampaigns(targetPage = page) {
-    setLoading(true)
+    const sequence = ++campaignSequenceRef.current
+    if (!campaignsLoadedRef.current) setLoading(true)
     setError('')
     try {
       const params = new URLSearchParams({ page: String(targetPage), per_page: '25' })
       if (historySearch.trim()) params.set('search', historySearch.trim())
       if (historyApp) params.set('app_id', historyApp)
       const payload = await request(`/admin/ecosystem/notifications?${params.toString()}`)
+      if (sequence !== campaignSequenceRef.current) return
       setCampaigns(payload?.campaigns?.data || [])
       setPagination(payload?.campaigns || null)
       setSummary(payload?.summary || {})
       setPage(Number(payload?.campaigns?.current_page || targetPage))
     } catch (err) {
-      setError(err.message)
+      if (sequence === campaignSequenceRef.current) setError(err.message)
     } finally {
-      setLoading(false)
+      if (sequence === campaignSequenceRef.current) {
+        campaignsLoadedRef.current = true
+        setLoading(false)
+      }
     }
   }
 
@@ -103,7 +117,10 @@ export default function NotificationsCenter({ request, applications = [] }) {
     let active = true
     const timer = window.setTimeout(async () => {
       try {
-        const payload = await request('/admin/ecosystem/notifications?page=1&per_page=25')
+        const params = new URLSearchParams({ page: String(page), per_page: '25' })
+        if (historySearch.trim()) params.set('search', historySearch.trim())
+        if (historyApp) params.set('app_id', historyApp)
+        const payload = await request(`/admin/ecosystem/notifications?${params.toString()}`)
         if (!active) return
         setCampaigns(payload?.campaigns?.data || [])
         setPagination(payload?.campaigns || null)
@@ -127,18 +144,21 @@ export default function NotificationsCenter({ request, applications = [] }) {
     const term = userSearch.trim()
     if (form.audience_type !== 'users' || term.length < 2) return undefined
 
+    const sequence = ++userSearchSequenceRef.current
     searchTimer.current = window.setTimeout(async () => {
       setUserSearching(true)
       try {
         const payload = await request(`/admin/ecosystem/users?search=${encodeURIComponent(term)}`)
-        setUserResults((payload?.users || []).slice(0, 12))
+        if (sequence === userSearchSequenceRef.current) setUserResults((payload?.users || []).slice(0, 12))
       } catch (err) {
-        setError(err.message)
-        setUserResults([])
+        if (sequence === userSearchSequenceRef.current) {
+          setError(err.message)
+          setUserResults([])
+        }
       } finally {
-        setUserSearching(false)
+        if (sequence === userSearchSequenceRef.current) setUserSearching(false)
       }
-    }, 260)
+    }, 300)
     return () => window.clearTimeout(searchTimer.current)
   }, [userSearch, form.audience_type, request])
 

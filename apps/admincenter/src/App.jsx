@@ -410,12 +410,12 @@ function Dashboard({ user, onLogout }) {
   const [activePage, setActivePage] = useState(pageFromLocation)
   const [realtimeState, setRealtimeState] = useState('connecting')
   const [online, setOnline] = useState(() => navigator.onLine)
+  const [lastRefreshAt, setLastRefreshAt] = useState(null)
   const searchTimer = useRef(null)
   const searchSequenceRef = useRef(0)
   const refreshTimerRef = useRef(null)
   const refreshInFlightRef = useRef(false)
   const refreshSequenceRef = useRef(0)
-  const lastRefreshRef = useRef(null)
   const activePageRef = useRef(activePage)
   const sidebarRef = useRef(null)
   const menuButtonRef = useRef(null)
@@ -461,7 +461,7 @@ function Dashboard({ user, onLogout }) {
       if (failures === endpoints.length) setLoadError('Não foi possível atualizar as fontes administrativas. Os dados anteriores foram preservados.')
       else if (failures) setLoadError(`${failures} fonte${failures > 1 ? 's' : ''} não respondeu. Os dados disponíveis foram preservados.`)
       else setLoadError('')
-      lastRefreshRef.current = new Date()
+      setLastRefreshAt(new Date())
     } finally {
       if (sequence === refreshSequenceRef.current) {
         setLoading(false)
@@ -678,7 +678,12 @@ function Dashboard({ user, onLogout }) {
       <header className="topbar">
         <button ref={menuButtonRef} className="hamburger" onClick={() => setSidebarOpen(value => !value)} aria-label={sidebarOpen ? 'Fechar menu' : 'Abrir menu'} aria-expanded={sidebarOpen} aria-controls="admin-navigation"><span/><span/><span/></button>
         <div className="top-search">
-          <span>⌕</span><input value={query} onChange={event => {
+          <span>⌕</span><input value={query} onKeyDown={event => {
+            if (event.key === 'ArrowDown') {
+              const first = event.currentTarget.closest('.top-search')?.querySelector('.search-popover button:not(.search-popover-head button)')
+              if (first) { event.preventDefault(); first.focus() }
+            }
+          }} onChange={event => {
             const value = event.target.value
             setQuery(value)
             if (value.trim().length < 2) {
@@ -688,7 +693,7 @@ function Dashboard({ user, onLogout }) {
               setSearching(true)
             }
           }} placeholder="Pesquisar em todo o ecossistema…" aria-label="Pesquisar no ecossistema"/><kbd>Ctrl K</kbd>
-          {(searchResult || searching) && <SearchPopover result={searchResult} searching={searching} onClose={() => { setQuery(''); setSearchResult(null) }} onNavigate={group => {
+          {(searchResult || searching) && <SearchPopover query={query} result={searchResult} searching={searching} onClose={() => { setQuery(''); setSearchResult(null) }} onPageNavigate={page => { go(page); setQuery(''); setSearchResult(null) }} onNavigate={group => {
             const destination = ({ users: 'users', applications: 'applications', establishments: 'establishments', items: 'items', events: 'establishments', orders: 'financial', payments: 'financial' })[group]
             if (destination) go(destination)
             setQuery('')
@@ -696,7 +701,7 @@ function Dashboard({ user, onLogout }) {
           }}/>} 
         </div>
         <div className="top-actions">
-          <span className={`sync-status sync-${realtimeState}`} title={realtimeState === 'connected' ? 'Atualização em tempo real conectada' : 'Atualização em tempo real indisponível; o painel usa sincronização de segurança'}><i/><b>{realtimeState === 'connected' ? 'Ao vivo' : 'Sincronização'}</b></span>
+          <span className={`sync-status sync-${realtimeState}`} title={realtimeState === 'connected' ? 'Atualização em tempo real conectada' : 'Atualização em tempo real indisponível; o painel usa sincronização de segurança'}><i/><b>{realtimeState === 'connected' ? 'Ao vivo' : 'Sincronização'}</b>{lastRefreshAt && <small>Atualizado {lastRefreshAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>}</span>
           <button className="icon-button" onClick={() => loadAll({ quiet: true, indicate: true, force: true })} aria-label="Atualizar dados" title="Atualizar dados">{refreshing ? '◌' : '↻'}</button>
           <div className="launcher-wrap">
             <button className="ecosystem-button" onClick={() => setLauncherOpen(value => !value)}><span>◫</span><b>Navegar no ecossistema</b><i>⌄</i></button>
@@ -759,7 +764,7 @@ function Dashboard({ user, onLogout }) {
           <section id="financial" className="section-anchor" data-admin-page-key="financial" hidden={activePage !== 'financial'} aria-hidden={activePage !== 'financial'}>
             <SectionHeading kicker="FINANCEIRO" title="Performance de receita" text="Distribuição financeira por aplicação e status de pagamentos."/>
             <div className="financial-strip">
-              <div><span>Transações</span><b>{compactNumber(totals.transactions)}</b></div><div><span>Gross</span><b>{currency(totals.gross)}</b></div><div><span>Taxas do provedor</span><b>{currency(totals.provider_fees)}</b></div><div><span>Seller net</span><b>{currency(totals.seller_net)}</b></div>
+              <div><span>Transações</span><b>{compactNumber(totals.transactions)}</b></div><div><span>Volume bruto</span><b>{currency(totals.gross)}</b></div><div><span>Taxas do provedor</span><b>{currency(totals.provider_fees)}</b></div><div><span>Líquido ao vendedor</span><b>{currency(totals.seller_net)}</b></div>
             </div>
             <Panel title="Receita por aplicação" subtitle="Ranking por volume bruto processado">
               <div className="table-wrap"><table><thead><tr><th>Aplicação</th><th>Transações</th><th>Volume bruto</th><th>Taxa Peter</th><th>Líquido</th></tr></thead><tbody>{financial?.applications?.length ? financial.applications.map(row => <tr key={row.app_slug || row.application_name}><td><b>{row.application_name || row.app_slug}</b></td><td>{compactNumber(row.transactions)}</td><td>{currency(row.gross)}</td><td>{currency(row.platform_fees)}</td><td>{currency(row.seller_net)}</td></tr>) : <tr><td colSpan="5"><Empty text="Ainda não há movimentação financeira consolidada por aplicação."/></td></tr>}</tbody></table></div>
@@ -822,10 +827,26 @@ function SectionHeading({ kicker, title, text }) {
   return <div className="section-heading"><div><p className="eyebrow">{kicker}</p><h2>{title}</h2></div><p>{text}</p></div>
 }
 
-function SearchPopover({ result, searching, onClose, onNavigate }) {
+function SearchPopover({ query, result, searching, onClose, onNavigate, onPageNavigate }) {
   const groups = result?.groups || {}
-  return <div className="search-popover">
-    <div className="search-popover-head"><span>{searching ? 'Pesquisando…' : `${result?.total || 0} resultado(s)`}</span><button onClick={onClose}>×</button></div>
+  const term = String(query || '').trim().toLowerCase()
+  const pageMatches = term.length >= 2
+    ? navItems.filter(([id, label]) => id.includes(term) || label.toLowerCase().includes(term)).slice(0, 6)
+    : []
+
+  function keyboardNavigation(event) {
+    if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return
+    const buttons = [...event.currentTarget.querySelectorAll('button')].filter(button => !button.disabled && !button.classList.contains('search-close'))
+    const index = buttons.indexOf(document.activeElement)
+    if (index < 0) return
+    event.preventDefault()
+    const direction = event.key === 'ArrowDown' ? 1 : -1
+    buttons[(index + direction + buttons.length) % buttons.length]?.focus()
+  }
+
+  return <div className="search-popover" onKeyDown={keyboardNavigation}>
+    <div className="search-popover-head"><span>{searching ? 'Pesquisando…' : `${result?.total || 0} resultado(s)`}</span><button className="search-close" onClick={onClose} aria-label="Fechar busca">×</button></div>
+    {pageMatches.length > 0 && <section className="search-commands"><h4>Ir para</h4>{pageMatches.map(([id, label, icon]) => <button key={id} type="button" onClick={() => onPageNavigate?.(id)}><span><AdminIcon name={icon}/></span><b>{label}</b><i>→</i></button>)}</section>}
     {result?.error && <div className="search-error">{result.error}</div>}
     {!searching && !result?.error && !result?.total && <Empty text="Nenhum resultado encontrado."/>}
     <div className="search-groups">
