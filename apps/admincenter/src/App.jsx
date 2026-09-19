@@ -48,6 +48,7 @@ const BACKGROUND_REFRESH_MS = 120000
 const SIDEBAR_PREF_KEY = 'petertecnet_admin_sidebar_open'
 const DENSITY_PREF_KEY = 'petertecnet_admin_density'
 const RECENT_PAGES_KEY = 'petertecnet_admin_recent_pages'
+const FAVORITE_PAGES_KEY = 'petertecnet_admin_favorite_pages'
 
 function desktopNavigation() {
   return window.matchMedia('(min-width: 981px)').matches
@@ -355,6 +356,10 @@ function Dashboard({ user, onLogout }) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [compactMode, setCompactMode] = useState(() => localStorage.getItem(DENSITY_PREF_KEY) === 'compact')
   const [quickCreate, setQuickCreate] = useState({ target: '', token: 0 })
+  const [favoritePages, setFavoritePages] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(FAVORITE_PAGES_KEY) || '[]').filter(page => PAGE_CONFIG[page]) }
+    catch { return [] }
+  })
   const [recentPages, setRecentPages] = useState(() => {
     try { return JSON.parse(localStorage.getItem(RECENT_PAGES_KEY) || '[]') }
     catch { return [] }
@@ -387,6 +392,10 @@ function Dashboard({ user, onLogout }) {
   useEffect(() => {
     try { localStorage.setItem(DENSITY_PREF_KEY, compactMode ? 'compact' : 'comfortable') } catch {}
   }, [compactMode])
+
+  useEffect(() => {
+    try { localStorage.setItem(FAVORITE_PAGES_KEY, JSON.stringify(favoritePages)) } catch {}
+  }, [favoritePages])
 
   useEffect(() => {
     const media = window.matchMedia('(min-width: 981px)')
@@ -645,6 +654,12 @@ function Dashboard({ user, onLogout }) {
     window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }))
   }
 
+  function toggleFavoritePage() {
+    setFavoritePages(current => current.includes(activePage)
+      ? current.filter(page => page !== activePage)
+      : [activePage, ...current].slice(0, 6))
+  }
+
   function runQuickAction(action) {
     if (action === 'new-establishment') {
       setQuickCreate(current => ({ target: 'establishments', token: current.token + 1 }))
@@ -721,7 +736,7 @@ function Dashboard({ user, onLogout }) {
               setSearching(true)
             }
           }} placeholder="Pesquisar em todo o ecossistema…" aria-label="Pesquisar no ecossistema"/><kbd>Ctrl K</kbd>
-          {searchOpen && <SearchPopover query={query} result={searchResult} searching={searching} recentPages={recentPages} onQuickAction={action => { runQuickAction(action); setSearchOpen(false); setQuery(''); setSearchResult(null) }} onClose={() => { setSearchOpen(false); setQuery(''); setSearchResult(null) }} onPageNavigate={page => { go(page); setSearchOpen(false); setQuery(''); setSearchResult(null) }} onNavigate={group => {
+          {searchOpen && <SearchPopover query={query} result={searchResult} searching={searching} recentPages={recentPages} favoritePages={favoritePages} onQuickAction={action => { runQuickAction(action); setSearchOpen(false); setQuery(''); setSearchResult(null) }} onClose={() => { setSearchOpen(false); setQuery(''); setSearchResult(null) }} onPageNavigate={page => { go(page); setSearchOpen(false); setQuery(''); setSearchResult(null) }} onNavigate={group => {
             const destination = ({ users: 'users', applications: 'applications', establishments: 'establishments', items: 'items', events: 'establishments', orders: 'financial', payments: 'financial' })[group]
             if (destination) go(destination)
             setSearchOpen(false)
@@ -732,6 +747,7 @@ function Dashboard({ user, onLogout }) {
         <div className="top-actions">
           <Suspense fallback={null}><ImportantEventsCenter request={request}/></Suspense>
           <span className={`sync-status sync-${realtimeState}`} title={realtimeState === 'connected' ? 'Atualização em tempo real conectada' : 'Atualização em tempo real indisponível; o painel usa sincronização de segurança'}><i/><b>{realtimeState === 'connected' ? 'Ao vivo' : 'Sincronização'}</b>{lastRefreshAt && <small>Atualizado {lastRefreshAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>}</span>
+          <button className="icon-button" onClick={toggleFavoritePage} aria-label={favoritePages.includes(activePage) ? "Remover página dos favoritos" : "Favoritar página atual"} title={favoritePages.includes(activePage) ? "Remover dos favoritos" : "Favoritar página"}>{favoritePages.includes(activePage) ? "★" : "☆"}</button>
           <button className="icon-button" onClick={() => setCompactMode(value => !value)} aria-label={compactMode ? "Usar densidade confortável" : "Usar modo compacto"} title={compactMode ? "Densidade confortável" : "Modo compacto"}>{compactMode ? "↕" : "↔"}</button>
           <button className="icon-button" onClick={() => loadAll({ quiet: true, indicate: true, force: true })} aria-label="Atualizar dados" title="Atualizar dados">{refreshing ? '◌' : '↻'}</button>
           <div className="launcher-wrap">
@@ -852,13 +868,14 @@ function SectionHeading({ kicker, title, text }) {
   return <div className="section-heading"><div><p className="eyebrow">{kicker}</p><h2>{title}</h2></div><p>{text}</p></div>
 }
 
-function SearchPopover({ query, result, searching, recentPages = [], onClose, onNavigate, onPageNavigate, onQuickAction }) {
+function SearchPopover({ query, result, searching, recentPages = [], favoritePages = [], onClose, onNavigate, onPageNavigate, onQuickAction }) {
   const groups = result?.groups || {}
   const term = String(query || '').trim().toLowerCase()
   const pageMatches = term.length >= 2
     ? navItems.filter(([id, label]) => id.includes(term) || label.toLowerCase().includes(term)).slice(0, 6)
     : navItems.filter(([id]) => !recentPages.includes(id)).slice(0, 6)
   const recentMatches = recentPages.map(page => navItems.find(([id]) => id === page)).filter(Boolean)
+  const favoriteMatches = favoritePages.map(page => navItems.find(([id]) => id === page)).filter(Boolean)
 
   function keyboardNavigation(event) {
     if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return
@@ -878,6 +895,7 @@ function SearchPopover({ query, result, searching, recentPages = [], onClose, on
       <button type="button" onClick={() => onQuickAction?.('users')}><span>◎</span><b>Gerenciar usuários</b><i>↗</i></button>
       <button type="button" onClick={() => onQuickAction?.('refresh')}><span>↻</span><b>Atualizar visão</b><i>↗</i></button>
     </section>}
+    {term.length < 2 && favoriteMatches.length > 0 && <section className="search-commands"><h4>Favoritos</h4>{favoriteMatches.map(([id, label, icon]) => <button key={`favorite-${id}`} type="button" onClick={() => onPageNavigate?.(id)}><span><AdminIcon name={icon}/></span><b>{label}</b><i>★</i></button>)}</section>}
     {term.length < 2 && recentMatches.length > 0 && <section className="search-commands"><h4>Recentes</h4>{recentMatches.map(([id, label, icon]) => <button key={`recent-${id}`} type="button" onClick={() => onPageNavigate?.(id)}><span><AdminIcon name={icon}/></span><b>{label}</b><i>↗</i></button>)}</section>}
     {pageMatches.length > 0 && <section className="search-commands"><h4>Ir para</h4>{pageMatches.map(([id, label, icon]) => <button key={id} type="button" onClick={() => onPageNavigate?.(id)}><span><AdminIcon name={icon}/></span><b>{label}</b><i>→</i></button>)}</section>}
     {result?.error && <div className="search-error">{result.error}</div>}
