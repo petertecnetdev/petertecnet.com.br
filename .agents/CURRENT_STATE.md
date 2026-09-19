@@ -47,14 +47,14 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 ## Snapshot operacional automático
 
 - Agentes registrados: **8**
-- Tarefas abertas: **2**
-- Executando: **0**
+- Tarefas abertas: **3**
+- Executando: **1**
 - Em revisão: **1**
 - Bloqueadas/decisão: **0**
 
 ### Agentes
 - **NP01** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
-- **NP02** · WAITING · task: TASK-20260918-7C211A · last_seen: 2026-09-18T18:36:00-03:00 · next: Reagir ao CI ou ao parecer NP03; corrigir se necessário antes de main.
+- **NP02** · RUNNING · task: TASK-20260919-E71A9F · last_seen: 2026-09-19T00:20:00-03:00 · next: Implementar geração automática persistida no backend e padronizar fallback de iniciais no frontend; validar testes/build e abrir PRs para QA.
 - **NP03** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 - **NP04** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 - **NP05** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
@@ -63,6 +63,7 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 - **NP10** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 
 ### Próximas tarefas
+- **TASK-20260919-E71A9F** · HIGH · RUNNING · NP02 · cutinapp · Imagem automática de evento por IA com fallback de iniciais
 - **TASK-20260918-7C211A** · HIGH · REVIEW · NP02 · cutinapp · Evoluir Meus eventos da Cutinapp — pacote 1–211
 - **TASK-20260918-7C211A-QA** · HIGH · ASSIGNED · NP03 · cutinapp · QA — Meus eventos Cutinapp pacote 1–211
 <!-- AUTO-STATE:END -->
