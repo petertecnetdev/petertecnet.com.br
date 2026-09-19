@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { readAdminSessionState, writeAdminSessionState } from './adminPersistence.js'
 import { adminRequest as apiRequest } from './adminApi.js'
+import { useDialogFocus } from './useDialogFocus.js'
 import './AdminItemsManager.css'
 
 const EMPTY_FILTERS = {
@@ -119,10 +120,12 @@ function Status({ tone = 'neutral', children }) {
 }
 
 function ItemForm({ open, editing, form, setForm, applications, establishments, saving, onClose, onSubmit, onApplicationChange }) {
+  const dialogRef = useRef(null)
+  useDialogFocus(dialogRef, open, onClose)
   if (!open) return null
 
   return <div className="itm-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
-    <section className="itm-modal" role="dialog" aria-modal="true" aria-labelledby="item-form-title">
+    <section ref={dialogRef} tabIndex="-1" className="itm-modal" role="dialog" aria-modal="true" aria-labelledby="item-form-title">
       <header className="itm-modal-head">
         <div><p className="eyebrow">ITEM / ECOSYSTEM</p><h3 id="item-form-title">{editing ? `Editar item #${editing.id}` : 'Novo item'}</h3><p>Um único modelo genérico para produtos, serviços, itens e ingressos em todo o ecossistema.</p></div>
         <button type="button" onClick={onClose} aria-label="Fechar">×</button>
@@ -177,11 +180,13 @@ function ItemForm({ open, editing, form, setForm, applications, establishments, 
 }
 
 function DeleteModal({ item, saving, onClose, onConfirm }) {
+  const dialogRef = useRef(null)
+  useDialogFocus(dialogRef, Boolean(item), onClose)
   if (!item) return null
   return <div className="itm-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
-    <section className="itm-confirm-modal" role="dialog" aria-modal="true">
+    <section ref={dialogRef} tabIndex="-1" className="itm-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="item-delete-title">
       <p className="eyebrow">HISTÓRICO COMERCIAL PROTEGIDO</p>
-      <h3>Excluir ou arquivar {item.name}?</h3>
+      <h3 id="item-delete-title">Excluir ou arquivar {item.name}?</h3>
       <p>Se o item já estiver vinculado a pedidos, a API não apagará o histórico: ele será arquivado. Sem pedidos vinculados, poderá ser removido definitivamente.</p>
       <div className="itm-modal-actions"><button className="itm-secondary-button" onClick={onClose}>Cancelar</button><button className="itm-danger-button" disabled={saving} onClick={onConfirm}>{saving ? 'Processando…' : 'Confirmar'}</button></div>
     </section>
