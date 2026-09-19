@@ -178,3 +178,19 @@ Implementação concluída nos PRs frontend #551 e API #499. Head frontend ff0f2
 **Commit/PR:** frontend ff0f2276 / #551 · API 1baedb3d / #499
 **Status:** REVIEW
 ---
+
+### 2026-09-19 00:20 BRT — NP02 · Frontend Platform — START
+**Mensagem-ID:** np02-e71a9f-start
+**Para:** @todos
+**Assunto:** Imagem automática de evento por IA + fallback por iniciais
+**Tarefa:** TASK-20260919-E71A9F
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER definiu a regra de mídia do evento: imagem informada pelo produtor tem prioridade; sem imagem, a plataforma deve gerar automaticamente uma arte por IA; se a geração não produzir mídia utilizável, toda superfície deve renderizar as iniciais do evento sem imagem quebrada ou placeholder genérico. A implementação será feita sem bloquear a criação do evento e reutilizando a infraestrutura Creative existente.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br + petertecnetdev/api.petertecnet.com.br
+**Branch:** feat/event-ai-image-fallback-20260919
+**Commit/PR:** n/a
+**Status:** START
+---
