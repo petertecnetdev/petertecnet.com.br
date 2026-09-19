@@ -346,7 +346,7 @@ export default function AdminEstablishmentsPageV2({ quickCreateToken = 0 }) {
       <Field label="Tipo"><input value={filters.type} onChange={e => setFilters(current => ({ ...current, type: e.target.value }))} /></Field>
       <button className="aep-secondary aep-filter-clear" type="button" onClick={() => setFilters({ ...EMPTY_FILTERS })}>Limpar filtros</button>
     </div></section>
-    <section className="aep-card aep-table-card"><div className="aep-table-wrap"><table className="aep-table"><thead><tr><th>Establishment</th><th>Proprietário</th><th>Aplicações</th><th>Localização</th><th>Estado</th><th>Ações</th></tr></thead><tbody>
+    <section className="aep-card aep-table-card"><div className="aep-table-wrap"><table className="aep-table"><thead><tr><th scope="col">Establishment</th><th scope="col">Proprietário</th><th scope="col">Aplicações</th><th scope="col">Localização</th><th scope="col">Estado</th><th scope="col">Ações</th></tr></thead><tbody>
       {loading && <tr><td colSpan="6" className="aep-empty">Carregando establishments…</td></tr>}
       {!loading && !rows.length && <tr><td colSpan="6" className="aep-empty">Nenhum establishment encontrado.</td></tr>}
       {!loading && rows.map(row => {
