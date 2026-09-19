@@ -2816,8 +2816,8 @@ body{background:
  */
 @media(min-width:981px){
   .admin-shell[data-sidebar-open="true"] .sidebar{
-    width:276px!important;
-    max-width:276px!important;
+    width:300px!important;
+    max-width:300px!important;
     padding:20px 14px 18px!important;
     background:
       radial-gradient(circle at 15% 0,rgba(76,210,231,.075),transparent 220px),
@@ -2825,9 +2825,9 @@ body{background:
     border-right:1px solid rgba(105,220,239,.12)!important;
   }
   .admin-shell[data-sidebar-open="true"] .workspace{
-    width:calc(100% - 276px)!important;
-    max-width:calc(100vw - 276px)!important;
-    margin-left:276px!important;
+    width:calc(100% - 300px)!important;
+    max-width:calc(100vw - 300px)!important;
+    margin-left:300px!important;
   }
 }
 
