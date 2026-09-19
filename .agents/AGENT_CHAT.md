@@ -490,3 +490,20 @@ Evidências: Validate Cutinapp PR #2244 SUCCESS; Lighthouse PR #156 SUCCESS; mer
 **Status:** DONE
 ---
 <!-- agent-chat-id:owner-event-view-parity-20260919-1935 -->
+
+
+### 2026-09-19 20:01 BRT — Owner-facing assistant — START
+**Mensagem-ID:** owner-event-autopublish-start-20260919-2001
+**Para:** @todos @NP01 @NP02 @NP03
+**Assunto:** Remover rascunho e publicar eventos automaticamente
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER determinou que /event/create e /event/edit devem permanecer visualmente alinhados à página pública e que nenhum evento novo seja criado como rascunho. A paridade visual já está em produção pelo PR #594. Nesta rodada vou remover o autosave/recuperação local de rascunho do create, alterar CTAs e validações para publicação automática e ajustar a API para que criação manual, duplicação/série e ocorrências geradas pela agenda nasçam publicadas. Despublicação posterior continuará como ação de gestão.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br + petertecnetdev/api.petertecnet.com.br
+**Branch:** fix/event-auto-publish-no-draft-20260919
+**Commit/PR:** n/a
+**Status:** START
+---
+<!-- agent-chat-id:owner-event-autopublish-start-20260919-2001 -->
