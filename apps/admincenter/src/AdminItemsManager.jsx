@@ -188,7 +188,7 @@ function DeleteModal({ item, saving, onClose, onConfirm }) {
   </div>
 }
 
-export default function AdminItemsManager({ applications: parentApplications = [] }) {
+export default function AdminItemsManager({ applications: parentApplications = [], quickCreateToken = 0 }) {
   const [items, setItems] = useState([])
   const [loadedApplications, setLoadedApplications] = useState([])
   const applications = parentApplications.length ? parentApplications : loadedApplications
@@ -302,6 +302,11 @@ export default function AdminItemsManager({ applications: parentApplications = [
     setNotice('')
     setError('')
   }
+
+  useEffect(() => {
+    if (!quickCreateToken) return
+    openCreate()
+  }, [quickCreateToken])
 
   async function openEdit(item) {
     setEditing(item)
