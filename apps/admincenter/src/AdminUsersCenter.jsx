@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { readAdminSessionState, writeAdminSessionState } from './adminPersistence.js'
 import AdminUserDetailPage from './AdminUserDetailExperience.jsx'
 import AdminProspectInvitation from './AdminProspectInvitation.jsx'
 import { AdminImpersonationDialog, AdminImpersonationHistory, canImpersonate } from './AdminImpersonation.jsx'
@@ -46,7 +47,7 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   const [users, setUsers] = useState([])
   const [profiles, setProfiles] = useState([])
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 })
-  const [filters, setFilters] = useState({ ...EMPTY_FILTERS })
+  const [filters, setFilters] = useState(() => readAdminSessionState('users-filters', EMPTY_FILTERS))
   const [form, setForm] = useState({ ...EMPTY_USER })
   const [editingId, setEditingId] = useState(null)
   const [detailUserId, setDetailUserId] = useState(detailUserFromUrl)
@@ -56,6 +57,10 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const loadedOnceRef = useRef(false)
+  const usersSequenceRef = useRef(0)
+
+  useEffect(() => { writeAdminSessionState('users-filters', filters) }, [filters])
 
   async function loadProfiles() {
     try {
@@ -67,23 +72,28 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   }
 
   async function loadUsers(page = 1, nextFilters = filters, { quiet = false } = {}) {
-    if (!quiet) setLoading(true)
+    const sequence = ++usersSequenceRef.current
+    if (!quiet && !loadedOnceRef.current) setLoading(true)
     setError('')
     try {
       const payload = await apiRequest(`/admin/ecosystem/users?${buildQuery(nextFilters, page)}`)
+      if (sequence !== usersSequenceRef.current) return null
       setUsers(payload?.users || [])
       setPagination(payload?.pagination || { current_page: page, last_page: 1, total: payload?.users?.length || 0 })
       return payload
     } catch (err) {
-      setError(err.message)
+      if (sequence === usersSequenceRef.current) setError(err.message)
       return null
     } finally {
-      if (!quiet) setLoading(false)
+      if (sequence === usersSequenceRef.current) {
+        loadedOnceRef.current = true
+        setLoading(false)
+      }
     }
   }
 
   useEffect(() => {
-    Promise.all([loadProfiles(), loadUsers(1, { ...EMPTY_FILTERS })]).catch(() => {})
+    Promise.all([loadProfiles(), loadUsers(1, filters)]).catch(() => {})
   }, [])
 
   useEffect(() => {

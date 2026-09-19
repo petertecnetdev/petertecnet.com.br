@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { readAdminSessionState, writeAdminSessionState } from './adminPersistence.js'
 import './AdminItemsManager.css'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
@@ -229,7 +230,7 @@ export default function AdminItemsManager({ applications: parentApplications = [
   const applications = parentApplications.length ? parentApplications : loadedApplications
   const [establishments, setEstablishments] = useState([])
   const [formEstablishments, setFormEstablishments] = useState([])
-  const [filters, setFilters] = useState(EMPTY_FILTERS)
+  const [filters, setFilters] = useState(() => readAdminSessionState('items-filters', EMPTY_FILTERS))
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -239,6 +240,10 @@ export default function AdminItemsManager({ applications: parentApplications = [
   const [form, setForm] = useState(EMPTY_FORM)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const loadedOnceRef = useRef(false)
+  const loadSequenceRef = useRef(0)
+
+  useEffect(() => { writeAdminSessionState('items-filters', filters) }, [filters])
 
   useEffect(() => {
     if (parentApplications.length) return undefined
@@ -283,7 +288,8 @@ export default function AdminItemsManager({ applications: parentApplications = [
   }, [])
 
   const loadItems = useCallback(async currentFilters => {
-    setLoading(true)
+    const sequence = ++loadSequenceRef.current
+    if (!loadedOnceRef.current) setLoading(true)
     setError('')
     const params = new URLSearchParams()
     Object.entries(currentFilters).forEach(([key, value]) => {
@@ -291,11 +297,15 @@ export default function AdminItemsManager({ applications: parentApplications = [
     })
     try {
       const payload = await apiRequest(`/admin/ecosystem/items${params.size ? `?${params.toString()}` : ''}`)
+      if (sequence !== loadSequenceRef.current) return
       setItems(payload?.items || payload?.data || [])
     } catch (err) {
-      setError(err.message)
+      if (sequence === loadSequenceRef.current) setError(err.message)
     } finally {
-      setLoading(false)
+      if (sequence === loadSequenceRef.current) {
+        loadedOnceRef.current = true
+        setLoading(false)
+      }
     }
   }, [])
 
@@ -364,7 +374,7 @@ export default function AdminItemsManager({ applications: parentApplications = [
       setFormOpen(false)
       setEditing(null)
       setReloadKey(value => value + 1)
-      document.querySelector('.top-actions .icon-button')?.click()
+      window.dispatchEvent(new CustomEvent('admin-entity-updated', { detail: { entity: 'item' } }))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -394,7 +404,7 @@ export default function AdminItemsManager({ applications: parentApplications = [
       setDeleteTarget(null)
       setNotice(result?.message || 'Item removido com sucesso.')
       setReloadKey(value => value + 1)
-      document.querySelector('.top-actions .icon-button')?.click()
+      window.dispatchEvent(new CustomEvent('admin-entity-updated', { detail: { entity: 'item' } }))
     } catch (err) {
       setError(err.message)
     } finally {

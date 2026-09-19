@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import PwaInstallButton from './PwaInstallButton.jsx'
 import SupportAdminApp, { AdminSupportLauncher } from './SupportAdminApp.jsx'
-import GlobalImageInputEnhancer from './components/GlobalImageInputEnhancer.jsx'
 import './App.css'
 import './AdminEstablishmentsFeedback.css'
 import './AdminResponsive.css'
@@ -17,6 +16,5 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     {path === '/support' ? <SupportAdminApp /> : <><App /><AdminSupportLauncher /></>}
     <PwaInstallButton />
-    <GlobalImageInputEnhancer />
   </StrictMode>,
 )

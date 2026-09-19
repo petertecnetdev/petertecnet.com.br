@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { confirmAction } from './utils/uiDialog.js'
+import { readAdminSessionState, writeAdminSessionState } from './adminPersistence.js'
 import AdminEstablishmentCatalog from './AdminEstablishmentCatalog.jsx'
 import AdminEstablishmentEvents from './AdminEstablishmentEvents.jsx'
 import AdminEstablishmentResourceEditor from './AdminEstablishmentResourceEditor.jsx'
@@ -139,7 +140,7 @@ export default function AdminEstablishmentsPageV2() {
   const [rows, setRows] = useState([])
   const [applications, setApplications] = useState([])
   const [users, setUsers] = useState([])
-  const [filters, setFilters] = useState({ ...EMPTY_FILTERS })
+  const [filters, setFilters] = useState(() => readAdminSessionState('establishments-filters', EMPTY_FILTERS))
   const [mode, setMode] = useState('list')
   const [editing, setEditing] = useState(null)
   const [resourceEditor, setResourceEditor] = useState(null)
@@ -149,6 +150,10 @@ export default function AdminEstablishmentsPageV2() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
+  const loadedOnceRef = useRef(false)
+  const loadSequenceRef = useRef(0)
+
+  useEffect(() => { writeAdminSessionState('establishments-filters', filters) }, [filters])
 
   const loadOptions = useCallback(async () => {
     const [appsResult, usersResult] = await Promise.allSettled([apiRequest('/admin/applications'), apiRequest('/admin/ecosystem/users')])
@@ -160,15 +165,23 @@ export default function AdminEstablishmentsPageV2() {
   }, [])
 
   const loadRows = useCallback(async currentFilters => {
-    setLoading(true)
+    const sequence = ++loadSequenceRef.current
+    if (!loadedOnceRef.current) setLoading(true)
     setError('')
     const params = new URLSearchParams()
     Object.entries(currentFilters).forEach(([key, value]) => { if (String(value || '').trim()) params.set(key, String(value).trim()) })
     try {
       const payload = await apiRequest(`/admin/ecosystem/establishments${params.size ? `?${params.toString()}` : ''}`)
+      if (sequence !== loadSequenceRef.current) return
       setRows(payload?.establishments || [])
-    } catch (err) { setError(err.message) }
-    finally { setLoading(false) }
+    } catch (err) {
+      if (sequence === loadSequenceRef.current) setError(err.message)
+    } finally {
+      if (sequence === loadSequenceRef.current) {
+        loadedOnceRef.current = true
+        setLoading(false)
+      }
+    }
   }, [])
 
   useEffect(() => { void loadOptions() }, [loadOptions])

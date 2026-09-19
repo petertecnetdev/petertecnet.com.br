@@ -30,6 +30,7 @@ check(app.includes("activePage === 'agents'") && app.includes("activePage === 'n
 check(app.includes('<AdminModuleBoundary'), 'Módulos administrativos críticos devem ter Error Boundary.')
 check(app.includes('handleSidebarKeyDown') && app.includes('aria-controls="admin-navigation"'), 'Drawer deve ter foco e teclado controlados pelo React.')
 check(app.includes('navigator.onLine') && app.includes('admin-offline-banner'), 'Admin deve preservar leitura e sinalizar modo offline.')
+check(!main.includes('GlobalImageInputEnhancer'), 'Runtime principal não deve inserir DOM dentro de componentes React via enhancer global.')
 
 if (failures.length) {
   console.error('Admin stability validation failed:')

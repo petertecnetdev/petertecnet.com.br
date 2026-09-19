@@ -12,6 +12,9 @@ const agents = read('src/AgentChatPanel.jsx')
 const support = read('src/SupportAdminApp.jsx')
 const events = read('src/important-events-overlay.js')
 const main = read('src/main.jsx')
+const items = read('src/AdminItemsManager.jsx')
+const establishments = read('src/AdminEstablishmentsPageV2.jsx')
+const users = read('src/AdminUsersCenter.jsx')
 
 check('dashboard fallback is not aggressive', app.includes('BACKGROUND_REFRESH_MS = 120000') && !app.includes('}, 15000)'))
 check('agent polling is contextual and >= 60s', agents.includes("dataset?.adminPage === 'agents'") && agents.includes('}, 60000)'))
@@ -21,6 +24,10 @@ check('realtime stops retry loops while offline', realtime.includes('!navigator.
 check('realtime reconnects on browser online event', realtime.includes("window.addEventListener('online', handleOnline)"))
 check('legacy navigation layers are absent from runtime entrypoint', !main.includes('AdminNavigationStandard.css') && !main.includes('AdminHamburgerPolish.css'))
 check('hidden modules are conditional', ["agents","notifications","users","establishments","items","financial"].every(page => app.includes(`activePage === '${page}'`)))
+check('item mutations do not click global refresh controls', !items.includes("document.querySelector('.top-actions .icon-button')"))
+check('dense filters persist per browser session', items.includes("writeAdminSessionState('items-filters'") && establishments.includes("writeAdminSessionState('establishments-filters'") && users.includes("writeAdminSessionState('users-filters'"))
+check('list requests reject stale responses', items.includes('loadSequenceRef.current') && establishments.includes('loadSequenceRef.current') && users.includes('usersSequenceRef.current'))
+check('global DOM image enhancer is not mounted', !main.includes('GlobalImageInputEnhancer'))
 
 if (failures.length) {
   console.error(`\n${failures.length} contrato(s) de runtime violado(s).`)
