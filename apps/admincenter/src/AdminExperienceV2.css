@@ -3066,3 +3066,41 @@ body{background:
   transform:none!important;
   transform-origin:center!important;
 }
+
+
+/* Sidebar icon centering hotfix — 2026-09-19 */
+.admin-shell .sidebar nav button > span:first-child{
+  display:grid!important;
+  place-items:center!important;
+  align-items:center!important;
+  justify-items:center!important;
+  width:40px!important;
+  min-width:40px!important;
+  max-width:40px!important;
+  height:40px!important;
+  min-height:40px!important;
+  max-height:40px!important;
+  padding:0!important;
+  margin:0!important;
+  line-height:0!important;
+  position:relative!important;
+  overflow:hidden!important;
+}
+.admin-shell .sidebar nav button > span:first-child > svg{
+  position:static!important;
+  inset:auto!important;
+  transform:none!important;
+  display:block!important;
+  width:20px!important;
+  min-width:20px!important;
+  max-width:20px!important;
+  height:20px!important;
+  min-height:20px!important;
+  max-height:20px!important;
+  margin:0!important;
+  padding:0!important;
+  align-self:center!important;
+  justify-self:center!important;
+  vertical-align:middle!important;
+  overflow:visible!important;
+}
