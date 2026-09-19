@@ -3,8 +3,6 @@ import fs from 'node:fs'
 const read = path => fs.readFileSync(new URL(`../${path}`, import.meta.url), 'utf8')
 const app = read('src/App.jsx')
 const main = read('src/main.jsx')
-const navigation = read('src/AdminAppNavigation.jsx')
-const session = read('src/AdminSessionGuard.jsx')
 const failures = []
 
 function check(condition, message) {
@@ -19,13 +17,14 @@ check(app.includes('<AdminItemsManager applications={applications} />'), 'Itens 
 check(app.includes('BACKGROUND_REFRESH_MS = 120000'), 'Fallback de atualização deve ser >= 120s.')
 check(app.includes('refreshInFlightRef.current'), 'Refresh global deve impedir concorrência.')
 check(app.includes("document.visibilityState !== 'visible'"), 'Refresh em background deve respeitar visibilidade.')
-check(!main.includes('AdminAppNavigation'), 'main não deve montar o controlador legado de navegação.')
-check(!main.includes('AdminEstablishmentsIntegration'), 'main não deve montar integração DOM de estabelecimentos.')
-check(!main.includes('AdminItemsIntegration'), 'main não deve montar integração DOM de itens.')
-check(!main.includes('AdminApplicationsExperience'), 'main não deve montar experiência duplicada de aplicações.')
-check(!main.includes('AdminSessionGuard'), 'main não deve duplicar validação/montagem administrativa.')
-check(navigation.includes('MutationObserver'), 'Arquivo legado permanece disponível apenas para compatibilidade histórica.')
-check(session.includes('AdminAppNavigation'), 'Guard legado permanece isolado e não montado pelo entrypoint.')
+check(app.includes('BACKGROUND_REFRESH_PAGES.has(activePageRef.current)'), 'Refresh deve respeitar a página ativa.')
+check(!main.includes('AdminAppNavigation'), 'Entry point não pode montar controlador legado de navegação.')
+check(!main.includes('AdminEstablishmentsIntegration'), 'Entry point não pode montar integração DOM de estabelecimentos.')
+check(!main.includes('AdminItemsIntegration'), 'Entry point não pode montar integração DOM de itens.')
+check(!main.includes('AdminApplicationsExperience'), 'Entry point não pode montar experiência duplicada de aplicações.')
+check(!main.includes('AdminSessionGuard'), 'Entry point não pode duplicar validação/montagem administrativa.')
+check(!app.includes("document.addEventListener('click', handleClick, true)"), 'App não pode capturar cliques globais para navegar.')
+check(!app.includes('new MutationObserver'), 'App principal não pode depender de MutationObserver para navegar.')
 
 if (failures.length) {
   console.error('Admin stability validation failed:')
