@@ -344,7 +344,46 @@ function HomePage({ data }) {
   useEffect(() => { updatePageSeo({ title: 'Peter Tecnet | Software, sites, aplicativos, IA e serviços digitais', description: 'Desenvolvimento de software, sites, landing pages, aplicativos, e-commerce, automação, IA, integrações, banco de dados e serviços digitais.', path: '/', schema: { '@context': 'https://schema.org', '@type': 'Organization', name: 'Peter Tecnet', url: ORIGIN, taxID: CNPJ, logo: `${ORIGIN}${PETER_BRAND_LOGO_PATH}` } }) }, [])
 
   return <Chrome contact={data.contact}><main>
-    <section className="mkt-hero hub-hero"><div className="mkt-grid" aria-hidden="true" /><div className="mkt-aurora mkt-aurora-a" aria-hidden="true" /><div className="mkt-container hub-hero-layout"><div className="mkt-hero-copy" data-reveal><p className="mkt-kicker"><span /> PETER TECNET</p><h1>{hero?.title || <>Tecnologia para transformar uma necessidade em <em>algo que funciona.</em></>}</h1><p className="mkt-hero-lead">{hero?.excerpt || 'Criamos software, sites, aplicativos, automações, integrações e produtos digitais. Também resolvemos demandas menores quando você só precisa que uma tarefa digital seja feita de forma prática.'}</p><div className="mkt-hero-actions"><a className="mkt-btn is-primary" href="/orcamento">Conte o que você precisa <span>↗</span></a><a className="mkt-btn is-ghost" href="#servicos">Conhecer serviços <span>↘</span></a></div><div className="hub-hero-proof"><span><strong>{data.applications.length || '—'}</strong> plataformas próprias</span><span><strong>{data.catalog.length || '—'}</strong> produtos e serviços</span><span><strong>1</strong> parceiro de tecnologia</span></div></div><aside className="hub-hero-panel" data-reveal><div className="hub-hero-mark"><img src={PETER_BRAND_LOGO} alt="Peter Tecnet" /><span /><span /></div><p>Do primeiro contato à entrega</p><div><span>IDEIA</span><b>→</b><span>PROJETO</span><b>→</b><span>ENTREGA</span></div><small>Software · Sites · Apps · IA · Serviços digitais</small></aside></div></section>
+    <section className="mkt-hero hub-hero">
+      <div className="mkt-grid" aria-hidden="true" />
+      <div className="mkt-aurora mkt-aurora-a" aria-hidden="true" />
+      <div className="mkt-aurora mkt-aurora-b" aria-hidden="true" />
+      <div className="mkt-container hub-hero-layout">
+        <div className="mkt-hero-copy hub-hero-copy" data-reveal>
+          <p className="mkt-kicker"><span /> PETER TECNET · TECNOLOGIA EM MOVIMENTO</p>
+          <h1>{hero?.title || <>Transformamos ideias em <em>produtos digitais que funcionam.</em></>}</h1>
+          <p className="mkt-hero-lead">{hero?.excerpt || 'Criamos software, sites, aplicativos, IA, automações e integrações para resolver problemas reais, acelerar operações e transformar tecnologia em oportunidade de negócio.'}</p>
+          <div className="mkt-hero-actions">
+            <a className="mkt-btn is-primary" href="/orcamento">Tirar uma ideia do papel <span>↗</span></a>
+            <a className="mkt-btn is-ghost" href="/portfolio">Ver o que construímos <span>↗</span></a>
+          </div>
+          <div className="hub-hero-proof" aria-label="Diferenciais Peter Tecnet">
+            <span><strong>01</strong> Produtos próprios</span>
+            <span><strong>02</strong> Software sob medida</span>
+            <span><strong>03</strong> IA + automação</span>
+          </div>
+        </div>
+
+        <aside className="hub-hero-panel" data-reveal aria-label="Fluxo de criação Peter Tecnet">
+          <div className="hub-hero-visual" aria-hidden="true">
+            <span className="hub-orbit hub-orbit-outer" />
+            <span className="hub-orbit hub-orbit-middle" />
+            <span className="hub-orbit hub-orbit-inner" />
+            <span className="hub-orbit-axis hub-orbit-axis-x" />
+            <span className="hub-orbit-axis hub-orbit-axis-y" />
+            <span className="hub-signal-dot hub-signal-dot-a" />
+            <span className="hub-signal-dot hub-signal-dot-b" />
+            <div className="hub-hero-mark"><img src={PETER_BRAND_LOGO} alt="Peter Tecnet" /></div>
+          </div>
+          <div className="hub-hero-panel-copy">
+            <p>DO PRIMEIRO CONTATO À ENTREGA</p>
+            <div className="hub-delivery-flow"><span>IDEIA</span><b>→</b><span>PROJETO</span><b>→</b><span>ENTREGA</span></div>
+            <small>Software · Sites · Apps · IA · APIs · Automações</small>
+          </div>
+        </aside>
+      </div>
+      <div className="hub-hero-scroll" aria-hidden="true"><span>EXPLORE</span><i /></div>
+    </section>
 
     <section className="hub-services" id="servicos"><div className="mkt-container"><div className="mkt-section-heading is-split" data-reveal><div><p className="mkt-kicker">O QUE FAZEMOS</p><h2>Serviços para quem precisa <span>criar, melhorar ou resolver.</span></h2></div><p>Você pode chegar com uma ideia completa ou apenas explicar o problema. Organizamos o caminho e mostramos qual tipo de solução faz sentido.</p></div><div className="hub-service-grid">{data.services.map(service => <ServiceCard service={service} key={service.slug} />)}</div></div></section>
 
