@@ -3,6 +3,53 @@ const TOKEN_KEY = 'petertecnet_admin_token'
 const DEFAULT_TIMEOUT = 18000
 const inflightReads = new Map()
 const memoryCache = new Map()
+const requestHistory = new Map()
+const requestStats = new Map()
+const lastStormNotice = new Map()
+const STORM_WINDOW_MS = 60000
+const STORM_THRESHOLD = 25
+
+function routeKey(path) {
+  return String(path || '').split('?')[0]
+}
+
+function recordRequestStart(path) {
+  const key = routeKey(path)
+  const now = Date.now()
+  const recent = (requestHistory.get(key) || []).filter(time => now - time < STORM_WINDOW_MS)
+  recent.push(now)
+  requestHistory.set(key, recent)
+
+  if (recent.length >= STORM_THRESHOLD && now - Number(lastStormNotice.get(key) || 0) > STORM_WINDOW_MS) {
+    lastStormNotice.set(key, now)
+    window.dispatchEvent(new CustomEvent('admin-api-storm', { detail: { route: key, count: recent.length, windowMs: STORM_WINDOW_MS } }))
+  }
+  return { key, startedAt: performance.now() }
+}
+
+function recordRequestEnd(trace, ok) {
+  if (!trace) return
+  const duration = Math.max(0, performance.now() - trace.startedAt)
+  const current = requestStats.get(trace.key) || { count: 0, failures: 0, totalDuration: 0, maxDuration: 0 }
+  const next = {
+    count: current.count + 1,
+    failures: current.failures + (ok ? 0 : 1),
+    totalDuration: current.totalDuration + duration,
+    maxDuration: Math.max(current.maxDuration, duration),
+  }
+  requestStats.set(trace.key, next)
+}
+
+export function getAdminApiDiagnostics() {
+  return [...requestStats.entries()].map(([route, stats]) => ({
+    route,
+    count: stats.count,
+    failures: stats.failures,
+    averageDuration: stats.count ? Math.round(stats.totalDuration / stats.count) : 0,
+    maxDuration: Math.round(stats.maxDuration),
+    callsLastMinute: (requestHistory.get(route) || []).filter(time => Date.now() - time < STORM_WINDOW_MS).length,
+  })).sort((a, b) => b.callsLastMinute - a.callsLastMinute || b.averageDuration - a.averageDuration)
+}
 
 function delay(ms) {
   return new Promise(resolve => window.setTimeout(resolve, ms))
@@ -18,10 +65,12 @@ function requestError(response, payload) {
 }
 
 async function execute(path, options, attempt = 0) {
+  const trace = attempt === 0 ? recordRequestStart(path) : null
   const token = localStorage.getItem(TOKEN_KEY)
   const method = String(options.method || 'GET').toUpperCase()
   const controller = new AbortController()
   const timeout = window.setTimeout(() => controller.abort(), Number(options.timeout || DEFAULT_TIMEOUT))
+  let succeeded = false
 
   try {
     const response = await fetch(`${ADMIN_API_BASE}${path}`, {
@@ -54,6 +103,7 @@ async function execute(path, options, attempt = 0) {
       throw error
     }
 
+    succeeded = true
     return payload
   } catch (error) {
     if (error?.name === 'AbortError') {
@@ -70,6 +120,7 @@ async function execute(path, options, attempt = 0) {
     throw error
   } finally {
     window.clearTimeout(timeout)
+    if (attempt === 0) recordRequestEnd(trace, succeeded)
   }
 }
 
