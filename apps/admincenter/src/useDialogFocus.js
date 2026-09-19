@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 const SELECTOR = [
   'a[href]',
@@ -10,6 +10,9 @@ const SELECTOR = [
 ].join(',')
 
 export function useDialogFocus(ref, active, onClose) {
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
+
   useEffect(() => {
     if (!active || !ref.current) return undefined
     const previous = document.activeElement
@@ -24,9 +27,9 @@ export function useDialogFocus(ref, active, onClose) {
     })
 
     const onKeyDown = event => {
-      if (event.key === 'Escape' && onClose) {
+      if (event.key === 'Escape' && closeRef.current) {
         event.preventDefault()
-        onClose()
+        closeRef.current()
         return
       }
       if (event.key !== 'Tab') return
@@ -55,5 +58,5 @@ export function useDialogFocus(ref, active, onClose) {
         window.requestAnimationFrame(() => previous.focus())
       }
     }
-  }, [active, onClose, ref])
+  }, [active, ref])
 }
