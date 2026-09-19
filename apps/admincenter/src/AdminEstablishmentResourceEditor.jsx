@@ -1,34 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
+import { adminRequest as apiRequest } from './adminApi.js'
 import AdminEstablishmentCatalog from './AdminEstablishmentCatalog.jsx'
 import AdminEstablishmentEvents from './AdminEstablishmentEvents.jsx'
 import AdminEventEditor from './AdminEventEditor.jsx'
 import './AdminEstablishmentResourceEditor.css'
-
-const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
-const TOKEN_KEY = 'petertecnet_admin_token'
-
-async function apiRequest(path, options = {}) {
-  const token = localStorage.getItem(TOKEN_KEY)
-  const response = await fetch(`${API}${path}`, {
-    ...options,
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  })
-  const payload = response.status === 204 ? null : await response.json().catch(() => ({}))
-  if (response.status === 401) {
-    localStorage.removeItem(TOKEN_KEY)
-    window.dispatchEvent(new Event('admin-session-expired'))
-  }
-  if (!response.ok) {
-    const validation = Object.values(payload?.errors || {}).flat()?.[0]
-    throw new Error(validation || payload?.error || payload?.message || 'Não foi possível concluir a operação.')
-  }
-  return payload
-}
 
 const appKey = app => `${app?.slug || ''} ${app?.name || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '')
 const establishmentName = row => row?.fantasy || row?.name || `Establishment #${row?.id || '—'}`
