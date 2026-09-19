@@ -3,6 +3,7 @@ import AdminModuleBoundary from './AdminModuleBoundary.jsx'
 import { connectMissionControlRealtime } from './missionControlRealtime.js'
 import { loadGoogleIdentity } from './services/googleIdentity.js'
 import { adminRequest as request } from './adminApi.js'
+import { useDialogFocus } from './useDialogFocus.js'
 
 const NotificationsCenter = lazy(() => import('./NotificationsCenter.jsx'))
 const AdminUsersCenter = lazy(() => import('./AdminUsersCenter.jsx'))
@@ -49,6 +50,8 @@ const SIDEBAR_PREF_KEY = 'petertecnet_admin_sidebar_open'
 const DENSITY_PREF_KEY = 'petertecnet_admin_density'
 const RECENT_PAGES_KEY = 'petertecnet_admin_recent_pages'
 const FAVORITE_PAGES_KEY = 'petertecnet_admin_favorite_pages'
+const DASHBOARD_WIDGETS_KEY = 'petertecnet_admin_dashboard_widgets'
+const DEFAULT_DASHBOARD_WIDGETS = ['gross', 'platform', 'active-today', 'interactions-30d', 'applications', 'payments-attention']
 
 function desktopNavigation() {
   return window.matchMedia('(min-width: 981px)').matches
@@ -344,6 +347,17 @@ function statusTone(status) {
 function Dashboard({ user, onLogout }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => desktopNavigation() ? localStorage.getItem(SIDEBAR_PREF_KEY) !== 'false' : false)
   const [launcherOpen, setLauncherOpen] = useState(false)
+  const [widgetPrefsOpen, setWidgetPrefsOpen] = useState(false)
+  const [widgetPrefs, setWidgetPrefs] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(DASHBOARD_WIDGETS_KEY) || '{}')
+      const order = Array.isArray(saved.order) ? saved.order.filter(id => DEFAULT_DASHBOARD_WIDGETS.includes(id)) : []
+      const missing = DEFAULT_DASHBOARD_WIDGETS.filter(id => !order.includes(id))
+      return { order: [...order, ...missing], hidden: Array.isArray(saved.hidden) ? saved.hidden.filter(id => DEFAULT_DASHBOARD_WIDGETS.includes(id)) : [] }
+    } catch {
+      return { order: [...DEFAULT_DASHBOARD_WIDGETS], hidden: [] }
+    }
+  })
   const [dashboard, setDashboard] = useState(null)
   const [activity, setActivity] = useState(null)
   const [financial, setFinancial] = useState(null)
@@ -398,6 +412,10 @@ function Dashboard({ user, onLogout }) {
   useEffect(() => {
     try { localStorage.setItem(FAVORITE_PAGES_KEY, JSON.stringify(favoritePages)) } catch {}
   }, [favoritePages])
+
+  useEffect(() => {
+    try { localStorage.setItem(DASHBOARD_WIDGETS_KEY, JSON.stringify(widgetPrefs)) } catch {}
+  }, [widgetPrefs])
 
   useEffect(() => {
     const media = window.matchMedia('(min-width: 981px)')
@@ -698,6 +716,15 @@ function Dashboard({ user, onLogout }) {
 
   const highestApp = useMemo(() => [...appRows].sort((a, b) => number(b.activity_count_30d) - number(a.activity_count_30d))[0], [appRows])
 
+  const dashboardMetricCards = {
+    gross: <MetricCard label="Receita bruta" value={currency(totals.gross)} detail={`${compactNumber(approved.count)} pagamentos confirmados`} tone="accent"/>,
+    platform: <MetricCard label="Receita Peter Tecnet" value={currency(totals.platform_fees)} detail="Taxas da plataforma no período" tone="success"/>,
+    'active-today': <MetricCard label="Usuários ativos hoje" value={compactNumber(summary.active_users_today)} detail={`${compactNumber(summary.interactions_today)} interações hoje`}/>,
+    'interactions-30d': <MetricCard label="Interações · 30 dias" value={compactNumber(summary.interactions_30d)} detail={`${compactNumber(summary.active_users_30d)} usuários ativos`}/>,
+    applications: <MetricCard label="Aplicações ativas" value={compactNumber(activeApps)} detail={`${compactNumber(summary.applications ?? appRows.length)} cadastradas`}/>,
+    'payments-attention': <MetricCard label="Pagamentos em atenção" value={compactNumber(number(failed.count) + number(pending.count))} detail={`${compactNumber(failed.count)} falhas · ${compactNumber(pending.count)} pendentes`} tone={number(failed.count) ? 'danger' : 'warning'}/>,
+  }
+
   return <div className="admin-shell" data-admin-page={activePage} data-sidebar-open={sidebarOpen ? "true" : "false"} data-density={compactMode ? "compact" : "comfortable"}>
     <div className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} aria-hidden="true"/>
     <aside ref={sidebarRef} id="admin-navigation" className={`sidebar ${sidebarOpen ? 'open' : ''}`} aria-label="Navegação administrativa" aria-hidden={!sidebarOpen} onKeyDown={handleSidebarKeyDown}>
@@ -764,18 +791,13 @@ function Dashboard({ user, onLogout }) {
       <div className="content">
         <section className="hero-section" id="dashboard" data-admin-page-key="dashboard">
           <div><p className="eyebrow">PETER TECNET / ECOSYSTEM INTELLIGENCE</p><h1>Dashboard administrativo</h1><p>Acompanhe operação, adoção e receita do ecossistema em tempo real.</p></div>
-          <div className={`health-chip ${status}`}><span/><div><small>ECOSYSTEM HEALTH</small><b>{operationalStatus}</b></div></div>
+          <div className="hero-admin-actions"><div className={`health-chip ${status}`}><span/><div><small>ECOSYSTEM HEALTH</small><b>{operationalStatus}</b></div></div><button type="button" className="hero-customize" onClick={() => setWidgetPrefsOpen(true)}>Personalizar</button></div>
         </section>
 
         {loadError && <div className="notice" data-admin-page-key="dashboard">{loadError}<button onClick={() => loadAll()}>Tentar novamente</button></div>}
         {loading ? <DashboardSkeleton/> : <>
           <section className="metrics-grid" data-admin-page-key="dashboard">
-            <MetricCard label="Receita bruta" value={currency(totals.gross)} detail={`${compactNumber(approved.count)} pagamentos confirmados`} tone="accent"/>
-            <MetricCard label="Receita Peter Tecnet" value={currency(totals.platform_fees)} detail="Taxas da plataforma no período" tone="success"/>
-            <MetricCard label="Usuários ativos hoje" value={compactNumber(summary.active_users_today)} detail={`${compactNumber(summary.interactions_today)} interações hoje`}/>
-            <MetricCard label="Interações · 30 dias" value={compactNumber(summary.interactions_30d)} detail={`${compactNumber(summary.active_users_30d)} usuários ativos`}/>
-            <MetricCard label="Aplicações ativas" value={compactNumber(activeApps)} detail={`${compactNumber(summary.applications ?? appRows.length)} cadastradas`}/>
-            <MetricCard label="Pagamentos em atenção" value={compactNumber(number(failed.count) + number(pending.count))} detail={`${compactNumber(failed.count)} falhas · ${compactNumber(pending.count)} pendentes`} tone={number(failed.count) ? 'danger' : 'warning'}/>
+            {widgetPrefs.order.filter(id => !widgetPrefs.hidden.includes(id)).map(id => <div className="metric-slot" key={id}>{dashboardMetricCards[id]}</div>)}
           </section>
 
           <section className="analytics-grid" data-admin-page-key="dashboard">
@@ -863,11 +885,52 @@ function Dashboard({ user, onLogout }) {
           </section>
       </div>
     </main>
+    <DashboardWidgetPreferences open={widgetPrefsOpen} prefs={widgetPrefs} onChange={setWidgetPrefs} onClose={() => setWidgetPrefsOpen(false)} />
   </div>
 }
 
 function SectionHeading({ kicker, title, text }) {
   return <div className="section-heading"><div><p className="eyebrow">{kicker}</p><h2>{title}</h2></div><p>{text}</p></div>
+}
+
+function DashboardWidgetPreferences({ open, prefs, onChange, onClose }) {
+  const ref = useRef(null)
+  useDialogFocus(ref, open, onClose)
+  if (!open) return null
+
+  const labels = {
+    gross: 'Receita bruta',
+    platform: 'Receita Peter Tecnet',
+    'active-today': 'Usuários ativos hoje',
+    'interactions-30d': 'Interações · 30 dias',
+    applications: 'Aplicações ativas',
+    'payments-attention': 'Pagamentos em atenção',
+  }
+
+  const move = (id, direction) => {
+    const index = prefs.order.indexOf(id)
+    const target = index + direction
+    if (index < 0 || target < 0 || target >= prefs.order.length) return
+    const order = [...prefs.order]
+    ;[order[index], order[target]] = [order[target], order[index]]
+    onChange({ ...prefs, order })
+  }
+
+  const toggle = id => {
+    const hidden = prefs.hidden.includes(id) ? prefs.hidden.filter(item => item !== id) : [...prefs.hidden, id]
+    onChange({ ...prefs, hidden })
+  }
+
+  return <div className="admin-preferences-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
+    <section ref={ref} tabIndex="-1" className="admin-preferences-dialog" role="dialog" aria-modal="true" aria-labelledby="dashboard-preferences-title">
+      <header><div><p className="eyebrow">VISÃO GERAL</p><h3 id="dashboard-preferences-title">Personalizar indicadores</h3><p>Escolha o que aparece e a ordem dos KPIs. A preferência fica salva neste navegador.</p></div><button type="button" onClick={onClose} aria-label="Fechar personalização">×</button></header>
+      <div className="admin-preferences-list">{prefs.order.map((id, index) => <article key={id}>
+        <label><input type="checkbox" checked={!prefs.hidden.includes(id)} onChange={() => toggle(id)}/><span><b>{labels[id] || id}</b><small>{prefs.hidden.includes(id) ? 'Oculto' : 'Visível'}</small></span></label>
+        <div><button type="button" onClick={() => move(id, -1)} disabled={index === 0} aria-label={`Mover ${labels[id] || id} para cima`}>↑</button><button type="button" onClick={() => move(id, 1)} disabled={index === prefs.order.length - 1} aria-label={`Mover ${labels[id] || id} para baixo`}>↓</button></div>
+      </article>)}</div>
+      <footer><button type="button" onClick={() => onChange({ order: [...DEFAULT_DASHBOARD_WIDGETS], hidden: [] })}>Restaurar padrão</button><button type="button" className="primary-button" onClick={onClose}>Concluir</button></footer>
+    </section>
+  </div>
 }
 
 function SearchPopover({ query, result, searching, recentPages = [], favoritePages = [], onClose, onNavigate, onPageNavigate, onQuickAction }) {
