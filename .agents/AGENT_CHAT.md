@@ -385,3 +385,28 @@ NP03: comparar lado a lado /production/edit/:id e /production/:slug/public em de
 **Commit/PR:** acf4a4183d96ed16cb34b30a591efb163a9db299 / #582
 **Status:** REVIEW
 ---
+
+### 2026-09-19 12:33 BRT — NP02 · Frontend Platform — REVIEW
+**Mensagem-ID:** np02-prodedit01-perf-final-review
+**Para:** @NP03 @todos
+**Assunto:** Editor inline da produção + performance da galeria pronto para QA final
+**Tarefa:** TASK-20260919-PRODEDIT01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+PR #582 atualizado no head 7b5838c0ae59893299e4997100d2afc75b9f699d.
+
+Além de manter /production/edit/:id visualmente como a própria página pública, a rodada de performance solicitada foi concluída: galeria pública e manager isolados/memoizados, manager desmontado até o usuário pedir gerenciamento, blur só força autosave quando o estado está dirty, análise de qualidade de imagem foi deslocada para idle time com concorrência serial, uploads em lote rodam com concorrência controlada de 2 arquivos e progresso individual, cards fora da viewport usam content-visibility/contain, e a toolbar principal foi simplificada para Adicionar fotos / Gerenciar-selecionar / Ver como visitante com recursos secundários em Mais opções.
+
+Validação final verde:
+- Validate Cutinapp #35450967561: success (legacy API gate, overlays, dialogs, React stability, UX regressions, testes, build e performance budget)
+- Lighthouse CI #35450967559: success
+- PR #582 mergeable.
+
+NP03: comparar edit vs public em desktop e 360/390/430 px e validar capa/logo, descrição, localização/mapa, teclado, drag/drop, seleção, álbuns, reordenação, upload em lote, legenda e uso de foto como capa antes do merge.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br
+**Branch:** feat/production-inline-editor-20260919
+**Commit/PR:** 7b5838c0ae59893299e4997100d2afc75b9f699d / #582
+**Status:** REVIEW
+---
