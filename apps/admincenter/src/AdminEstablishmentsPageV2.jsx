@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { confirmAction } from './utils/uiDialog.js'
 import { readAdminSessionState, writeAdminSessionState } from './adminPersistence.js'
+import { adminRequest as apiRequest } from './adminApi.js'
 import AdminEstablishmentCatalog from './AdminEstablishmentCatalog.jsx'
 import AdminEstablishmentEvents from './AdminEstablishmentEvents.jsx'
 import AdminEstablishmentResourceEditor from './AdminEstablishmentResourceEditor.jsx'
 import './AdminEstablishmentsPage.css'
-
-const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
-const TOKEN_KEY = 'petertecnet_admin_token'
 
 const EMPTY_FILTERS = { search: '', app_id: '', user_id: '', approval: '', publication: '', city: '', uf: '', type: '' }
 const EMPTY_FORM = {
@@ -43,39 +41,6 @@ const RESOURCE_REGISTRY = {
     { key: 'service', resourceKind: 'item', defaultType: 'service', entityLabel: 'serviço', label: 'Criar serviço', description: 'Cadastre um serviço comercializado no catálogo.', icon: 'SV' },
     { key: 'item', label: 'Criar item', description: 'Cadastre um item genérico no catálogo pelo Admin Center.', icon: 'IT' },
   ],
-}
-
-async function apiRequest(path, options = {}) {
-  const token = localStorage.getItem(TOKEN_KEY)
-  const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), options.timeout || 18000)
-  try {
-    const response = await fetch(`${API}${path}`, {
-      ...options,
-      signal: controller.signal,
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...options.headers,
-      },
-    })
-    const payload = response.status === 204 ? null : await response.json().catch(() => ({}))
-    if (response.status === 401) {
-      localStorage.removeItem(TOKEN_KEY)
-      window.dispatchEvent(new Event('admin-session-expired'))
-    }
-    if (!response.ok) {
-      const validation = Object.values(payload?.errors || {}).flat()?.[0]
-      throw new Error(validation || payload?.error || payload?.message || 'Não foi possível concluir a operação.')
-    }
-    return payload
-  } catch (error) {
-    if (error?.name === 'AbortError') throw new Error('A API demorou para responder.')
-    throw error
-  } finally {
-    window.clearTimeout(timeout)
-  }
 }
 
 const bool = value => value === true || value === 1 || value === '1'
