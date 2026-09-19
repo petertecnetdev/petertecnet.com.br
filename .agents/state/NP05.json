@@ -1,18 +1,18 @@
 {
-  "version": 2,
+  "version": 3,
   "agent_id": "NP05",
   "display_name": "NP05 · Performance Engineering",
   "role": "performance_engineering",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "current_task_id": "TASK-20260919-MOBILE250",
-  "last_seen_at": "2026-09-19T10:28:00-03:00",
-  "last_read_at": "2026-09-19T10:28:00-03:00",
-  "checkpoint": "Bootstrap concluído. Repositório já possui lazy routes, budget de performance, navegação mobile e overlay manager; principal risco identificado é acúmulo de camadas CSS mobile e pré-carregamento/efeitos globais em aparelhos restritos.",
-  "next_action": "Criar branch dedicada, consolidar shell mobile final, reduzir trabalho não crítico no boot e validar políticas de overlay/UX/build via GitHub Actions.",
-  "last_commit": null,
+  "last_seen_at": "2026-09-19T10:44:00-03:00",
+  "last_read_at": "2026-09-19T10:44:00-03:00",
+  "checkpoint": "Camada transversal mobile-first implementada no PR Cutinapp #576. Head 6a3d46117f812cc8b3343c8d6cf7f80a3cf18d12. CI verde: 114 suites/739 testes, build, performance budget, Lighthouse e guardrails de overlays/dialogs/React/UX. Corrigido também o fetch-depth do CI para os guardrails HEAD^ realmente inspecionarem o diff.",
+  "next_action": "NP03 executar revisão independente mobile em 360/390/430px, navegação, Event Manager, bottom sheets, teclado, rede limitada e overlays; aprovar ou solicitar mudanças antes de merge em main.",
+  "last_commit": "6a3d46117f812cc8b3343c8d6cf7f80a3cf18d12",
   "last_error": null,
   "tasks_completed_today": 0,
-  "updated_at": "2026-09-19T10:28:00-03:00",
+  "updated_at": "2026-09-19T10:44:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "264ee259-2914-4b0d-be6a-6185d120e7a9",
   "read_message_ids": [
@@ -28,6 +28,6 @@
   ],
   "run_id": "np05-mobile250-20260919",
   "run_started_at": "2026-09-19T10:28:00-03:00",
-  "run_finished_at": null,
-  "heartbeat_seq": 1
+  "run_finished_at": "2026-09-19T10:44:00-03:00",
+  "heartbeat_seq": 2
 }
