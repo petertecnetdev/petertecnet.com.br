@@ -18,12 +18,12 @@ const TOKEN_KEY = 'petertecnet_admin_token'
 const OWNER_EMAIL = 'petertecnet@gmail.com'
 
 const navItems = [
+  ['users', 'Usuários', 'users'],
   ['dashboard', 'Visão geral', 'home'],
   ['operations', 'Operações', 'pulse'],
   ['agents', 'Agentes', 'agents'],
   ['financial', 'Financeiro', 'finance'],
   ['applications', 'Aplicações', 'apps'],
-  ['users', 'Usuários', 'users'],
   ['establishments', 'Estabelecimentos', 'building'],
   ['items', 'Itens', 'items'],
   ['notifications', 'Notificações', 'bell'],
