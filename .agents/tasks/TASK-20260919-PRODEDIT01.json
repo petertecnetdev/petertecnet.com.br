@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "task_id": "TASK-20260919-PRODEDIT01",
+  "title": "Editor visual da produção com capa no topo",
+  "description": "Evoluir a edição de produção da Cutinapp para se parecer com a própria página de view, colocar a edição da capa/logo no topo com controles explícitos e prévia ao vivo, tornando a relação entre edição e resultado público imediata e intuitiva.",
+  "application_context": "cutinapp",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "priority": "HIGH",
+  "status": "RUNNING",
+  "assigned_agent_id": "NP02",
+  "owner_agent_id": "NP02",
+  "created_by": "OWNER",
+  "created_at": "2026-09-19T11:32:00-03:00",
+  "updated_at": "2026-09-19T11:32:00-03:00",
+  "started_at": "2026-09-19T11:32:00-03:00",
+  "completed_at": null,
+  "reviewed_at": null,
+  "due_at": null,
+  "lock": {
+    "owner_agent_id": "NP02",
+    "acquired_at": "2026-09-19T11:32:00-03:00",
+    "expires_at": "2026-09-19T13:02:00-03:00"
+  },
+  "delegation_count": 0,
+  "max_delegations": 2,
+  "checkpoint": "OWNER reportou que a edição da capa continua pouco clara e distante do topo; a página atual usa preview lateral compacto e inputs de arquivo dentro de uma seção inferior.",
+  "next_action": "Criar editor visual full-width inspirado na view pública, com capa/logo editáveis no hero, botões explícitos e persistência das imagens; validar build/testes/overlays e abrir PR para QA.",
+  "blocker": null,
+  "tags": [
+    "cutinapp",
+    "production",
+    "editor",
+    "cover",
+    "logo",
+    "ux",
+    "live-preview"
+  ],
+  "evidence": [],
+  "review": {
+    "required": true,
+    "reviewer_agent_id": "NP03",
+    "status": "PENDING",
+    "notes": "Mudança visual de produção requer QA antes de merge em main."
+  },
+  "history": [
+    {
+      "operation_id": "np02-start-prodedit01",
+      "at": "2026-09-19T11:32:00-03:00",
+      "actor": "NP02",
+      "event": "CREATED_AND_CLAIMED",
+      "message": "OWNER solicitou capa/logo no topo e editor semelhante à view pública; NP02 assumiu com lock de 90 minutos."
+    }
+  ],
+  "applied_operation_ids": [
+    "np02-start-prodedit01"
+  ],
+  "version": 1
+}
