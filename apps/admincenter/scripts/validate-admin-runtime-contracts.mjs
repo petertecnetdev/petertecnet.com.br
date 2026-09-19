@@ -41,6 +41,9 @@ check('application edits refresh only application data', applicationsCenter.incl
 check('core modules share centralized admin API client', app.includes("adminRequest as request") && items.includes("adminRequest as apiRequest") && establishments.includes("adminRequest as apiRequest"))
 check('admin API deduplicates concurrent reads', apiClient.includes('inflightReads') && apiClient.includes("method === 'GET'"))
 check('admin API retries only safe read failures', apiClient.includes("method === 'GET' && attempt < 1"))
+check('forbidden module responses do not expire the whole session', !apiClient.includes("response.status === 401 || response.status === 403"))
+check('command palette exposes direct creation actions', app.includes("new-establishment") && app.includes("new-item") && app.includes("onQuickAction"))
+check('native creation modules accept command-palette triggers', establishments.includes('quickCreateToken') && items.includes('quickCreateToken'))
 
 if (failures.length) {
   console.error(`\n${failures.length} contrato(s) de runtime violado(s).`)
