@@ -104,7 +104,7 @@ async function fetchPublicMarketingData() {
   }
   return { applications, items }
 }
-const shell = inner => `<div class="seo-shell"><nav class="seo-nav"><a class="seo-brand" href="/"><img src="/petertecnet-logo-circular.jpg" alt="Peter Tecnet"><span>Peter Tecnet</span></a><div class="seo-links"><a href="/plataformas">Plataformas</a><a href="/blog">Conteúdos</a><a href="/portfolio">Cases</a><a href="/orcamento">Contato</a></div></nav>${inner}<footer class="seo-footer">Peter Tecnet · CNPJ ${organizationSeo.taxID} · Ecossistema de plataformas e soluções digitais.</footer></div>`
+const shell = inner => `<div class="seo-shell"><nav class="seo-nav"><a class="seo-brand" href="/"><img src="/logopetertecnet.png" alt="Peter Tecnet"><span>Peter Tecnet</span></a><div class="seo-links"><a href="/plataformas">Plataformas</a><a href="/blog">Conteúdos</a><a href="/portfolio">Cases</a><a href="/orcamento">Contato</a></div></nav>${inner}<footer class="seo-footer">Peter Tecnet · CNPJ ${organizationSeo.taxID} · Ecossistema de plataformas e soluções digitais.</footer></div>`
 function platformBody(entity, slug, application = {}) {
   const intents = entity.intents || []
   const benefits = entity.benefits || []
