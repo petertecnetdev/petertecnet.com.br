@@ -396,6 +396,8 @@ function Dashboard({ user, onLogout }) {
   const activePageRef = useRef(activePage)
   const sidebarRef = useRef(null)
   const menuButtonRef = useRef(null)
+  const searchWrapRef = useRef(null)
+  const launcherWrapRef = useRef(null)
   const sidebarWasOpenRef = useRef(false)
 
   useEffect(() => { activePageRef.current = activePage }, [activePage])
@@ -633,18 +635,41 @@ function Dashboard({ user, onLogout }) {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()
         setSearchOpen(true)
-        window.requestAnimationFrame(() => document.querySelector('.top-search input')?.focus())
+        window.requestAnimationFrame(() => searchWrapRef.current?.querySelector('input')?.focus())
+        return
       }
-      if (event.key === 'Escape') {
+      if (event.key !== 'Escape') return
+      if (searchOpen) {
+        event.preventDefault()
         setSearchResult(null)
         setSearchOpen(false)
+        return
+      }
+      if (launcherOpen) {
+        event.preventDefault()
         setLauncherOpen(false)
-        if (!desktopNavigation()) setSidebarOpen(false)
+        return
+      }
+      if (!desktopNavigation() && sidebarOpen) {
+        event.preventDefault()
+        setSidebarOpen(false)
       }
     }
     window.addEventListener('keydown', shortcut)
     return () => window.removeEventListener('keydown', shortcut)
-  }, [])
+  }, [launcherOpen, searchOpen, sidebarOpen])
+
+  useEffect(() => {
+    if (!searchOpen && !launcherOpen) return undefined
+    const dismiss = event => {
+      const target = event.target
+      if (!(target instanceof Node)) return
+      if (searchOpen && !searchWrapRef.current?.contains(target)) setSearchOpen(false)
+      if (launcherOpen && !launcherWrapRef.current?.contains(target)) setLauncherOpen(false)
+    }
+    document.addEventListener('pointerdown', dismiss)
+    return () => document.removeEventListener('pointerdown', dismiss)
+  }, [searchOpen, launcherOpen])
 
   useEffect(() => {
     window.clearTimeout(searchTimer.current)
@@ -777,7 +802,7 @@ function Dashboard({ user, onLogout }) {
     <main className="workspace">
       <header className="topbar">
         <button ref={menuButtonRef} className="hamburger" onClick={() => setSidebarOpen(value => !value)} aria-label={sidebarOpen ? 'Fechar menu' : 'Abrir menu'} aria-expanded={sidebarOpen} aria-controls="admin-navigation"><span/><span/><span/></button>
-        <div className="top-search">
+        <div ref={searchWrapRef} className="top-search">
           <span>⌕</span><input value={query} onFocus={() => setSearchOpen(true)} onKeyDown={event => {
             if (event.key === 'ArrowDown') {
               const first = event.currentTarget.closest('.top-search')?.querySelector('.search-popover button:not(.search-popover-head button)')
@@ -807,7 +832,7 @@ function Dashboard({ user, onLogout }) {
           <button className="icon-button" onClick={toggleFavoritePage} aria-label={favoritePages.includes(activePage) ? "Remover página dos favoritos" : "Favoritar página atual"} title={favoritePages.includes(activePage) ? "Remover dos favoritos" : "Favoritar página"}>{favoritePages.includes(activePage) ? "★" : "☆"}</button>
           <button className="icon-button" onClick={() => setCompactMode(value => !value)} aria-label={compactMode ? "Usar densidade confortável" : "Usar modo compacto"} title={compactMode ? "Densidade confortável" : "Modo compacto"}>{compactMode ? "↕" : "↔"}</button>
           <button className="icon-button" onClick={() => loadAll({ quiet: true, indicate: true, force: true })} aria-label="Atualizar dados" title="Atualizar dados">{refreshing ? '◌' : '↻'}</button>
-          <div className="launcher-wrap">
+          <div ref={launcherWrapRef} className="launcher-wrap">
             <button className="ecosystem-button" onClick={() => setLauncherOpen(value => !value)}><span>◫</span><b>Navegar no ecossistema</b><i>⌄</i></button>
             {launcherOpen && <EcosystemLauncher applications={applications} onClose={() => setLauncherOpen(false)}/>} 
           </div>
