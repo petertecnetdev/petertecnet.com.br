@@ -3,7 +3,6 @@ import NotificationsCenter from './NotificationsCenter'
 import AdminUsersCenter from './AdminUsersCenter.jsx'
 import AdminPayoutCenter from './AdminPayoutCenter.jsx'
 import AgentChatPanel from './AgentChatPanel.jsx'
-import AdminEstablishmentsPage from './AdminEstablishmentsPageV2.jsx'
 import { connectMissionControlRealtime } from './missionControlRealtime.js'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
@@ -17,12 +16,9 @@ const navItems = [
   ['financial', 'Financeiro', '◒'],
   ['applications', 'Aplicações', '◇'],
   ['users', 'Usuários', '◎'],
-  ['establishments', 'Estabelecimentos', '▰'],
   ['notifications', 'Notificações', '✦'],
   ['activity', 'Atividade', '↯'],
 ]
-
-const DASHBOARD_REFRESH_PAGES = new Set(['dashboard', 'operations', 'financial', 'applications', 'activity'])
 
 const groupLabels = {
   users: 'Usuários', applications: 'Aplicações', establishments: 'Estabelecimentos',
@@ -358,38 +354,31 @@ function Dashboard({ user, onLogout }) {
   const [searching, setSearching] = useState(false)
   const [searchResult, setSearchResult] = useState(null)
   const searchTimer = useRef(null)
-  const refreshInFlightRef = useRef(false)
 
-  async function loadAll({ quiet = false, indicate = true } = {}) {
-    if (refreshInFlightRef.current) return
-    refreshInFlightRef.current = true
+  async function loadAll({ quiet = false } = {}) {
     if (quiet) {
-      if (indicate) setRefreshing(true)
+      setRefreshing(true)
     } else {
       setLoading(true)
     }
     setLoadError('')
-    try {
-      const endpoints = [
-        ['/admin/ecosystem/dashboard', setDashboard],
-        ['/admin/ecosystem/activity', setActivity],
-        ['/admin/ecosystem/financial/dashboard', setFinancial],
-        ['/admin/ecosystem/command/overview', setCommand],
-        ['/admin/applications', payload => setApplications(payload?.applications || payload?.data || (Array.isArray(payload) ? payload : []))],
-      ]
-      const settled = await Promise.allSettled(endpoints.map(([path]) => request(path)))
-      let failures = 0
-      settled.forEach((result, index) => {
-        if (result.status === 'fulfilled') endpoints[index][1](result.value)
-        else failures += 1
-      })
-      if (failures === endpoints.length) setLoadError('Não foi possível carregar a dashboard. Verifique a sessão e a API.')
-      else if (failures) setLoadError(`${failures} fonte${failures > 1 ? 's' : ''} de dados não respondeu. O restante da dashboard continua disponível.`)
-    } finally {
-      setLoading(false)
-      if (indicate) setRefreshing(false)
-      refreshInFlightRef.current = false
-    }
+    const endpoints = [
+      ['/admin/ecosystem/dashboard', setDashboard],
+      ['/admin/ecosystem/activity', setActivity],
+      ['/admin/ecosystem/financial/dashboard', setFinancial],
+      ['/admin/ecosystem/command/overview', setCommand],
+      ['/admin/applications', payload => setApplications(payload?.applications || payload?.data || (Array.isArray(payload) ? payload : []))],
+    ]
+    const settled = await Promise.allSettled(endpoints.map(([path]) => request(path)))
+    let failures = 0
+    settled.forEach((result, index) => {
+      if (result.status === 'fulfilled') endpoints[index][1](result.value)
+      else failures += 1
+    })
+    if (failures === endpoints.length) setLoadError('Não foi possível carregar a dashboard. Verifique a sessão e a API.')
+    else if (failures) setLoadError(`${failures} fonte${failures > 1 ? 's' : ''} de dados não respondeu. O restante da dashboard continua disponível.`)
+    setLoading(false)
+    setRefreshing(false)
   }
 
   useEffect(() => {
@@ -401,15 +390,9 @@ function Dashboard({ user, onLogout }) {
     let realtimeState = 'connecting'
     let refreshTimer = null
 
-    const isDashboardSurfaceActive = () => {
-      const page = document.querySelector('.admin-shell')?.dataset.adminPage
-      return !page || DASHBOARD_REFRESH_PAGES.has(page)
-    }
-
     const queueRefresh = () => {
-      if (document.visibilityState !== 'visible' || !isDashboardSurfaceActive()) return
       if (refreshTimer) window.clearTimeout(refreshTimer)
-      refreshTimer = window.setTimeout(() => { void loadAll({ quiet: true, indicate: false }) }, 1500)
+      refreshTimer = window.setTimeout(() => { void loadAll({ quiet: true }) }, 300)
     }
 
     const disconnect = connectMissionControlRealtime({
@@ -427,17 +410,11 @@ function Dashboard({ user, onLogout }) {
 
     const fallback = window.setInterval(() => {
       if (realtimeState !== 'connected') queueRefresh()
-    }, 120000)
-
-    const onPageChange = event => {
-      if (DASHBOARD_REFRESH_PAGES.has(event?.detail?.page)) queueRefresh()
-    }
-    window.addEventListener('admin-page-change', onPageChange)
+    }, 15000)
 
     return () => {
       if (refreshTimer) window.clearTimeout(refreshTimer)
       window.clearInterval(fallback)
-      window.removeEventListener('admin-page-change', onPageChange)
       disconnect?.()
     }
   }, [])
@@ -607,10 +584,6 @@ function Dashboard({ user, onLogout }) {
           <section id="users" className="section-anchor">
             <SectionHeading kicker="USUÁRIOS" title="Gestão central de usuários" text="Pesquise, filtre e administre cadastros, perfis, acessos e atividade de todo o ecossistema."/>
             <AdminUsersCenter apiRequest={request} applications={applications}/>
-          </section>
-
-          <section id="establishments-admin-integration" className="section-anchor">
-            <AdminEstablishmentsPage />
           </section>
 
           <section id="agents" className="section-anchor">
