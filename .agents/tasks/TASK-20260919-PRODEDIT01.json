@@ -6,25 +6,25 @@
   "application_context": "cutinapp",
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "assigned_agent_id": "NP02",
   "owner_agent_id": "NP02",
   "created_by": "OWNER",
   "created_at": "2026-09-19T11:32:00-03:00",
-  "updated_at": "2026-09-19T12:24:00-03:00",
+  "updated_at": "2026-09-19T12:32:00-03:00",
   "started_at": "2026-09-19T11:32:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
   "due_at": null,
   "lock": {
-    "owner_agent_id": "NP02",
-    "acquired_at": "2026-09-19T12:24:00-03:00",
-    "expires_at": "2026-09-19T13:54:00-03:00"
+    "owner_agent_id": null,
+    "acquired_at": null,
+    "expires_at": null
   },
   "delegation_count": 0,
   "max_delegations": 2,
-  "checkpoint": "Feedback adicional do OWNER/relay recebido após o envio para REVIEW: além do editor igual à view, a rota precisa reduzir lentidão e simplificar a galeria. A direção inline do PR #582 permanece correta, mas faltam otimizações explícitas de rerender/autosave/análise/upload/disclosure.",
-  "next_action": "Otimizar ProductionUpdatePage e ProductionGalleryManager na mesma branch do PR #582: memoização/isolation, flush somente quando dirty, análise de imagem em idle com concorrência limitada, upload concorrência 2, toolbar simplificada por disclosure e content-visibility/contain.",
+  "checkpoint": "Rodada final concluída no PR #582, head 7b5838c0: edição continua inline sobre a própria página pública e recebeu otimização pesada de performance. Galeria pública e manager foram isolados/memoizados; manager permanece desmontado até uso; autosave só flush quando dirty; análise de imagem ocorre em idle e serializada; upload em lote usa concorrência 2 com progresso por arquivo; cards fora da viewport usam content-visibility/contain; toolbar foi reduzida às ações principais com opções secundárias em disclosure. Validate Cutinapp e Lighthouse CI verdes.",
+  "next_action": "NP03 deve validar lado a lado edit vs public em desktop e 360/390/430 px, incluindo teclado, drag/drop, seleção, álbuns, reordenação, upload em lote, legenda, troca de capa/logo e persistência. Após APPROVED, mergear PR #582 em main.",
   "blocker": null,
   "tags": [
     "cutinapp",
@@ -70,13 +70,33 @@
       "type": "workflow",
       "ref": "Lighthouse CI #35450605253",
       "status": "SUCCESS"
+    },
+    {
+      "type": "pull_request",
+      "ref": "petertecnetdev/cutinapp.petertecnet.com.br#582",
+      "status": "OPEN_MERGEABLE"
+    },
+    {
+      "type": "commit",
+      "ref": "7b5838c0ae59893299e4997100d2afc75b9f699d",
+      "status": "VALIDATED"
+    },
+    {
+      "type": "workflow",
+      "ref": "Validate Cutinapp #35450967561",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Lighthouse CI #35450967559",
+      "status": "SUCCESS"
     }
   ],
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
     "status": "PENDING",
-    "notes": "Novo feedback de performance incorporado; nova validação obrigatória após os ajustes."
+    "notes": "Revisar equivalência visual edit/public e regressões funcionais/performance da galeria. Head 7b5838c0 com CI completo verde."
   },
   "history": [
     {
@@ -113,6 +133,13 @@
       "actor": "NP02",
       "event": "RESUMED_FOR_OWNER_FEEDBACK",
       "message": "Feedback de performance/galeria recebido; tarefa voltou a RUNNING na mesma branch/PR #582."
+    },
+    {
+      "operation_id": "np02-review-prodedit01-perf-final",
+      "at": "2026-09-19T12:32:00-03:00",
+      "actor": "NP02",
+      "event": "SUBMITTED_FOR_REVIEW",
+      "message": "Performance pass concluído no PR #582, head 7b5838c0. Validate Cutinapp #35450967561 e Lighthouse #35450967559 verdes."
     }
   ],
   "applied_operation_ids": [
@@ -120,7 +147,8 @@
     "np02-review-prodedit01",
     "np02-reopen-prodedit01-inline",
     "np02-review-prodedit01-inline",
-    "np02-resume-prodedit01-perf"
+    "np02-resume-prodedit01-perf",
+    "np02-review-prodedit01-perf-final"
   ],
-  "version": 5
+  "version": 6
 }
