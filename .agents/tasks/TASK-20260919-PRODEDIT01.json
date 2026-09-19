@@ -11,7 +11,7 @@
   "owner_agent_id": "NP02",
   "created_by": "OWNER",
   "created_at": "2026-09-19T11:32:00-03:00",
-  "updated_at": "2026-09-19T13:24:00-03:00",
+  "updated_at": "2026-09-19T13:44:00-03:00",
   "started_at": "2026-09-19T11:32:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
@@ -23,8 +23,8 @@
   },
   "delegation_count": 0,
   "max_delegations": 2,
-  "checkpoint": "OWNER voltou a reportar em produção a tela antiga sem botão de capa. Confirmado que a correção estava pronta no PR #582 mas ainda não havia sido mergeada. PR #582 foi mergeado na main como 51f1986703e50a4b87d5601f73a4fd263861905b e o Deploy VPS #35454865493 concluiu com sucesso. Validate Cutinapp pós-merge também passou.",
-  "next_action": "NP03 executar QA pós-deploy na rota /production/edit/:id, confirmando que a tela é o editor inline e que o botão Trocar/Adicionar capa aparece no hero, além de logo, galeria e persistência. Se aprovado, encerrar a tarefa.",
+  "checkpoint": "Correção adicional publicada: a seleção de capa atualizava bgPreview, mas a regra global .cut-production-themed-page__hero usava background !important e anulava o backgroundImage inline do editor. PR #587 passou Validate Cutinapp e Lighthouse CI na branch, foi mergeado e o Deploy VPS #35455893385 concluiu com sucesso.",
+  "next_action": "QA pós-deploy: selecionar uma nova capa e confirmar que ela aparece instantaneamente no hero antes de salvar; salvar e recarregar para validar persistência.",
   "blocker": null,
   "tags": [
     "cutinapp",
@@ -105,6 +105,31 @@
       "type": "workflow",
       "ref": "Validate Cutinapp #35454865132",
       "status": "SUCCESS"
+    },
+    {
+      "type": "pull_request",
+      "ref": "petertecnetdev/cutinapp.petertecnet.com.br#587",
+      "status": "MERGED"
+    },
+    {
+      "type": "merge_commit",
+      "ref": "0bd934e367b48d711b15082dadef49a3ef286964",
+      "status": "DEPLOYED"
+    },
+    {
+      "type": "workflow",
+      "ref": "Validate Cutinapp #35455731635",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Lighthouse CI #35455731638",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Deploy VPS #35455893385",
+      "status": "SUCCESS"
     }
   ],
   "review": {
@@ -162,6 +187,13 @@
       "actor": "OWNER_ASSIST",
       "event": "OWNER_ESCALATED_MERGE",
       "message": "OWNER reportou que a correção não estava visível porque PR #582 seguia aberto. O PR foi mergeado na main e o deploy concluiu com sucesso; QA pós-deploy permanece pendente."
+    },
+    {
+      "operation_id": "fix-live-cover-preview-20260919-1344",
+      "at": "2026-09-19T13:44:00-03:00",
+      "actor": "OWNER_ASSIST",
+      "event": "COVER_PREVIEW_FIX_DEPLOYED",
+      "message": "Corrigido conflito CSS que escondia a prévia local da capa; imagem selecionada agora é aplicada ao hero via custom property compatível com a regra !important."
     }
   ],
   "applied_operation_ids": [
@@ -171,7 +203,8 @@
     "np02-review-prodedit01-inline",
     "np02-resume-prodedit01-perf",
     "np02-review-prodedit01-perf-final",
-    "owner-merge-prodedit01-20260919-1324"
+    "owner-merge-prodedit01-20260919-1324",
+    "fix-live-cover-preview-20260919-1344"
   ],
-  "version": 7
+  "version": 8
 }
