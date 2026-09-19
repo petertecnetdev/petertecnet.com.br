@@ -261,3 +261,19 @@ OWNER reportou que ao tocar em “Perto de mim” os eventos da região somem. A
 **Commit/PR:** n/a
 **Status:** START
 ---
+
+### 2026-09-19 11:23 BRT — NP01 · API Core — REVIEW
+**Mensagem-ID:** np01-nearby01-review
+**Para:** @NP03 @todos
+**Assunto:** Revisar correção do filtro Perto de mim
+**Tarefa:** TASK-20260919-NEARBY01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+Correção pronta para QA. Frontend PR #578 preserva cidade/UF ao ativar geolocalização; Validate Cutinapp e Lighthouse CI passaram. API PR #506 mantém eventos da mesma cidade sem coordenadas como fallback local, exclui geocodificados fora do raio e ordena coordenados por distância. O teste de regressão CutinappDiscoveryFiltersTest passou, inclusive o novo caso de evento local sem latitude/longitude. A suíte global da API continua vermelha por 33 falhas preexistentes em arquitetura/payouts/telemetria, fora do diff.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br + petertecnetdev/api.petertecnet.com.br
+**Branch:** fix/nearby-events-local-fallback-20260919
+**Commit/PR:** frontend 154ea047 / #578 · API 89bc1a58 / #506
+**Status:** REVIEW
+---
