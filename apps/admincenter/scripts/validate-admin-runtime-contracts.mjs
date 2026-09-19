@@ -16,6 +16,7 @@ const items = read('src/AdminItemsManager.jsx')
 const establishments = read('src/AdminEstablishmentsPageV2.jsx')
 const users = read('src/AdminUsersCenter.jsx')
 const notifications = read('src/NotificationsCenter.jsx')
+const applicationsCenter = read('src/AdminApplicationsCenter.jsx')
 
 check('dashboard fallback is not aggressive', app.includes('BACKGROUND_REFRESH_MS = 120000') && !app.includes('}, 15000)'))
 check('agent polling is contextual and >= 60s', agents.includes("dataset?.adminPage === 'agents'") && agents.includes('}, 60000)'))
@@ -31,6 +32,9 @@ check('list requests reject stale responses', items.includes('loadSequenceRef.cu
 check('global DOM image enhancer is not mounted', !main.includes('GlobalImageInputEnhancer'))
 check('notification history preserves context and rejects stale searches', notifications.includes("writeAdminSessionState('notifications-history'") && notifications.includes('userSearchSequenceRef.current'))
 check('search exposes keyboard page commands', app.includes('search-commands') && app.includes("event.key === 'ArrowDown'"))
+check('applications management is React-native without portal or observer', app.includes('AdminApplicationsCenter') && !applicationsCenter.includes('createPortal') && !applicationsCenter.includes('MutationObserver'))
+check('applications management reuses parent data without polling', !applicationsCenter.includes('setInterval') && applicationsCenter.includes('dashboard') && applicationsCenter.includes('financial'))
+check('application edits refresh only application data', applicationsCenter.includes("onReload?.()") && app.includes('reloadApplications'))
 
 if (failures.length) {
   console.error(`\n${failures.length} contrato(s) de runtime violado(s).`)

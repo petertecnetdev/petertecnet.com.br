@@ -8,6 +8,7 @@ const AdminPayoutCenter = lazy(() => import('./AdminPayoutCenter.jsx'))
 const AgentChatPanel = lazy(() => import('./AgentChatPanel.jsx'))
 const AdminEstablishmentsPage = lazy(() => import('./AdminEstablishmentsPageV2.jsx'))
 const AdminItemsManager = lazy(() => import('./AdminItemsManager.jsx'))
+const AdminApplicationsCenter = lazy(() => import('./AdminApplicationsCenter.jsx'))
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
@@ -471,6 +472,13 @@ function Dashboard({ user, onLogout }) {
     }
   }, [])
 
+  const reloadApplications = useCallback(async () => {
+    const payload = await request('/admin/applications')
+    const rows = payload?.applications || payload?.data || (Array.isArray(payload) ? payload : [])
+    setApplications(rows)
+    return rows
+  }, [])
+
   useEffect(() => {
     const timer = window.setTimeout(() => { void loadAll() }, 0)
     return () => window.clearTimeout(timer)
@@ -773,15 +781,8 @@ function Dashboard({ user, onLogout }) {
           </section>
 
           <section id="applications" className="section-anchor" data-admin-page-key="applications" hidden={activePage !== 'applications'} aria-hidden={activePage !== 'applications'}>
-            <SectionHeading kicker="APLICAÇÕES" title="Ecossistema em produção" text="Adoção e atividade por produto conectado à API central."/>
-            <div className="apps-grid">
-              {appRows.length ? appRows.map(app => <article className="app-card" key={app.id || app.slug}>
-                <div className="app-card-head"><div className="app-icon">{app.logo ? <img src={app.logo} alt="" onError={event => { event.currentTarget.style.display = 'none' }}/> : <span>{String(app.name || 'P').slice(0, 1)}</span>}</div><span className={app.is_active === false ? 'app-state offline' : 'app-state'}>{app.is_active === false ? 'Inativa' : 'Ativa'}</span></div>
-                <h3>{app.name}</h3><p>{app.description || app.slug || 'Aplicação Peter Tecnet'}</p>
-                <div className="app-stats"><span><small>Usuários</small><b>{compactNumber(app.users_count)}</b></span><span><small>Ativos 30d</small><b>{compactNumber(app.active_users_30d)}</b></span><span><small>Interações</small><b>{compactNumber(app.activity_count_30d)}</b></span></div>
-                {app.url && <a href={app.url} target="_blank" rel="noreferrer">Abrir aplicação ↗</a>}
-              </article>) : <Empty text="Nenhuma aplicação disponível na leitura atual."/>}
-            </div>
+            <SectionHeading kicker="APLICAÇÕES" title="Ecossistema em produção" text="Adoção, atividade, configuração e estado operacional das aplicações conectadas à API central."/>
+            {activePage === 'applications' && <AdminModuleBoundary name="Aplicações"><Suspense fallback={<ModuleSkeleton title="Carregando aplicações…" />}><AdminApplicationsCenter applications={applications} dashboard={dashboard} financial={financial} activity={activity} command={command} request={request} onReload={reloadApplications}/></Suspense></AdminModuleBoundary>}
           </section>
 
           <section id="users" className="section-anchor" data-admin-page-key="users" hidden={activePage !== 'users'} aria-hidden={activePage !== 'users'}>
