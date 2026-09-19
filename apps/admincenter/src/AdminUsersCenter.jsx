@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { readAdminSessionState, writeAdminSessionState } from './adminPersistence.js'
 import AdminUserDetailPage from './AdminUserDetailExperience.jsx'
 import AdminProspectInvitation from './AdminProspectInvitation.jsx'
+import { AdminImpersonationDialog, canImpersonate } from './AdminImpersonation.jsx'
 import './AdminUsersCenter.css'
 
 const DEFAULT_LIST_SETTINGS = { sort: 'newest', per_page: '50' }
@@ -45,6 +46,7 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 })
   const [detailUserId, setDetailUserId] = useState(detailUserFromUrl)
   const [inviteOpen, setInviteOpen] = useState(false)
+  const [impersonationUser, setImpersonationUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const loadedOnceRef = useRef(false)
@@ -148,26 +150,40 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
       ) : users.length ? (
         <div className="acu-simple-list">
           {users.map(user => (
-            <button type="button" className="acu-simple-user" key={user.id} onClick={() => openDetail(user.id)}>
-              <span className="acu-simple-user__avatar">{initials(user)}</span>
-              <span className="acu-simple-user__identity">
-                <strong>{fullName(user)}</strong>
-                <small>{user.email}</small>
-              </span>
-              <span className="acu-simple-user__meta">
-                <small>Perfil</small>
-                <strong>{user.profile?.name || 'Sem perfil'}</strong>
-              </span>
-              <span className="acu-simple-user__meta">
-                <small>Plataformas</small>
-                <strong>{applicationNames(user)}</strong>
-              </span>
-              <span className="acu-simple-user__meta acu-simple-user__activity">
-                <small>Última atividade</small>
-                <strong>{dateTime(user.last_activity_at)}</strong>
-              </span>
-              <span className="acu-simple-user__open" aria-hidden="true">›</span>
-            </button>
+            <div className="acu-simple-user" key={user.id}>
+              <button type="button" className="acu-simple-user__details" onClick={() => openDetail(user.id)}>
+                <span className="acu-simple-user__avatar">{initials(user)}</span>
+                <span className="acu-simple-user__identity">
+                  <strong>{fullName(user)}</strong>
+                  <small>{user.email}</small>
+                </span>
+                <span className="acu-simple-user__meta">
+                  <small>Perfil</small>
+                  <strong>{user.profile?.name || 'Sem perfil'}</strong>
+                </span>
+                <span className="acu-simple-user__meta">
+                  <small>Plataformas</small>
+                  <strong>{applicationNames(user)}</strong>
+                </span>
+                <span className="acu-simple-user__meta acu-simple-user__activity">
+                  <small>Última atividade</small>
+                  <strong>{dateTime(user.last_activity_at)}</strong>
+                </span>
+                <span className="acu-simple-user__open" aria-hidden="true">›</span>
+              </button>
+              <button
+                type="button"
+                className="acu-simple-user__impersonate"
+                disabled={!canImpersonate(user)}
+                onClick={() => {
+                  setError('')
+                  setImpersonationUser(user)
+                }}
+                title={canImpersonate(user) ? 'Entrar temporariamente como este usuário' : 'Este usuário não pode ser assumido'}
+              >
+                Entrar
+              </button>
+            </div>
           ))}
         </div>
       ) : (
@@ -206,6 +222,16 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
           />
         </div>
       </div>
+    )}
+
+    {impersonationUser && (
+      <AdminImpersonationDialog
+        user={impersonationUser}
+        applications={applications}
+        apiRequest={apiRequest}
+        onClose={() => setImpersonationUser(null)}
+        onStarted={() => setImpersonationUser(null)}
+      />
     )}
   </div>
 }
