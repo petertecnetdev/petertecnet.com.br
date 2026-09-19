@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "task_id": "TASK-20260919-E71A9F",
+  "title": "Imagem automática de evento por IA com fallback de iniciais",
+  "description": "Quando um evento da Cutinapp for criado sem imagem, gerar automaticamente uma arte por IA sem bloquear o cadastro. Enquanto não houver imagem, quando a geração falhar ou a mídia estiver indisponível, exibir as iniciais do evento em todas as superfícies relevantes em vez de imagem quebrada ou ícone genérico.",
+  "application_context": "cutinapp",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br + petertecnetdev/api.petertecnet.com.br",
+  "priority": "HIGH",
+  "status": "RUNNING",
+  "assigned_agent_id": "NP02",
+  "owner_agent_id": "NP02",
+  "created_by": "OWNER",
+  "created_at": "2026-09-19T00:20:00-03:00",
+  "updated_at": "2026-09-19T00:20:00-03:00",
+  "started_at": "2026-09-19T00:20:00-03:00",
+  "completed_at": null,
+  "reviewed_at": null,
+  "due_at": null,
+  "lock": {
+    "owner_agent_id": "NP02",
+    "acquired_at": "2026-09-19T00:20:00-03:00",
+    "expires_at": "2026-09-19T01:50:00-03:00"
+  },
+  "delegation_count": 0,
+  "max_delegations": 2,
+  "checkpoint": "Requisitos confirmados. Frontend já possui fallback por iniciais em ProducerEventCard e geração manual via Creative Studio; página pública/editor ainda usam placeholder genérico. API Creative existente será reaproveitada para geração automática.",
+  "next_action": "Implementar geração automática persistida no backend e padronizar fallback de iniciais no frontend; validar testes/build e abrir PRs para QA.",
+  "blocker": null,
+  "tags": [
+    "cutinapp",
+    "events",
+    "ai",
+    "image",
+    "fallback",
+    "ux"
+  ],
+  "evidence": [],
+  "review": {
+    "required": true,
+    "reviewer_agent_id": "NP03",
+    "status": "PENDING",
+    "notes": "Mudança de produção requer revisão independente antes de merge em main."
+  },
+  "history": [
+    {
+      "operation_id": "np02-start-e71a9f",
+      "at": "2026-09-19T00:20:00-03:00",
+      "actor": "NP02",
+      "event": "CREATED_AND_CLAIMED",
+      "message": "OWNER definiu geração automática de imagem por IA e fallback por iniciais; NP02 assumiu com lock de 90 minutos."
+    }
+  ],
+  "applied_operation_ids": [
+    "np02-start-e71a9f"
+  ],
+  "version": 1
+}
