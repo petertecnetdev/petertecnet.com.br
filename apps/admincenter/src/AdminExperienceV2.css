@@ -250,3 +250,49 @@ body{background:
 .admin-shell[data-density="compact"] .sidebar nav button{min-height:48px!important}
 .admin-shell[data-density="compact"] .sidebar nav button>span:first-child{width:36px!important;height:36px!important}
 
+
+
+/* Large-data rendering: preserve layout while avoiding unnecessary off-screen paint. */
+.itm-card,
+.aac-card,
+.acu-table tbody tr,
+.aep-table tbody tr,
+.timeline-row{
+  content-visibility:auto;
+  contain-intrinsic-size:auto 72px;
+}
+
+.itm-card,
+.aac-card{
+  contain-intrinsic-size:auto 260px;
+}
+
+@media(min-width:981px){
+  .acu-table th:last-child,
+  .acu-table td:last-child,
+  .aep-table th:last-child,
+  .aep-table td:last-child{
+    position:sticky;
+    right:0;
+    z-index:3;
+    background:#0a1821;
+    box-shadow:-14px 0 24px rgba(3,10,15,.28);
+  }
+  .acu-table tbody td:last-child,
+  .aep-table tbody td:last-child{
+    background:#091720;
+  }
+}
+
+.admin-shell table th[scope="col"]{
+  text-wrap:balance;
+}
+
+.admin-shell .table-wrap,
+.admin-shell .acu-table-wrap,
+.admin-shell .aep-table-wrap{
+  scrollbar-gutter:stable both-edges;
+  overscroll-behavior-inline:contain;
+  -webkit-overflow-scrolling:touch;
+}
+
