@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import AdminModuleBoundary from './AdminModuleBoundary.jsx'
 import { connectMissionControlRealtime } from './missionControlRealtime.js'
+import { loadGoogleIdentity } from './services/googleIdentity.js'
 
 const NotificationsCenter = lazy(() => import('./NotificationsCenter.jsx'))
 const AdminUsersCenter = lazy(() => import('./AdminUsersCenter.jsx'))
@@ -87,39 +88,6 @@ function tokenFrom(payload) {
 
 function userFrom(payload) {
   return payload?.token?.user || payload?.user || null
-}
-
-let googleIdentityPromise
-
-function loadGoogleIdentity() {
-  if (window.google?.accounts?.id) return Promise.resolve(window.google.accounts.id)
-  if (googleIdentityPromise) return googleIdentityPromise
-
-  googleIdentityPromise = new Promise((resolve, reject) => {
-    const finish = () => {
-      const identity = window.google?.accounts?.id
-      if (identity) resolve(identity)
-      else reject(new Error('O Google Identity não ficou disponível.'))
-    }
-
-    const existing = document.querySelector('script[data-admin-google-identity]')
-    if (existing) {
-      existing.addEventListener('load', finish, { once: true })
-      existing.addEventListener('error', () => reject(new Error('Não foi possível carregar o login com Google.')), { once: true })
-      return
-    }
-
-    const script = document.createElement('script')
-    script.src = 'https://accounts.google.com/gsi/client'
-    script.async = true
-    script.defer = true
-    script.dataset.adminGoogleIdentity = 'true'
-    script.addEventListener('load', finish, { once: true })
-    script.addEventListener('error', () => reject(new Error('Não foi possível carregar o login com Google.')), { once: true })
-    document.head.appendChild(script)
-  })
-
-  return googleIdentityPromise
 }
 
 function fullName(user) {
