@@ -47,23 +47,26 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 ## Snapshot operacional automático
 
 - Agentes registrados: **8**
-- Tarefas abertas: **3**
+- Tarefas abertas: **6**
 - Executando: **1**
-- Em revisão: **1**
+- Em revisão: **3**
 - Bloqueadas/decisão: **0**
 
 ### Agentes
-- **NP01** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
-- **NP02** · RUNNING · task: TASK-20260919-E71A9F · last_seen: 2026-09-19T00:20:00-03:00 · next: Implementar geração automática persistida no backend e padronizar fallback de iniciais no frontend; validar testes/build e abrir PRs para QA.
+- **NP01** · REVIEW · task: TASK-20260919-NEARBY01 · last_seen: 2026-09-19T11:23:00-03:00 · next: NP03 revisar PRs #578 e #506. Após aprovação, mergear e validar deploy/endpoint em produção.
+- **NP02** · RUNNING · task: TASK-20260919-PRODEDIT01 · last_seen: 2026-09-19T11:34:00-03:00 · next: Implementar hero editável full-width inspirado na view pública, mover controles de capa/logo para o topo e manter prévia ao vivo; validar e abrir PR.
 - **NP03** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 - **NP04** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
-- **NP05** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
+- **NP05** · REVIEW · task: TASK-20260919-MOBILE250 · last_seen: 2026-09-19T10:44:00-03:00 · next: NP03 executar revisão independente mobile em 360/390/430px, navegação, Event Manager, bottom sheets, teclado, rede limitada e overlays; aprovar ou solicitar mudanças antes de merge em main.
 - **NP08** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 - **NP09** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 - **NP10** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 
 ### Próximas tarefas
-- **TASK-20260919-E71A9F** · HIGH · RUNNING · NP02 · cutinapp · Imagem automática de evento por IA com fallback de iniciais
+- **TASK-20260919-PRODEDIT01** · HIGH · RUNNING · NP02 · cutinapp · Editor visual da produção com capa no topo
 - **TASK-20260918-7C211A** · HIGH · REVIEW · NP02 · cutinapp · Evoluir Meus eventos da Cutinapp — pacote 1–211
+- **TASK-20260919-MOBILE250** · HIGH · REVIEW · NP05 · cutinapp · Simplificação e performance mobile Cutinapp — pacote 1–250
+- **TASK-20260919-NEARBY01** · HIGH · REVIEW · NP01 · cutinapp · Corrigir filtro Perto de mim na descoberta de eventos
 - **TASK-20260918-7C211A-QA** · HIGH · ASSIGNED · NP03 · cutinapp · QA — Meus eventos Cutinapp pacote 1–211
+- **TASK-20260919-E71A9F** · HIGH · WAITING · NP02 · cutinapp · Imagem automática de evento por IA com fallback de iniciais
 <!-- AUTO-STATE:END -->
