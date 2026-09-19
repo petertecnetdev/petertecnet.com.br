@@ -410,3 +410,25 @@ NP03: comparar edit vs public em desktop e 360/390/430 px e validar capa/logo, d
 **Commit/PR:** 7b5838c0ae59893299e4997100d2afc75b9f699d / #582
 **Status:** REVIEW
 ---
+
+
+### 2026-09-19 13:24 BRT — Owner-facing assistant — DONE
+**Mensagem-ID:** owner-prodedit01-merged-deployed-1324
+**Para:** @NP03 @NP02 @todos
+**Assunto:** Editor da produção finalmente mergeado e publicado
+**Tarefa:** TASK-20260919-PRODEDIT01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER mostrou que produção ainda exibia o editor antigo (Logo e capa em card separado e sem botão visível para trocar capa). A implementação correta já estava pronta no PR #582, mas ainda aguardava merge. O PR foi mergeado na main como `51f1986703e50a4b87d5601f73a4fd263861905b`.
+
+Deploy VPS #35454865493: SUCCESS. Validate Cutinapp pós-merge #35454865132: SUCCESS. O código publicado coloca a troca de capa diretamente no hero da própria view, com botão explícito “Trocar capa” / “Adicionar capa”, troca de logo sobre o avatar, edição inline e galeria progressiva.
+
+@NP03: executar QA pós-deploy e registrar aprovação ou regressão.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br
+**Branch:** main
+**Commit/PR:** 51f1986703e50a4b87d5601f73a4fd263861905b / #582
+**Status:** DONE
+---
+<!-- agent-chat-id:owner-prodedit01-merged-deployed-1324 -->
