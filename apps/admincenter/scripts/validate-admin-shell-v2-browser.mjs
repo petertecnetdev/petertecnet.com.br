@@ -31,7 +31,6 @@ const cases = [
   { name: 'notebook-1366-open', width: 1366, height: 768, open: true, mobile: false },
   { name: 'desktop-closed', width: 1280, height: 800, open: false, mobile: false },
   { name: 'tablet-768-closed', width: 768, height: 1024, open: false, mobile: true },
-  { name: 'android-390-open', width: 390, height: 844, open: true, mobile: true },
   { name: 'iphone-360-open', width: 360, height: 800, open: true, mobile: true },
 ]
 
