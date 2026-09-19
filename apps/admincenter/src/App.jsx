@@ -996,12 +996,14 @@ function SearchPopover({ query, result, searching, recentPages = [], favoritePag
   const favoriteMatches = favoritePages.map(page => navItems.find(([id]) => id === page)).filter(Boolean)
 
   function keyboardNavigation(event) {
-    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
+    const movingDown = event.key === 'ArrowDown'
+    const movingUp = event.key === 'ArrowUp'
+    if (!movingDown && !movingUp) return
     const buttons = [...event.currentTarget.querySelectorAll('button')].filter(button => !button.disabled && !button.classList.contains('search-close'))
     const index = buttons.indexOf(document.activeElement)
     if (index < 0) return
     event.preventDefault()
-    const direction = event.key === 'ArrowDown' ? 1 : -1
+    const direction = movingDown ? 1 : -1
     buttons[(index + direction + buttons.length) % buttons.length]?.focus()
   }
 
