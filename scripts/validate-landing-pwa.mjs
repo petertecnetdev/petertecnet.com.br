@@ -11,7 +11,7 @@ const assert = (condition, message) => {
   if (!condition) fail(message);
 };
 
-const OFFICIAL_LOGO = '/petertecnet-logo-circular.jpg';
+const OFFICIAL_LOGO = '/logopetertecnet.png';
 const index = read('index.html');
 const manifest = JSON.parse(read('public/manifest.json'));
 const worker = read('public/service-worker.js');
@@ -19,7 +19,7 @@ const worker = read('public/service-worker.js');
 assert(index.includes('id="root"'), 'index.html must keep the React root mount.');
 assert(index.includes('<pt-processing-indicator'), 'index.html must keep the branded bootstrap loader.');
 assert(index.includes(OFFICIAL_LOGO), 'index.html must use the official circular Peter Tecnet logo.');
-assert(fs.existsSync(path.join(root, 'public', 'petertecnet-logo-circular.jpg')), 'official circular logo asset must exist in public/.');
+assert(fs.existsSync(path.join(root, 'public', 'logopetertecnet.png')), 'official circular logo asset must exist in public/.');
 assert(index.includes('data-sw="/service-worker.js"'), 'landing must register the dedicated service worker.');
 assert(index.includes('rel="manifest"'), 'landing must expose the PWA manifest.');
 
@@ -32,7 +32,7 @@ assert(manifest.id === '/', 'manifest id must belong to the landing root.');
 assert(manifest.scope === '/', 'manifest scope must belong to the landing root.');
 assert(manifest.name === 'Peter Tecnet', 'manifest name must be Peter Tecnet.');
 assert(Array.isArray(manifest.icons) && manifest.icons.length > 0, 'manifest must declare at least one icon.');
-assert(manifest.icons.every((icon) => String(icon.src || '').includes('petertecnet-logo-circular.jpg')), 'manifest icons must use the official circular logo.');
+assert(manifest.icons.every((icon) => String(icon.src || '').includes('logopetertecnet.png')), 'manifest icons must use the official circular logo.');
 
 assert(worker.includes("petertecnet-landing-pwa-"), 'service worker must use the landing cache namespace.');
 assert(worker.includes(OFFICIAL_LOGO), 'service worker offline experience must use the official circular logo.');
