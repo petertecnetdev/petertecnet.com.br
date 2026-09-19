@@ -19,7 +19,6 @@ const OWNER_EMAIL = 'petertecnet@gmail.com'
 
 const navItems = [
   ['users', 'Usuários', 'users'],
-  ['dashboard', 'Visão geral', 'home'],
   ['operations', 'Operações', 'pulse'],
   ['agents', 'Agentes', 'agents'],
   ['financial', 'Financeiro', 'finance'],
@@ -62,13 +61,14 @@ function pageFromLocation() {
   const queryToken = String(url.searchParams.get('page') || '').trim().toLowerCase()
   const pathToken = decodeURIComponent(url.pathname.split('/').filter(Boolean).at(-1) || '').trim().toLowerCase()
   const hashToken = decodeURIComponent(url.hash.replace(/^#/, '')).trim().toLowerCase()
-  return PAGE_FROM_SLUG[queryToken] || PAGE_FROM_SLUG[pathToken] || PAGE_FROM_SLUG[hashToken] || 'dashboard'
+  const requestedPage = PAGE_FROM_SLUG[queryToken] || PAGE_FROM_SLUG[pathToken] || PAGE_FROM_SLUG[hashToken]
+  return !requestedPage || requestedPage === 'dashboard' ? 'users' : requestedPage
 }
 
 function writePageHistory(page, mode = 'pushState') {
   const url = new URL(window.location.href)
-  const config = PAGE_CONFIG[page] || PAGE_CONFIG.dashboard
-  if (page === 'dashboard') url.searchParams.delete('page')
+  const config = PAGE_CONFIG[page] || PAGE_CONFIG.users
+  if (page === 'users') url.searchParams.delete('page')
   else url.searchParams.set('page', config.slug)
   url.hash = ''
   window.history[mode]({ ...(window.history.state || {}), adminPage: page }, '', `${url.pathname}${url.search}`)
@@ -618,7 +618,7 @@ function Dashboard({ user, onLogout }) {
   }, [])
 
   useEffect(() => {
-    const config = PAGE_CONFIG[activePage] || PAGE_CONFIG.dashboard
+    const config = PAGE_CONFIG[activePage] || PAGE_CONFIG.users
     document.title = `${config.label} · Admin Center · Peter Tecnet`
     window.dispatchEvent(new CustomEvent('admin-page-change', { detail: { page: activePage } }))
   }, [activePage])
@@ -718,7 +718,7 @@ function Dashboard({ user, onLogout }) {
   }
 
   function go(section, { replace = false } = {}) {
-    const next = PAGE_CONFIG[section] ? section : 'dashboard'
+    const next = PAGE_CONFIG[section] && section !== 'dashboard' ? section : 'users'
     setActivePage(next)
     writePageHistory(next, replace ? 'replaceState' : 'pushState')
     if (window.matchMedia('(max-width: 980px)').matches) setSidebarOpen(false)
@@ -781,7 +781,7 @@ function Dashboard({ user, onLogout }) {
   return <div className="admin-shell" data-admin-page={activePage} data-sidebar-open={sidebarOpen ? "true" : "false"} data-density={compactMode ? "compact" : "comfortable"}>
     <div className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} aria-hidden="true"/>
     <aside ref={sidebarRef} id="admin-navigation" className={`sidebar ${sidebarOpen ? 'open' : ''}`} aria-label="Navegação administrativa" aria-hidden={!sidebarOpen} onKeyDown={handleSidebarKeyDown}>
-      <a className="brand" href="?page=visao-geral" tabIndex={sidebarOpen ? 0 : -1} onClick={event => { event.preventDefault(); go('dashboard') }}>
+      <a className="brand" href="?page=usuarios" tabIndex={sidebarOpen ? 0 : -1} onClick={event => { event.preventDefault(); go('users') }}>
         <span className="brand-logo"><img src="/petertecnetlogo.png" alt=""/></span>
         <span><b>Peter Tecnet</b><small>Admin Center</small></span>
       </a>
