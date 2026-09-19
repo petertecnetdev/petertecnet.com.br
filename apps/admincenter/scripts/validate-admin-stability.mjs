@@ -31,6 +31,10 @@ check(app.includes('<AdminModuleBoundary'), 'Módulos administrativos críticos 
 check(app.includes('handleSidebarKeyDown') && app.includes('aria-controls="admin-navigation"'), 'Drawer deve ter foco e teclado controlados pelo React.')
 check(app.includes('navigator.onLine') && app.includes('admin-offline-banner'), 'Admin deve preservar leitura e sinalizar modo offline.')
 check(!main.includes('GlobalImageInputEnhancer'), 'Runtime principal não deve inserir DOM dentro de componentes React via enhancer global.')
+check(app.includes('SIDEBAR_PREF_KEY') && app.includes('data-sidebar-open'), 'Sidebar desktop deve preservar preferência e estado no React.')
+check(app.includes('DENSITY_PREF_KEY') && app.includes('data-density'), 'Densidade visual deve ser persistente e controlada pelo React.')
+check(app.includes('RECENT_PAGES_KEY') && app.includes('recentPages'), 'Paleta de comandos deve preservar páginas recentes.')
+check(app.includes('searchOpen') && app.includes('Comandos rápidos'), 'Ctrl+K deve abrir uma paleta de comandos real mesmo sem termo de busca.')
 
 if (failures.length) {
   console.error('Admin stability validation failed:')
