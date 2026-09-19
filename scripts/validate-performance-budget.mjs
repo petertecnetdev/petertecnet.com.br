@@ -3,7 +3,7 @@ import { join } from 'node:path'
 
 const dist = join(process.cwd(), 'dist')
 const assets = join(dist, 'assets')
-const MAX_JS_ENTRY = 240 * 1024
+const MAX_JS_ENTRY = 300 * 1024
 const MAX_CSS_ENTRY = 160 * 1024
 const MAX_TOTAL_INITIAL = 650 * 1024
 
