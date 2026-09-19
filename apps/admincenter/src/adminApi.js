@@ -98,7 +98,9 @@ async function execute(path, options, attempt = 0) {
       const retryable = method === 'GET' && attempt < 1 && (response.status >= 500 || response.status === 408)
       if (retryable && navigator.onLine) {
         await delay(350 + Math.round(Math.random() * 150))
-        return execute(path, options, attempt + 1)
+        const retried = await execute(path, options, attempt + 1)
+        succeeded = true
+        return retried
       }
       throw error
     }
@@ -115,7 +117,9 @@ async function execute(path, options, attempt = 0) {
     const retryableNetwork = method === 'GET' && attempt < 1 && navigator.onLine && error instanceof TypeError
     if (retryableNetwork) {
       await delay(350 + Math.round(Math.random() * 150))
-      return execute(path, options, attempt + 1)
+      const retried = await execute(path, options, attempt + 1)
+      succeeded = true
+      return retried
     }
     throw error
   } finally {
