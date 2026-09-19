@@ -11,7 +11,7 @@
   "owner_agent_id": "NP02",
   "created_by": "OWNER",
   "created_at": "2026-09-19T11:32:00-03:00",
-  "updated_at": "2026-09-19T12:32:00-03:00",
+  "updated_at": "2026-09-19T13:24:00-03:00",
   "started_at": "2026-09-19T11:32:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
@@ -23,8 +23,8 @@
   },
   "delegation_count": 0,
   "max_delegations": 2,
-  "checkpoint": "Rodada final concluída no PR #582, head 7b5838c0: edição continua inline sobre a própria página pública e recebeu otimização pesada de performance. Galeria pública e manager foram isolados/memoizados; manager permanece desmontado até uso; autosave só flush quando dirty; análise de imagem ocorre em idle e serializada; upload em lote usa concorrência 2 com progresso por arquivo; cards fora da viewport usam content-visibility/contain; toolbar foi reduzida às ações principais com opções secundárias em disclosure. Validate Cutinapp e Lighthouse CI verdes.",
-  "next_action": "NP03 deve validar lado a lado edit vs public em desktop e 360/390/430 px, incluindo teclado, drag/drop, seleção, álbuns, reordenação, upload em lote, legenda, troca de capa/logo e persistência. Após APPROVED, mergear PR #582 em main.",
+  "checkpoint": "OWNER voltou a reportar em produção a tela antiga sem botão de capa. Confirmado que a correção estava pronta no PR #582 mas ainda não havia sido mergeada. PR #582 foi mergeado na main como 51f1986703e50a4b87d5601f73a4fd263861905b e o Deploy VPS #35454865493 concluiu com sucesso. Validate Cutinapp pós-merge também passou.",
+  "next_action": "NP03 executar QA pós-deploy na rota /production/edit/:id, confirmando que a tela é o editor inline e que o botão Trocar/Adicionar capa aparece no hero, além de logo, galeria e persistência. Se aprovado, encerrar a tarefa.",
   "blocker": null,
   "tags": [
     "cutinapp",
@@ -90,6 +90,21 @@
       "type": "workflow",
       "ref": "Lighthouse CI #35450967559",
       "status": "SUCCESS"
+    },
+    {
+      "type": "merge_commit",
+      "ref": "51f1986703e50a4b87d5601f73a4fd263861905b",
+      "status": "DEPLOYED"
+    },
+    {
+      "type": "workflow",
+      "ref": "Deploy VPS #35454865493",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Validate Cutinapp #35454865132",
+      "status": "SUCCESS"
     }
   ],
   "review": {
@@ -140,6 +155,13 @@
       "actor": "NP02",
       "event": "SUBMITTED_FOR_REVIEW",
       "message": "Performance pass concluído no PR #582, head 7b5838c0. Validate Cutinapp #35450967561 e Lighthouse #35450967559 verdes."
+    },
+    {
+      "operation_id": "owner-merge-prodedit01-20260919-1324",
+      "at": "2026-09-19T13:24:00-03:00",
+      "actor": "OWNER_ASSIST",
+      "event": "OWNER_ESCALATED_MERGE",
+      "message": "OWNER reportou que a correção não estava visível porque PR #582 seguia aberto. O PR foi mergeado na main e o deploy concluiu com sucesso; QA pós-deploy permanece pendente."
     }
   ],
   "applied_operation_ids": [
@@ -148,7 +170,8 @@
     "np02-reopen-prodedit01-inline",
     "np02-review-prodedit01-inline",
     "np02-resume-prodedit01-perf",
-    "np02-review-prodedit01-perf-final"
+    "np02-review-prodedit01-perf-final",
+    "owner-merge-prodedit01-20260919-1324"
   ],
-  "version": 6
+  "version": 7
 }
