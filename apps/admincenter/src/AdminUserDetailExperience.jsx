@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import AdminUserDetailPage from './AdminUserDetailPage.jsx'
+import { AdminImpersonationDialog, canImpersonate } from './AdminImpersonation.jsx'
 import './AdminUserCommunication.css'
 import './AdminUserCommunicationShell.css'
 
@@ -38,9 +39,10 @@ function validateHttpsUrl(value) {
 }
 
 export default function AdminUserDetailExperience(props) {
-  const { userId, apiRequest } = props
+  const { userId, apiRequest, applications = [] } = props
   const [user, setUser] = useState(null)
   const [open, setOpen] = useState(false)
+  const [impersonationOpen, setImpersonationOpen] = useState(false)
   const [form, setForm] = useState({ ...EMPTY_FORM })
   const [sending, setSending] = useState(false)
   const [loadingUser, setLoadingUser] = useState(true)
@@ -194,6 +196,7 @@ export default function AdminUserDetailExperience(props) {
     <button type="button" className="auc-action auc-action--email" onClick={() => openComposer('email')} disabled={loadingUser || !user?.email}>E-mail</button>
     <button type="button" className="auc-action auc-action--notification" onClick={() => openComposer('notification')} disabled={loadingUser}>Notificação</button>
     <button type="button" className="auc-action auc-action--both" onClick={() => openComposer('both')} disabled={loadingUser || !user?.email}>Comunicar</button>
+    <button type="button" className="auc-action auc-action--impersonate" onClick={() => setImpersonationOpen(true)} disabled={loadingUser || !canImpersonate(user)}>Entrar como usuário</button>
   </div>
 
   const modal = open ? <div className="auc-modal-backdrop" role="presentation" onMouseDown={event => {
@@ -279,5 +282,6 @@ export default function AdminUserDetailExperience(props) {
     </div>
     <AdminUserDetailPage {...props}/>
     {modal}
+    {impersonationOpen && user && <AdminImpersonationDialog user={user} applications={applications} apiRequest={apiRequest} onClose={() => setImpersonationOpen(false)}/>} 
   </div>
 }
