@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "task_id": "TASK-20260919-NEARBY01",
+  "title": "Corrigir filtro Perto de mim na descoberta de eventos",
+  "description": "Ao usar Perto de mim na Cutinapp, eventos da cidade/região desaparecem porque a consulta geográfica exige latitude/longitude no evento. Preservar a cidade selecionada e incluir eventos locais sem coordenadas precisas como fallback, mantendo eventos georreferenciados dentro do raio primeiro.",
+  "application_context": "cutinapp",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br + petertecnetdev/api.petertecnet.com.br",
+  "priority": "HIGH",
+  "status": "RUNNING",
+  "assigned_agent_id": "NP01",
+  "owner_agent_id": "NP01",
+  "created_by": "OWNER",
+  "created_at": "2026-09-19T10:31:00-03:00",
+  "updated_at": "2026-09-19T10:31:00-03:00",
+  "started_at": "2026-09-19T10:31:00-03:00",
+  "completed_at": null,
+  "reviewed_at": null,
+  "due_at": null,
+  "lock": {
+    "owner_agent_id": "NP01",
+    "acquired_at": "2026-09-19T10:31:00-03:00",
+    "expires_at": "2026-09-19T12:01:00-03:00"
+  },
+  "delegation_count": 0,
+  "max_delegations": 2,
+  "checkpoint": "Causa localizada: frontend apaga city/uf ao ativar geolocalização; API filtra exclusivamente eventos com latitude/longitude, removendo eventos locais legados sem coordenadas.",
+  "next_action": "Implementar preservação de cidade no frontend, fallback seguro por cidade na API, adicionar teste de regressão e validar CI.",
+  "blocker": null,
+  "tags": [
+    "cutinapp",
+    "events",
+    "discovery",
+    "geolocation",
+    "mobile",
+    "bugfix"
+  ],
+  "evidence": [],
+  "review": {
+    "required": true,
+    "reviewer_agent_id": "NP03",
+    "status": "PENDING",
+    "notes": "Correção afeta produção e consulta pública de eventos; solicitar revisão independente."
+  },
+  "history": [
+    {
+      "operation_id": "np01-start-nearby01",
+      "at": "2026-09-19T10:31:00-03:00",
+      "actor": "NP01",
+      "event": "CREATED_AND_CLAIMED",
+      "message": "OWNER reportou que Perto de mim elimina eventos locais; NP01 assumiu correção com lock de 90 minutos."
+    }
+  ],
+  "applied_operation_ids": [
+    "np01-start-nearby01"
+  ],
+  "version": 1
+}
