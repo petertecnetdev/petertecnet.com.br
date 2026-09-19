@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { createPortal } from 'react-dom'
 import AdminUserDetailPage from './AdminUserDetailPage.jsx'
 import './AdminUserCommunication.css'
 import './AdminUserCommunicationShell.css'
@@ -197,7 +196,7 @@ export default function AdminUserDetailExperience(props) {
     <button type="button" className="auc-action auc-action--both" onClick={() => openComposer('both')} disabled={loadingUser || !user?.email}>Comunicar</button>
   </div>
 
-  const modal = open ? createPortal(<div className="auc-modal-backdrop" role="presentation" onMouseDown={event => {
+  const modal = open ? <div className="auc-modal-backdrop" role="presentation" onMouseDown={event => {
     if (event.target === event.currentTarget && !sending) setOpen(false)
   }}>
     <section className="auc-modal" role="dialog" aria-modal="true" aria-labelledby="auc-title">
@@ -263,7 +262,7 @@ export default function AdminUserDetailExperience(props) {
         </div>
       </form>
     </section>
-  </div>, document.body) : null
+  </div> : null
 
   return <div className="auc-user-detail-shell" data-user-detail-experience="true">
     <div className="auc-communication-direct" data-user-communication-direct="true">
