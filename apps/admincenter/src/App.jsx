@@ -45,6 +45,11 @@ const PAGE_CONFIG = {
 const PAGE_FROM_SLUG = Object.fromEntries(Object.entries(PAGE_CONFIG).flatMap(([key, config]) => [[key, key], [config.slug, key]]))
 const BACKGROUND_REFRESH_PAGES = new Set(['dashboard', 'operations', 'financial', 'applications', 'activity'])
 const BACKGROUND_REFRESH_MS = 120000
+const SIDEBAR_PREF_KEY = 'petertecnet_admin_sidebar_open'
+
+function desktopNavigation() {
+  return window.matchMedia('(min-width: 981px)').matches
+}
 
 function pageFromLocation() {
   const url = new URL(window.location.href)
@@ -364,7 +369,7 @@ function statusTone(status) {
 }
 
 function Dashboard({ user, onLogout }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(() => desktopNavigation() ? localStorage.getItem(SIDEBAR_PREF_KEY) !== 'false' : false)
   const [launcherOpen, setLauncherOpen] = useState(false)
   const [dashboard, setDashboard] = useState(null)
   const [activity, setActivity] = useState(null)
@@ -392,6 +397,24 @@ function Dashboard({ user, onLogout }) {
   const sidebarWasOpenRef = useRef(false)
 
   useEffect(() => { activePageRef.current = activePage }, [activePage])
+
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 981px)')
+    const syncSidebarMode = event => {
+      const desktop = event?.matches ?? media.matches
+      if (desktop) setSidebarOpen(localStorage.getItem(SIDEBAR_PREF_KEY) !== 'false')
+      else setSidebarOpen(false)
+    }
+
+    syncSidebarMode()
+    media.addEventListener?.('change', syncSidebarMode)
+    return () => media.removeEventListener?.('change', syncSidebarMode)
+  }, [])
+
+  useEffect(() => {
+    if (!desktopNavigation()) return
+    localStorage.setItem(SIDEBAR_PREF_KEY, sidebarOpen ? 'true' : 'false')
+  }, [sidebarOpen])
 
   const loadAll = useCallback(async ({ quiet = false, indicate = false, force = false } = {}) => {
     if (!force && refreshInFlightRef.current) return
@@ -554,7 +577,11 @@ function Dashboard({ user, onLogout }) {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault(); document.querySelector('.top-search input')?.focus()
       }
-      if (event.key === 'Escape') { setSearchResult(null); setLauncherOpen(false); setSidebarOpen(false) }
+      if (event.key === 'Escape') {
+        setSearchResult(null)
+        setLauncherOpen(false)
+        if (!desktopNavigation()) setSidebarOpen(false)
+      }
     }
     window.addEventListener('keydown', shortcut)
     return () => window.removeEventListener('keydown', shortcut)
@@ -584,7 +611,7 @@ function Dashboard({ user, onLogout }) {
   }, [query])
 
   function handleSidebarKeyDown(event) {
-    if (event.key === 'Escape') {
+    if (event.key === 'Escape' && !desktopNavigation()) {
       event.preventDefault()
       setSidebarOpen(false)
       return
@@ -630,7 +657,7 @@ function Dashboard({ user, onLogout }) {
 
   const highestApp = useMemo(() => [...appRows].sort((a, b) => number(b.activity_count_30d) - number(a.activity_count_30d))[0], [appRows])
 
-  return <div className="admin-shell" data-admin-page={activePage}>
+  return <div className="admin-shell" data-admin-page={activePage} data-sidebar-open={sidebarOpen ? "true" : "false"}>
     <div className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} aria-hidden="true"/>
     <aside ref={sidebarRef} id="admin-navigation" className={`sidebar ${sidebarOpen ? 'open' : ''}`} aria-label="Navegação administrativa" aria-hidden={!sidebarOpen} onKeyDown={handleSidebarKeyDown}>
       <a className="brand" href="?page=visao-geral" tabIndex={sidebarOpen ? 0 : -1} onClick={event => { event.preventDefault(); go('dashboard') }}>
