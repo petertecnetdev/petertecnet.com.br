@@ -3,6 +3,7 @@ import './uiDialog.css'
 const queue = []
 let active = false
 let sequence = 0
+const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
 
 function element(tag, className, text) {
   const node = document.createElement(tag)
@@ -21,11 +22,13 @@ function runNext() {
 
   const { options, resolve } = queue.shift()
   const previousOverflow = document.body.style.overflow
+  const previousFocus = document.activeElement
   document.body.style.overflow = 'hidden'
 
   const id = `pt-ui-dialog-${++sequence}`
   const backdrop = element('div', `pt-ui-dialog-backdrop tone-${options.tone}`)
   const panel = element('section', 'pt-ui-dialog-panel')
+  panel.tabIndex = -1
   const heading = element('div', 'pt-ui-dialog-heading')
   const icon = element('span', 'pt-ui-dialog-icon', options.icon || (options.tone === 'danger' ? '!' : options.tone === 'success' ? '✓' : 'i'))
   const copy = element('div', 'pt-ui-dialog-copy')
@@ -94,15 +97,22 @@ function runNext() {
     confirmButton.disabled = !isVerified()
   }
 
+  function focusableNodes() {
+    return [...panel.querySelectorAll(FOCUSABLE)].filter(node => node instanceof HTMLElement && !node.hidden && node.getAttribute('aria-hidden') !== 'true')
+  }
+
+  let finished = false
   function finish(confirmed) {
+    if (finished) return
+    finished = true
     document.removeEventListener('keydown', onKeyDown)
     backdrop.remove()
     unlockBody(previousOverflow)
+    if (previousFocus instanceof HTMLElement && document.contains(previousFocus)) {
+      window.requestAnimationFrame(() => previousFocus.focus())
+    }
     active = false
-    resolve({
-      confirmed,
-      value: verificationInput?.value || '',
-    })
+    resolve({ confirmed, value: verificationInput?.value || '' })
     queueMicrotask(runNext)
   }
 
@@ -110,13 +120,28 @@ function runNext() {
     if (event.key === 'Escape' && options.showCancel !== false) {
       event.preventDefault()
       finish(false)
+      return
+    }
+    if (event.key !== 'Tab') return
+    const nodes = focusableNodes()
+    if (!nodes.length) {
+      event.preventDefault()
+      panel.focus()
+      return
+    }
+    const first = nodes[0]
+    const last = nodes[nodes.length - 1]
+    if (event.shiftKey && (document.activeElement === first || document.activeElement === panel)) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
     }
   }
 
   cancelButton?.addEventListener('click', () => finish(false))
-  confirmButton.addEventListener('click', () => {
-    if (isVerified()) finish(true)
-  })
+  confirmButton.addEventListener('click', () => { if (isVerified()) finish(true) })
   verificationInput?.addEventListener('input', syncConfirmState)
   backdrop.addEventListener('mousedown', event => {
     if (event.target === backdrop && options.dismissOnBackdrop !== false && options.showCancel !== false) finish(false)
@@ -132,14 +157,7 @@ function runNext() {
 export function openUiDialog(options = {}) {
   if (typeof document === 'undefined') return Promise.resolve({ confirmed: false, value: '' })
   return new Promise(resolve => {
-    queue.push({
-      options: {
-        tone: 'neutral',
-        dismissOnBackdrop: true,
-        ...options,
-      },
-      resolve,
-    })
+    queue.push({ options: { tone: 'neutral', dismissOnBackdrop: true, ...options }, resolve })
     runNext()
   })
 }
@@ -155,17 +173,9 @@ export async function confirmTypedAction(options = {}) {
 }
 
 export function showNotice(options = {}) {
-  return openUiDialog({
-    showCancel: false,
-    confirmLabel: 'Entendi',
-    ...options,
-  })
+  return openUiDialog({ showCancel: false, confirmLabel: 'Entendi', ...options })
 }
 
 export function showTextDialog(options = {}) {
-  return openUiDialog({
-    showCancel: false,
-    confirmLabel: 'Fechar',
-    ...options,
-  })
+  return openUiDialog({ showCancel: false, confirmLabel: 'Fechar', ...options })
 }
