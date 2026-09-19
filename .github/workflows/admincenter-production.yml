@@ -54,6 +54,9 @@ jobs:
           test -f dist/index.html
           grep -q 'assets/' dist/index.html
 
+      - name: Bundle budget
+        run: npm run validate:bundle
+
       - name: Browser shell regression
         run: npm run validate:shell-browser
 
