@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import { readAdminSessionState, writeAdminSessionState } from './adminPersistence.js'
 import AdminUserDetailPage from './AdminUserDetailExperience.jsx'
 import AdminProspectInvitation from './AdminProspectInvitation.jsx'
 import './AdminUsersCenter.css'
+
+const DEFAULT_LIST_SETTINGS = { sort: 'newest', per_page: '50' }
 
 function fullName(user) {
   return [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.user_name || user?.email || 'Usuário'
@@ -38,6 +41,7 @@ function applicationNames(user) {
 
 export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   const [users, setUsers] = useState([])
+  const [filters] = useState(() => readAdminSessionState('users-filters', DEFAULT_LIST_SETTINGS))
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 })
   const [detailUserId, setDetailUserId] = useState(detailUserFromUrl)
   const [inviteOpen, setInviteOpen] = useState(false)
@@ -54,8 +58,8 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
     try {
       const params = new URLSearchParams({
         page: String(page),
-        per_page: '50',
-        sort: 'newest',
+        per_page: String(filters?.per_page || DEFAULT_LIST_SETTINGS.per_page),
+        sort: String(filters?.sort || DEFAULT_LIST_SETTINGS.sort),
       })
       const payload = await apiRequest(`/admin/ecosystem/users?${params.toString()}`)
       if (sequence !== usersSequenceRef.current) return
@@ -75,6 +79,10 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
       }
     }
   }
+
+  useEffect(() => {
+    writeAdminSessionState('users-filters', filters)
+  }, [filters])
 
   useEffect(() => {
     void loadUsers(1)
