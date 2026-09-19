@@ -37,7 +37,7 @@ check('entrypoint no longer mounts duplicate applications experience', !main.inc
 check('React owns active page state', app.includes('data-admin-page={activePage}') && app.includes('setActivePage'))
 check('navigation supports browser history', app.includes("window.addEventListener('popstate'") && app.includes('writePageHistory'))
 check('navigation does not depend on document capture clicks', !app.includes("document.addEventListener('click', handleClick, true)"))
-check('Estabelecimentos and Itens are native React modules', /<AdminEstablishmentsPage\\b/.test(app) && /<AdminItemsManager\\b/.test(app))
+check('Estabelecimentos and Itens are native React modules', /<AdminEstablishmentsPage\b/.test(app) && /<AdminItemsManager\b/.test(app))
 check('active page is announced', app.includes("aria-current={activePage === id ? 'page' : undefined}"))
 check('selected page resets viewport', app.includes("window.scrollTo({ top: 0, left: 0, behavior: 'auto' })"))
 check('root surfaces cannot widen the page', responsive.includes('.admin-shell') && responsive.includes('overflow-x: clip'))
