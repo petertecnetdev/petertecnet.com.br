@@ -25,6 +25,9 @@ check(!main.includes('AdminApplicationsExperience'), 'Entry point não pode mont
 check(!main.includes('AdminSessionGuard'), 'Entry point não pode duplicar validação/montagem administrativa.')
 check(!app.includes("document.addEventListener('click', handleClick, true)"), 'App não pode capturar cliques globais para navegar.')
 check(!app.includes('new MutationObserver'), 'App principal não pode depender de MutationObserver para navegar.')
+check(app.includes('searchSequenceRef.current'), 'Busca global deve ignorar respostas assíncronas obsoletas.')
+check(app.includes("activePage === 'agents'") && app.includes("activePage === 'notifications'"), 'Módulos pesados devem montar somente quando ativos.')
+check(app.includes('<AdminModuleBoundary'), 'Módulos administrativos críticos devem ter Error Boundary.')
 
 if (failures.length) {
   console.error('Admin stability validation failed:')

@@ -1,10 +1,11 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import NotificationsCenter from './NotificationsCenter'
-import AdminUsersCenter from './AdminUsersCenter.jsx'
-import AdminPayoutCenter from './AdminPayoutCenter.jsx'
-import AgentChatPanel from './AgentChatPanel.jsx'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import AdminModuleBoundary from './AdminModuleBoundary.jsx'
 import { connectMissionControlRealtime } from './missionControlRealtime.js'
 
+const NotificationsCenter = lazy(() => import('./NotificationsCenter.jsx'))
+const AdminUsersCenter = lazy(() => import('./AdminUsersCenter.jsx'))
+const AdminPayoutCenter = lazy(() => import('./AdminPayoutCenter.jsx'))
+const AgentChatPanel = lazy(() => import('./AgentChatPanel.jsx'))
 const AdminEstablishmentsPage = lazy(() => import('./AdminEstablishmentsPageV2.jsx'))
 const AdminItemsManager = lazy(() => import('./AdminItemsManager.jsx'))
 
@@ -409,6 +410,7 @@ function Dashboard({ user, onLogout }) {
   const [activePage, setActivePage] = useState(pageFromLocation)
   const [realtimeState, setRealtimeState] = useState('connecting')
   const searchTimer = useRef(null)
+  const searchSequenceRef = useRef(0)
   const refreshTimerRef = useRef(null)
   const refreshInFlightRef = useRef(false)
   const refreshSequenceRef = useRef(0)
@@ -548,12 +550,23 @@ function Dashboard({ user, onLogout }) {
   useEffect(() => {
     window.clearTimeout(searchTimer.current)
     const trimmed = query.trim()
-    if (trimmed.length < 2) return undefined
+    if (trimmed.length < 2) {
+      searchSequenceRef.current += 1
+      return undefined
+    }
+
+    const sequence = ++searchSequenceRef.current
     searchTimer.current = window.setTimeout(async () => {
-      try { setSearchResult(await request(`/admin/ecosystem/command/search?q=${encodeURIComponent(trimmed)}`)) }
-      catch (error) { setSearchResult({ error: error.message, groups: {}, total: 0 }) }
-      finally { setSearching(false) }
-    }, 280)
+      try {
+        const payload = await request(`/admin/ecosystem/command/search?q=${encodeURIComponent(trimmed)}`)
+        if (sequence === searchSequenceRef.current) setSearchResult(payload)
+      } catch (error) {
+        if (sequence === searchSequenceRef.current) setSearchResult({ error: error.message, groups: {}, total: 0 })
+      } finally {
+        if (sequence === searchSequenceRef.current) setSearching(false)
+      }
+    }, 320)
+
     return () => window.clearTimeout(searchTimer.current)
   }, [query])
 
@@ -581,11 +594,11 @@ function Dashboard({ user, onLogout }) {
   const status = statusTone(operationalStatus)
   const activeApps = summary.active_applications ?? appRows.filter(app => app.is_active !== false).length
 
-  const highestApp = [...appRows].sort((a, b) => number(b.activity_count_30d) - number(a.activity_count_30d))[0]
+  const highestApp = useMemo(() => [...appRows].sort((a, b) => number(b.activity_count_30d) - number(a.activity_count_30d))[0], [appRows])
 
   return <div className="admin-shell" data-admin-page={activePage}>
-    <div className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)}/>
-    <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+    <div className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} aria-hidden="true"/>
+    <aside id="admin-navigation" className={`sidebar ${sidebarOpen ? 'open' : ''}`} aria-label="Navegação administrativa" aria-hidden={!sidebarOpen}>
       <a className="brand" href="?page=visao-geral" onClick={event => { event.preventDefault(); go('dashboard') }}>
         <span className="brand-logo"><img src="/petertecnetlogo.png" alt=""/></span>
         <span><b>Peter Tecnet</b><small>Admin Center</small></span>
@@ -606,7 +619,7 @@ function Dashboard({ user, onLogout }) {
 
     <main className="workspace">
       <header className="topbar">
-        <button className="hamburger" onClick={() => setSidebarOpen(value => !value)} aria-label="Abrir menu" aria-expanded={sidebarOpen}><span/><span/><span/></button>
+        <button className="hamburger" onClick={() => setSidebarOpen(value => !value)} aria-label={sidebarOpen ? 'Fechar menu' : 'Abrir menu'} aria-expanded={sidebarOpen} aria-controls="admin-navigation"><span/><span/><span/></button>
         <div className="top-search">
           <span>⌕</span><input value={query} onChange={event => {
             const value = event.target.value
@@ -618,7 +631,12 @@ function Dashboard({ user, onLogout }) {
               setSearching(true)
             }
           }} placeholder="Pesquisar em todo o ecossistema…" aria-label="Pesquisar no ecossistema"/><kbd>Ctrl K</kbd>
-          {(searchResult || searching) && <SearchPopover result={searchResult} searching={searching} onClose={() => { setQuery(''); setSearchResult(null) }}/>} 
+          {(searchResult || searching) && <SearchPopover result={searchResult} searching={searching} onClose={() => { setQuery(''); setSearchResult(null) }} onNavigate={group => {
+            const destination = ({ users: 'users', applications: 'applications', establishments: 'establishments', items: 'items', events: 'establishments', orders: 'financial', payments: 'financial' })[group]
+            if (destination) go(destination)
+            setQuery('')
+            setSearchResult(null)
+          }}/>} 
         </div>
         <div className="top-actions">
           <span className={`sync-status sync-${realtimeState}`} title={realtimeState === 'connected' ? 'Atualização em tempo real conectada' : 'Atualização em tempo real indisponível; o painel usa sincronização de segurança'}><i/><b>{realtimeState === 'connected' ? 'Ao vivo' : 'Sincronização'}</b></span>
@@ -657,8 +675,9 @@ function Dashboard({ user, onLogout }) {
               {highestApp && <div className="insight"><span>↗</span><p><b>{highestApp.name}</b> concentra o maior volume recente de atividade.</p></div>}
             </Panel>
           </section>
+        </>}
 
-          <section id="operations" className="section-anchor" data-admin-page-key="operations">
+          <section id="operations" className="section-anchor" data-admin-page-key="operations" hidden={activePage !== 'operations'} aria-hidden={activePage !== 'operations'}>
             <SectionHeading kicker="OPERAÇÕES" title="Saúde e sinais críticos" text="Alertas financeiros e operacionais que merecem atenção imediata."/>
             <div className="operations-grid">
               <Panel title="Alertas ativos" subtitle={`${issueRows.length + financialAlerts.length} sinais encontrados`}>
@@ -679,7 +698,7 @@ function Dashboard({ user, onLogout }) {
             </div>
           </section>
 
-          <section id="financial" className="section-anchor" data-admin-page-key="financial">
+          <section id="financial" className="section-anchor" data-admin-page-key="financial" hidden={activePage !== 'financial'} aria-hidden={activePage !== 'financial'}>
             <SectionHeading kicker="FINANCEIRO" title="Performance de receita" text="Distribuição financeira por aplicação e status de pagamentos."/>
             <div className="financial-strip">
               <div><span>Transações</span><b>{compactNumber(totals.transactions)}</b></div><div><span>Gross</span><b>{currency(totals.gross)}</b></div><div><span>Taxas do provedor</span><b>{currency(totals.provider_fees)}</b></div><div><span>Seller net</span><b>{currency(totals.seller_net)}</b></div>
@@ -687,10 +706,10 @@ function Dashboard({ user, onLogout }) {
             <Panel title="Receita por aplicação" subtitle="Ranking por volume bruto processado">
               <div className="table-wrap"><table><thead><tr><th>Aplicação</th><th>Transações</th><th>Volume bruto</th><th>Taxa Peter</th><th>Líquido</th></tr></thead><tbody>{financial?.applications?.length ? financial.applications.map(row => <tr key={row.app_slug || row.application_name}><td><b>{row.application_name || row.app_slug}</b></td><td>{compactNumber(row.transactions)}</td><td>{currency(row.gross)}</td><td>{currency(row.platform_fees)}</td><td>{currency(row.seller_net)}</td></tr>) : <tr><td colSpan="5"><Empty text="Ainda não há movimentação financeira consolidada por aplicação."/></td></tr>}</tbody></table></div>
             </Panel>
-            <AdminPayoutCenter request={request}/>
+            {activePage === 'financial' && <AdminModuleBoundary name="Financeiro"><Suspense fallback={<ModuleSkeleton title="Carregando repasses…" />}><AdminPayoutCenter request={request}/></Suspense></AdminModuleBoundary>}
           </section>
 
-          <section id="applications" className="section-anchor" data-admin-page-key="applications">
+          <section id="applications" className="section-anchor" data-admin-page-key="applications" hidden={activePage !== 'applications'} aria-hidden={activePage !== 'applications'}>
             <SectionHeading kicker="APLICAÇÕES" title="Ecossistema em produção" text="Adoção e atividade por produto conectado à API central."/>
             <div className="apps-grid">
               {appRows.length ? appRows.map(app => <article className="app-card" key={app.id || app.slug}>
@@ -702,33 +721,33 @@ function Dashboard({ user, onLogout }) {
             </div>
           </section>
 
-          <section id="users" className="section-anchor" data-admin-page-key="users">
+          <section id="users" className="section-anchor" data-admin-page-key="users" hidden={activePage !== 'users'} aria-hidden={activePage !== 'users'}>
             <SectionHeading kicker="USUÁRIOS" title="Gestão central de usuários" text="Pesquise, filtre e administre cadastros, perfis, acessos e atividade de todo o ecossistema."/>
-            <AdminUsersCenter apiRequest={request} applications={applications}/>
+            {activePage === 'users' && <AdminModuleBoundary name="Usuários"><Suspense fallback={<ModuleSkeleton title="Carregando usuários…" />}><AdminUsersCenter apiRequest={request} applications={applications}/></Suspense></AdminModuleBoundary>}
           </section>
 
-          <section id="establishments-admin-integration" className="section-anchor admin-native-module" data-admin-page-key="establishments">
-            <Suspense fallback={<ModuleSkeleton title="Carregando estabelecimentos…" />}>
+          <section id="establishments-admin-integration" className="section-anchor admin-native-module" data-admin-page-key="establishments" hidden={activePage !== 'establishments'} aria-hidden={activePage !== 'establishments'}>
+            {activePage === 'establishments' && <AdminModuleBoundary name="Estabelecimentos"><Suspense fallback={<ModuleSkeleton title="Carregando estabelecimentos…" />}>
               <AdminEstablishmentsPage />
-            </Suspense>
+            </Suspense></AdminModuleBoundary>}
           </section>
 
-          <section id="items-admin-integration" className="section-anchor admin-native-module" data-admin-page-key="items">
-            <Suspense fallback={<ModuleSkeleton title="Carregando itens…" />}>
+          <section id="items-admin-integration" className="section-anchor admin-native-module" data-admin-page-key="items" hidden={activePage !== 'items'} aria-hidden={activePage !== 'items'}>
+            {activePage === 'items' && <AdminModuleBoundary name="Itens"><Suspense fallback={<ModuleSkeleton title="Carregando itens…" />}>
               <AdminItemsManager applications={applications} />
-            </Suspense>
+            </Suspense></AdminModuleBoundary>}
           </section>
 
-          <section id="agents" className="section-anchor" data-admin-page-key="agents">
+          <section id="agents" className="section-anchor" data-admin-page-key="agents" hidden={activePage !== 'agents'} aria-hidden={activePage !== 'agents'}>
             <SectionHeading kicker="AGENTES" title="Central de comunicação" text="Envie ordens e acompanhe respostas dos agentes pelo histórico compartilhado do GitHub."/>
-            <AgentChatPanel request={request}/>
+            {activePage === 'agents' && <AdminModuleBoundary name="Agentes"><Suspense fallback={<ModuleSkeleton title="Carregando central de agentes…" />}><AgentChatPanel request={request}/></Suspense></AdminModuleBoundary>}
           </section>
 
-          <section id="notifications" className="section-anchor" data-admin-page-key="notifications">
-            <NotificationsCenter request={request} applications={applications}/>
+          <section id="notifications" className="section-anchor" data-admin-page-key="notifications" hidden={activePage !== 'notifications'} aria-hidden={activePage !== 'notifications'}>
+            {activePage === 'notifications' && <AdminModuleBoundary name="Notificações"><Suspense fallback={<ModuleSkeleton title="Carregando notificações…" />}><NotificationsCenter request={request} applications={applications}/></Suspense></AdminModuleBoundary>}
           </section>
 
-          <section id="activity" className="section-anchor" data-admin-page-key="activity">
+          <section id="activity" className="section-anchor" data-admin-page-key="activity" hidden={activePage !== 'activity'} aria-hidden={activePage !== 'activity'}>
             <SectionHeading kicker="ATIVIDADE" title="Linha do tempo recente" text="Últimas ações registradas pela telemetria do ecossistema."/>
             <Panel title="Atividade recente" subtitle={`${compactNumber(activity?.summary?.total ?? summary.interactions_30d)} interações no recorte atual`}>
               <div className="timeline">
@@ -736,7 +755,6 @@ function Dashboard({ user, onLogout }) {
               </div>
             </Panel>
           </section>
-        </>}
       </div>
     </main>
   </div>
@@ -746,14 +764,14 @@ function SectionHeading({ kicker, title, text }) {
   return <div className="section-heading"><div><p className="eyebrow">{kicker}</p><h2>{title}</h2></div><p>{text}</p></div>
 }
 
-function SearchPopover({ result, searching, onClose }) {
+function SearchPopover({ result, searching, onClose, onNavigate }) {
   const groups = result?.groups || {}
   return <div className="search-popover">
     <div className="search-popover-head"><span>{searching ? 'Pesquisando…' : `${result?.total || 0} resultado(s)`}</span><button onClick={onClose}>×</button></div>
     {result?.error && <div className="search-error">{result.error}</div>}
     {!searching && !result?.error && !result?.total && <Empty text="Nenhum resultado encontrado."/>}
     <div className="search-groups">
-      {Object.entries(groups).map(([group, rows]) => <section key={group}><h4>{groupLabels[group] || group}<span>{rows.length}</span></h4>{rows.map((row, index) => <div className="search-result" key={row.id || index}><div><b>{row.name || row.title || row.first_name || row.email || row.public_id || row.reference || `#${row.id}`}</b><small>{row.email || row.slug || row.status || row.category || row.application_name || row.url || `ID ${row.id}`}</small></div><span>#{row.id}</span></div>)}</section>)}
+      {Object.entries(groups).map(([group, rows]) => <section key={group}><h4>{groupLabels[group] || group}<span>{rows.length}</span></h4>{rows.map((row, index) => <button type="button" className="search-result" key={row.id || index} onClick={() => onNavigate?.(group)}><div><b>{row.name || row.title || row.first_name || row.email || row.public_id || row.reference || `#${row.id}`}</b><small>{row.email || row.slug || row.status || row.category || row.application_name || row.url || `ID ${row.id}`}</small></div><span>#{row.id}</span></button>)}</section>)}
     </div>
   </div>
 }
