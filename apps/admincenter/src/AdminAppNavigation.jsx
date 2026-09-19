@@ -115,7 +115,6 @@ function applyPage(page, { historyMode = null, focus = false, scroll = false } =
   if (!(shell instanceof HTMLElement)) return false
 
   const resolved = PAGE_KEYS.has(page) ? page : 'dashboard'
-  const previousPage = shell.dataset.adminPage || null
   markPageSurfaces(shell)
   shell.dataset.adminPage = resolved
   decorateNavigation(shell, resolved)
@@ -138,9 +137,7 @@ function applyPage(page, { historyMode = null, focus = false, scroll = false } =
     }
   })
 
-  if (previousPage !== resolved) {
-    window.dispatchEvent(new CustomEvent('admin-page-change', { detail: { page: resolved, previousPage } }))
-  }
+  window.dispatchEvent(new CustomEvent('admin-page-change', { detail: { page: resolved } }))
   return true
 }
 
