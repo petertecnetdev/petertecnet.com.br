@@ -4,6 +4,7 @@ import App from './App.jsx'
 import PwaInstallButton from './PwaInstallButton.jsx'
 import SupportAdminApp, { AdminSupportLauncher } from './SupportAdminApp.jsx'
 import { installAdminRuntimeMonitor } from './adminRuntimeMonitor.js'
+import { installWebVitals } from './discoveryApi.js'
 import './AdminDesignSystem.css'
 import './App.css'
 import './AdminEstablishmentsFeedback.css'
@@ -16,6 +17,7 @@ import './AdminQualityLayer.css'
 import './AdminResponsiveV3.css'
 
 installAdminRuntimeMonitor()
+installWebVitals('admincenter')
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 
