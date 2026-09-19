@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import AdminAppNavigation from './AdminAppNavigation.jsx'
 import AdminGlobalSearch from './AdminGlobalSearch.jsx'
+import AdminEstablishmentsIntegration from './AdminEstablishmentsIntegration.jsx'
 import AdminItemsIntegration from './AdminItemsIntegration.jsx'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
@@ -71,6 +72,7 @@ export default function AdminSessionGuard() {
 
   return authorized && <>
     <AdminGlobalSearch />
+    <AdminEstablishmentsIntegration />
     <AdminItemsIntegration />
     <AdminAppNavigation />
   </>
