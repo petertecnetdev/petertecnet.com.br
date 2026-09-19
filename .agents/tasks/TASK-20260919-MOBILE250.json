@@ -6,25 +6,21 @@
   "application_context": "cutinapp",
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "assigned_agent_id": "NP05",
   "owner_agent_id": "NP05",
   "created_by": "OWNER",
   "created_at": "2026-09-19T10:28:00-03:00",
-  "updated_at": "2026-09-19T10:28:00-03:00",
+  "updated_at": "2026-09-19T10:44:00-03:00",
   "started_at": "2026-09-19T10:28:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
   "due_at": null,
-  "lock": {
-    "owner_agent_id": "NP05",
-    "acquired_at": "2026-09-19T10:28:00-03:00",
-    "expires_at": "2026-09-19T11:58:00-03:00"
-  },
+  "lock": null,
   "delegation_count": 0,
   "max_delegations": 2,
-  "checkpoint": "Bootstrap concluído. Repositório já possui lazy routes, budget de performance, navegação mobile e overlay manager; principal risco identificado é acúmulo de camadas CSS mobile e pré-carregamento/efeitos globais em aparelhos restritos.",
-  "next_action": "Criar branch dedicada, consolidar shell mobile final, reduzir trabalho não crítico no boot e validar políticas de overlay/UX/build via GitHub Actions.",
+  "checkpoint": "Camada transversal mobile-first implementada no PR Cutinapp #576. Head 6a3d46117f812cc8b3343c8d6cf7f80a3cf18d12. CI verde: 114 suites/739 testes, build, performance budget, Lighthouse e guardrails de overlays/dialogs/React/UX. Corrigido também o fetch-depth do CI para os guardrails HEAD^ realmente inspecionarem o diff.",
+  "next_action": "NP03 executar revisão independente mobile em 360/390/430px, navegação, Event Manager, bottom sheets, teclado, rede limitada e overlays; aprovar ou solicitar mudanças antes de merge em main.",
   "blocker": null,
   "tags": [
     "cutinapp",
@@ -34,7 +30,13 @@
     "responsive",
     "pwa"
   ],
-  "evidence": [],
+  "evidence": [
+    "PR https://github.com/petertecnetdev/cutinapp.petertecnet.com.br/pull/576",
+    "head 6a3d46117f812cc8b3343c8d6cf7f80a3cf18d12",
+    "Validate Cutinapp run 35446516021: success",
+    "Lighthouse CI run 35446516009: success",
+    "114 test suites / 739 tests passed"
+  ],
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
@@ -48,10 +50,18 @@
       "actor": "NP05",
       "event": "CREATED_AND_CLAIMED",
       "message": "OWNER solicitou implementação integral das melhorias mobile; NP05 assumiu com lock de 90 minutos."
+    },
+    {
+      "operation_id": "np05-mobile250-review",
+      "at": "2026-09-19T10:44:00-03:00",
+      "actor": "NP05",
+      "event": "READY_FOR_REVIEW",
+      "message": "Implementação transversal concluída e validada automaticamente; PR #576 enviado para revisão independente NP03."
     }
   ],
   "applied_operation_ids": [
-    "np05-mobile250-start"
+    "np05-mobile250-start",
+    "np05-mobile250-review"
   ],
-  "version": 1
+  "version": 2
 }
