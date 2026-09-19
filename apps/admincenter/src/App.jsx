@@ -56,8 +56,10 @@ function desktopNavigation() {
 
 function pageFromLocation() {
   const url = new URL(window.location.href)
-  const token = String(url.searchParams.get('page') || '').trim().toLowerCase()
-  return PAGE_FROM_SLUG[token] || 'dashboard'
+  const queryToken = String(url.searchParams.get('page') || '').trim().toLowerCase()
+  const pathToken = decodeURIComponent(url.pathname.split('/').filter(Boolean).at(-1) || '').trim().toLowerCase()
+  const hashToken = decodeURIComponent(url.hash.replace(/^#/, '')).trim().toLowerCase()
+  return PAGE_FROM_SLUG[queryToken] || PAGE_FROM_SLUG[pathToken] || PAGE_FROM_SLUG[hashToken] || 'dashboard'
 }
 
 function writePageHistory(page, mode = 'pushState') {
