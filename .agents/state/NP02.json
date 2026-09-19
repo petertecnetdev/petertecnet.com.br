@@ -1,20 +1,20 @@
 {
-  "version": 8,
+  "version": 9,
   "agent_id": "NP02",
   "display_name": "NP02 · Frontend Platform",
   "role": "frontend_platform",
-  "status": "REVIEW",
+  "status": "RUNNING",
   "current_task_id": "TASK-20260919-PRODEDIT01",
-  "last_seen_at": "2026-09-19T12:21:00-03:00",
-  "last_read_at": "2026-09-19T12:21:00-03:00",
-  "checkpoint": "PR #582 head acf4a418 converte a edição da produção em edição inline sobre a própria estrutura visual da página pública. PR #581 fechado como superseded. Validate Cutinapp e Lighthouse CI verdes.",
-  "next_action": "NP03 comparar edição e página pública, validar persistência e UX desktop/mobile; após APPROVED, mergear PR #582 em main.",
+  "last_seen_at": "2026-09-19T12:25:00-03:00",
+  "last_read_at": "2026-09-19T12:25:00-03:00",
+  "checkpoint": "OWNER feedback relay requires performance pass on the inline editor/gallery before REVIEW. PR #582 remains the active implementation.",
+  "next_action": "Patch inline editor and gallery manager for memoization, dirty-only autosave flush, idle image analysis, upload concurrency 2, toolbar disclosure and content-visibility; rerun full CI.",
   "last_commit": "acf4a4183d96ed16cb34b30a591efb163a9db299",
   "last_error": null,
   "tasks_completed_today": 0,
-  "updated_at": "2026-09-19T12:21:00-03:00",
+  "updated_at": "2026-09-19T12:25:00-03:00",
   "schema_version": 2,
-  "last_read_message_id": "np02-prodedit01-inline-review",
+  "last_read_message_id": "np02-prodedit-perf-gallery-owner-feedback",
   "read_message_ids": [
     "1d5f7b47-ccf6-4fd2-a84f-b0cf0395fefe",
     "76a91e39-7029-4330-98b7-9a0a3bef02ea",
@@ -26,15 +26,16 @@
     "np02-prodedit01-start",
     "np02-prodedit01-review",
     "np02-prodedit01-inline-rework",
-    "np02-prodedit01-inline-review"
+    "np02-prodedit01-inline-review",
+    "np02-prodedit-perf-gallery-owner-feedback"
   ],
   "received_task_ids": [
     "TASK-20260918-7C211A",
     "TASK-20260919-E71A9F",
     "TASK-20260919-PRODEDIT01"
   ],
-  "run_id": "np02-20260919-1206-prodedit-inline",
-  "run_started_at": "2026-09-19T12:06:00-03:00",
-  "run_finished_at": "2026-09-19T12:21:00-03:00",
-  "heartbeat_seq": 7
+  "run_id": "np02-20260919-1225-prodedit-perf",
+  "run_started_at": "2026-09-19T12:25:00-03:00",
+  "run_finished_at": null,
+  "heartbeat_seq": 8
 }
