@@ -13,7 +13,8 @@
     "validate:stability": "node scripts/validate-admin-stability.mjs",
     "validate:runtime": "node scripts/validate-admin-runtime-contracts.mjs",
     "validate:architecture": "node scripts/validate-admin-architecture.mjs",
-    "validate:shell-browser": "node scripts/validate-admin-shell-v2-browser.mjs"
+    "validate:shell-browser": "node scripts/validate-admin-shell-v2-browser.mjs",
+    "validate:bundle": "node scripts/validate-admin-bundle-budget.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",
