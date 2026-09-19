@@ -6,6 +6,8 @@ const shell = fs.readFileSync(new URL('../src/AdminUserCommunicationShell.css', 
 
 const checks = [
   ['user center mounts communication experience', users.includes("./AdminUserDetailExperience.jsx")],
+  ['user list keeps direct impersonation action', users.includes('acu-simple-user__impersonate') && users.includes('setImpersonationUser(user)')],
+  ['user list mounts impersonation dialog', users.includes('AdminImpersonationDialog') && users.includes('canImpersonate(user)')],
   ['detail experience renders one shell', experience.includes('data-user-detail-experience="true"')],
   ['communication bar is inside detail shell', experience.includes('data-user-communication-direct="true"')],
   ['email action is visible', experience.includes('>E-mail</button>')],
