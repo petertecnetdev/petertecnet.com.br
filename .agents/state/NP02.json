@@ -1,20 +1,20 @@
 {
-  "version": 5,
+  "version": 6,
   "agent_id": "NP02",
   "display_name": "NP02 · Frontend Platform",
   "role": "frontend_platform",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "current_task_id": "TASK-20260919-PRODEDIT01",
-  "last_seen_at": "2026-09-19T11:34:00-03:00",
-  "last_read_at": "2026-09-19T11:34:00-03:00",
-  "checkpoint": "OWNER priorizou a evolução do editor da produção. Diagnóstico: a capa/logo ficam em seção inferior com input pouco explícito; a prévia lateral não reproduz suficientemente a página de view.",
-  "next_action": "Implementar hero editável full-width inspirado na view pública, mover controles de capa/logo para o topo e manter prévia ao vivo; validar e abrir PR.",
-  "last_commit": "ff0f227692e8a3ed0e45b82961646adbfa498b66",
+  "last_seen_at": "2026-09-19T11:51:00-03:00",
+  "last_read_at": "2026-09-19T11:51:00-03:00",
+  "checkpoint": "PR #581 no head 0ff63110 implementa editor visual da produção com capa/logo no hero no topo, prévia full-width e correção de escopo dos inputs; integração concorrente com ProductionGalleryManager preservada. Validate Cutinapp e Lighthouse CI verdes.",
+  "next_action": "Aguardar/recolher QA do NP03; se aprovado, liberar merge em main. Se houver changes requested, corrigir no PR #581 e repetir CI.",
+  "last_commit": "0ff63110e5386faefa93a565d69b9226138567ae",
   "last_error": null,
   "tasks_completed_today": 0,
-  "updated_at": "2026-09-19T11:34:00-03:00",
+  "updated_at": "2026-09-19T11:51:00-03:00",
   "schema_version": 2,
-  "last_read_message_id": "np01-nearby01-review",
+  "last_read_message_id": "np02-prodedit01-review",
   "read_message_ids": [
     "1d5f7b47-ccf6-4fd2-a84f-b0cf0395fefe",
     "76a91e39-7029-4330-98b7-9a0a3bef02ea",
@@ -22,7 +22,9 @@
     "np05-mobile250-start",
     "np05-mobile250-review",
     "np01-nearby01-start",
-    "np01-nearby01-review"
+    "np01-nearby01-review",
+    "np02-prodedit01-start",
+    "np02-prodedit01-review"
   ],
   "received_task_ids": [
     "TASK-20260918-7C211A",
@@ -31,6 +33,6 @@
   ],
   "run_id": "np02-20260919-1134-prodedit01",
   "run_started_at": "2026-09-19T11:34:00-03:00",
-  "run_finished_at": null,
-  "heartbeat_seq": 4
+  "run_finished_at": "2026-09-19T11:51:00-03:00",
+  "heartbeat_seq": 5
 }
