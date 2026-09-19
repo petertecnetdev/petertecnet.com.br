@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import AdminModuleBoundary from './AdminModuleBoundary.jsx'
 import { connectMissionControlRealtime } from './missionControlRealtime.js'
 import { loadGoogleIdentity } from './services/googleIdentity.js'
+import { adminRequest as request } from './adminApi.js'
 
 const NotificationsCenter = lazy(() => import('./NotificationsCenter.jsx'))
 const AdminUsersCenter = lazy(() => import('./AdminUsersCenter.jsx'))
@@ -12,7 +13,6 @@ const AdminItemsManager = lazy(() => import('./AdminItemsManager.jsx'))
 const AdminApplicationsCenter = lazy(() => import('./AdminApplicationsCenter.jsx'))
 const ImportantEventsCenter = lazy(() => import('./ImportantEventsCenter.jsx'))
 
-const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
 const TOKEN_KEY = 'petertecnet_admin_token'
 const OWNER_EMAIL = 'petertecnet@gmail.com'
 
@@ -116,38 +116,6 @@ function dateTime(value) {
   if (!value) return '—'
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
-}
-
-function request(path, options = {}) {
-  const token = localStorage.getItem(TOKEN_KEY)
-  const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), options.timeout || 18000)
-  return fetch(`${API}${path}`, {
-    ...options,
-    signal: controller.signal,
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  }).then(async response => {
-    const payload = response.status === 204 ? null : await response.json().catch(() => ({}))
-    if (response.status === 401 && path !== '/auth/login') {
-      localStorage.removeItem(TOKEN_KEY)
-      window.dispatchEvent(new Event('admin-session-expired'))
-    }
-    if (!response.ok) {
-      const requestError = new Error(payload?.error || payload?.message || Object.values(payload?.errors || {}).flat()?.[0] || 'Não foi possível concluir a operação.')
-      requestError.status = response.status
-      requestError.retryAfter = Number(response.headers.get('Retry-After') || payload?.retry_after || 0)
-      throw requestError
-    }
-    return payload
-  }).catch(error => {
-    if (error?.name === 'AbortError') throw new Error('A API demorou para responder.')
-    throw error
-  }).finally(() => window.clearTimeout(timeout))
 }
 
 function Login({ onAuthenticated }) {
