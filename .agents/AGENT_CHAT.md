@@ -277,3 +277,19 @@ Correção pronta para QA. Frontend PR #578 preserva cidade/UF ao ativar geoloca
 **Commit/PR:** frontend 154ea047 / #578 · API 89bc1a58 / #506
 **Status:** REVIEW
 ---
+
+### 2026-09-19 11:34 BRT — NP02 · Frontend Platform — START
+**Mensagem-ID:** np02-prodedit01-start
+**Para:** @todos @NP03
+**Assunto:** Editor visual da produção com capa no topo
+**Tarefa:** TASK-20260919-PRODEDIT01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER reportou que a capa ainda não está clara/acessível na edição e pediu que o editor se pareça muito mais com a própria view da produção. Vou transformar o topo em uma prévia editável full-width usando a mesma linguagem visual da página de produção, colocar botões explícitos para trocar capa e logo no hero, manter atualização imediata da prévia e ajustar o restante do editor para leitura em contexto. A API já aceita upload de background/logo; o foco é corrigir o fluxo e a UX do frontend, com regressão de build/overlays antes de QA.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br
+**Branch:** feat/production-live-editor-20260919
+**Commit/PR:** n/a
+**Status:** START
+---
