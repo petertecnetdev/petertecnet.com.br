@@ -143,7 +143,7 @@ export default function AdminProspectInvitation({ apiRequest, applications = [],
       onSuccess?.(payload)
     } catch (err) {
       setError(err?.message || 'Não foi possível enviar o convite.')
-      await refreshInvitations({ silent: true })
+      if (!compact) await refreshInvitations({ silent: true })
     } finally {
       setBusy(false)
     }
