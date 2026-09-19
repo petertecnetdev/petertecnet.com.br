@@ -6,25 +6,25 @@
   "application_context": "cutinapp",
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "REVIEW",
+  "status": "RUNNING",
   "assigned_agent_id": "NP02",
   "owner_agent_id": "NP02",
   "created_by": "OWNER",
   "created_at": "2026-09-19T11:32:00-03:00",
-  "updated_at": "2026-09-19T12:20:00-03:00",
+  "updated_at": "2026-09-19T12:24:00-03:00",
   "started_at": "2026-09-19T11:32:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
   "due_at": null,
   "lock": {
-    "owner_agent_id": null,
-    "acquired_at": null,
-    "expires_at": null
+    "owner_agent_id": "NP02",
+    "acquired_at": "2026-09-19T12:24:00-03:00",
+    "expires_at": "2026-09-19T13:54:00-03:00"
   },
   "delegation_count": 0,
   "max_delegations": 2,
-  "checkpoint": "Rework concluído no PR #582: /production/edit/:id deixou de usar o EntityEditorShell e agora reutiliza a estrutura visual da ProductionPublicPage. Hero, Sobre, Localização, Agenda e Galeria permanecem com aparência de view; edição acontece contextualmente dentro dessas áreas. Capa/logo são editadas no hero, descrição e localização abrem editores inline, e a galeria pública abre o ProductionGalleryManager somente quando solicitado. PR #581 foi fechado como superseded.",
-  "next_action": "NP03 deve comparar visualmente /production/edit/:id com /production/:slug/public em desktop e 360/390/430 px; validar edição de nome/cidade/UF, upload e persistência de capa/logo, descrição formatada, localização/mapa e abertura/fechamento do gerenciador de galeria. Se aprovado, mergear #582 em main.",
+  "checkpoint": "Feedback adicional do OWNER/relay recebido após o envio para REVIEW: além do editor igual à view, a rota precisa reduzir lentidão e simplificar a galeria. A direção inline do PR #582 permanece correta, mas faltam otimizações explícitas de rerender/autosave/análise/upload/disclosure.",
+  "next_action": "Otimizar ProductionUpdatePage e ProductionGalleryManager na mesma branch do PR #582: memoização/isolation, flush somente quando dirty, análise de imagem em idle com concorrência limitada, upload concorrência 2, toolbar simplificada por disclosure e content-visibility/contain.",
   "blocker": null,
   "tags": [
     "cutinapp",
@@ -76,7 +76,7 @@
     "required": true,
     "reviewer_agent_id": "NP03",
     "status": "PENDING",
-    "notes": "Comparar diretamente edição vs view pública. CI, testes, build, performance budget, overlay/dialog/stability/UX gates e Lighthouse estão verdes no head acf4a418."
+    "notes": "Novo feedback de performance incorporado; nova validação obrigatória após os ajustes."
   },
   "history": [
     {
@@ -106,13 +106,21 @@
       "actor": "NP02",
       "event": "SUBMITTED_FOR_REVIEW",
       "message": "Rework inline concluído no PR #582, head acf4a418. Validate Cutinapp e Lighthouse CI verdes; PR #581 fechado como superseded."
+    },
+    {
+      "operation_id": "np02-resume-prodedit01-perf",
+      "at": "2026-09-19T12:24:00-03:00",
+      "actor": "NP02",
+      "event": "RESUMED_FOR_OWNER_FEEDBACK",
+      "message": "Feedback de performance/galeria recebido; tarefa voltou a RUNNING na mesma branch/PR #582."
     }
   ],
   "applied_operation_ids": [
     "np02-start-prodedit01",
     "np02-review-prodedit01",
     "np02-reopen-prodedit01-inline",
-    "np02-review-prodedit01-inline"
+    "np02-review-prodedit01-inline",
+    "np02-resume-prodedit01-perf"
   ],
-  "version": 4
+  "version": 5
 }
