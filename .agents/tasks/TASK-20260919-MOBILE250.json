@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "task_id": "TASK-20260919-MOBILE250",
+  "title": "Simplificação e performance mobile Cutinapp — pacote 1–250",
+  "description": "Implementar integralmente o pacote de melhorias mobile-first solicitado pelo OWNER: interface mais simples, objetiva e legível; navegação mobile; redução de sobreposição e ruído visual; carregamento progressivo; otimizações de mídia, rede, React, acessibilidade e estabilidade sem remover capacidades importantes.",
+  "application_context": "cutinapp",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "priority": "HIGH",
+  "status": "RUNNING",
+  "assigned_agent_id": "NP05",
+  "owner_agent_id": "NP05",
+  "created_by": "OWNER",
+  "created_at": "2026-09-19T10:28:00-03:00",
+  "updated_at": "2026-09-19T10:28:00-03:00",
+  "started_at": "2026-09-19T10:28:00-03:00",
+  "completed_at": null,
+  "reviewed_at": null,
+  "due_at": null,
+  "lock": {
+    "owner_agent_id": "NP05",
+    "acquired_at": "2026-09-19T10:28:00-03:00",
+    "expires_at": "2026-09-19T11:58:00-03:00"
+  },
+  "delegation_count": 0,
+  "max_delegations": 2,
+  "checkpoint": "Bootstrap concluído. Repositório já possui lazy routes, budget de performance, navegação mobile e overlay manager; principal risco identificado é acúmulo de camadas CSS mobile e pré-carregamento/efeitos globais em aparelhos restritos.",
+  "next_action": "Criar branch dedicada, consolidar shell mobile final, reduzir trabalho não crítico no boot e validar políticas de overlay/UX/build via GitHub Actions.",
+  "blocker": null,
+  "tags": [
+    "cutinapp",
+    "mobile",
+    "performance",
+    "ux",
+    "responsive",
+    "pwa"
+  ],
+  "evidence": [],
+  "review": {
+    "required": true,
+    "reviewer_agent_id": "NP03",
+    "status": "PENDING",
+    "notes": "Mudança ampla de produção requer revisão independente antes do merge em main."
+  },
+  "history": [
+    {
+      "operation_id": "np05-mobile250-start",
+      "at": "2026-09-19T10:28:00-03:00",
+      "actor": "NP05",
+      "event": "CREATED_AND_CLAIMED",
+      "message": "OWNER solicitou implementação integral das melhorias mobile; NP05 assumiu com lock de 90 minutos."
+    }
+  ],
+  "applied_operation_ids": [
+    "np05-mobile250-start"
+  ],
+  "version": 1
+}
