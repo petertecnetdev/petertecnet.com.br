@@ -11,7 +11,7 @@
   "owner_agent_id": "NP02",
   "created_by": "OWNER",
   "created_at": "2026-09-19T11:32:00-03:00",
-  "updated_at": "2026-09-19T14:32:00-03:00",
+  "updated_at": "2026-09-19T14:35:00-03:00",
   "started_at": "2026-09-19T11:32:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
@@ -23,8 +23,8 @@
   },
   "delegation_count": 0,
   "max_delegations": 2,
-  "checkpoint": "OWNER reportou que Gerenciar galeria não abria e reforçou lentidão sistêmica da Cutinapp. PR #590 implementou abertura determinística do manager após commit do DOM, CTAs visíveis Adicionar fotos/Gerenciar galeria, lazy-load + Suspense do ProductionGalleryManager, containment/content-visibility e redução de blur no editor. Também removeu 3 enhancers/MutationObservers globais das rotas comuns, passou a carregá-los sob demanda, desabilitou efeitos decorativos em rotas operacionais pesadas e adicionou cache runtime de 45s na navbar. Validate Cutinapp e Lighthouse da branch passaram. Main JS gzip caiu de 142.56 kB para 129.04 kB (~9.5%). PR mergeado como c5928b261c819cea9d527b6f65caa37b8ac1a579.",
-  "next_action": "Aguardar Deploy VPS pós-merge #35458414579 e executar QA live: abrir /production/edit/:id, clicar Adicionar fotos e Gerenciar galeria, confirmar feedback de carregamento, uploader, scroll e persistência; comparar fluidez de scroll/navegação.",
+  "checkpoint": "Pacote de galeria/performance PR #590 está na main e publicado. Deploy VPS #35458414579 SUCCESS, Validate pós-merge #35458414056 SUCCESS e Lighthouse pós-merge #35458414013 SUCCESS. A edição agora possui CTAs explícitos para galeria, manager lazy com feedback de carregamento e scroll pós-commit; performance sistêmica reduz observers/efeitos/requests repetidos.",
+  "next_action": "QA humano live na produção Luxury Club e demais rotas: testar abrir/fechar gerenciador, adicionar/reordenar fotos e observar fluidez. Se não houver regressão, NP03 pode aprovar/encerrar TASK-20260919-PRODEDIT01.",
   "blocker": null,
   "tags": [
     "cutinapp",
@@ -180,6 +180,21 @@
       "type": "performance",
       "ref": "main JS gzip 142.56 kB -> 129.04 kB",
       "status": "IMPROVED"
+    },
+    {
+      "type": "workflow",
+      "ref": "Deploy VPS #35458414579",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Validate Cutinapp #35458414056",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Lighthouse CI #35458414013",
+      "status": "SUCCESS"
     }
   ],
   "review": {
@@ -258,6 +273,13 @@
       "actor": "OWNER_ASSIST",
       "event": "GALLERY_AND_SYSTEM_PERFORMANCE_PASS",
       "message": "Corrigido fluxo de abertura da galeria e aplicado pacote sistêmico de performance no editor, enhancers globais, efeitos visuais e requests repetidos da navbar."
+    },
+    {
+      "operation_id": "owner-gallery-perf-deployed-20260919-1435",
+      "at": "2026-09-19T14:35:00-03:00",
+      "actor": "OWNER_ASSIST",
+      "event": "GALLERY_PERF_DEPLOYED",
+      "message": "PR #590 publicado na VPS e validado por Validate Cutinapp + Lighthouse pós-merge."
     }
   ],
   "applied_operation_ids": [
@@ -270,7 +292,8 @@
     "owner-merge-prodedit01-20260919-1324",
     "fix-live-cover-preview-20260919-1344",
     "public-cover-view-fix-20260919-1417",
-    "owner-gallery-perf-systemic-20260919-1432"
+    "owner-gallery-perf-systemic-20260919-1432",
+    "owner-gallery-perf-deployed-20260919-1435"
   ],
-  "version": 10
+  "version": 11
 }
