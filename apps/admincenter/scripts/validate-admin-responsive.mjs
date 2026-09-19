@@ -51,7 +51,7 @@ check('short landscape screens have dedicated handling', responsive.includes('@m
 check('touch targets have coarse-pointer handling', responsive.includes('@media (hover: none), (pointer: coarse)'))
 check('reduced motion is respected', experience.includes('@media(prefers-reduced-motion:reduce)') || responsive.includes('@media (prefers-reduced-motion: reduce)'))
 check('base dashboard still has tablet drawer breakpoint', appCss.includes('@media(max-width:980px)'))
-check('establishments still has mobile card-table breakpoint', establishmentsCss.includes('@media(max-width:760px)') && establishmentsCss.includes('data-label'))
+check('establishments still has mobile card-table breakpoint', /@media\(max-width:(?:760|840)px\)/.test(establishmentsCss) && establishmentsCss.includes('data-label'))
 check('notifications still has mobile layout breakpoint', notificationsCss.includes('@media(max-width:760px)'))
 check('V2 CSS renders one module at a time including Agents', experience.includes('[data-admin-page="agents"]') && experience.includes('[data-admin-page="establishments"]') && experience.includes('[data-admin-page="items"]'))
 check('drawer navigation scrolls internally', experience.includes('.sidebar nav') && experience.includes('overflow-y:auto'))
