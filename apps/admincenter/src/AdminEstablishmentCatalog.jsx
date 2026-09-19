@@ -1,26 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { adminRequest as apiRequest } from './adminApi.js'
 import './AdminEstablishmentCatalog.css'
-
-const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
-const TOKEN_KEY = 'petertecnet_admin_token'
-
-async function apiRequest(path) {
-  const token = localStorage.getItem(TOKEN_KEY)
-  const response = await fetch(`${API}${path}`, {
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  })
-  const payload = await response.json().catch(() => ({}))
-  if (response.status === 401) {
-    localStorage.removeItem(TOKEN_KEY)
-    window.dispatchEvent(new Event('admin-session-expired'))
-  }
-  if (!response.ok) throw new Error(payload?.error || payload?.message || 'Não foi possível carregar o catálogo.')
-  return payload
-}
 
 const labels = { item: 'Item', product: 'Produto', service: 'Serviço', ticket: 'Ingresso legado' }
 const money = value => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value || 0))
