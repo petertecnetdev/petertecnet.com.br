@@ -11,7 +11,7 @@
   "owner_agent_id": "NP02",
   "created_by": "OWNER",
   "created_at": "2026-09-19T11:32:00-03:00",
-  "updated_at": "2026-09-19T13:44:00-03:00",
+  "updated_at": "2026-09-19T14:17:00-03:00",
   "started_at": "2026-09-19T11:32:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
@@ -23,8 +23,8 @@
   },
   "delegation_count": 0,
   "max_delegations": 2,
-  "checkpoint": "Correção adicional publicada: a seleção de capa atualizava bgPreview, mas a regra global .cut-production-themed-page__hero usava background !important e anulava o backgroundImage inline do editor. PR #587 passou Validate Cutinapp e Lighthouse CI na branch, foi mergeado e o Deploy VPS #35455893385 concluiu com sucesso.",
-  "next_action": "QA pós-deploy: selecionar uma nova capa e confirmar que ela aparece instantaneamente no hero antes de salvar; salvar e recarregar para validar persistência.",
+  "checkpoint": "OWNER reportou que a capa aparecia na edição mas não na view pública. Causa: ProductionPublicPage passava a capa apenas para o fundo desfocado da página; o hero público mantinha background !important somente com gradientes. PR #588 corrigiu o hero público via variável CSS e foi mergeado como d95b0efd5df8909c361440e46de75d8a67b2390e. Após churn de commits concorrentes, o deploy mais recente 30292d3 (que descende do fix) concluiu com sucesso no Deploy VPS #35457563444.",
+  "next_action": "QA visual pós-deploy na URL pública da produção: confirmar que production.background aparece no hero e que ausência de capa mantém fallback visual sem imagem quebrada.",
   "blocker": null,
   "tags": [
     "cutinapp",
@@ -130,6 +130,31 @@
       "type": "workflow",
       "ref": "Deploy VPS #35455893385",
       "status": "SUCCESS"
+    },
+    {
+      "type": "pull_request",
+      "ref": "petertecnetdev/cutinapp.petertecnet.com.br#588",
+      "status": "MERGED"
+    },
+    {
+      "type": "merge_commit",
+      "ref": "d95b0efd5df8909c361440e46de75d8a67b2390e",
+      "status": "IN_MAIN"
+    },
+    {
+      "type": "workflow",
+      "ref": "Validate Cutinapp #35457070366",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Lighthouse CI #35457070354",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Deploy VPS #35457563444",
+      "status": "SUCCESS"
     }
   ],
   "review": {
@@ -194,6 +219,13 @@
       "actor": "OWNER_ASSIST",
       "event": "COVER_PREVIEW_FIX_DEPLOYED",
       "message": "Corrigido conflito CSS que escondia a prévia local da capa; imagem selecionada agora é aplicada ao hero via custom property compatível com a regra !important."
+    },
+    {
+      "operation_id": "public-cover-view-fix-20260919-1417",
+      "at": "2026-09-19T14:17:00-03:00",
+      "actor": "OWNER_ASSIST",
+      "event": "PUBLIC_COVER_FIX_DEPLOYED",
+      "message": "Corrigida a view pública para renderizar production.background no hero. Deploy final que inclui o fix concluiu com sucesso."
     }
   ],
   "applied_operation_ids": [
@@ -204,7 +236,8 @@
     "np02-resume-prodedit01-perf",
     "np02-review-prodedit01-perf-final",
     "owner-merge-prodedit01-20260919-1324",
-    "fix-live-cover-preview-20260919-1344"
+    "fix-live-cover-preview-20260919-1344",
+    "public-cover-view-fix-20260919-1417"
   ],
-  "version": 8
+  "version": 9
 }
