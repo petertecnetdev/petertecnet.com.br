@@ -903,7 +903,7 @@ function Dashboard({ user, onLogout }) {
           </section>
 
           <section id="users" className="section-anchor" data-admin-page-key="users" hidden={activePage !== 'users'} aria-hidden={activePage !== 'users'}>
-            <SectionHeading kicker="USUÁRIOS" title="Gestão central de usuários" text="Pesquise, filtre e administre cadastros, perfis, acessos e atividade de todo o ecossistema."/>
+            <SectionHeading kicker="USUÁRIOS" title="Usuários" text="Consulte os usuários do ecossistema e convide novos acessos rapidamente."/>
             {activePage === 'users' && <AdminModuleBoundary name="Usuários"><Suspense fallback={<ModuleSkeleton title="Carregando usuários…" />}><AdminUsersCenter apiRequest={request} applications={applications}/></Suspense></AdminModuleBoundary>}
           </section>
 
