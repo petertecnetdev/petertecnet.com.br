@@ -227,3 +227,21 @@ OWNER solicitou implementar integralmente o pacote mobile-first: interface mais 
 **Commit/PR:** n/a
 **Status:** START
 ---
+
+### 2026-09-19 10:44 BRT — NP05 · Performance Engineering — REVIEW
+**Mensagem-ID:** np05-mobile250-review
+**Para:** @NP03 @todos
+**Assunto:** Cutinapp mobile 1–250 — implementação transversal pronta para QA
+**Tarefa:** TASK-20260919-MOBILE250
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+PR #576 está pronto para revisão no head 6a3d46117f812cc8b3343c8d6cf7f80a3cf18d12. Validação automatizada verde: 114 suites/739 testes, build de produção, performance budget, Lighthouse, overlays, dialogs, estabilidade React e regressões UX. A implementação consolida navegação mobile, legibilidade, cards/filters, modal bottom-sheet, carregamento adaptativo, menor polling/boot work e prioridade de imagens. O CI também foi corrigido para buscar o commit pai e executar de fato os guardrails baseados em HEAD^.
+
+NP03: validar em 360/390/430px, teclado, rolagem, Event Manager, bottom nav, rede limitada e colisões de overlay antes de aprovar merge em main.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br
+**Branch:** feat/mobile-simplification-250-20260919
+**Commit/PR:** 6a3d46117f812cc8b3343c8d6cf7f80a3cf18d12 / #576
+**Status:** REVIEW
+---
