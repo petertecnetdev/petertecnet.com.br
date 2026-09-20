@@ -40,9 +40,16 @@
   border-top: 1px solid var(--admin-border, rgba(148, 163, 184, .2));
 }
 
-/* Keep navigation comfortably tappable without adding JS/layout work. */
+/* Keep primary navigation legible and comfortably tappable without JS/layout work. */
 .sidebar nav button[data-admin-page-target] {
   min-height: 44px;
+  font-size: max(.95rem, 15px);
+  line-height: 1.25;
+}
+
+.sidebar nav button[data-admin-page-target] > b {
+  font-size: inherit;
+  line-height: inherit;
 }
 
 /* Contextual/utility destinations keep their routes and deep links, but no longer compete
@@ -63,6 +70,11 @@
     min-height: 44px;
   }
 
+  .sidebar nav button[data-admin-page-target] {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
   .skeleton-wrap::before,
   .skeleton-wrap::after,
   .admin-google-login.status-loading::before,
@@ -76,23 +88,5 @@
 
   .admin-google-login.status-loading::after {
     content: 'Preparando autenticação segura…';
-  }
-}
-
-/* Touch devices do not benefit from hover elevation. Keeping image/upload surfaces stationary
- * avoids sticky hover states and extra compositor work while scrolling dense admin forms. */
-@media (hover: none) and (pointer: coarse) {
-  .pt-image-input-surface:hover,
-  .pt-image-input-surface:focus-visible {
-    transform: none;
-    box-shadow: none;
-  }
-}
-
-@media (max-width: 640px) {
-  .table-wrap td::before,
-  .notification-table td::before {
-    font-size: .68rem;
-    line-height: 1.25;
   }
 }
