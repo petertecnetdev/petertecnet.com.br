@@ -71,6 +71,12 @@
   display: none;
 }
 
+/* A slow administrative request must never freeze navigation. Legacy processing overlays
+ * remain visible as status feedback but cannot intercept pointer/touch input. */
+.peter-processing {
+  pointer-events: none;
+}
+
 /* Final mobile readability/performance contract. Keep controls readable and stop decorative
  * loading motion from continuously repainting the viewport on constrained devices. */
 @media (max-width: 760px) {
