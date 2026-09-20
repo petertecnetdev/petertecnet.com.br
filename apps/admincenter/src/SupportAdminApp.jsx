@@ -115,18 +115,6 @@ function TicketDetail({ ticket, onChanged }) {
   </section>
 }
 
-export function AdminSupportLauncher() {
-  const [visible, setVisible] = useState(Boolean(localStorage.getItem(TOKEN_KEY)))
-  useEffect(() => {
-    const update = () => setVisible(Boolean(localStorage.getItem(TOKEN_KEY)))
-    window.addEventListener('storage', update)
-    window.addEventListener('admin-session-expired', update)
-    return () => { window.removeEventListener('storage', update); window.removeEventListener('admin-session-expired', update) }
-  }, [])
-  if (!visible || window.location.pathname.replace(/\/+$/, '') === '/support') return null
-  return <a className="admin-support-launcher" href="/support"><span>?</span><b>Suporte</b></a>
-}
-
 export default function SupportAdminApp() {
   const [summary, setSummary] = useState({})
   const [applications, setApplications] = useState([])
