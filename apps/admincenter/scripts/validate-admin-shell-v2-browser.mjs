@@ -29,8 +29,11 @@ const cases = [
   { name: 'wide-1920-open', width: 1920, height: 1080, open: true, mobile: false },
   { name: 'desktop-1440-open', width: 1440, height: 900, open: true, mobile: false },
   { name: 'notebook-1366-open', width: 1366, height: 768, open: true, mobile: false },
-  { name: 'desktop-closed', width: 1280, height: 800, open: false, mobile: false },
+  { name: 'desktop-1280-closed', width: 1280, height: 800, open: false, mobile: false },
+  { name: 'tablet-1024-closed', width: 1024, height: 900, open: false, mobile: false },
   { name: 'tablet-768-closed', width: 768, height: 1024, open: false, mobile: true },
+  { name: 'iphone-430-open', width: 430, height: 932, open: true, mobile: true },
+  { name: 'iphone-390-closed', width: 390, height: 844, open: false, mobile: true },
   { name: 'iphone-360-open', width: 360, height: 800, open: true, mobile: true },
 ]
 
