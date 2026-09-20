@@ -72,7 +72,8 @@ export function FilterBar({ search, onSearch, searchPlaceholder = 'Pesquisar…'
 
 export function DataTable({ columns, rows = [], rowKey = 'id', tableLabel = 'Tabela de registros', loading = false, error = '', emptyTitle = 'Nenhum registro encontrado', emptyDescription = 'Ajuste os filtros ou tente novamente.', sort, onSort, selected = [], onSelect, onSelectAll, bulkActions, page = 1, pages = 1, onPage }) {
   const tableId = useId()
-  const allSelected = rows.length > 0 && rows.every(row => selected.includes(row[rowKey]))
+  const selectedSet = useMemo(() => new Set(selected), [selected])
+  const allSelected = rows.length > 0 && rows.every(row => selectedSet.has(row[rowKey]))
   const getRowLabel = row => row.name ?? row.title ?? row.label ?? row[rowKey]
   const getSortState = column => {
     if (!column.sortable || sort?.key !== column.key) return undefined
@@ -85,7 +86,7 @@ export function DataTable({ columns, rows = [], rowKey = 'id', tableLabel = 'Tab
       <table id={tableId} className="adm-datatable">
         <caption className="sr-only">{tableLabel}</caption>
         <thead><tr>{onSelect && <th scope="col" className="adm-cell-select"><input type="checkbox" aria-label={`Selecionar todos os registros da ${tableLabel.toLowerCase()}`} aria-controls={tableId} checked={allSelected} onChange={event => onSelectAll?.(event.target.checked, rows)} /></th>}{columns.map(column => <th scope="col" key={column.key} className={column.sticky ? 'is-sticky' : ''} aria-sort={getSortState(column)}>{column.sortable ? <button type="button" onClick={() => onSort?.(column.key)} aria-label={`Ordenar por ${column.label}`}>{column.label}<span aria-hidden="true">{sort?.key === column.key ? (sort.direction === 'desc' ? ' ↓' : ' ↑') : ' ↕'}</span></button> : column.label}</th>)}</tr></thead>
-        <tbody>{loading ? Array.from({ length: 5 }, (_, index) => <tr key={`skeleton-${index}`} className="adm-table-skeleton">{onSelect && <td />}{columns.map(column => <td key={column.key}><span /></td>)}</tr>) : rows.map(row => <tr key={row[rowKey]}>{onSelect && <td className="adm-cell-select"><input type="checkbox" aria-label={`Selecionar registro ${getRowLabel(row)}`} checked={selected.includes(row[rowKey])} onChange={event => onSelect(row[rowKey], event.target.checked)} /></td>}{columns.map(column => <td key={column.key} data-label={column.label} className={column.sticky ? 'is-sticky' : ''}>{column.render ? column.render(row) : row[column.key]}</td>)}</tr>)}</tbody>
+        <tbody>{loading ? Array.from({ length: 5 }, (_, index) => <tr key={`skeleton-${index}`} className="adm-table-skeleton">{onSelect && <td />}{columns.map(column => <td key={column.key}><span /></td>)}</tr>) : rows.map(row => <tr key={row[rowKey]}>{onSelect && <td className="adm-cell-select"><input type="checkbox" aria-label={`Selecionar registro ${getRowLabel(row)}`} checked={selectedSet.has(row[rowKey])} onChange={event => onSelect(row[rowKey], event.target.checked)} /></td>}{columns.map(column => <td key={column.key} data-label={column.label} className={column.sticky ? 'is-sticky' : ''}>{column.render ? column.render(row) : row[column.key]}</td>)}</tr>)}</tbody>
       </table>
     </div>
     {!loading && rows.length === 0 && <div className="adm-inline-state"><strong>{emptyTitle}</strong><span>{emptyDescription}</span></div>}
