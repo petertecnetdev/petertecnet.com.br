@@ -2,6 +2,10 @@
  * Viewport-anchored, compact, responsive and intentionally independent
  * from page/sidebar layout containers.
  */
+
+body.aim-modal-open .admin-shell .content{
+  contain:style!important;
+}
 .aim-backdrop{
   position:fixed;
   inset:0;
