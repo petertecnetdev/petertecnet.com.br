@@ -53,12 +53,27 @@
   display: none;
 }
 
-/* Final mobile readability contract: search stays readable/tappable and avoids browser zoom,
- * while compact table-card labels remain legible without increasing layout complexity. */
+/* Final mobile readability/performance contract. Keep controls readable and stop decorative
+ * loading motion from continuously repainting the viewport on constrained devices. */
 @media (max-width: 760px) {
   .top-search input {
     font-size: 1rem;
     min-height: 44px;
+  }
+
+  .skeleton-wrap::before,
+  .skeleton-wrap::after,
+  .admin-google-login.status-loading::before,
+  .admin-google-login.status-loading::after {
+    animation: none;
+  }
+
+  .skeleton-wrap::after {
+    content: 'Preparando o centro de controle…';
+  }
+
+  .admin-google-login.status-loading::after {
+    content: 'Preparando autenticação segura…';
   }
 }
 
