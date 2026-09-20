@@ -31,6 +31,7 @@ function runNext() {
   panel.tabIndex = -1
   const heading = element('div', 'pt-ui-dialog-heading')
   const icon = element('span', 'pt-ui-dialog-icon', options.icon || (options.tone === 'danger' ? '!' : options.tone === 'success' ? '✓' : 'i'))
+  icon.setAttribute('aria-hidden', 'true')
   const copy = element('div', 'pt-ui-dialog-copy')
   const eyebrow = element('span', 'pt-ui-dialog-eyebrow', options.eyebrow || (options.tone === 'danger' ? 'AÇÃO SENSÍVEL' : 'PETER TECNET'))
   const title = element('h2', '', options.title || 'Confirmar ação')
