@@ -78,13 +78,18 @@
 }
 
 /* Dense contextual entity lists should not spend layout/paint budget below the viewport.
- * Reserve each row's typical height so users can scroll establishments and their nested
- * items/tickets without forcing every offscreen row through layout and paint. */
+ * Reserve each row/card's typical height so users can scroll establishments and their nested
+ * events, items and tickets without forcing every offscreen record through layout and paint. */
 .acu-simple-user,
 .aec-item,
+.aee-event-shell,
 .aee-ticket-row {
   content-visibility: auto;
   contain-intrinsic-size: auto 76px;
+}
+
+.aee-event-shell {
+  contain-intrinsic-size: auto 132px;
 }
 
 /* Respect the platform motion preference globally. This also removes continuous decorative
