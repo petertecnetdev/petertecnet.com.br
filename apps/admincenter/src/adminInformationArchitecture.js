@@ -15,6 +15,18 @@ export const adminEntityRoute = Object.freeze({
   tickets: (establishmentId, eventId) => `${ADMIN_ENTITY_ROUTES.establishments}/${segment(establishmentId)}/eventos/${segment(eventId)}/ingressos`,
 })
 
+export const adminEstablishmentNavigation = establishmentId => [
+  { key: 'overview', label: 'Visão geral', href: adminEntityRoute.establishment(establishmentId) },
+  { key: 'collaborators', label: 'Colaboradores', href: adminEntityRoute.collaborators(establishmentId) },
+  { key: 'items', label: 'Itens', href: adminEntityRoute.items(establishmentId) },
+  { key: 'events', label: 'Eventos', href: adminEntityRoute.events(establishmentId) },
+]
+
+export const adminEventNavigation = (establishmentId, eventId) => [
+  { key: 'overview', label: 'Visão geral', href: adminEntityRoute.event(establishmentId, eventId) },
+  { key: 'tickets', label: 'Ingressos', href: adminEntityRoute.tickets(establishmentId, eventId) },
+]
+
 export const adminBreadcrumbs = Object.freeze({
   users: () => [{ label: 'Usuários', href: ADMIN_ENTITY_ROUTES.users }],
   user: (userId, label = 'Usuário') => [
