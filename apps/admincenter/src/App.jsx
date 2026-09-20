@@ -826,17 +826,6 @@ function Dashboard({ user, onLogout }) {
             setSearchResult(null)
           }}/>} 
         </div>
-        <div className="top-actions">
-          <Suspense fallback={null}><ImportantEventsCenter request={request}/></Suspense>
-          <span className={`sync-status sync-${realtimeState}`} title={realtimeState === 'connected' ? 'Atualização em tempo real conectada' : 'Atualização em tempo real indisponível; o painel usa sincronização de segurança'}><i/><b>{realtimeState === 'connected' ? 'Ao vivo' : 'Sincronização'}</b>{lastRefreshAt && <small>Atualizado {lastRefreshAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>}</span>
-          <button className="icon-button" onClick={toggleFavoritePage} aria-label={favoritePages.includes(activePage) ? "Remover página dos favoritos" : "Favoritar página atual"} title={favoritePages.includes(activePage) ? "Remover dos favoritos" : "Favoritar página"}>{favoritePages.includes(activePage) ? "★" : "☆"}</button>
-          <button className="icon-button" onClick={() => setCompactMode(value => !value)} aria-label={compactMode ? "Usar densidade confortável" : "Usar modo compacto"} title={compactMode ? "Densidade confortável" : "Modo compacto"}>{compactMode ? "↕" : "↔"}</button>
-          <button className="icon-button" onClick={() => loadAll({ quiet: true, indicate: true, force: true })} aria-label="Atualizar dados" title="Atualizar dados">{refreshing ? '◌' : '↻'}</button>
-          <div ref={launcherWrapRef} className="launcher-wrap">
-            <button className="ecosystem-button" onClick={() => setLauncherOpen(value => !value)}><span>◫</span><b>Navegar no ecossistema</b><i>⌄</i></button>
-            {launcherOpen && <EcosystemLauncher applications={applications} onClose={() => setLauncherOpen(false)}/>} 
-          </div>
-        </div>
       </header>
 
       {!online && <div className="admin-offline-banner" role="status"><span>Sem conexão</span><p>Os dados já carregados continuam disponíveis. A sincronização será retomada automaticamente quando a internet voltar.</p></div>}
