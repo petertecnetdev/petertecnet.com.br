@@ -90,3 +90,22 @@
     content: 'Preparando autenticação segura…';
   }
 }
+
+/* Touch devices do not benefit from hover elevation. Keeping upload surfaces stationary
+ * avoids sticky hover states and extra compositor work while scrolling dense admin forms. */
+@media (hover: none) and (pointer: coarse) {
+  .pt-image-input-surface:hover,
+  .pt-image-input-surface:focus-visible {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* Dense table labels must remain readable when rows collapse into mobile cards. */
+@media (max-width: 640px) {
+  .table-wrap td::before,
+  .notification-table td::before {
+    font-size: .78rem;
+    line-height: 1.3;
+  }
+}
