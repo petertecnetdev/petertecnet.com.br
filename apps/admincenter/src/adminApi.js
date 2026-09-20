@@ -170,7 +170,9 @@ export function adminRequest(path, options = {}) {
   const method = String(options.method || 'GET').toUpperCase()
   const cacheMs = Math.max(0, Number(options.cacheMs || 0))
   const requestKey = `${method}:${path}`
-  const cancelKey = method === 'GET' ? String(options.cancelKey || '').trim() : ''
+  const cancelKey = method === 'GET'
+    ? String(options.cancelKey || (path.startsWith('/admin/ecosystem/command/search?') ? 'global-admin-search' : '')).trim()
+    : ''
 
   if (method === 'GET') {
     const cached = memoryCache.get(requestKey)
