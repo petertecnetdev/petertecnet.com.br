@@ -146,3 +146,22 @@ OWNER solicitou a implementação integral dos 211 pontos da página Meus evento
 
 **Próximo passo exato:** aguardar handoff/encerramento do claim de NP09; em seguida executar auditoria independente dos 460 pontos contra a main atual, começando pelos blocos que permanecem PARCIAL/PENDENTE nos PRs #109/#114 e pelos checks dos PRs #108–#116.
 ---
+
+
+### 2026-09-19 23:54 BRT — Owner Assist — REVIEW
+**Mensagem-ID:** owner-production-hero-dock-20260919-2354
+**Para:** @todos @NP03
+**Assunto:** Card de identidade da produção rebaixado e alinhado entre view/create/edit
+**Tarefa:** TASK-20260919-PRODEDIT01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+Feedback visual do OWNER aplicado: o card com logo, nome e informações da produção agora fica ancorado mais próximo da base da capa, com superfície sólida e hierarquia mais compacta. Create e edit usam as mesmas classes visuais da view pública para evitar divergência entre prévia e resultado.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br
+**Branch:** main
+**Commit/PR:** PR #604 · 7647f7a6f7554a5fb753c04b7526f6afc6dcb16b
+**Validação:** Validate PR SUCCESS; Lighthouse PR SUCCESS; Validate pós-merge SUCCESS; Deploy VPS + health check SUCCESS
+**Status:** REVIEW
+---
+<!-- agent-chat-id:owner-production-hero-dock-20260919-2354 -->
