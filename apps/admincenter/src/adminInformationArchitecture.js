@@ -17,6 +17,10 @@ export const adminEntityRoute = Object.freeze({
 
 export const adminBreadcrumbs = Object.freeze({
   users: () => [{ label: 'Usuários', href: ADMIN_ENTITY_ROUTES.users }],
+  user: (userId, label = 'Usuário') => [
+    ...adminBreadcrumbs.users(),
+    { label, href: adminEntityRoute.user(userId) },
+  ],
   establishments: () => [{ label: 'Estabelecimentos', href: ADMIN_ENTITY_ROUTES.establishments }],
   establishment: (establishmentId, label = 'Estabelecimento') => [
     { label: 'Estabelecimentos', href: ADMIN_ENTITY_ROUTES.establishments },
