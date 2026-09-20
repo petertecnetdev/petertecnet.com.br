@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import './AdminImpersonation.css'
 
 const OWNER_EMAIL = 'petertecnet@gmail.com'
@@ -42,6 +43,23 @@ export function AdminImpersonationDialog({ user, applications = [], apiRequest, 
     setError('')
   }, [user?.id, preferredApplicationId])
 
+  useEffect(() => {
+    if (!user || typeof document === 'undefined') return undefined
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const handleKeyDown = event => {
+      if (event.key === 'Escape' && !busy) onClose?.()
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [user, busy, onClose])
+
   if (!user) return null
 
   async function start(event) {
@@ -76,13 +94,13 @@ export function AdminImpersonationDialog({ user, applications = [], apiRequest, 
     }
   }
 
-  return <div className="aim-backdrop" role="presentation" onMouseDown={event => event.target === event.currentTarget && !busy && onClose?.()}>
-    <section className="aim-dialog" role="dialog" aria-modal="true" aria-labelledby="aim-title">
+  return createPortal(<div className="aim-backdrop" role="presentation" onMouseDown={event => event.target === event.currentTarget && !busy && onClose?.()}>
+    <section className="aim-dialog" role="dialog" aria-modal="true" aria-labelledby="aim-title" aria-describedby="aim-description">
       <header>
         <div>
           <span>ACESSO ADMINISTRATIVO TEMPORÁRIO</span>
           <h3 id="aim-title">Entrar como {displayName(user)}</h3>
-          <p>Você navegará com as permissões deste usuário sem alterar senha, Google SSO ou credenciais dele.</p>
+          <p id="aim-description">Você navegará com as permissões deste usuário sem alterar senha, Google SSO ou credenciais dele.</p>
         </div>
         <button type="button" className="aim-close" onClick={onClose} disabled={busy} aria-label="Fechar">×</button>
       </header>
@@ -125,7 +143,7 @@ export function AdminImpersonationDialog({ user, applications = [], apiRequest, 
         </div>
       </form>
     </section>
-  </div>
+  </div>, document.body)
 }
 
 export function AdminImpersonationHistory({ apiRequest, refreshKey = 0 }) {
