@@ -69,6 +69,27 @@ function delay(ms, signal) {
   })
 }
 
+function composeSignals(...signals) {
+  const activeSignals = signals.filter(Boolean)
+  if (activeSignals.length <= 1) return { signal: activeSignals[0] || null, cleanup: () => {} }
+
+  const controller = new AbortController()
+  const onAbort = signal => () => {
+    if (!controller.signal.aborted) controller.abort(signal.reason)
+  }
+  const listeners = activeSignals.map(signal => {
+    const handler = onAbort(signal)
+    if (signal.aborted) handler()
+    else signal.addEventListener('abort', handler, { once: true })
+    return { signal, handler }
+  })
+
+  return {
+    signal: controller.signal,
+    cleanup: () => listeners.forEach(({ signal, handler }) => signal.removeEventListener('abort', handler)),
+  }
+}
+
 function requestError(response, payload) {
   const validation = Object.values(payload?.errors || {}).flat()?.[0]
   const error = new Error(validation || payload?.error || payload?.message || 'Não foi possível concluir a operação.')
@@ -186,7 +207,9 @@ export function adminRequest(path, options = {}) {
       replaceableReads.set(cancelKey, controller)
     }
 
-    const promise = execute(path, controller ? { ...options, signal: controller.signal } : options).then(payload => {
+    const composed = composeSignals(options.signal, controller?.signal)
+    const requestOptions = composed.signal ? { ...options, signal: composed.signal } : options
+    const promise = execute(path, requestOptions).then(payload => {
       if (method === 'GET' && cacheMs > 0) {
         memoryCache.set(requestKey, { value: payload, expiresAt: Date.now() + cacheMs })
       }
@@ -195,6 +218,7 @@ export function adminRequest(path, options = {}) {
 
     inflightReads.set(requestKey, promise)
     return promise.finally(() => {
+      composed.cleanup()
       if (inflightReads.get(requestKey) === promise) inflightReads.delete(requestKey)
       if (controller && replaceableReads.get(cancelKey) === controller) replaceableReads.delete(cancelKey)
     })
