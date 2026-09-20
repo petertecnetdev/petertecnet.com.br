@@ -206,32 +206,34 @@
 }
 
 /*
- * The important-events globe is injected outside React. Reserve a real visual
- * slot for it and place it between global search and refresh so it no longer
- * overlaps the search control.
+ * The important-events globe is injected outside React. Keep one canonical
+ * visual contract and vary only the breakpoint-specific placement/background.
  */
+body #pt-important-events-root .pt-ie-globe {
+  top: calc((var(--admin-topbar-height) - var(--admin-topbar-control)) / 2) !important;
+  right: calc(var(--admin-topbar-inline) + var(--admin-ecosystem-width) + (var(--admin-topbar-gap) * 2) + var(--admin-topbar-control)) !important;
+  bottom: auto !important;
+  z-index: 80 !important;
+  width: var(--admin-topbar-control) !important;
+  height: var(--admin-topbar-control) !important;
+  border: 1px solid rgba(135, 209, 222, .12) !important;
+  border-radius: 14px !important;
+  background: rgba(7, 22, 30, .88) !important;
+  color: #79ddec !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035) !important;
+}
+
+body #pt-important-events-root .pt-ie-globe:hover,
+body #pt-important-events-root .pt-ie-globe:focus-visible {
+  border-color: rgba(80, 218, 239, .30) !important;
+  background: rgba(19, 48, 59, .88) !important;
+  transform: translateY(-1px) !important;
+}
+
 @media (min-width: 1181px) {
   body #pt-important-events-root .pt-ie-globe {
-    top: calc((var(--admin-topbar-height) - var(--admin-topbar-control)) / 2) !important;
-    right: calc(var(--admin-topbar-inline) + var(--admin-ecosystem-width) + (var(--admin-topbar-gap) * 2) + var(--admin-topbar-control)) !important;
-    bottom: auto !important;
-    z-index: 80 !important;
-    width: var(--admin-topbar-control) !important;
-    height: var(--admin-topbar-control) !important;
-    border: 1px solid rgba(135, 209, 222, .12) !important;
-    border-radius: 14px !important;
-    background: rgba(7, 22, 30, .88) !important;
-    color: #79ddec !important;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035) !important;
     backdrop-filter: blur(18px) !important;
     -webkit-backdrop-filter: blur(18px) !important;
-  }
-
-  body #pt-important-events-root .pt-ie-globe:hover,
-  body #pt-important-events-root .pt-ie-globe:focus-visible {
-    border-color: rgba(80, 218, 239, .30) !important;
-    background: rgba(19, 48, 59, .88) !important;
-    transform: translateY(-1px) !important;
   }
 }
 
@@ -317,17 +319,7 @@ body #pt-important-events-root .pt-ie-badge {
   }
 
   body #pt-important-events-root .pt-ie-globe {
-    top: calc((var(--admin-topbar-height) - var(--admin-topbar-control)) / 2) !important;
-    right: calc(var(--admin-topbar-inline) + var(--admin-ecosystem-width) + (var(--admin-topbar-gap) * 2) + var(--admin-topbar-control)) !important;
-    bottom: auto !important;
-    z-index: 80 !important;
-    width: var(--admin-topbar-control) !important;
-    height: var(--admin-topbar-control) !important;
-    border: 1px solid rgba(135, 209, 222, .12) !important;
-    border-radius: 14px !important;
     background: rgba(7, 22, 30, .90) !important;
-    color: #79ddec !important;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035) !important;
   }
 }
 
