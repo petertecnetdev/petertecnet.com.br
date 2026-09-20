@@ -30,16 +30,14 @@
 }
 
 .sidebar nav button[data-admin-page-target='operations'],
-.sidebar nav button[data-admin-page-target='agents'],
 .sidebar nav button[data-admin-page-target='financial'],
-.sidebar nav button[data-admin-page-target='applications'],
-.sidebar nav button[data-admin-page-target='notifications'],
-.sidebar nav button[data-admin-page-target='activity'] {
+.sidebar nav button[data-admin-page-target='applications'] {
   order: 10;
 }
 
 .sidebar nav button[data-admin-page-target='operations'] {
   margin-top: .55rem;
+  border-top: 1px solid var(--admin-border, rgba(148, 163, 184, .2));
 }
 
 /* Keep navigation comfortably tappable without adding JS/layout work. */
@@ -47,9 +45,13 @@
   min-height: 44px;
 }
 
-/* Items belong to an establishment context. Keep the legacy route available for deep links,
- * but remove the redundant first-level entry while contextual migration is completed. */
-.sidebar nav button[data-admin-page-target='items'] {
+/* Contextual/utility destinations keep their routes and deep links, but no longer compete
+ * with the primary entity navigation. Items are entered through Establishments; agents,
+ * notifications and activity remain addressable by their existing URLs/search surfaces. */
+.sidebar nav button[data-admin-page-target='items'],
+.sidebar nav button[data-admin-page-target='agents'],
+.sidebar nav button[data-admin-page-target='notifications'],
+.sidebar nav button[data-admin-page-target='activity'] {
   display: none;
 }
 
