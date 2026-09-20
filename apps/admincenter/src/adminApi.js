@@ -3,6 +3,7 @@ const TOKEN_KEY = 'petertecnet_admin_token'
 const DEFAULT_TIMEOUT = 18000
 const inflightReads = new Map()
 const inflightMutations = new Map()
+const replaceableReads = new Map()
 const memoryCache = new Map()
 const requestHistory = new Map()
 const requestStats = new Map()
@@ -155,35 +156,54 @@ export function invalidateAdminApi(prefix = '') {
   }
 }
 
+export function cancelAdminRequest(cancelKey) {
+  const key = String(cancelKey || '').trim()
+  if (!key) return false
+  const controller = replaceableReads.get(key)
+  if (!controller) return false
+  controller.abort()
+  replaceableReads.delete(key)
+  return true
+}
+
 export function adminRequest(path, options = {}) {
   const method = String(options.method || 'GET').toUpperCase()
   const cacheMs = Math.max(0, Number(options.cacheMs || 0))
   const requestKey = `${method}:${path}`
+  const cancelKey = method === 'GET' ? String(options.cancelKey || '').trim() : ''
 
   if (method === 'GET') {
     const cached = memoryCache.get(requestKey)
     if (cached && cached.expiresAt > Date.now()) return Promise.resolve(cached.value)
     if (!options.force && inflightReads.has(requestKey)) return inflightReads.get(requestKey)
-  } else {
-    invalidateAdminApi()
-    const mutationKey = `${requestKey}:${String(options.body || '')}`
-    if (!options.force && inflightMutations.has(mutationKey)) return inflightMutations.get(mutationKey)
-    const mutationPromise = execute(path, options)
-    inflightMutations.set(mutationKey, mutationPromise)
-    return mutationPromise.finally(() => {
-      if (inflightMutations.get(mutationKey) === mutationPromise) inflightMutations.delete(mutationKey)
+
+    const controller = cancelKey ? new AbortController() : null
+    if (controller) {
+      const previous = replaceableReads.get(cancelKey)
+      if (previous) previous.abort()
+      replaceableReads.set(cancelKey, controller)
+    }
+
+    const promise = execute(path, controller ? { ...options, signal: controller.signal } : options).then(payload => {
+      if (method === 'GET' && cacheMs > 0) {
+        memoryCache.set(requestKey, { value: payload, expiresAt: Date.now() + cacheMs })
+      }
+      return payload
+    })
+
+    inflightReads.set(requestKey, promise)
+    return promise.finally(() => {
+      if (inflightReads.get(requestKey) === promise) inflightReads.delete(requestKey)
+      if (controller && replaceableReads.get(cancelKey) === controller) replaceableReads.delete(cancelKey)
     })
   }
 
-  const promise = execute(path, options).then(payload => {
-    if (method === 'GET' && cacheMs > 0) {
-      memoryCache.set(requestKey, { value: payload, expiresAt: Date.now() + cacheMs })
-    }
-    return payload
-  })
-
-  inflightReads.set(requestKey, promise)
-  return promise.finally(() => {
-    if (inflightReads.get(requestKey) === promise) inflightReads.delete(requestKey)
+  invalidateAdminApi()
+  const mutationKey = `${requestKey}:${String(options.body || '')}`
+  if (!options.force && inflightMutations.has(mutationKey)) return inflightMutations.get(mutationKey)
+  const mutationPromise = execute(path, options)
+  inflightMutations.set(mutationKey, mutationPromise)
+  return mutationPromise.finally(() => {
+    if (inflightMutations.get(mutationKey) === mutationPromise) inflightMutations.delete(mutationKey)
   })
 }
