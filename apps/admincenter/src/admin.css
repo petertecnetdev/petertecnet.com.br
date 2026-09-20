@@ -1,0 +1,15 @@
+/*
+ * Admin Center global style entry.
+ * Keep the cascade explicit here so main.jsx has one stylesheet dependency.
+ * Layers remain split by responsibility while the final responsive contract stays last.
+ */
+@import './AdminDesignSystem.css';
+@import './App.css';
+@import './AdminEstablishmentsFeedback.css';
+@import './AdminResponsive.css';
+@import './SupportAdminResponsiveFix.css';
+@import './AdminProcessingExperience.css';
+@import './AdminExperienceV2.css';
+@import './AdminUiKit.css';
+@import './AdminQualityLayer.css';
+@import './AdminResponsiveV3.css';
