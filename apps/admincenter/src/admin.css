@@ -43,13 +43,22 @@
 /* Keep primary navigation legible and comfortably tappable without JS/layout work. */
 .sidebar nav button[data-admin-page-target] {
   min-height: 44px;
+  min-width: 0;
   font-size: max(.95rem, 15px);
   line-height: 1.25;
 }
 
+.sidebar nav button[data-admin-page-target] > span,
+.sidebar nav button[data-admin-page-target] > i {
+  flex: 0 0 auto;
+}
+
 .sidebar nav button[data-admin-page-target] > b {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: inherit;
   line-height: inherit;
+  overflow-wrap: anywhere;
 }
 
 /* Contextual/utility destinations keep their routes and deep links, but no longer compete
