@@ -30,14 +30,18 @@ export default function AdminEstablishmentCatalog({ establishment, app, onCreate
 
   useEffect(() => { void load() }, [load])
 
+  const indexedItems = useMemo(() => items.map(item => ({
+    item,
+    searchText: normalize([item.name, item.category, item.sku, item.brand, item.id].filter(Boolean).join(' ')),
+  })), [items])
+
   const visible = useMemo(() => {
     const term = normalize(deferredSearch.trim())
-    return items.filter(item => {
+    return indexedItems.filter(({ item, searchText }) => {
       if (type !== 'all' && item.type !== type) return false
-      if (!term) return true
-      return normalize([item.name, item.category, item.sku, item.brand, item.id].filter(Boolean).join(' ')).includes(term)
-    })
-  }, [items, deferredSearch, type])
+      return !term || searchText.includes(term)
+    }).map(({ item }) => item)
+  }, [indexedItems, deferredSearch, type])
 
   const metrics = useMemo(() => ({
     total: items.length,
