@@ -25,6 +25,11 @@
   margin-top: .45rem;
 }
 
+/* Keep navigation comfortably tappable without adding JS/layout work. */
+.sidebar nav button[data-admin-page-target] {
+  min-height: 44px;
+}
+
 /* Items belong to an establishment context. Keep the legacy route available for deep links,
  * but remove the redundant first-level entry while contextual migration is completed. */
 .sidebar nav button[data-admin-page-target='items'] {
