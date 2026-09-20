@@ -9,8 +9,11 @@ const assets = join(dist, 'assets')
 const output = join(root, 'artifacts', 'admin-ticket-sales')
 
 if (!existsSync(join(dist, 'index.html'))) throw new Error('dist/index.html não encontrado. Execute npm run build antes do teste visual.')
-const cssFile = readdirSync(assets).find(file => /^AdminTicketSalesPage-.*\.css$/.test(file))
-if (!cssFile) throw new Error('CSS de produção da área de ingressos não encontrado em dist/assets.')
+// Ticket styles are intentionally consolidated into the shared Admin Center bundle.
+// Keep the browser gate aligned with the production artifact instead of requiring
+// a route-specific CSS chunk that Vite no longer emits.
+const cssFile = readdirSync(assets).find(file => /^admin-.*\.css$/.test(file))
+if (!cssFile) throw new Error('CSS consolidado de produção do Admin Center não encontrado em dist/assets.')
 
 const chrome = [process.env.CHROME_BIN, '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/usr/bin/chromium', '/usr/bin/chromium-browser'].filter(Boolean).find(existsSync)
 if (!chrome) throw new Error('Chrome/Chromium não encontrado para validação responsiva real.')
