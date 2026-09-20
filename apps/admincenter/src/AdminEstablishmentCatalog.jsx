@@ -49,7 +49,7 @@ export default function AdminEstablishmentCatalog({ establishment, app, onCreate
 
   return <section className="aec-panel">
     <header className="aec-head">
-      <div><span>CATÁLOGO CUTINAPP</span><h4>Produtos e itens do establishment</h4><p>Listagem separada dos ingressos de evento. Ingressos reais são gerenciados dentro de cada evento.</p></div>
+      <div><span>CATÁLOGO DO ESTABELECIMENTO</span><h4>Produtos e itens do estabelecimento</h4><p>Listagem separada dos ingressos de evento. Ingressos reais são gerenciados dentro de cada evento.</p></div>
       <div className="aec-actions"><button type="button" onClick={() => void load()} disabled={loading}>↻ Atualizar</button>{onCreate && <button className="primary" type="button" onClick={onCreate}>＋ Novo item</button>}</div>
     </header>
 
