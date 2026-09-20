@@ -22,10 +22,20 @@ export const adminBreadcrumbs = Object.freeze({
     { label: 'Estabelecimentos', href: ADMIN_ENTITY_ROUTES.establishments },
     { label, href: adminEntityRoute.establishment(establishmentId) },
   ],
-  event: (establishmentId, eventId, establishmentLabel = 'Estabelecimento', eventLabel = 'Evento') => [
-    { label: 'Estabelecimentos', href: ADMIN_ENTITY_ROUTES.establishments },
-    { label: establishmentLabel, href: adminEntityRoute.establishment(establishmentId) },
+  collaborators: (establishmentId, establishmentLabel = 'Estabelecimento') => [
+    ...adminBreadcrumbs.establishment(establishmentId, establishmentLabel),
+    { label: 'Colaboradores', href: adminEntityRoute.collaborators(establishmentId) },
+  ],
+  items: (establishmentId, establishmentLabel = 'Estabelecimento') => [
+    ...adminBreadcrumbs.establishment(establishmentId, establishmentLabel),
+    { label: 'Itens', href: adminEntityRoute.items(establishmentId) },
+  ],
+  events: (establishmentId, establishmentLabel = 'Estabelecimento') => [
+    ...adminBreadcrumbs.establishment(establishmentId, establishmentLabel),
     { label: 'Eventos', href: adminEntityRoute.events(establishmentId) },
+  ],
+  event: (establishmentId, eventId, establishmentLabel = 'Estabelecimento', eventLabel = 'Evento') => [
+    ...adminBreadcrumbs.events(establishmentId, establishmentLabel),
     { label: eventLabel, href: adminEntityRoute.event(establishmentId, eventId) },
   ],
   tickets: (establishmentId, eventId, establishmentLabel = 'Estabelecimento', eventLabel = 'Evento') => [
