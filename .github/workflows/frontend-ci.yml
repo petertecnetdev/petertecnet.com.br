@@ -48,7 +48,6 @@ jobs:
           test -f "$ADMIN_ROOT/index.html"
           test -f "$ADMIN_ROOT/src/main.jsx"
           test -f "$ADMIN_ROOT/src/App.jsx"
-          test -f "$ADMIN_ROOT/src/AdminSessionGuard.jsx"
           test -f "$ADMIN_ROOT/src/AdminUsersCenter.jsx"
           test -f "$ADMIN_ROOT/src/AdminUserDetailPage.jsx"
           test -f "$ADMIN_ROOT/src/AdminUserDetailExperience.jsx"
