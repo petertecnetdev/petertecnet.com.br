@@ -150,7 +150,8 @@
 
   /* Fixed modal backdrops sit above the entire viewport while their panel scrolls.
    * Avoid continuously resampling the page behind them on constrained mobile GPUs. */
-  .acu-invite-modal {
+  .acu-invite-modal,
+  .pt-ui-dialog-backdrop {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
