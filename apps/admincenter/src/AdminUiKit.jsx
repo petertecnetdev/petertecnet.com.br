@@ -54,10 +54,20 @@ export function FilterBar({ search, onSearch, searchPlaceholder = 'Pesquisar…'
   const [advancedOpen, setAdvancedOpen] = useState(false)
   useEffect(() => {
     if (!storageKey) return
-    const saved = window.localStorage.getItem(`admin_filter_advanced_${storageKey}`)
-    if (saved != null) setAdvancedOpen(saved === '1')
+    try {
+      const saved = window.localStorage.getItem(`admin_filter_advanced_${storageKey}`)
+      if (saved != null) setAdvancedOpen(saved === '1')
+    } catch {
+      // Storage can be unavailable in restricted/private browser contexts; filters must remain usable.
+    }
   }, [storageKey])
-  const toggleAdvanced = () => setAdvancedOpen(current => { const next = !current; if (storageKey) window.localStorage.setItem(`admin_filter_advanced_${storageKey}`, next ? '1' : '0'); return next })
+  const toggleAdvanced = () => setAdvancedOpen(current => {
+    const next = !current
+    if (storageKey) {
+      try { window.localStorage.setItem(`admin_filter_advanced_${storageKey}`, next ? '1' : '0') } catch { /* keep UI state even when persistence is unavailable */ }
+    }
+    return next
+  })
   return <section className="adm-filterbar" aria-label="Filtros">
     <div className="adm-filterbar__row">
       <label className="adm-filterbar__search"><span className="sr-only">Pesquisar</span><input type="search" value={search ?? ''} onChange={event => onSearch?.(event.target.value)} placeholder={searchPlaceholder} /></label>
