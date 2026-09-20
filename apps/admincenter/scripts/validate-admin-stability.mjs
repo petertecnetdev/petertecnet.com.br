@@ -44,7 +44,7 @@ check(app.includes('searchOpen') && app.includes('Comandos rápidos'), 'Ctrl+K d
 check(adminApi.includes('const inflightReads = new Map()'), 'API administrativa deve deduplicar GETs concorrentes (250/255).')
 check(adminApi.includes('const inflightMutations = new Map()'), 'API administrativa deve bloquear mutações concorrentes equivalentes (275/276).')
 check(adminApi.includes('const memoryCache = new Map()') && adminApi.includes('cacheMs'), 'API administrativa deve suportar cache curto explícito (256).')
-check(adminApi.includes('new AbortController()') && adminApi.includes('controller.abort()'), 'Requests administrativos devem ter cancelamento/timeout via AbortController (252/253).')
+check(adminApi.includes('new AbortController()') && (adminApi.includes('controller.abort()') || adminApi.includes('timeoutController.abort(')), 'Requests administrativos devem ter cancelamento/timeout via AbortController (252/253).')
 check(adminApi.includes("window.dispatchEvent(new Event('admin-session-expired'))"), '401 deve expirar sessão por um único contrato administrativo (263).')
 check(adminApi.includes("method === 'GET' && attempt < 1"), 'Retry automático deve ser limitado a leitura idempotente (263/277).')
 check(adminApi.includes("window.dispatchEvent(new CustomEvent('admin-api-storm'"), 'API deve sinalizar tempestade de requests para diagnóstico (250/267/268).')

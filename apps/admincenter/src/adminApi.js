@@ -52,8 +52,20 @@ export function getAdminApiDiagnostics() {
   })).sort((a, b) => b.callsLastMinute - a.callsLastMinute || b.averageDuration - a.averageDuration)
 }
 
-function delay(ms) {
-  return new Promise(resolve => window.setTimeout(resolve, ms))
+function delay(ms, signal) {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(resolve, ms)
+    if (!signal) return
+    if (signal.aborted) {
+      window.clearTimeout(timer)
+      reject(signal.reason || new DOMException('The operation was aborted.', 'AbortError'))
+      return
+    }
+    signal.addEventListener('abort', () => {
+      window.clearTimeout(timer)
+      reject(signal.reason || new DOMException('The operation was aborted.', 'AbortError'))
+    }, { once: true })
+  })
 }
 
 function requestError(response, payload) {
@@ -69,15 +81,21 @@ async function execute(path, options, attempt = 0) {
   const trace = attempt === 0 ? recordRequestStart(path) : null
   const token = localStorage.getItem(TOKEN_KEY)
   const method = String(options.method || 'GET').toUpperCase()
-  const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), Number(options.timeout || DEFAULT_TIMEOUT))
+  const timeoutController = new AbortController()
+  const externalSignal = options.signal
+  const onExternalAbort = () => timeoutController.abort(externalSignal.reason)
+  if (externalSignal) {
+    if (externalSignal.aborted) onExternalAbort()
+    else externalSignal.addEventListener('abort', onExternalAbort, { once: true })
+  }
+  const timeout = window.setTimeout(() => timeoutController.abort(), Number(options.timeout || DEFAULT_TIMEOUT))
   let succeeded = false
 
   try {
     const response = await fetch(`${ADMIN_API_BASE}${path}`, {
       ...options,
       method,
-      signal: controller.signal,
+      signal: timeoutController.signal,
       cache: method === 'GET' ? 'no-store' : options.cache,
       headers: {
         Accept: 'application/json',
@@ -98,7 +116,7 @@ async function execute(path, options, attempt = 0) {
       const error = requestError(response, payload)
       const retryable = method === 'GET' && attempt < 1 && (response.status >= 500 || response.status === 408)
       if (retryable && navigator.onLine) {
-        await delay(350 + Math.round(Math.random() * 150))
+        await delay(350 + Math.round(Math.random() * 150), externalSignal)
         const retried = await execute(path, options, attempt + 1)
         succeeded = true
         return retried
@@ -110,6 +128,7 @@ async function execute(path, options, attempt = 0) {
     return payload
   } catch (error) {
     if (error?.name === 'AbortError') {
+      if (externalSignal?.aborted) throw error
       const timeoutError = new Error('A API demorou para responder.')
       timeoutError.code = 'ADMIN_API_TIMEOUT'
       throw timeoutError
@@ -117,7 +136,7 @@ async function execute(path, options, attempt = 0) {
 
     const retryableNetwork = method === 'GET' && attempt < 1 && navigator.onLine && error instanceof TypeError
     if (retryableNetwork) {
-      await delay(350 + Math.round(Math.random() * 150))
+      await delay(350 + Math.round(Math.random() * 150), externalSignal)
       const retried = await execute(path, options, attempt + 1)
       succeeded = true
       return retried
@@ -125,6 +144,7 @@ async function execute(path, options, attempt = 0) {
     throw error
   } finally {
     window.clearTimeout(timeout)
+    externalSignal?.removeEventListener('abort', onExternalAbort)
     if (attempt === 0) recordRequestEnd(trace, succeeded)
   }
 }
