@@ -92,6 +92,31 @@
   contain-intrinsic-size: auto 132px;
 }
 
+/* User administration is a primary surface: keep identity, metadata and actions readable.
+ * Older component rules used 10-12px labels/buttons, which are hard to scan on laptops and
+ * touch devices. This final global contract raises only the dense user-list typography. */
+.acu-users-simple__head span,
+.acu-simple-user__meta small {
+  font-size: .75rem;
+}
+
+.acu-users-simple__head p,
+.acu-simple-user__identity small,
+.acu-simple-user__meta strong,
+.acu-pagination,
+.acu-secondary {
+  font-size: .8rem;
+}
+
+.acu-simple-user__identity strong {
+  font-size: .9rem;
+}
+
+.acu-simple-user__impersonate {
+  min-height: 40px;
+  font-size: .8rem;
+}
+
 /* Respect the platform motion preference globally. This also removes continuous decorative
  * paint/compositor work for administrators who request reduced motion. */
 @media (prefers-reduced-motion: reduce) {
@@ -116,6 +141,11 @@
   .sidebar nav button[data-admin-page-target] {
     min-height: 48px;
     font-size: 1rem;
+  }
+
+  .acu-simple-user__impersonate {
+    min-height: 44px;
+    font-size: .8rem;
   }
 
   .skeleton-wrap::before,
