@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { adminRequest as apiRequest } from './adminApi.js'
 import './AdminEstablishmentCatalog.css'
 
@@ -12,6 +12,7 @@ export default function AdminEstablishmentCatalog({ establishment, app, onCreate
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [type, setType] = useState('all')
+  const deferredSearch = useDeferredValue(search)
 
   const load = useCallback(async () => {
     if (!establishment?.id || !app?.id) return
@@ -31,13 +32,13 @@ export default function AdminEstablishmentCatalog({ establishment, app, onCreate
   useEffect(() => { void load() }, [load])
 
   const visible = useMemo(() => {
-    const term = normalize(search.trim())
+    const term = normalize(deferredSearch.trim())
     return items.filter(item => {
       if (type !== 'all' && item.type !== type) return false
       if (!term) return true
       return normalize([item.name, item.category, item.sku, item.brand, item.id].filter(Boolean).join(' ')).includes(term)
     })
-  }, [items, search, type])
+  }, [items, deferredSearch, type])
 
   const metrics = useMemo(() => ({
     total: items.length,
@@ -63,6 +64,6 @@ export default function AdminEstablishmentCatalog({ establishment, app, onCreate
     {!loading && !items.length && <div className="aec-empty"><b>Nenhum produto ou item cadastrado.</b><span>Use o formulário abaixo para criar o primeiro recurso comercial.</span></div>}
     {!loading && items.length > 0 && !visible.length && <div className="aec-empty">Nenhum item corresponde aos filtros.</div>}
 
-    {!loading && visible.length > 0 && <div className="aec-list">{visible.map(item => <article key={item.id} className="aec-item"><div className="aec-identity"><span>{item.image || item.image_url ? <img src={item.image || item.image_url} alt="" /> : String(item.name || 'I')[0]}</span><div><b>{item.name}</b><small>#{item.id} · {labels[item.type] || item.type || 'Item'}{item.category ? ` · ${item.category}` : ''}</small></div></div><div><span>Preço</span><b>{money(item.price)}</b></div><div><span>Estoque</span><b>{item.stock ?? '—'}</b></div><div><span>Estado</span><b className={item.status === false ? 'inactive' : 'active'}>{item.status === false ? 'Arquivado' : 'Ativo'}</b></div></article>)}</div>}
+    {!loading && visible.length > 0 && <div className="aec-list">{visible.map(item => <article key={item.id} className="aec-item"><div className="aec-identity"><span>{item.image || item.image_url ? <img src={item.image || item.image_url} alt="" loading="lazy" decoding="async" /> : String(item.name || 'I')[0]}</span><div><b>{item.name}</b><small>#{item.id} · {labels[item.type] || item.type || 'Item'}{item.category ? ` · ${item.category}` : ''}</small></div></div><div><span>Preço</span><b>{money(item.price)}</b></div><div><span>Estoque</span><b>{item.stock ?? '—'}</b></div><div><span>Estado</span><b className={item.status === false ? 'inactive' : 'active'}>{item.status === false ? 'Arquivado' : 'Ativo'}</b></div></article>)}</div>}
   </section>
 }
