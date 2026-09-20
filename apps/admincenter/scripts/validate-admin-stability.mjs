@@ -48,6 +48,7 @@ check(adminApi.includes('new AbortController()') && (adminApi.includes('controll
 check(adminApi.includes("window.dispatchEvent(new Event('admin-session-expired'))"), '401 deve expirar sessão por um único contrato administrativo (263).')
 check(adminApi.includes("method === 'GET' && attempt < 1"), 'Retry automático deve ser limitado a leitura idempotente (263/277).')
 check(adminApi.includes("window.dispatchEvent(new CustomEvent('admin-api-storm'"), 'API deve sinalizar tempestade de requests para diagnóstico (250/267/268).')
+check(adminApi.includes('function composeSignals') && adminApi.includes('composeSignals(options.signal, controller?.signal)'), 'Cancelamento substituível deve preservar o AbortSignal do caller.')
 check(runtimeMonitor.includes("window.addEventListener('error', onError)"), 'Runtime deve registrar erros JavaScript globais (265/267).')
 check(runtimeMonitor.includes("window.addEventListener('unhandledrejection', onRejection)"), 'Runtime deve registrar promises rejeitadas (265/267).')
 check(runtimeMonitor.includes("window.removeEventListener('error', onError)") && runtimeMonitor.includes('observer.disconnect()'), 'Runtime monitor deve remover listeners/observers no dispose (261/262).')
