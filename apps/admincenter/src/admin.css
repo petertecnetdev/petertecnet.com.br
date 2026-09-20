@@ -13,3 +13,13 @@
 @import './AdminUiKit.css';
 @import './AdminQualityLayer.css';
 @import './AdminResponsiveV3.css';
+
+/* Primary information architecture: keep the two core entities visually scannable. */
+.sidebar nav button[data-admin-page-target='users'],
+.sidebar nav button[data-admin-page-target='establishments'] {
+  font-weight: 700;
+}
+
+.sidebar nav button[data-admin-page-target='establishments'] {
+  margin-top: .45rem;
+}
