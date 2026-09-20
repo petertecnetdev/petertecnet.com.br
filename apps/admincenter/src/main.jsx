@@ -5,16 +5,7 @@ import PwaInstallButton from './PwaInstallButton.jsx'
 import SupportAdminApp, { AdminSupportLauncher } from './SupportAdminApp.jsx'
 import { installAdminRuntimeMonitor } from './adminRuntimeMonitor.js'
 import { installWebVitals } from './discoveryApi.js'
-import './AdminDesignSystem.css'
-import './App.css'
-import './AdminEstablishmentsFeedback.css'
-import './AdminResponsive.css'
-import './SupportAdminResponsiveFix.css'
-import './AdminProcessingExperience.css'
-import './AdminExperienceV2.css'
-import './AdminUiKit.css'
-import './AdminQualityLayer.css'
-import './AdminResponsiveV3.css'
+import './admin.css'
 
 installAdminRuntimeMonitor()
 installWebVitals('admincenter')
