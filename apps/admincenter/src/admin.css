@@ -24,3 +24,9 @@
 .sidebar nav button[data-admin-page-target='establishments'] {
   margin-top: .45rem;
 }
+
+/* Items belong to an establishment context. Keep the legacy route available for deep links,
+ * but remove the redundant first-level entry while contextual migration is completed. */
+.sidebar nav button[data-admin-page-target='items'] {
+  display: none;
+}
