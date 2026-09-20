@@ -18,7 +18,10 @@ function loadScript({ selector, src, datasetKey, datasetValue, isReady, errorMes
     return new Promise((resolve, reject) => {
       if (isReady()) return resolve()
       existing.addEventListener('load', () => resolve(), { once: true })
-      existing.addEventListener('error', () => reject(new Error(errorMessage)), { once: true })
+      existing.addEventListener('error', () => {
+        existing.remove()
+        reject(new Error(errorMessage))
+      }, { once: true })
     })
   }
   return new Promise((resolve, reject) => {
@@ -28,7 +31,10 @@ function loadScript({ selector, src, datasetKey, datasetValue, isReady, errorMes
     script.dataset[datasetKey] = datasetValue
     Object.entries(attributes).forEach(([key, value]) => { script.dataset[key] = value || '' })
     script.addEventListener('load', () => resolve(), { once: true })
-    script.addEventListener('error', () => reject(new Error(errorMessage)), { once: true })
+    script.addEventListener('error', () => {
+      script.remove()
+      reject(new Error(errorMessage))
+    }, { once: true })
     document.head.appendChild(script)
   })
 }
@@ -43,7 +49,10 @@ function loadTelemetry(apiBaseUrl, appSlug) {
     attributes: { appSlug, apiBase: apiBaseUrl },
     isReady: () => window.PeterTecnetTelemetry?.version === TELEMETRY_VERSION,
     errorMessage: 'Não foi possível carregar a telemetria Peter Tecnet.',
-  }).then(() => window.PeterTecnetTelemetry?.start({ apiBaseUrl, appSlug }))
+  }).then(() => window.PeterTecnetTelemetry?.start({ apiBaseUrl, appSlug })).catch(error => {
+    telemetryPromise = null
+    throw error
+  })
   return telemetryPromise
 }
 
@@ -53,6 +62,9 @@ function loadSdk() {
     selector: 'script[data-peter-ecosystem-sdk]', src: SDK_URL, datasetKey: 'peterEcosystemSdk', datasetValue: SDK_VERSION,
     isReady: () => Boolean(customElements.get('peter-ecosystem-launcher')),
     errorMessage: 'Não foi possível carregar o Peter Tecnet Ecosystem SDK.',
+  }).catch(error => {
+    sdkPromise = null
+    throw error
   })
   return sdkPromise
 }
@@ -63,6 +75,9 @@ function loadInsights() {
     selector: 'script[data-peter-insights-sdk]', src: INSIGHTS_URL, datasetKey: 'peterInsightsSdk', datasetValue: INSIGHTS_VERSION,
     isReady: () => Boolean(customElements.get('peter-insight-chart')),
     errorMessage: 'Não foi possível carregar o Peter Tecnet Insights SDK.',
+  }).catch(error => {
+    insightsPromise = null
+    throw error
   })
   return insightsPromise
 }
