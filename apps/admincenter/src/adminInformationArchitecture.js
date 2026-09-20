@@ -28,4 +28,8 @@ export const adminBreadcrumbs = Object.freeze({
     { label: 'Eventos', href: adminEntityRoute.events(establishmentId) },
     { label: eventLabel, href: adminEntityRoute.event(establishmentId, eventId) },
   ],
+  tickets: (establishmentId, eventId, establishmentLabel = 'Estabelecimento', eventLabel = 'Evento') => [
+    ...adminBreadcrumbs.event(establishmentId, eventId, establishmentLabel, eventLabel),
+    { label: 'Ingressos', href: adminEntityRoute.tickets(establishmentId, eventId) },
+  ],
 })
