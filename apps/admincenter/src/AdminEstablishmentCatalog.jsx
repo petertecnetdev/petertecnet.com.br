@@ -1,6 +1,5 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { adminRequest as apiRequest } from './adminApi.js'
-import './AdminEstablishmentCatalog.css'
 
 const labels = { item: 'Item', product: 'Produto', service: 'Serviço', ticket: 'Ingresso legado' }
 const money = value => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value || 0))
