@@ -11,7 +11,7 @@
   "owner_agent_id": "NP02",
   "created_by": "OWNER",
   "created_at": "2026-09-19T11:32:00-03:00",
-  "updated_at": "2026-09-19T15:39:00-03:00",
+  "updated_at": "2026-09-19T23:54:00-03:00",
   "started_at": "2026-09-19T11:32:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
@@ -23,8 +23,8 @@
   },
   "delegation_count": 0,
   "max_delegations": 2,
-  "checkpoint": "OWNER determinou padrão único: create/edit de evento e produção devem editar a própria experiência visual pública. PR #591 implementou ProductionCreate no layout da view/ProductionUpdate e criou EventExperienceEditorSurface compartilhado por EventCreate/EventUpdate, com banner, summary, título, datas, local, descrição e mapa na posição final; ferramentas operacionais do evento ficam em disclosure abaixo. PR mergeado como 0838c73639529fe48068cae53b113e38f264afc1. Validate pós-merge SUCCESS, Deploy VPS SUCCESS e Lighthouse SUCCESS após retry (primeira tentativa falhou somente por timeout externo da api.petertecnet.com.br durante geração SEO).",
-  "next_action": "QA humano autenticado nos quatro fluxos: production/create, production/edit/:id, event/create e event/edit/:id, confirmando equivalência visual com as respectivas views, preview imediato de imagens e persistência. Código/deploy desta rodada concluídos.",
+  "checkpoint": "Feedback visual do OWNER aplicado na produção pública e nos editores create/edit: card de identidade ancorado mais abaixo na capa, superfície sólida e hierarquia mais compacta, com classes compartilhadas para manter equivalência entre view/create/edit. PR #604 mergeado em main como 7647f7a6f7554a5fb753c04b7526f6afc6dcb16b. Validate PR #35485041707, Lighthouse PR #35485041709, Validate pós-merge #35485159371 e Deploy VPS #35485159737 concluíram com sucesso.",
+  "next_action": "QA visual autenticado em production/:slug/public, production/create e production/edit/:id nos breakpoints desktop/tablet/mobile, confirmando que o card permanece próximo da base da capa sem cobrir conteúdo e que create/edit reproduzem a mesma hierarquia da view.",
   "blocker": null,
   "tags": [
     "cutinapp",
@@ -220,13 +220,43 @@
       "type": "workflow",
       "ref": "Lighthouse CI #35461707144 attempt 2",
       "status": "SUCCESS"
+    },
+    {
+      "type": "pull_request",
+      "ref": "petertecnetdev/cutinapp.petertecnet.com.br#604",
+      "status": "MERGED"
+    },
+    {
+      "type": "merge_commit",
+      "ref": "7647f7a6f7554a5fb753c04b7526f6afc6dcb16b",
+      "status": "DEPLOYED"
+    },
+    {
+      "type": "workflow",
+      "ref": "Validate Cutinapp #35485041707",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Lighthouse CI #35485041709",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Validate Cutinapp #35485159371",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Deploy VPS #35485159737",
+      "status": "SUCCESS"
     }
   ],
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
     "status": "PENDING",
-    "notes": "Revisar equivalência visual edit/public e regressões funcionais/performance da galeria. Head 7b5838c0 com CI completo verde."
+    "notes": "Revisar equivalência visual public/create/edit após o dock inferior do PR #604; CI pré-merge e Validate/Deploy pós-merge verdes."
   },
   "history": [
     {
@@ -312,6 +342,13 @@
       "actor": "OWNER_ASSIST",
       "event": "VIEW_MODE_UNIFICATION_DEPLOYED",
       "message": "Create/edit de evento e create de produção unificados com as respectivas views; production edit já seguia o padrão. CI e deploy concluídos."
+    },
+    {
+      "operation_id": "owner-production-hero-dock-20260919-2354",
+      "at": "2026-09-19T23:54:00-03:00",
+      "actor": "OWNER_ASSIST",
+      "event": "PRODUCTION_HERO_DOCK_DEPLOYED",
+      "message": "OWNER pediu que o card com logo/nome/informações saísse do centro e ficasse mais baixo, com aparência melhor, mantendo create/edit iguais à view. PR #604 implementou o dock inferior compartilhado, foi mergeado e publicado; Validate, testes, build, performance budget e deploy/health check passaram."
     }
   ],
   "applied_operation_ids": [
@@ -326,7 +363,8 @@
     "public-cover-view-fix-20260919-1417",
     "owner-gallery-perf-systemic-20260919-1432",
     "owner-gallery-perf-deployed-20260919-1435",
-    "unify-create-edit-with-public-views-20260919-1539"
+    "unify-create-edit-with-public-views-20260919-1539",
+    "owner-production-hero-dock-20260919-2354"
   ],
-  "version": 12
+  "version": 13
 }
