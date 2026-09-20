@@ -148,10 +148,18 @@
     font-size: .8rem;
   }
 
-  /* Fixed modal backdrops sit above the entire viewport while their panel scrolls.
+  /* Full-screen modal backdrops sit above the entire viewport while their panels scroll.
    * Avoid continuously resampling the page behind them on constrained mobile GPUs. */
   .acu-invite-modal,
-  .pt-ui-dialog-backdrop {
+  .pt-ui-dialog-backdrop,
+  .auc-modal-backdrop {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /* The communication modal header is sticky inside a scrolling panel. Sampling the panel
+   * behind it on every scroll frame adds paint work without improving mobile usability. */
+  .auc-modal-head {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
