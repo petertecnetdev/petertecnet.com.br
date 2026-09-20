@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './AdminImpersonation.css'
 
 const OWNER_EMAIL = 'petertecnet@gmail.com'
@@ -136,18 +136,23 @@ export function AdminImpersonationHistory({ apiRequest, refreshKey = 0 }) {
   const [auditSession, setAuditSession] = useState(null)
   const [auditRows, setAuditRows] = useState([])
   const [auditLoading, setAuditLoading] = useState(false)
+  const requestSequence = useRef(0)
+  const auditSequence = useRef(0)
 
   async function load(page = 1, { quiet = false } = {}) {
+    const sequence = ++requestSequence.current
     if (!quiet) setLoading(true)
     setError('')
     try {
       const payload = await apiRequest(`/admin/ecosystem/impersonations?page=${page}&per_page=10`)
+      if (sequence !== requestSequence.current) return
       setSessions(payload?.sessions || [])
       setPagination(payload?.pagination || { current_page: page, last_page: 1, total: 0 })
     } catch (err) {
+      if (sequence !== requestSequence.current) return
       setError(err.message || 'Não foi possível carregar o histórico de acessos.')
     } finally {
-      if (!quiet) setLoading(false)
+      if (sequence === requestSequence.current && !quiet) setLoading(false)
     }
   }
 
@@ -165,17 +170,20 @@ export function AdminImpersonationHistory({ apiRequest, refreshKey = 0 }) {
   }
 
   async function showAudit(session) {
+    const sequence = ++auditSequence.current
     setAuditSession(session)
     setAuditRows([])
     setAuditLoading(true)
     setError('')
     try {
       const payload = await apiRequest(`/admin/ecosystem/impersonations/${session.id}/audit?per_page=100`)
+      if (sequence !== auditSequence.current) return
       setAuditRows(payload?.audit || [])
     } catch (err) {
+      if (sequence !== auditSequence.current) return
       setError(err.message || 'Não foi possível carregar as ações auditadas.')
     } finally {
-      setAuditLoading(false)
+      if (sequence === auditSequence.current) setAuditLoading(false)
     }
   }
 
