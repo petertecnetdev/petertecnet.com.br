@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
 import './AdminImpersonation.css'
 
 const OWNER_EMAIL = 'petertecnet@gmail.com'
@@ -48,6 +47,7 @@ export function AdminImpersonationDialog({ user, applications = [], apiRequest, 
 
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    document.body.classList.add('aim-modal-open')
 
     const handleKeyDown = event => {
       if (event.key === 'Escape' && !busy) onClose?.()
@@ -56,6 +56,7 @@ export function AdminImpersonationDialog({ user, applications = [], apiRequest, 
     window.addEventListener('keydown', handleKeyDown)
     return () => {
       document.body.style.overflow = previousOverflow
+      document.body.classList.remove('aim-modal-open')
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [user, busy, onClose])
@@ -94,7 +95,7 @@ export function AdminImpersonationDialog({ user, applications = [], apiRequest, 
     }
   }
 
-  return createPortal(<div className="aim-backdrop" role="presentation" onMouseDown={event => event.target === event.currentTarget && !busy && onClose?.()}>
+  return <div className="aim-backdrop" role="presentation" onMouseDown={event => event.target === event.currentTarget && !busy && onClose?.()}>
     <section className="aim-dialog" role="dialog" aria-modal="true" aria-labelledby="aim-title" aria-describedby="aim-description">
       <header>
         <div>
@@ -143,7 +144,7 @@ export function AdminImpersonationDialog({ user, applications = [], apiRequest, 
         </div>
       </form>
     </section>
-  </div>, document.body)
+  </div>
 }
 
 export function AdminImpersonationHistory({ apiRequest, refreshKey = 0 }) {
