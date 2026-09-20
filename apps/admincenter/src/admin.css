@@ -77,10 +77,12 @@
   pointer-events: none;
 }
 
-/* Dense entity lists should not spend layout/paint budget below the viewport. Users and
- * establishment catalog items reserve their typical row height to keep scroll stable. */
+/* Dense contextual entity lists should not spend layout/paint budget below the viewport.
+ * Reserve each row's typical height so users can scroll establishments and their nested
+ * items/tickets without forcing every offscreen row through layout and paint. */
 .acu-simple-user,
-.aec-item {
+.aec-item,
+.aee-ticket-row {
   content-visibility: auto;
   contain-intrinsic-size: auto 76px;
 }
