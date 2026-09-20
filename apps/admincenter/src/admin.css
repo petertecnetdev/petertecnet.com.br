@@ -77,6 +77,19 @@
   pointer-events: none;
 }
 
+/* Respect the platform motion preference globally. This also removes continuous decorative
+ * paint/compositor work for administrators who request reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
 /* Final mobile readability/performance contract. Keep controls readable and stop decorative
  * loading motion from continuously repainting the viewport on constrained devices. */
 @media (max-width: 760px) {
