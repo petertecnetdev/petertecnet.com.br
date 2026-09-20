@@ -77,6 +77,13 @@
   pointer-events: none;
 }
 
+/* The users page can render dozens of rich rows at once. Let the browser skip layout/paint
+ * for rows below the viewport while reserving stable space to keep scrolling smooth. */
+.acu-simple-user {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 76px;
+}
+
 /* Respect the platform motion preference globally. This also removes continuous decorative
  * paint/compositor work for administrators who request reduced motion. */
 @media (prefers-reduced-motion: reduce) {
