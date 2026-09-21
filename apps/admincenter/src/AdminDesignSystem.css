@@ -53,5 +53,3 @@
 .admin-shell .pt-status::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
 .admin-shell .pt-status--success{color:var(--pt-success)}.admin-shell .pt-status--warning{color:var(--pt-warning)}.admin-shell .pt-status--danger{color:var(--pt-danger)}
 @media(max-width:980px){:root{--pt-topbar-height:64px}.admin-shell .content{padding-inline:clamp(14px,4vw,24px)}}
-@media(prefers-reduced-motion:reduce){.admin-shell *,.admin-shell *::before,.admin-shell *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
-@media(prefers-contrast:more){:root{--pt-line:rgba(205,239,247,.28);--pt-line-strong:rgba(205,239,247,.52);--pt-text-muted:#b8cbd1}}
