@@ -70,6 +70,13 @@
 .aep-primary,
 .aep-table button { touch-action: manipulation; }
 
+/* Keep keyboard focus unmistakable on the two primary entity workflows. */
+.acu-simple-user__details:focus-visible,
+.acu-simple-user__impersonate:focus-visible,
+.acu-invite-button:focus-visible,
+.aep-primary:focus-visible,
+.aep-table button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
 /* Establishment is the second primary entity. Keep its nested context from widening the shell. */
 .aep-page,
 .aep-list-header,
