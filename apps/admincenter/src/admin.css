@@ -36,6 +36,11 @@
   line-height: 1.25;
 }
 
+.sidebar nav button[data-admin-page-target]:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
 .sidebar nav button[data-admin-page-target] > span,
 .sidebar nav button[data-admin-page-target] > i {
   flex: 0 0 auto;
