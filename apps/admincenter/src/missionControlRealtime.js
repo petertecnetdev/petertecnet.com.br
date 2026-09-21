@@ -57,6 +57,7 @@ export function connectMissionControlRealtime({ token, onUpdate, onState, events
   let disposed = false
   let socket = null
   let retryTimer = null
+  let connectInFlight = false
   let reconnectMs = 1000
 
   const state = value => onState?.(value)
@@ -76,8 +77,10 @@ export function connectMissionControlRealtime({ token, onUpdate, onState, events
   }
 
   async function connect() {
-    if (disposed) return
+    if (disposed || connectInFlight) return
+    connectInFlight = true
     state('connecting')
+
     try {
       const currentToken = resolveToken(token)
       const response = await fetch(`${API}/admin/ecosystem/command/realtime-config`, {
@@ -91,6 +94,11 @@ export function connectMissionControlRealtime({ token, onUpdate, onState, events
       }
       const eventNames = configuredEvents(config, events)
 
+      if (socket) {
+        socket.onclose = null
+        socket.close()
+        socket = null
+      }
       socket = new WebSocket(websocketUrl(config))
 
       socket.onopen = () => state('connecting')
@@ -128,6 +136,8 @@ export function connectMissionControlRealtime({ token, onUpdate, onState, events
       }
     } catch {
       scheduleReconnect()
+    } finally {
+      connectInFlight = false
     }
   }
 
