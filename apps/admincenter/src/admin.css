@@ -114,6 +114,11 @@
   .sidebar nav button[data-admin-page-target] { min-height: 48px; font-size: 1rem; }
   .acu-simple-user__impersonate { min-height: 44px; font-size: .875rem; }
 
+  /* User invitation is a focused task on phones: use the whole viewport instead of a cramped bottom sheet. */
+  .acu-invite-modal { align-items: stretch; padding: 0; }
+  .acu-invite-modal__panel { width: 100%; height: 100dvh; max-height: none; overscroll-behavior: contain; }
+  .acu-invite-modal .api-card { min-height: 100dvh; border-radius: 0; }
+
   /* Put the primary establishment action in the first viewport instead of squeezing it beside the title. */
   .aep-list-header { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; gap: .875rem !important; align-items: start !important; }
   .aep-list-header > .aep-primary { width: 100%; min-height: 48px; justify-content: center; }
