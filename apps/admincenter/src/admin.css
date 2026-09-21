@@ -168,6 +168,10 @@
   .aep-table td:nth-child(4) { display: none; }
   .aep-table-wrap { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
 
+  /* Establishment row actions must remain readable and tappable after secondary columns collapse. */
+  .aep-table td:last-child { min-width: 7rem; }
+  .aep-table td:last-child button { min-height: 44px; min-width: 44px; font-size: .875rem; }
+
   .skeleton-wrap::before,
   .skeleton-wrap::after,
   .admin-google-login.status-loading::before,
