@@ -5,6 +5,7 @@
  */
 @import './AdminDesignSystem.css';
 @import './App.css';
+@import './AdminUsersCenter.css';
 @import './AdminEstablishmentsFeedback.css';
 @import './AdminEstablishmentCatalog.css';
 @import './AdminResponsive.css';
