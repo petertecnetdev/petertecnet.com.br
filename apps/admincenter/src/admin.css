@@ -1,11 +1,11 @@
 /*
  * Admin Center global style entry.
  * Keep the cascade explicit here so main.jsx has one stylesheet dependency.
- * Layers remain split by responsibility while the final responsive contract stays last.
+ * Feature-specific lazy modules keep their own CSS imports to avoid duplicating
+ * those styles in both the entry bundle and the route chunk.
  */
 @import './AdminDesignSystem.css';
 @import './App.css';
-@import './AdminUsersCenter.css';
 @import './AdminEstablishmentsFeedback.css';
 @import './AdminEstablishmentCatalog.css';
 @import './AdminResponsive.css';
