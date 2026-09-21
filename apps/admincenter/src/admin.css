@@ -108,6 +108,11 @@
   .top-search input { font-size: 1rem; min-height: 44px; }
   .sidebar nav button[data-admin-page-target] { min-height: 48px; font-size: 1rem; }
   .acu-simple-user__impersonate { min-height: 44px; font-size: .875rem; }
+
+  /* Put the primary establishment action in the first viewport instead of squeezing it beside the title. */
+  .aep-list-header { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; gap: .875rem !important; align-items: start !important; }
+  .aep-list-header > .aep-primary { width: 100%; min-height: 48px; justify-content: center; }
+
   .skeleton-wrap::before,
   .skeleton-wrap::after,
   .admin-google-login.status-loading::before,
