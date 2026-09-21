@@ -8,6 +8,7 @@
     "validate:responsive": "node scripts/validate-admin-responsive.mjs",
     "validate:dialogs": "node scripts/validate-no-native-dialogs.mjs",
     "validate:dialog-a11y": "node scripts/validate-dialog-a11y.mjs",
+    "validate:account-access-a11y": "node scripts/validate-account-access-a11y.mjs",
     "validate:user-communication": "node scripts/validate-user-communication-ui.mjs",
     "validate:login-a11y": "node scripts/validate-admin-login-a11y.mjs",
     "build": "npm run validate:dialogs && npm run validate:dialog-a11y && npm run validate:responsive && npm run validate:user-communication && npm run validate:login-a11y && npm run validate:stability && npm run validate:performance && npm run validate:runtime && npm run validate:architecture && vite build && npm run validate:shell-browser && npm run validate:bundle",
