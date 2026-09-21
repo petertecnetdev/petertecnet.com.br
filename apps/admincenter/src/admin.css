@@ -110,6 +110,24 @@
   font-size: .875rem;
 }
 
+/* Establishment is the second primary entity. Keep its nested context from widening the shell. */
+.aep-page,
+.aep-list-header,
+.aep-list-header > div,
+.aep-editor,
+.aep-card,
+.aec-list,
+.aee-event-shell {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.aep-page,
+.aep-editor,
+.aep-card {
+  overflow-wrap: anywhere;
+}
+
 /* Respect the platform motion preference globally. */
 @media (prefers-reduced-motion: reduce) {
   *,
