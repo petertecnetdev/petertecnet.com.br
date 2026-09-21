@@ -151,6 +151,14 @@
   max-width: 100%;
 }
 
+/* Keep route changes and long entity lists from shifting the entire shell when the vertical
+ * scrollbar appears. Contain scroll chaining so a nested Admin surface cannot move the page
+ * behind it, which keeps the sidebar/menu visually stable during fast navigation. */
+.admin-shell .content {
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
 /* Respect the platform motion preference globally. */
 @media (prefers-reduced-motion: reduce) {
   *,
