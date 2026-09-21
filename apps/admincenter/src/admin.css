@@ -149,6 +149,9 @@
   .acu-invite-modal .api-form input,
   .acu-invite-modal .api-form select { min-height: 44px; font-size: 1rem; }
 
+  /* Keep invite actions reachable above mobile browser chrome and safe-area insets. */
+  .acu-invite-modal .api-form { padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
+
   /* Put the primary establishment action in the first viewport instead of squeezing it beside the title. */
   .aep-list-header { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; gap: .875rem !important; align-items: start !important; }
   .aep-list-header > .aep-primary { width: 100%; min-height: 48px; justify-content: center; }
