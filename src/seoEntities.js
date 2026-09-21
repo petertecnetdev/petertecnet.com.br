@@ -6,7 +6,9 @@ export const organizationSeo = {
   taxID: '42.595.409/0001-48',
   email: 'contato@petertecnet.com.br',
   instagram: 'https://www.instagram.com/petertecnet/',
-  description: 'A Peter Tecnet é uma empresa de tecnologia que cria e opera um ecossistema de plataformas digitais próprias, além de desenvolver software, APIs, automações, integrações e soluções sob medida para empresas.',
+  description: 'A Peter Tecnet é uma empresa brasileira de tecnologia fundada em Brasília, com atuação em todo o Brasil. Cria e opera plataformas digitais próprias e desenvolve software, aplicativos, sites, IA, APIs, automações, integrações e soluções sob medida para empresas.',
+  foundingLocation: 'Brasília, Distrito Federal, Brasil',
+  areaServed: 'Brasil',
 }
 
 export const platformSeoEntities = {
