@@ -16,9 +16,7 @@
 @import './AdminResponsiveV3.css';
 @import './AdminEstablishmentEventsResponsive.css';
 
-/* Primary information architecture: users and establishments always lead the menu.
- * Keep this ordering in the global layer so legacy/deep-link routes stay intact while
- * the shell remains focused on the two entities administrators use to enter context. */
+/* Primary information architecture: users and establishments always lead the menu. */
 .sidebar nav button[data-admin-page-target='users'] {
   order: 1;
   font-weight: 700;
@@ -28,17 +26,6 @@
   order: 2;
   font-weight: 700;
   margin-top: 0;
-}
-
-.sidebar nav button[data-admin-page-target='operations'],
-.sidebar nav button[data-admin-page-target='financial'],
-.sidebar nav button[data-admin-page-target='applications'] {
-  order: 10;
-}
-
-.sidebar nav button[data-admin-page-target='operations'] {
-  margin-top: .55rem;
-  border-top: 1px solid var(--admin-border, rgba(148, 163, 184, .2));
 }
 
 /* Keep primary navigation legible and comfortably tappable without JS/layout work. */
@@ -62,25 +49,24 @@
   overflow-wrap: anywhere;
 }
 
-/* Contextual/utility destinations keep their routes and deep links, but no longer compete
- * with the primary entity navigation. Items are entered through Establishments; agents,
- * notifications and activity remain addressable by their existing URLs/search surfaces. */
-.sidebar nav button[data-admin-page-target='items'],
+/* The sidebar is intentionally entity-first. Secondary capabilities keep their existing
+ * routes, deep links and command-search access without competing with the two entry points. */
+.sidebar nav button[data-admin-page-target='operations'],
 .sidebar nav button[data-admin-page-target='agents'],
+.sidebar nav button[data-admin-page-target='financial'],
+.sidebar nav button[data-admin-page-target='applications'],
+.sidebar nav button[data-admin-page-target='items'],
 .sidebar nav button[data-admin-page-target='notifications'],
 .sidebar nav button[data-admin-page-target='activity'] {
   display: none;
 }
 
-/* A slow administrative request must never freeze navigation. Legacy processing overlays
- * remain visible as status feedback but cannot intercept pointer/touch input. */
+/* A slow administrative request must never freeze navigation. */
 .peter-processing {
   pointer-events: none;
 }
 
-/* Dense contextual entity lists should not spend layout/paint budget below the viewport.
- * Reserve each row/card's typical height so users can scroll establishments and their nested
- * events, items and tickets without forcing every offscreen record through layout and paint. */
+/* Dense contextual entity lists should not spend layout/paint budget below the viewport. */
 .acu-simple-user,
 .aec-item,
 .aee-event-shell,
@@ -93,9 +79,7 @@
   contain-intrinsic-size: auto 132px;
 }
 
-/* User administration is a primary surface: keep identity, metadata and actions readable.
- * Older component rules used 10-12px labels/buttons, which are hard to scan on laptops and
- * touch devices. This final global contract raises only the dense user-list typography. */
+/* User administration is a primary surface: keep identity, metadata and actions readable. */
 .acu-users-simple__head span,
 .acu-simple-user__meta small {
   font-size: .75rem;
@@ -118,8 +102,7 @@
   font-size: .8rem;
 }
 
-/* Respect the platform motion preference globally. This also removes continuous decorative
- * paint/compositor work for administrators who request reduced motion. */
+/* Respect the platform motion preference globally. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -131,8 +114,7 @@
   }
 }
 
-/* Final mobile readability/performance contract. Keep controls readable and stop decorative
- * loading motion from continuously repainting the viewport on constrained devices. */
+/* Final mobile readability/performance contract. */
 @media (max-width: 760px) {
   .top-search input {
     font-size: 1rem;
@@ -151,16 +133,8 @@
 
   .acu-invite-modal,
   .pt-ui-dialog-backdrop,
-  .auc-modal-backdrop {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-
-  .auc-modal-head {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-
+  .auc-modal-backdrop,
+  .auc-modal-head,
   .aep-card,
   .aep-editor-actions,
   .aie-preview-badge,
