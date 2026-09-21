@@ -119,9 +119,14 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   }
 
   function closeDetail() {
+    if (window.history.state?.adminUserId) {
+      window.history.back()
+      return
+    }
+
     const url = new URL(window.location.href)
     url.searchParams.delete('user')
-    window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`)
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`)
     setDetailUserId(null)
   }
 
