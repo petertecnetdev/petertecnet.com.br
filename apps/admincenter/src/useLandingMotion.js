@@ -7,15 +7,29 @@ export default function useLandingMotion(active = true) {
     const root = document.documentElement
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const tiltHandlers = new Map()
+    let pointerFrame = 0
+    let scrollFrame = 0
+    let pointerX = 0
+    let pointerY = 0
 
     const updatePointer = event => {
-      root.style.setProperty('--pointer-x', `${event.clientX}px`)
-      root.style.setProperty('--pointer-y', `${event.clientY}px`)
+      pointerX = event.clientX
+      pointerY = event.clientY
+      if (pointerFrame) return
+      pointerFrame = window.requestAnimationFrame(() => {
+        pointerFrame = 0
+        root.style.setProperty('--pointer-x', `${pointerX}px`)
+        root.style.setProperty('--pointer-y', `${pointerY}px`)
+      })
     }
 
     const updateScroll = () => {
-      const max = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1)
-      root.style.setProperty('--scroll-progress', `${Math.min(window.scrollY / max, 1)}`)
+      if (scrollFrame) return
+      scrollFrame = window.requestAnimationFrame(() => {
+        scrollFrame = 0
+        const max = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1)
+        root.style.setProperty('--scroll-progress', `${Math.min(window.scrollY / max, 1)}`)
+      })
     }
 
     const revealObserver = new IntersectionObserver(entries => {
@@ -86,6 +100,8 @@ export default function useLandingMotion(active = true) {
       window.removeEventListener('scroll', updateScroll)
       window.removeEventListener('resize', updateScroll)
       window.removeEventListener('pointermove', updatePointer)
+      if (pointerFrame) window.cancelAnimationFrame(pointerFrame)
+      if (scrollFrame) window.cancelAnimationFrame(scrollFrame)
       tiltHandlers.forEach(([onMove, onLeave], element) => {
         element.removeEventListener('pointermove', onMove)
         element.removeEventListener('pointerleave', onLeave)
