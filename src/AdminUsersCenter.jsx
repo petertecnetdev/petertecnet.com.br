@@ -8,6 +8,13 @@ const OWNER_EMAIL = 'petertecnet@gmail.com'
 const EMPTY_USER = { first_name: '', last_name: '', user_name: '', email: '', password: '', profile_id: '' }
 const EMPTY_FILTERS = { search: '', profile_id: '', app_id: '', access_status: '', has_establishment: '', activity_from: '', activity_to: '', sort: 'newest', per_page: '25' }
 
+function asArray(value) {
+  if (Array.isArray(value)) return value
+  if (Array.isArray(value?.data)) return value.data
+  if (Array.isArray(value?.items)) return value.items
+  return []
+}
+
 function fullName(user) {
   return [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.user_name || user?.email || 'Usuário'
 }
@@ -57,7 +64,7 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   async function loadProfiles() {
     try {
       const payload = await apiRequest('/admin/ecosystem/profiles')
-      setProfiles(payload?.profiles || [])
+      setProfiles(asArray(payload?.profiles ?? payload?.data ?? payload))
     } catch (err) {
       setError(err.message)
     }
@@ -68,8 +75,18 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
     setError('')
     try {
       const payload = await apiRequest(`/admin/ecosystem/users?${buildQuery(nextFilters, page)}`)
-      setUsers(payload?.users || [])
-      setPagination(payload?.pagination || { current_page: page, last_page: 1, total: payload?.users?.length || 0 })
+      const nextUsers = asArray(payload?.users ?? payload?.data ?? payload)
+      const sourcePagination = payload?.pagination || payload?.meta || (payload?.users && !Array.isArray(payload.users) ? payload.users : null)
+      setUsers(nextUsers)
+      setPagination({
+        current_page: Number(sourcePagination?.current_page || page),
+        last_page: Number(sourcePagination?.last_page || 1),
+        total: Number(sourcePagination?.total ?? nextUsers.length),
+        from: sourcePagination?.from ?? (nextUsers.length ? ((page - 1) * Number(nextFilters?.per_page || 25)) + 1 : null),
+        to: sourcePagination?.to ?? (nextUsers.length ? ((page - 1) * Number(nextFilters?.per_page || 25)) + nextUsers.length : null),
+        previous_page: sourcePagination?.previous_page ?? (Number(sourcePagination?.current_page || page) > 1 ? Number(sourcePagination?.current_page || page) - 1 : null),
+        next_page: sourcePagination?.next_page ?? (Number(sourcePagination?.current_page || page) < Number(sourcePagination?.last_page || 1) ? Number(sourcePagination?.current_page || page) + 1 : null),
+      })
       return payload
     } catch (err) {
       setError(err.message)
@@ -98,9 +115,9 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   }, [detailUserId])
 
   const pageStats = useMemo(() => {
-    const activeAccesses = users.reduce((total, user) => total + (user.applications || []).filter(app => app.pivot?.status === 'active').length, 0)
+    const activeAccesses = users.reduce((total, user) => total + asArray(user?.applications).filter(app => app?.pivot?.status === 'active').length, 0)
     return {
-      withApplications: users.filter(user => user.applications?.length).length,
+      withApplications: users.filter(user => asArray(user?.applications).length).length,
       withEstablishments: users.filter(user => Number(user.establishments_count || 0) > 0).length,
       activeAccesses,
     }
@@ -242,7 +259,7 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
           <label>Sobrenome<input value={form.last_name} onChange={event => setForm({ ...form, last_name: event.target.value })}/></label>
           <label>Usuário<input value={form.user_name} onChange={event => setForm({ ...form, user_name: event.target.value })} required/></label>
           <label>E-mail<input type="email" value={form.email} onChange={event => setForm({ ...form, email: event.target.value })} required/></label>
-          <label className="acu-wide">Perfil<select value={form.profile_id} onChange={event => setForm({ ...form, profile_id: event.target.value })}><option value="">Sem perfil</option>{profiles.map(profile => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></label>
+          <label className="acu-wide">Perfil<select value={form.profile_id} onChange={event => setForm({ ...form, profile_id: event.target.value })}><option value="">Sem perfil</option>{asArray(profiles).map(profile => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></label>
           {!editingId && <label className="acu-wide">Senha inicial<input type="password" minLength="8" autoComplete="new-password" value={form.password} onChange={event => setForm({ ...form, password: event.target.value })} required/><small>Mínimo de 8 caracteres.</small></label>}
           <button className="acu-primary acu-wide" disabled={busy}>{busy ? 'Salvando…' : editingId ? 'Salvar alterações' : 'Criar usuário'}</button>
         </form>
@@ -253,7 +270,7 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
         <form className="acu-filters" onSubmit={applyFilters}>
           <label className="acu-wide">Buscar<input placeholder="ID, nome, e-mail ou usuário" value={filters.search} onChange={event => setFilters({ ...filters, search: event.target.value })}/></label>
           <label>Perfil<select value={filters.profile_id} onChange={event => setFilters({ ...filters, profile_id: event.target.value })}><option value="">Todos</option>{profiles.map(profile => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></label>
-          <label>Aplicação<select value={filters.app_id} onChange={event => setFilters({ ...filters, app_id: event.target.value })}><option value="">Todas</option>{applications.map(app => <option key={app.id} value={app.id}>{app.name}</option>)}</select></label>
+          <label>Aplicação<select value={filters.app_id} onChange={event => setFilters({ ...filters, app_id: event.target.value })}><option value="">Todas</option>{asArray(applications).map(app => <option key={app.id} value={app.id}>{app.name}</option>)}</select></label>
           <label>Status do acesso<select value={filters.access_status} onChange={event => setFilters({ ...filters, access_status: event.target.value })}><option value="">Qualquer status</option><option value="active">Ativo</option><option value="blocked">Bloqueado</option><option value="suspended">Suspenso</option><option value="pending">Pendente</option><option value="none">Sem vínculo na aplicação</option></select></label>
           <label>Estabelecimento<select value={filters.has_establishment} onChange={event => setFilters({ ...filters, has_establishment: event.target.value })}><option value="">Todos</option><option value="yes">Possui</option><option value="no">Não possui</option></select></label>
           <label>Atividade desde<input type="date" value={filters.activity_from} onChange={event => setFilters({ ...filters, activity_from: event.target.value })}/></label>
@@ -267,7 +284,7 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
 
     <section className="acu-card acu-table-card">
       <header><div><span>ECOSSISTEMA</span><h3>Todos os usuários</h3><p>{pagination.from && pagination.to ? `Exibindo ${pagination.from}–${pagination.to} de ${pagination.total}` : `${pagination.total || 0} usuários encontrados`}</p></div><button className="acu-secondary" onClick={() => loadUsers(pagination.current_page || 1, filters)} disabled={loading}>↻ Atualizar</button></header>
-      {loading ? <div className="acu-loading">Carregando usuários…</div> : users.length ? <div className="acu-table-wrap"><table><thead><tr><th>Usuário</th><th>Perfil</th><th>Atividade</th><th>Recursos</th><th>Aplicações</th><th>Ações</th></tr></thead><tbody>{users.map(user => <tr key={user.id}><td><div className="acu-user"><span>{fullName(user).slice(0, 2).toUpperCase()}</span><div><b>{fullName(user)}</b><small>#{user.id} · {user.email}</small></div></div></td><td><span className="acu-badge">{user.profile?.name || 'Sem perfil'}</span></td><td><b>{dateTime(user.last_activity_at)}</b><small>{user.interactions_count || 0} interações</small></td><td><b>{user.establishments_count || 0}</b><small>estabelecimento(s)</small></td><td><b>{user.applications?.length || 0}</b><small>vínculo(s)</small></td><td><div className="acu-actions"><button onClick={() => openDetail(user.id)}>Detalhes</button><button onClick={() => beginEdit(user)}>Editar</button><button className="acu-danger" disabled={String(user.email || '').toLowerCase() === OWNER_EMAIL || busy} onClick={() => deleteUser(user)}>Excluir</button></div></td></tr>)}</tbody></table></div> : <div className="acu-empty">Nenhum usuário encontrado com os filtros atuais.</div>}
+      {loading ? <div className="acu-loading">Carregando usuários…</div> : users.length ? <div className="acu-table-wrap"><table><thead><tr><th>Usuário</th><th>Perfil</th><th>Atividade</th><th>Recursos</th><th>Aplicações</th><th>Ações</th></tr></thead><tbody>{users.map(user => <tr key={user.id}><td><div className="acu-user"><span>{fullName(user).slice(0, 2).toUpperCase()}</span><div><b>{fullName(user)}</b><small>#{user.id} · {user.email}</small></div></div></td><td><span className="acu-badge">{user.profile?.name || 'Sem perfil'}</span></td><td><b>{dateTime(user.last_activity_at)}</b><small>{user.interactions_count || 0} interações</small></td><td><b>{user.establishments_count || 0}</b><small>estabelecimento(s)</small></td><td><b>{asArray(user?.applications).length}</b><small>vínculo(s)</small></td><td><div className="acu-actions"><button onClick={() => openDetail(user.id)}>Detalhes</button><button onClick={() => beginEdit(user)}>Editar</button><button className="acu-danger" disabled={String(user.email || '').toLowerCase() === OWNER_EMAIL || busy} onClick={() => deleteUser(user)}>Excluir</button></div></td></tr>)}</tbody></table></div> : <div className="acu-empty">Nenhum usuário encontrado com os filtros atuais.</div>}
       <footer className="acu-pagination"><span>Página {pagination.current_page || 1} de {pagination.last_page || 1}</span><div><button className="acu-secondary" disabled={!pagination.previous_page || loading} onClick={() => loadUsers(pagination.previous_page, filters)}>← Anterior</button><button className="acu-secondary" disabled={!pagination.next_page || loading} onClick={() => loadUsers(pagination.next_page, filters)}>Próxima →</button></div></footer>
     </section>
   </div>
