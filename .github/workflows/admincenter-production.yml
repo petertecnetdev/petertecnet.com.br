@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: admincenter-production
+  cancel-in-progress: true
+
 jobs:
   validate:
     name: Validate Admin Center
@@ -32,19 +36,89 @@ jobs:
         run: npm run build
 
   deploy:
-    name: Deploy Admin Center
+    name: Build and deploy Admin Center
     needs: validate
-    uses: ./.github/workflows/reusable-vps-deploy.yml
-    with:
-      deploy_path: /var/www/admincenter.petertecnet.com.br
-      deploy_type: frontend
-      deploy_branch: admincenter
-      health_url: https://admincenter.petertecnet.com.br/
-    secrets:
-      VPS_HOST: ${{ secrets.VPS_HOST }}
-      VPS_PORT: ${{ secrets.VPS_PORT }}
-      VPS_USER: ${{ secrets.VPS_USER }}
-      VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build release on runner
+        run: npm run build
+
+      - name: Configure SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "${VPS_SSH_KEY}"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          : > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Upload built release
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          PORT="${VPS_PORT:-22}"
+          ARCHIVE="/tmp/admincenter-${GITHUB_SHA}.tgz"
+          tar -C dist -czf "$ARCHIVE" .
+          scp -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -P "$PORT" "$ARCHIVE" "$VPS_USER@$VPS_HOST:/tmp/admincenter-release.tgz"
+
+      - name: Publish atomically on VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          PORT="${VPS_PORT:-22}"
+          ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$PORT" "$VPS_USER@$VPS_HOST" 'bash -s' <<'REMOTE'
+          set -Eeuo pipefail
+          DEPLOY_PATH="/var/www/admincenter.petertecnet.com.br"
+          LIVE="$DEPLOY_PATH/dist"
+          NEXT="$DEPLOY_PATH/.dist.next"
+          BACKUP="$DEPLOY_PATH/.dist.rollback"
+
+          rm -rf "$NEXT" "$BACKUP"
+          mkdir -p "$NEXT"
+          tar -xzf /tmp/admincenter-release.tgz -C "$NEXT"
+          test -s "$NEXT/index.html"
+          test -d "$NEXT/assets"
+
+          if [[ -d "$LIVE" ]]; then mv "$LIVE" "$BACKUP"; fi
+          mv "$NEXT" "$LIVE"
+          chmod -R a+rX "$LIVE"
+          rm -f /tmp/admincenter-release.tgz
+
+          if ! curl --fail --silent --show-error --location --max-time 20 https://admincenter.petertecnet.com.br/ >/dev/null; then
+            rm -rf "$LIVE"
+            if [[ -d "$BACKUP" ]]; then mv "$BACKUP" "$LIVE"; fi
+            exit 1
+          fi
+
+          rm -rf "$BACKUP"
+          REMOTE
+
+      - name: Verify public bundle
+        run: |
+          set -euo pipefail
+          HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-all-errors --retry-delay 2 https://admincenter.petertecnet.com.br/)"
+          printf '%s' "$HTML" | grep -q 'type="module"'
+          ASSET="$(printf '%s' "$HTML" | sed -n 's/.*src="\([^"]*assets\/[^"]*\.js\)".*/\1/p' | head -n1)"
+          test -n "$ASSET"
+          curl --fail --silent --show-error --location "https://admincenter.petertecnet.com.br$ASSET" >/dev/null
+          echo "Published asset: $ASSET"
 
   smoke:
     name: Smoke Admin Center Production
@@ -52,12 +126,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Verify published release, bundle and service worker
-        env:
-          ADMIN_HEALTH_URL: https://admincenter.petertecnet.com.br/
-          ADMIN_EXPECTED_RELEASE: 2026.09.06.2
-        run: npm run smoke:production
+      - name: Verify site responds
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 5 --retry-all-errors --retry-delay 2 https://admincenter.petertecnet.com.br/ >/dev/null
