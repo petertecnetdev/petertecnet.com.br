@@ -29,6 +29,9 @@
 .sidebar nav button[data-admin-page-target] > i { flex: 0 0 auto; }
 .sidebar nav button[data-admin-page-target] > b { flex: 1 1 auto; min-width: 0; font-size: inherit; line-height: inherit; overflow-wrap: anywhere; }
 
+/* Global search is the escape hatch to secondary capabilities; keep keyboard focus explicit. */
+.top-search input:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
 /* Secondary capabilities retain routes/deep links/search access without competing with entities. */
 .sidebar nav button[data-admin-page-target='operations'],
 .sidebar nav button[data-admin-page-target='agents'],
