@@ -263,8 +263,8 @@ function PeterLandingExperience() {
 
   useEffect(() => {
     updatePageSeo({
-      title: 'Peter Tecnet | Software, sites, aplicativos e serviços de tecnologia',
-      description: 'A Peter Tecnet desenvolve software, sites, landing pages, aplicativos, e-commerce, automações, integrações, soluções com IA e também realiza serviços digitais do dia a dia.',
+      title: 'Peter Tecnet | Software, aplicativos, IA e soluções digitais no Brasil',
+      description: 'A Peter Tecnet é uma empresa brasileira de tecnologia fundada em Brasília, com atuação em todo o Brasil. Desenvolvemos software, sites, aplicativos, IA, automações, integrações e plataformas digitais.',
       path: '/',
       schema: [
         {
@@ -274,14 +274,16 @@ function PeterLandingExperience() {
           name: 'Peter Tecnet',
           url: `${ORIGIN}/`,
           logo: `${ORIGIN}/petertecnetlogo.png`,
-          description: 'Empresa de tecnologia que desenvolve software, aplicativos, sites, plataformas, automações, integrações, soluções com inteligência artificial e serviços digitais.',
+          description: 'Empresa brasileira de tecnologia fundada em Brasília, com atuação em todo o Brasil. Desenvolve software, aplicativos, sites, plataformas, automações, integrações e soluções com inteligência artificial.',
+          foundingLocation: { '@type': 'Place', name: 'Brasília, Distrito Federal, Brasil', address: { '@type': 'PostalAddress', addressLocality: 'Brasília', addressRegion: 'DF', addressCountry: 'BR' } },
+          areaServed: { '@type': 'Country', name: 'Brasil' },
         },
         {
           '@context': 'https://schema.org',
           '@type': 'WebPage',
-          name: 'Peter Tecnet — produtos e serviços de tecnologia',
+          name: 'Peter Tecnet — tecnologia brasileira com atuação nacional',
           url: `${ORIGIN}/`,
-          description: 'Conheça os produtos, plataformas e serviços oferecidos pela Peter Tecnet.',
+          description: 'Conheça a Peter Tecnet, empresa brasileira de tecnologia fundada em Brasília e com atuação em todo o Brasil, seus produtos, plataformas e serviços.',
           isPartOf: { '@id': `${ORIGIN}/#website` },
         },
       ],
@@ -316,7 +318,7 @@ function PeterLandingExperience() {
           <div className="mkt-hero-copy" data-reveal>
             <p className="mkt-kicker"><span /> PETER TECNET</p>
             <h1>Tecnologia para transformar ideias, necessidades e problemas em <em>soluções que funcionam.</em></h1>
-            <p className="mkt-hero-lead">Desenvolvemos software, aplicativos, sites, landing pages, lojas virtuais, automações, integrações e soluções com inteligência artificial. Também realizamos serviços digitais mais simples para pessoas e empresas.</p>
+            <p className="mkt-hero-lead">Somos uma empresa brasileira de tecnologia, fundada em Brasília e com atuação em todo o Brasil. Desenvolvemos software, aplicativos, sites, landing pages, lojas virtuais, automações, integrações e soluções com inteligência artificial para pessoas e empresas.</p>
             <div className="mkt-hero-actions">
               <a className="mkt-btn is-primary" href="#servicos">Conhecer nossos serviços <span>↘</span></a>
               <a className="mkt-btn is-ghost" href="#contato">Falar sobre uma necessidade <span>↗</span></a>
@@ -384,11 +386,20 @@ function PeterLandingExperience() {
         </div>
       </section>
 
+      <section className="mkt-discovery" id="atuacao-nacional">
+        <div className="mkt-container">
+          <div className="mkt-section-heading is-split" data-reveal>
+            <div><p className="mkt-kicker">PETER TECNET NO BRASIL</p><h2>Fundada em Brasília. <span>Tecnologia para todo o Brasil.</span></h2></div>
+            <div><p>A Peter Tecnet nasceu em Brasília, Distrito Federal, e atua nacionalmente. Nossa operação digital permite atender empresas, empreendedores e projetos em diferentes regiões do país.</p><p>Goiânia é uma das cidades atendidas pela Peter Tecnet, não o limite geográfico da empresa. Desenvolvemos soluções para clientes em todo o território brasileiro.</p><p><a className="mkt-text-link" href="/sobre">Conheça a Peter Tecnet <span>↗</span></a></p></div>
+          </div>
+        </div>
+      </section>
+
       <section className="mkt-platforms" id="plataformas">
         <div className="mkt-container">
           <div className="mkt-section-heading is-split" data-reveal>
             <div><p className="mkt-kicker">NOSSAS PLATAFORMAS</p><h2>Produtos próprios criados para <span>resolver necessidades específicas.</span></h2></div>
-            <p>Além de desenvolver projetos sob medida, a Peter Tecnet cria e mantém plataformas próprias para diferentes tipos de operação.</p>
+            <p>Além de desenvolver projetos sob medida para clientes em todo o Brasil, a Peter Tecnet cria e mantém plataformas próprias para diferentes tipos de operação.</p>
           </div>
           {status === 'loading' && <div className="mkt-state">Carregando nossas plataformas…</div>}
           {applications.length > 0 && <div className="mkt-platform-grid">{applications.map((application, index) => <PlatformCard application={application} index={index} key={application.id || application.slug} />)}</div>}
