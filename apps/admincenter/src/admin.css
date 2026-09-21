@@ -17,102 +17,45 @@
 @import './AdminEstablishmentEventsResponsive.css';
 
 /* Primary information architecture: users and establishments always lead the menu. */
-.sidebar nav button[data-admin-page-target='users'] {
-  order: 1;
-  font-weight: 700;
-}
-
-.sidebar nav button[data-admin-page-target='establishments'] {
-  order: 2;
-  font-weight: 700;
-  margin-top: 0;
-}
+.sidebar nav button[data-admin-page-target='users'] { order: 1; font-weight: 700; }
+.sidebar nav button[data-admin-page-target='establishments'] { order: 2; font-weight: 700; margin-top: 0; }
 
 /* Keep primary navigation legible and comfortably tappable without JS/layout work. */
-.sidebar nav button[data-admin-page-target] {
-  min-height: 44px;
-  min-width: 0;
-  font-size: max(.95rem, 15px);
-  line-height: 1.25;
-}
-
-.sidebar nav button[data-admin-page-target]:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
-}
-
+.sidebar nav button[data-admin-page-target] { min-height: 44px; min-width: 0; font-size: max(.95rem, 15px); line-height: 1.25; }
+.sidebar nav button[data-admin-page-target]:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 .sidebar nav button[data-admin-page-target] > span,
-.sidebar nav button[data-admin-page-target] > i {
-  flex: 0 0 auto;
-}
+.sidebar nav button[data-admin-page-target] > i { flex: 0 0 auto; }
+.sidebar nav button[data-admin-page-target] > b { flex: 1 1 auto; min-width: 0; font-size: inherit; line-height: inherit; overflow-wrap: anywhere; }
 
-.sidebar nav button[data-admin-page-target] > b {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-size: inherit;
-  line-height: inherit;
-  overflow-wrap: anywhere;
-}
-
-/* The sidebar is intentionally entity-first. Secondary capabilities keep their existing
- * routes, deep links and command-search access without competing with the two entry points.
- * Legacy visual layers declare nav buttons with display:grid!important, so the final global
- * contract must explicitly win until those layers are retired. */
+/* Secondary capabilities retain routes/deep links/search access without competing with entities. */
 .sidebar nav button[data-admin-page-target='operations'],
 .sidebar nav button[data-admin-page-target='agents'],
 .sidebar nav button[data-admin-page-target='financial'],
 .sidebar nav button[data-admin-page-target='applications'],
 .sidebar nav button[data-admin-page-target='items'],
 .sidebar nav button[data-admin-page-target='notifications'],
-.sidebar nav button[data-admin-page-target='activity'] {
-  display: none !important;
-}
+.sidebar nav button[data-admin-page-target='activity'] { display: none !important; }
 
 /* A slow administrative request must never freeze navigation. */
-.peter-processing {
-  pointer-events: none;
-}
+.peter-processing { pointer-events: none; }
 
-/* Dense contextual entity lists should not spend layout/paint budget below the viewport.
- * Layout containment also prevents a heavy nested row from invalidating the whole list. */
+/* Dense contextual entity lists should not spend layout/paint budget below the viewport. */
 .acu-simple-user,
 .aec-item,
 .aee-event-shell,
-.aee-ticket-row {
-  content-visibility: auto;
-  contain: layout paint style;
-  contain-intrinsic-size: auto 76px;
-}
-
-.aee-event-shell {
-  contain-intrinsic-size: auto 132px;
-}
+.aee-ticket-row { content-visibility: auto; contain: layout paint style; contain-intrinsic-size: auto 76px; }
+.aee-event-shell { contain-intrinsic-size: auto 132px; }
 
 /* User administration is a primary surface: keep identity, metadata and actions readable. */
 .acu-users-simple__head span,
-.acu-simple-user__meta small {
-  font-size: .8125rem;
-  line-height: 1.35;
-}
-
+.acu-simple-user__meta small { font-size: .8125rem; line-height: 1.35; }
 .acu-users-simple__head p,
 .acu-simple-user__identity small,
 .acu-simple-user__meta strong,
 .acu-pagination,
-.acu-secondary {
-  font-size: .875rem;
-  line-height: 1.4;
-}
-
-.acu-simple-user__identity strong {
-  font-size: 1rem;
-  line-height: 1.3;
-}
-
-.acu-simple-user__impersonate {
-  min-height: 40px;
-  font-size: .875rem;
-}
+.acu-secondary { font-size: .875rem; line-height: 1.4; }
+.acu-simple-user__identity strong { font-size: 1rem; line-height: 1.3; }
+.acu-simple-user__impersonate { min-height: 40px; font-size: .875rem; }
 
 /* Establishment is the second primary entity. Keep its nested context from widening the shell. */
 .aep-page,
@@ -121,49 +64,36 @@
 .aep-editor,
 .aep-card,
 .aec-list,
-.aee-event-shell {
-  min-width: 0;
-  max-width: 100%;
-}
-
+.aee-event-shell { min-width: 0; max-width: 100%; }
 .aep-page,
 .aep-editor,
-.aep-card {
-  overflow-wrap: anywhere;
-}
+.aep-card { overflow-wrap: anywhere; }
 
-/* Establishment data is operational content, not fine print. Keep dense tables readable.
- * Legacy V2 still carries a smaller !important rule; this final contract intentionally wins
- * until that legacy layer is retired. */
+/* Establishment data is operational content, not fine print. */
 .aep-table th,
-.aep-table td {
-  font-size: .875rem !important;
-  line-height: 1.45 !important;
-}
+.aep-table td { font-size: .875rem !important; line-height: 1.45 !important; }
 
-/* Keep nested entity context inside the Admin viewport. Deep establishment/event content
- * can be wider than a phone; clipping accidental overflow avoids a second horizontal scroll
- * surface while preserving intentional scroll containers such as tables and tab strips. */
+/* Keep nested entity context inside the Admin viewport. */
 .admin-shell,
 .admin-shell > main,
-.admin-shell .content {
-  min-width: 0;
-  max-width: 100%;
-}
+.admin-shell .content { min-width: 0; max-width: 100%; }
 
-/* Keep route changes and long entity lists from shifting the entire shell when the vertical
- * scrollbar appears. Contain scroll chaining so a nested Admin surface cannot move the page
- * behind it, which keeps the sidebar/menu visually stable during fast navigation. */
-.admin-shell .content {
-  scrollbar-gutter: stable;
-  overscroll-behavior: contain;
-}
+/* Keep route changes and long entity lists from shifting the shell. */
+.admin-shell .content { scrollbar-gutter: stable; overscroll-behavior: contain; }
+
+/* Backdrop blur is expensive on large administrative overlays and adds no operational value. */
+.acu-invite-modal,
+.pt-ui-dialog-backdrop,
+.auc-modal-backdrop,
+.auc-modal-head,
+.aep-card,
+.aep-editor-actions,
+.aie-preview-badge,
+.aie-footer { backdrop-filter: none; -webkit-backdrop-filter: none; }
 
 /* Respect the platform motion preference globally. */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     scroll-behavior: auto !important;
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
@@ -174,45 +104,13 @@
 /* Final mobile readability/performance contract. */
 @media (max-width: 760px) {
   .admin-shell,
-  .admin-shell .content {
-    overflow-x: clip;
-  }
-
-  .top-search input {
-    font-size: 1rem;
-    min-height: 44px;
-  }
-
-  .sidebar nav button[data-admin-page-target] {
-    min-height: 48px;
-    font-size: 1rem;
-  }
-
-  .acu-simple-user__impersonate {
-    min-height: 44px;
-    font-size: .875rem;
-  }
-
-  .acu-invite-modal,
-  .pt-ui-dialog-backdrop,
-  .auc-modal-backdrop,
-  .auc-modal-head,
-  .aep-card,
-  .aep-editor-actions,
-  .aie-preview-badge,
-  .aie-footer {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-
+  .admin-shell .content { overflow-x: clip; }
+  .top-search input { font-size: 1rem; min-height: 44px; }
+  .sidebar nav button[data-admin-page-target] { min-height: 48px; font-size: 1rem; }
+  .acu-simple-user__impersonate { min-height: 44px; font-size: .875rem; }
   .skeleton-wrap::before,
   .skeleton-wrap::after,
   .admin-google-login.status-loading::before,
-  .admin-google-login.status-loading::after {
-    animation: none;
-  }
-
-  .skeleton-wrap::after {
-    content: 'Preparando o centro de controle…';
-  }
+  .admin-google-login.status-loading::after { animation: none; }
+  .skeleton-wrap::after { content: 'Preparando o centro de controle…'; }
 }
