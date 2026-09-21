@@ -71,12 +71,14 @@
   pointer-events: none;
 }
 
-/* Dense contextual entity lists should not spend layout/paint budget below the viewport. */
+/* Dense contextual entity lists should not spend layout/paint budget below the viewport.
+ * Layout containment also prevents a heavy nested row from invalidating the whole list. */
 .acu-simple-user,
 .aec-item,
 .aee-event-shell,
 .aee-ticket-row {
   content-visibility: auto;
+  contain: layout paint style;
   contain-intrinsic-size: auto 76px;
 }
 
@@ -178,25 +180,5 @@
 
   .skeleton-wrap::after {
     content: 'Preparando o centro de controle…';
-  }
-
-  .admin-google-login.status-loading::after {
-    content: 'Preparando autenticação segura…';
-  }
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .pt-image-input-surface:hover,
-  .pt-image-input-surface:focus-visible {
-    transform: none;
-    box-shadow: none;
-  }
-}
-
-@media (max-width: 640px) {
-  .table-wrap td::before,
-  .notification-table td::before {
-    font-size: .78rem;
-    line-height: 1.3;
   }
 }
