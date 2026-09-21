@@ -84,12 +84,6 @@
   }
 
   @media (prefers-contrast:more) {
-    :root {
-      --pt-line: rgba(205,239,247,.28);
-      --pt-line-strong: rgba(205,239,247,.52);
-      --pt-text-muted: #b8cbd1;
-    }
-
     :where(.admin-shell) :where(.panel,.metric-card,.adm-kpi,.adm-filterbar,.adm-datatable-shell) {
       border-color: currentColor;
     }
