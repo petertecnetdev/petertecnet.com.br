@@ -63,6 +63,13 @@
 .acu-simple-user__identity strong { font-size: 1rem; line-height: 1.3; }
 .acu-simple-user__impersonate { min-height: 40px; font-size: .875rem; }
 
+/* Primary entity actions should respond immediately to touch without gesture ambiguity. */
+.acu-simple-user__details,
+.acu-simple-user__impersonate,
+.acu-invite-button,
+.aep-primary,
+.aep-table button { touch-action: manipulation; }
+
 /* Establishment is the second primary entity. Keep its nested context from widening the shell. */
 .aep-page,
 .aep-list-header,
@@ -105,6 +112,18 @@
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
   }
+}
+
+/* Touch devices do not benefit from hover motion; skip those paint/composite steps for better INP. */
+@media (hover: none) and (pointer: coarse) {
+  .acu-simple-user,
+  .acu-simple-user__impersonate,
+  .acu-invite-button,
+  .aep-primary,
+  .aep-table button { transition: none !important; }
+
+  .acu-simple-user__impersonate:hover:not(:disabled),
+  .acu-invite-button:hover { transform: none; filter: none; }
 }
 
 /* Final mobile readability/performance contract. */
