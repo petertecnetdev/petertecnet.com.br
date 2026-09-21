@@ -56,7 +56,7 @@ function channelLabel(channel) {
 }
 
 export default function AdminProspectInvitation({ apiRequest, applications = [] }) {
-  const activeApplications = useMemo(() => applications.filter(app => app?.is_active !== false), [applications])
+  const activeApplications = useMemo(() => (Array.isArray(applications) ? applications : (Array.isArray(applications?.data) ? applications.data : [])).filter(app => app?.is_active !== false), [applications])
   const [form, setForm] = useState({
     channel: 'whatsapp',
     phone: '',
