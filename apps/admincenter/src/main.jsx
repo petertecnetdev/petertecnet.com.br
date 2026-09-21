@@ -6,6 +6,7 @@ import SupportAdminApp from './SupportAdminApp.jsx'
 import { installAdminRuntimeMonitor } from './adminRuntimeMonitor.js'
 import { installWebVitals } from './discoveryApi.js'
 import './admin.css'
+import './AdminApplicationsExperienceResponsive.css'
 
 installAdminRuntimeMonitor()
 installWebVitals('admincenter')
