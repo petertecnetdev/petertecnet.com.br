@@ -44,10 +44,11 @@ const RESOURCE_REGISTRY = {
 }
 
 const bool = value => value === true || value === 1 || value === '1'
+const asArray = value => Array.isArray(value) ? value : Array.isArray(value?.data) ? value.data : []
 const establishmentName = row => row?.fantasy || row?.name || `Establishment #${row?.id || '—'}`
 const userName = user => [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.user_name || user?.email || `Usuário #${user?.id || '—'}`
-const establishmentLogo = row => (row?.files || []).find(item => ['logo', 'avatar', 'image'].includes(item?.type) && item?.public_url)?.public_url || ''
-const linkedAppIds = row => Array.from(new Set([row?.app_id, ...(row?.applications || []).map(app => app.id)].map(Number).filter(Boolean)))
+const establishmentLogo = row => asArray(row?.files).find(item => ['logo', 'avatar', 'image'].includes(item?.type) && item?.public_url)?.public_url || ''
+const linkedAppIds = row => Array.from(new Set([row?.app_id, ...asArray(row?.applications).map(app => app.id)].map(Number).filter(Boolean)))
 
 function formFrom(row) {
   const appIds = linkedAppIds(row).map(String)
@@ -64,7 +65,7 @@ function formFrom(row) {
 
 function payloadFrom(form, editing) {
   const nullable = value => String(value ?? '').trim() || null
-  const appIds = Array.from(new Set(form.app_ids.map(Number).filter(Boolean)))
+  const appIds = Array.from(new Set(asArray(form?.app_ids).map(Number).filter(Boolean)))
   const payload = {
     name: form.name.trim(), fantasy: nullable(form.fantasy), slug: nullable(form.slug), cnpj: nullable(form.cnpj),
     type: nullable(form.type), category: nullable(form.category), phone: nullable(form.phone), email: nullable(form.email),
@@ -124,9 +125,9 @@ export default function AdminEstablishmentsPageV2({ quickCreateToken = 0 }) {
     const [appsResult, usersResult] = await Promise.allSettled([apiRequest('/admin/applications'), apiRequest('/admin/ecosystem/users')])
     if (appsResult.status === 'fulfilled') {
       const payload = appsResult.value
-      setApplications(payload?.applications || payload?.data || (Array.isArray(payload) ? payload : []))
+      setApplications(asArray(payload?.applications ?? payload?.data ?? payload))
     }
-    if (usersResult.status === 'fulfilled') setUsers(usersResult.value?.users || [])
+    if (usersResult.status === 'fulfilled') setUsers(asArray(usersResult.value?.users ?? usersResult.value?.data ?? usersResult.value))
   }, [])
 
   const loadRows = useCallback(async currentFilters => {
@@ -134,11 +135,11 @@ export default function AdminEstablishmentsPageV2({ quickCreateToken = 0 }) {
     if (!loadedOnceRef.current) setLoading(true)
     setError('')
     const params = new URLSearchParams()
-    Object.entries(currentFilters).forEach(([key, value]) => { if (String(value || '').trim()) params.set(key, String(value).trim()) })
+    Object.entries(currentFilters && typeof currentFilters === 'object' ? currentFilters : EMPTY_FILTERS).forEach(([key, value]) => { if (String(value || '').trim()) params.set(key, String(value).trim()) })
     try {
       const payload = await apiRequest(`/admin/ecosystem/establishments${params.size ? `?${params.toString()}` : ''}`)
       if (sequence !== loadSequenceRef.current) return
-      setRows(payload?.establishments || [])
+      setRows(asArray(payload?.establishments ?? payload?.data ?? payload))
     } catch (err) {
       if (sequence === loadSequenceRef.current) setError(err.message)
     } finally {
@@ -160,9 +161,9 @@ export default function AdminEstablishmentsPageV2({ quickCreateToken = 0 }) {
     approved: rows.filter(row => bool(row.is_approved)).length,
     published: rows.filter(row => bool(row.is_published)).length,
     featured: rows.filter(row => bool(row.is_featured)).length,
-    multiApp: rows.filter(row => (row.applications || []).length > 1).length,
+    multiApp: rows.filter(row => asArray(row?.applications).length > 1).length,
   }), [rows])
-  const selectedApps = useMemo(() => applications.filter(app => form.app_ids.includes(String(app.id))), [applications, form.app_ids])
+  const selectedApps = useMemo(() => applications.filter(app => asArray(form?.app_ids).includes(String(app.id))), [applications, form.app_ids])
   const savedAppIds = useMemo(() => new Set(linkedAppIds(editing)), [editing])
   const scrollTop = () => document.getElementById('establishments-admin-integration')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
