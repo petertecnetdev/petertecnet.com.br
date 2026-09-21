@@ -130,6 +130,16 @@
   overflow-wrap: anywhere;
 }
 
+/* Keep nested entity context inside the Admin viewport. Deep establishment/event content
+ * can be wider than a phone; clipping accidental overflow avoids a second horizontal scroll
+ * surface while preserving intentional scroll containers such as tables and tab strips. */
+.admin-shell,
+.admin-shell > main,
+.admin-shell .content {
+  min-width: 0;
+  max-width: 100%;
+}
+
 /* Respect the platform motion preference globally. */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -144,6 +154,11 @@
 
 /* Final mobile readability/performance contract. */
 @media (max-width: 760px) {
+  .admin-shell,
+  .admin-shell .content {
+    overflow-x: clip;
+  }
+
   .top-search input {
     font-size: 1rem;
     min-height: 44px;
