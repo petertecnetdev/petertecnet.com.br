@@ -15,6 +15,14 @@ export const adminEntityRoute = Object.freeze({
   tickets: (establishmentId, eventId) => `${ADMIN_ENTITY_ROUTES.establishments}/${segment(establishmentId)}/eventos/${segment(eventId)}/ingressos`,
 })
 
+// A navegação principal deve permanecer curta e centrada nas duas entidades-raiz.
+// Colaboradores, itens e eventos pertencem ao contexto do estabelecimento;
+// ingressos pertencem ao contexto do evento e continuam acessíveis por deep link.
+export const ADMIN_PRIMARY_NAVIGATION = Object.freeze([
+  { key: 'users', label: 'Usuários', href: ADMIN_ENTITY_ROUTES.users },
+  { key: 'establishments', label: 'Estabelecimentos', href: ADMIN_ENTITY_ROUTES.establishments },
+])
+
 export const adminEstablishmentNavigation = establishmentId => [
   { key: 'overview', label: 'Visão geral', href: adminEntityRoute.establishment(establishmentId) },
   { key: 'collaborators', label: 'Colaboradores', href: adminEntityRoute.collaborators(establishmentId) },
