@@ -121,7 +121,12 @@ function dockLauncherInNavbar(launcher) {
   if (launcher.shadowRoot) shadowObserver.observe(launcher.shadowRoot, { childList: true, subtree: true })
   const navObserver = new MutationObserver(() => { if (mount()) navObserver.disconnect() })
   if (launcher.getAttribute('data-peter-navbar-docked') !== 'true') navObserver.observe(document.body, { childList: true, subtree: true })
-  return () => { shadowObserver.disconnect(); navObserver.disconnect() }
+  const navObserverTimeout = window.setTimeout(() => navObserver.disconnect(), 5000)
+  return () => {
+    window.clearTimeout(navObserverTimeout)
+    shadowObserver.disconnect()
+    navObserver.disconnect()
+  }
 }
 
 export default function PeterAccountGateway({ apiBaseUrl, appSlug, children }) {
