@@ -46,6 +46,10 @@
 .aee-ticket-row { content-visibility: auto; contain: layout paint style; contain-intrinsic-size: auto 76px; }
 .aee-event-shell { contain-intrinsic-size: auto 132px; }
 
+/* Isolate the two primary administration surfaces so nested updates do not repaint the shell/sidebar. */
+.acu-users-simple,
+.aep-page { contain: layout paint style; }
+
 /* User administration is a primary surface: keep identity, metadata and actions readable. */
 .acu-users-simple__head span,
 .acu-simple-user__meta small { font-size: .8125rem; line-height: 1.35; }
