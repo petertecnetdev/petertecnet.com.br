@@ -23,6 +23,15 @@ export const ADMIN_PRIMARY_NAVIGATION = Object.freeze([
   { key: 'establishments', label: 'Estabelecimentos', href: ADMIN_ENTITY_ROUTES.establishments },
 ])
 
+// Mantém a entidade-raiz ativa durante toda a navegação contextual/deep link.
+// Isso evita o menu perder seleção ao entrar em colaboradores, itens, eventos ou ingressos.
+export const adminPrimaryNavigationKey = pathname => {
+  const normalizedPath = `/${String(pathname ?? '').split('?')[0].split('#')[0].split('/').filter(Boolean).join('/')}`
+  if (normalizedPath === ADMIN_ENTITY_ROUTES.users || normalizedPath.startsWith(`${ADMIN_ENTITY_ROUTES.users}/`)) return 'users'
+  if (normalizedPath === ADMIN_ENTITY_ROUTES.establishments || normalizedPath.startsWith(`${ADMIN_ENTITY_ROUTES.establishments}/`)) return 'establishments'
+  return null
+}
+
 export const adminEstablishmentNavigation = establishmentId => [
   { key: 'overview', label: 'Visão geral', href: adminEntityRoute.establishment(establishmentId) },
   { key: 'collaborators', label: 'Colaboradores', href: adminEntityRoute.collaborators(establishmentId) },
