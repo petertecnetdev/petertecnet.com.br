@@ -87,7 +87,8 @@
 /* User administration is a primary surface: keep identity, metadata and actions readable. */
 .acu-users-simple__head span,
 .acu-simple-user__meta small {
-  font-size: .75rem;
+  font-size: .8125rem;
+  line-height: 1.35;
 }
 
 .acu-users-simple__head p,
@@ -95,16 +96,18 @@
 .acu-simple-user__meta strong,
 .acu-pagination,
 .acu-secondary {
-  font-size: .8rem;
+  font-size: .875rem;
+  line-height: 1.4;
 }
 
 .acu-simple-user__identity strong {
-  font-size: .9rem;
+  font-size: 1rem;
+  line-height: 1.3;
 }
 
 .acu-simple-user__impersonate {
   min-height: 40px;
-  font-size: .8rem;
+  font-size: .875rem;
 }
 
 /* Respect the platform motion preference globally. */
@@ -133,7 +136,7 @@
 
   .acu-simple-user__impersonate {
     min-height: 44px;
-    font-size: .8rem;
+    font-size: .875rem;
   }
 
   .acu-invite-modal,
