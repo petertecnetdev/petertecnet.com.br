@@ -164,11 +164,13 @@
     -webkit-backdrop-filter: none;
   }
 
-  /* Establishment cards and the sticky editor action bar used 14-16px backdrop blur.
-   * These surfaces move with/over the viewport, so blur forces repeated backdrop sampling
-   * during scroll. Mobile keeps the opaque-enough existing backgrounds without that cost. */
+  /* Establishment cards and sticky editor surfaces used 12-16px backdrop blur. These
+   * surfaces move with/over the viewport, so blur forces repeated backdrop sampling during
+   * scroll. Mobile keeps the existing opaque-enough backgrounds without that GPU cost. */
   .aep-card,
-  .aep-editor-actions {
+  .aep-editor-actions,
+  .aie-preview-badge,
+  .aie-footer {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
