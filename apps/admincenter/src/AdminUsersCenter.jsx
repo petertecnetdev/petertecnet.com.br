@@ -118,12 +118,11 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
     setError('')
   }
 
-  async function closeDetail() {
+  function closeDetail() {
     const url = new URL(window.location.href)
     url.searchParams.delete('user')
     window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`)
     setDetailUserId(null)
-    await loadUsers(pagination.current_page || 1, { quiet: true })
   }
 
   if (detailUserId) {
