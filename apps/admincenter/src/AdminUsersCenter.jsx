@@ -3,7 +3,6 @@ import { readAdminSessionState, writeAdminSessionState } from './adminPersistenc
 import AdminUserDetailPage from './AdminUserDetailExperience.jsx'
 import AdminProspectInvitation from './AdminProspectInvitation.jsx'
 import { AdminImpersonationDialog, canImpersonate } from './AdminImpersonation.jsx'
-import './AdminUsersCenter.css'
 
 const DEFAULT_LIST_SETTINGS = { sort: 'newest', per_page: '50' }
 
