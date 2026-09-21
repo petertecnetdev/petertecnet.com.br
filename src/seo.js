@@ -56,8 +56,8 @@ function normalizePath(path) {
 export function updatePageSeo({ title, description, path = '/', image, type = 'website', robots, schema, keywords } = {}) {
   const normalizedPath = normalizePath(path)
   const canonical = `${PUBLIC_ORIGIN}${normalizedPath === '/' ? '/' : normalizedPath}`
-  const pageTitle = title || 'Peter Tecnet | Software, automação, APIs e produtos digitais'
-  const pageDescription = description || 'Tecnologia para transformar necessidades reais em produtos, plataformas, aplicativos, automações, APIs e soluções digitais.'
+  const pageTitle = title || 'Peter Tecnet | Software, aplicativos, IA e soluções digitais no Brasil'
+  const pageDescription = description || 'Empresa brasileira de tecnologia fundada em Brasília, com atuação em todo o Brasil. Software, aplicativos, sites, IA, automações, APIs e integrações.'
   const pageImage = image && !/^data:/i.test(image) ? image : DEFAULT_IMAGE
 
   document.title = pageTitle
