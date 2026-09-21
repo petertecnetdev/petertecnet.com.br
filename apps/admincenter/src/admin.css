@@ -55,7 +55,9 @@
 }
 
 /* The sidebar is intentionally entity-first. Secondary capabilities keep their existing
- * routes, deep links and command-search access without competing with the two entry points. */
+ * routes, deep links and command-search access without competing with the two entry points.
+ * Legacy visual layers declare nav buttons with display:grid!important, so the final global
+ * contract must explicitly win until those layers are retired. */
 .sidebar nav button[data-admin-page-target='operations'],
 .sidebar nav button[data-admin-page-target='agents'],
 .sidebar nav button[data-admin-page-target='financial'],
@@ -63,7 +65,7 @@
 .sidebar nav button[data-admin-page-target='items'],
 .sidebar nav button[data-admin-page-target='notifications'],
 .sidebar nav button[data-admin-page-target='activity'] {
-  display: none;
+  display: none !important;
 }
 
 /* A slow administrative request must never freeze navigation. */
