@@ -130,12 +130,13 @@
   overflow-wrap: anywhere;
 }
 
-/* Establishment data is operational content, not fine print. Keep dense tables readable
- * without adding another component-specific stylesheet or increasing render complexity. */
+/* Establishment data is operational content, not fine print. Keep dense tables readable.
+ * Legacy V2 still carries a smaller !important rule; this final contract intentionally wins
+ * until that legacy layer is retired. */
 .aep-table th,
 .aep-table td {
-  font-size: .875rem;
-  line-height: 1.45;
+  font-size: .875rem !important;
+  line-height: 1.45 !important;
 }
 
 /* Keep nested entity context inside the Admin viewport. Deep establishment/event content
