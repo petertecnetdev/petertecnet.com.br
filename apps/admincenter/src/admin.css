@@ -117,6 +117,13 @@
   .aep-list-header { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; gap: .875rem !important; align-items: start !important; }
   .aep-list-header > .aep-primary { width: 100%; min-height: 48px; justify-content: center; }
 
+  /* Keep the establishment list operational on phones: secondary context remains available in the editor/deep links. */
+  .aep-table th:nth-child(3),
+  .aep-table td:nth-child(3),
+  .aep-table th:nth-child(4),
+  .aep-table td:nth-child(4) { display: none; }
+  .aep-table-wrap { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+
   .skeleton-wrap::before,
   .skeleton-wrap::after,
   .admin-google-login.status-loading::before,
