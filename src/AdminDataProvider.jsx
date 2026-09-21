@@ -22,8 +22,15 @@ function emptyData() {
   return { dashboard: null, activity: null, financial: null, command: null, applications: [], support: null, telemetry: null, journeys: null, orders: null }
 }
 
+function collectionFrom(value) {
+  if (Array.isArray(value)) return value
+  if (Array.isArray(value?.data)) return value.data
+  if (Array.isArray(value?.items)) return value.items
+  return []
+}
+
 function normalize(key, payload) {
-  if (key === 'applications') return payload?.applications || payload?.data || (Array.isArray(payload) ? payload : [])
+  if (key === 'applications') return collectionFrom(payload?.applications ?? payload?.data ?? payload)
   if (key === 'support') return payload?.summary || payload || null
   return payload
 }
