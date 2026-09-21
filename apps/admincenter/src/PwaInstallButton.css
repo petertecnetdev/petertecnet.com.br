@@ -23,13 +23,11 @@
   padding: 0 17px;
   border: 1px solid rgba(95, 226, 244, .3);
   border-radius: 15px;
-  background: rgba(5, 20, 29, .96);
+  background: #05141d;
   color: #effcff;
   font: inherit;
   font-weight: 800;
   box-shadow: 0 18px 46px rgba(0, 0, 0, .38), inset 0 1px 0 rgba(255, 255, 255, .05);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   cursor: pointer;
 }
 
@@ -60,7 +58,7 @@
   padding: 17px 42px 17px 17px;
   border: 1px solid rgba(95, 226, 244, .22);
   border-radius: 16px;
-  background: rgba(5, 20, 29, .98);
+  background: #05141d;
   color: #effcff;
   box-shadow: 0 20px 54px rgba(0, 0, 0, .42);
 }
