@@ -14,6 +14,7 @@
 @import './AdminUiKit.css';
 @import './AdminQualityLayer.css';
 @import './AdminResponsiveV3.css';
+@import './AdminEstablishmentEventsResponsive.css';
 
 /* Primary information architecture: users and establishments always lead the menu.
  * Keep this ordering in the global layer so legacy/deep-link routes stay intact while
@@ -148,8 +149,6 @@
     font-size: .8rem;
   }
 
-  /* Full-screen modal backdrops sit above the entire viewport while their panels scroll.
-   * Avoid continuously resampling the page behind them on constrained mobile GPUs. */
   .acu-invite-modal,
   .pt-ui-dialog-backdrop,
   .auc-modal-backdrop {
@@ -157,16 +156,11 @@
     -webkit-backdrop-filter: none;
   }
 
-  /* The communication modal header is sticky inside a scrolling panel. Sampling the panel
-   * behind it on every scroll frame adds paint work without improving mobile usability. */
   .auc-modal-head {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
 
-  /* Establishment cards and sticky editor surfaces used 12-16px backdrop blur. These
-   * surfaces move with/over the viewport, so blur forces repeated backdrop sampling during
-   * scroll. Mobile keeps the existing opaque-enough backgrounds without that GPU cost. */
   .aep-card,
   .aep-editor-actions,
   .aie-preview-badge,
@@ -191,8 +185,6 @@
   }
 }
 
-/* Touch devices do not benefit from hover elevation. Keeping upload surfaces stationary
- * avoids sticky hover states and extra compositor work while scrolling dense admin forms. */
 @media (hover: none) and (pointer: coarse) {
   .pt-image-input-surface:hover,
   .pt-image-input-surface:focus-visible {
@@ -201,7 +193,6 @@
   }
 }
 
-/* Dense table labels must remain readable when rows collapse into mobile cards. */
 @media (max-width: 640px) {
   .table-wrap td::before,
   .notification-table td::before {
