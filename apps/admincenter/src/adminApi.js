@@ -10,6 +10,7 @@ const requestStats = new Map()
 const lastStormNotice = new Map()
 const STORM_WINDOW_MS = 60000
 const STORM_THRESHOLD = 25
+const MAX_RATE_LIMIT_RETRY_MS = 5000
 
 function routeKey(path) {
   return String(path || '').split('?')[0]
@@ -99,6 +100,13 @@ function requestError(response, payload) {
   return error
 }
 
+function retryDelay(error) {
+  if (error?.status === 429 && Number(error.retryAfter) > 0) {
+    return Math.min(Number(error.retryAfter) * 1000, MAX_RATE_LIMIT_RETRY_MS)
+  }
+  return 350 + Math.round(Math.random() * 150)
+}
+
 async function execute(path, options, attempt = 0) {
   const trace = attempt === 0 ? recordRequestStart(path) : null
   const token = localStorage.getItem(TOKEN_KEY)
@@ -136,9 +144,9 @@ async function execute(path, options, attempt = 0) {
 
     if (!response.ok) {
       const error = requestError(response, payload)
-      const retryable = method === 'GET' && attempt < 1 && (response.status >= 500 || response.status === 408)
+      const retryable = method === 'GET' && attempt < 1 && (response.status >= 500 || response.status === 408 || response.status === 429)
       if (retryable && navigator.onLine) {
-        await delay(350 + Math.round(Math.random() * 150), externalSignal)
+        await delay(retryDelay(error), externalSignal)
         const retried = await execute(path, options, attempt + 1)
         succeeded = true
         return retried
