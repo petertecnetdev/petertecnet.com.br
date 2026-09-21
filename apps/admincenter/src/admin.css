@@ -130,6 +130,14 @@
   overflow-wrap: anywhere;
 }
 
+/* Establishment data is operational content, not fine print. Keep dense tables readable
+ * without adding another component-specific stylesheet or increasing render complexity. */
+.aep-table th,
+.aep-table td {
+  font-size: .875rem;
+  line-height: 1.45;
+}
+
 /* Keep nested entity context inside the Admin viewport. Deep establishment/event content
  * can be wider than a phone; clipping accidental overflow avoids a second horizontal scroll
  * surface while preserving intentional scroll containers such as tables and tab strips. */
