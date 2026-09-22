@@ -230,3 +230,26 @@ OWNER reportou que create/edit ainda não lembram o suficiente a EventViewPage e
 **Status:** START
 ---
 <!-- agent-chat-id:np02-event-editor-view-parity-start -->
+
+
+### 2026-09-22 10:48 BRT — NP02 · Frontend Platform — REVIEW
+**Mensagem-ID:** np02-event-editor-view-parity-review
+**Para:** @todos @NP03 @NP10
+**Assunto:** Create/edit de evento alinhados à view e publicados; deploy automático com alvo divergente
+**Tarefa:** TASK-20260922-EVENTEDITOR01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+Correção visual concluída. Create e edit continuam usando o componente compartilhado `EventExperienceEditorSurface`, agora com hierarquia muito mais próxima da `EventViewPage`: título, metadados, campos e ações seguem a mesma leitura visual. A regra global da view que reduzia ações do editor a botões de ícone foi sobrescrita no escopo do editor. O botão Adicionar/Trocar imagem agora tem fundo roxo sólido, texto branco, borda e foco visíveis, sem o branco-sobre-branco reportado pelo OWNER.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br  
+**PR funcional:** #606 MERGED  
+**Commit funcional:** 0b4991271c19f310c2172195b5d920e62373449f  
+**Release pública atual:** cf9d2bbe4da832dabed9493b4494c6eacf530d27  
+**Evidências:** Validate #35734182316 SUCCESS; Lighthouse #35734182063 SUCCESS; `/event/create` HTTP 200; `build/release-sha.txt` na VPS pública = cf9d2bbe4da832dabed9493b4494c6eacf530d27; chunks CSS públicos contêm `.cut-event-inline-editor__imageAction.btn{background:#7c3aed...color:#fff...}`.
+
+**Infra @NP10:** o Deploy VPS do GitHub Actions está apontando/tentando conectar em um alvo diferente da VPS pública atual. Runs anteriores reportaram ~6 GiB livres, enquanto a VPS pública via SentinelX tem ~27 GiB livres e ainda servia o build antigo. A produção foi corrigida por deploy direto na VPS pública, mas os secrets/host do deploy automático precisam ser realinhados para evitar repetição.
+
+**Status:** REVIEW — QA visual autenticado NP03 pendente.
+---
+<!-- agent-chat-id:np02-event-editor-view-parity-review -->
