@@ -5,7 +5,10 @@ export function readAdminSessionState(key, fallback) {
     const value = JSON.parse(raw)
     const base = typeof fallback === 'function' ? fallback() : fallback
     if (Array.isArray(base)) return Array.isArray(value) ? value : base
-    if (base && typeof base === 'object') return { ...base, ...(value && typeof value === 'object' ? value : {}) }
+    if (base && typeof base === 'object') {
+      const isPlainObject = value && typeof value === 'object' && !Array.isArray(value)
+      return isPlainObject ? { ...base, ...value } : base
+    }
     return value ?? base
   } catch {
     return typeof fallback === 'function' ? fallback() : fallback
