@@ -67,8 +67,15 @@
   }
 
   @media (max-width:760px) {
-    :where(.admin-shell) :where(button,.adm-button,input,select) {
+    :where(.admin-shell) :where(button,.adm-button,input,select,textarea) {
       min-height: 44px;
+      max-inline-size: 100%;
+      box-sizing: border-box;
+    }
+
+    :where(.admin-shell) :where(input,select,textarea) {
+      min-inline-size: 0;
+      font-size: max(1rem,16px);
     }
   }
 
