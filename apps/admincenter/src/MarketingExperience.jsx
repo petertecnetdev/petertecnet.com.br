@@ -115,7 +115,7 @@ function MarketingHeader() {
   const close = () => setOpen(false)
   return <header className="mkt-header">
     <a className="mkt-brand" href="/" onClick={close} aria-label="Peter Tecnet — início">
-      <span className="mkt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span>
+      <span className="mkt-brand-mark"><img src="/petertecnet-brand.svg" alt="" /></span>
       <span><strong>Peter Tecnet</strong><small>Technology ecosystem</small></span>
     </a>
     <button className="mkt-menu" type="button" aria-label="Abrir menu" aria-expanded={open} onClick={() => setOpen(value => !value)}><i /><i /></button>
@@ -133,7 +133,7 @@ function MarketingFooter({ contact = defaultContact }) {
   return <footer className="mkt-footer">
     <div className="mkt-container mkt-footer-grid">
       <div className="mkt-footer-brand">
-        <span className="mkt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span>
+        <span className="mkt-brand-mark"><img src="/petertecnet-brand.svg" alt="" /></span>
         <div><strong>Peter Tecnet</strong><p>Tecnologia para vender, organizar, integrar e crescer.</p></div>
       </div>
       <div className="mkt-footer-links">
@@ -164,7 +164,7 @@ function PlatformCard({ application, index }) {
   return <article className="mkt-platform-card" data-reveal data-tilt>
     <div className="mkt-card-index"><span>{String(index + 1).padStart(2, '0')}</span><small>{application?.version ? `v${application.version}` : 'PETER TECNET'}</small></div>
     <a className="mkt-platform-logo" href={applicationHref(application)} aria-label={`Conhecer ${application.name}`}>
-      <img src={resolveAssetUrl(application.logo) || '/petertecnetlogo.png'} alt={`Logo ${application.name}`} loading="lazy" />
+      <img src={resolveAssetUrl(application.logo) || '/petertecnet-brand.svg'} alt={`Logo ${application.name}`} loading="lazy" />
     </a>
     <p className="mkt-card-eyebrow">{seo?.eyebrow || 'Produto digital'}</p>
     <h3><a href={applicationHref(application)}>{application.name}</a></h3>
@@ -266,7 +266,7 @@ function LandingPage() {
 
           <aside className="mkt-command" data-reveal data-tilt aria-label="Visão do ecossistema Peter Tecnet">
             <div className="mkt-command-head"><span><i /> ECOSYSTEM / ONLINE</span><small>API CONNECTED</small></div>
-            <div className="mkt-command-core"><div className="mkt-core-rings"><span /><span /><span /></div><img src="/petertecnetlogo.png" alt="Peter Tecnet" /></div>
+            <div className="mkt-command-core"><div className="mkt-core-rings"><span /><span /><span /></div><img src="/petertecnet-brand.svg" alt="Peter Tecnet" /></div>
             <div className="mkt-command-stats"><div><strong>{status === 'success' ? applications.length : '—'}</strong><span>plataformas</span></div><div><strong>{status === 'success' ? catalog.length : '—'}</strong><span>produtos e serviços</span></div><div><strong>1</strong><span>ecossistema</span></div></div>
             <div className="mkt-command-stream"><span>DISCOVER</span><b>→</b><span>CONNECT</span><b>→</b><span>OPERATE</span></div>
           </aside>
@@ -328,7 +328,7 @@ function LandingPage() {
       <section className="mkt-conversion" id="contato">
         <div className="mkt-grid" aria-hidden="true" />
         <div className="mkt-container mkt-conversion-inner" data-reveal>
-          <div className="mkt-conversion-mark"><img src="/petertecnetlogo.png" alt="" /><span /><span /></div>
+          <div className="mkt-conversion-mark"><img src="/petertecnet-brand.svg" alt="" /><span /><span /></div>
           <p className="mkt-kicker">PRÓXIMO PASSO</p>
           <h2>Do serviço digital simples ao sistema completo. <span>Se envolve tecnologia, buscamos um caminho.</span></h2>
           <p>Use uma plataforma do ecossistema, contrate um item do catálogo ou fale com a Peter Tecnet sobre desenvolvimento sob medida, sites, aplicativos, documentos, integrações, automação, IA e evolução de uma operação digital existente.</p>
@@ -365,7 +365,7 @@ function PlatformPage({ slug }) {
           description,
           applicationCategory: 'BusinessApplication',
           url: `${ORIGIN}/plataformas/${slug}`,
-          image: resolveAssetUrl(application.logo) || `${ORIGIN}/petertecnetlogo.png`,
+          image: resolveAssetUrl(application.logo) || `${ORIGIN}/petertecnet-brand.svg`,
           creator: { '@id': `${ORIGIN}/#organization` },
         },
         {
@@ -381,7 +381,7 @@ function PlatformPage({ slug }) {
     })
   }, [application, seo, slug, status])
 
-  if (status === 'loading') return <PageChrome><main className="mkt-page-state"><img src="/petertecnetlogo.png" alt="" /><p>Carregando plataforma…</p></main></PageChrome>
+  if (status === 'loading') return <PageChrome><main className="mkt-page-state"><img src="/petertecnet-brand.svg" alt="" /><p>Carregando plataforma…</p></main></PageChrome>
   if (!application) return <PageChrome><main className="mkt-page-state"><h1>Plataforma não encontrada.</h1><a className="mkt-btn is-primary" href="/#plataformas">Ver plataformas</a></main></PageChrome>
 
   const benefits = seo?.benefits || [
@@ -403,7 +403,7 @@ function PlatformPage({ slug }) {
             <div className="mkt-chip-row is-large">{(seo?.intents || []).map(intent => <span key={intent}>{intent}</span>)}</div>
             <div className="mkt-hero-actions">{application.url && <a className="mkt-btn is-primary" href={application.url} target="_blank" rel="noreferrer">Abrir {application.name} <span>↗</span></a>}<a className="mkt-btn is-ghost" href={`mailto:${contact.email}?subject=${encodeURIComponent(`Quero saber mais sobre ${application.name}`)}`}>Falar sobre essa solução <span>↗</span></a></div>
           </div>
-          <div className="mkt-product-orbit" data-reveal data-tilt><div className="mkt-orbit-lines"><span /><span /><span /></div><img src={resolveAssetUrl(application.logo) || '/petertecnetlogo.png'} alt={`Logo ${application.name}`} /><small>PLATFORM / {slug.toUpperCase()}</small></div>
+          <div className="mkt-product-orbit" data-reveal data-tilt><div className="mkt-orbit-lines"><span /><span /><span /></div><img src={resolveAssetUrl(application.logo) || '/petertecnet-brand.svg'} alt={`Logo ${application.name}`} /><small>PLATFORM / {slug.toUpperCase()}</small></div>
         </div>
       </section>
 
@@ -483,7 +483,7 @@ function ProductPage({ identifier }) {
     })
   }, [identifier, payload, status])
 
-  if (status === 'loading') return <PageChrome><main className="mkt-page-state"><img src="/petertecnetlogo.png" alt="" /><p>Consultando o catálogo…</p></main></PageChrome>
+  if (status === 'loading') return <PageChrome><main className="mkt-page-state"><img src="/petertecnet-brand.svg" alt="" /><p>Consultando o catálogo…</p></main></PageChrome>
   if (!payload?.item) return <PageChrome><main className="mkt-page-state"><h1>{status === 'not-found' ? 'Produto não encontrado.' : 'Não foi possível carregar este item.'}</h1><a className="mkt-btn is-primary" href="/#catalogo">Voltar ao catálogo</a></main></PageChrome>
 
   const { item, establishment, otherItems = [] } = payload
