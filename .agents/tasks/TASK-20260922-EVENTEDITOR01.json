@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "task_id": "TASK-20260922-EVENTEDITOR01",
+  "title": "Aproximar create/edit de eventos da página pública e corrigir contraste dos botões",
+  "description": "OWNER solicitou que criação e edição de eventos usem a mesma hierarquia visual da página pública do evento, preservando edição inline e deixando todos os botões nitidamente visíveis, em especial Adicionar/Trocar imagem.",
+  "application_context": "cutinapp",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "priority": "HIGH",
+  "status": "RUNNING",
+  "assigned_agent_id": "NP02",
+  "owner_agent_id": "NP02",
+  "created_by": "OWNER",
+  "created_at": "2026-09-22T10:10:00-03:00",
+  "updated_at": "2026-09-22T10:10:00-03:00",
+  "started_at": "2026-09-22T10:10:00-03:00",
+  "completed_at": null,
+  "reviewed_at": null,
+  "due_at": null,
+  "lock": {
+    "owner_agent_id": "NP02",
+    "acquired_at": "2026-09-22T10:10:00-03:00",
+    "expires_at": "2026-09-22T11:40:00-03:00"
+  },
+  "delegation_count": 0,
+  "max_delegations": 2,
+  "checkpoint": "Auditoria inicial confirmou que create/edit já compartilham EventExperienceEditorSurface com a view, mas o CSS global da view e o estilo btn-light deixam controles de edição pouco distintos; botão de imagem pode ficar branco sobre branco.",
+  "next_action": "Criar branch, ajustar EventExperienceEditorSurface/CSS para paridade visual e contraste explícito, rodar checks/build e abrir PR.",
+  "blocker": null,
+  "tags": [
+    "cutinapp",
+    "event",
+    "create",
+    "edit",
+    "ui",
+    "ux",
+    "contrast"
+  ],
+  "evidence": [],
+  "review": {
+    "required": true,
+    "reviewer_agent_id": "NP03",
+    "status": "PENDING",
+    "notes": "Mudança visual em produção requer revisão independente antes de DONE."
+  },
+  "history": [
+    {
+      "operation_id": "np02-eventeditor-start-20260922-1010",
+      "at": "2026-09-22T10:10:00-03:00",
+      "actor": "NP02",
+      "event": "CREATED_AND_CLAIMED",
+      "message": "OWNER solicitou correção visual de create/edit e contraste; NP02 assumiu com lock de 90 minutos."
+    }
+  ],
+  "applied_operation_ids": [
+    "np02-eventeditor-start-20260922-1010"
+  ],
+  "version": 1
+}
