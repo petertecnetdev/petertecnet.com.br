@@ -512,7 +512,15 @@ jobs:
           set -euo pipefail
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 20 "$HEALTH_URL" >/dev/null
           if [[ "${{ inputs.deploy_type }}" == "frontend" ]]; then
-            release_sha="$(curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 20 "${HEALTH_URL%/}/release-sha.txt")"
+            # release-sha.txt may have been requested before the file existed and cached as
+            # the SPA fallback index. Use a unique URL and explicit no-cache headers so the
+            # post-deploy assertion always checks the freshly activated release.
+            release_sha_url="${HEALTH_URL%/}/release-sha.txt?release=${GITHUB_SHA}&run=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+            release_sha="$(curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 20 \
+              -H 'Accept: text/plain' \
+              -H 'Cache-Control: no-cache, no-store, max-age=0' \
+              -H 'Pragma: no-cache' \
+              "$release_sha_url")"
             [[ "$release_sha" == "$GITHUB_SHA" ]] || { echo "Public release SHA mismatch: expected=$GITHUB_SHA actual=$release_sha" >&2; exit 1; }
             echo "Verified public release SHA: $release_sha"
           fi
