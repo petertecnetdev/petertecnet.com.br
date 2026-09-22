@@ -329,7 +329,7 @@ export default function AdminTicketSalesPage() {
 
   return <main className="ats-page">
     <header className="ats-header">
-      <a className="ats-brand" href="/" aria-label="Peter Tecnet"><img src="/petertecnetlogo.png" alt="" /><span><strong>Peter Tecnet</strong><small>Admin Center</small></span></a>
+      <a className="ats-brand" href="/" aria-label="Peter Tecnet"><img src="/petertecnet-brand.svg" alt="" /><span><strong>Peter Tecnet</strong><small>Admin Center</small></span></a>
       <div className="ats-header__copy">
         <p>Eventos · Operação comercial</p>
         <h1>Ingressos por evento</h1>
