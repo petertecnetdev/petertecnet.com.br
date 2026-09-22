@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "counts": {
-    "REVIEW": 4,
+    "REVIEW": 5,
     "ASSIGNED": 1,
     "WAITING": 1,
     "CANCELLED": 1
@@ -11,6 +11,7 @@
     "TASK-20260919-MOBILE250",
     "TASK-20260919-NEARBY01",
     "TASK-20260919-PRODEDIT01",
+    "TASK-20260921-PRODFOLLOW01",
     "TASK-20260918-7C211A-QA",
     "TASK-20260919-E71A9F"
   ],
@@ -54,6 +55,16 @@
       "owner_agent_id": "NP02",
       "application_context": "cutinapp",
       "updated_at": "2026-09-19T23:55:00-03:00"
+    },
+    {
+      "task_id": "TASK-20260921-PRODFOLLOW01",
+      "title": "Seguimento estilo Instagram na página pública da produção",
+      "status": "REVIEW",
+      "priority": "HIGH",
+      "assigned_agent_id": "NP02",
+      "owner_agent_id": "NP02",
+      "application_context": "cutinapp",
+      "updated_at": "2026-09-21T21:14:00-03:00"
     },
     {
       "task_id": "TASK-20260918-7C211A-QA",
