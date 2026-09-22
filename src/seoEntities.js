@@ -2,7 +2,7 @@ export const organizationSeo = {
   name: 'Peter Tecnet',
   legalName: 'Peter Tecnet',
   url: 'https://petertecnet.com.br/',
-  logo: 'https://petertecnet.com.br/logopetertecnet.png',
+  logo: 'https://petertecnet.com.br/petertecnet-brand.svg',
   taxID: '42.595.409/0001-48',
   email: 'contato@petertecnet.com.br',
   instagram: 'https://www.instagram.com/petertecnet/',
