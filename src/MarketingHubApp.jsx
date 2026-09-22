@@ -38,8 +38,8 @@ const API_BASE_URL = 'https://api.petertecnet.com.br/api'
 const APP_SLUG = 'peter-tecnet'
 const CRM_APP_SLUG = 'payflow'
 const CNPJ = '42.595.409/0001-48'
-const PETER_BRAND_LOGO_PATH = '/logopetertecnet.png'
-const PETER_BRAND_LOGO = `${PETER_BRAND_LOGO_PATH}?v=20260918-brand-1`
+const PETER_BRAND_LOGO_PATH = '/petertecnet-brand.svg'
+const PETER_BRAND_LOGO = `${PETER_BRAND_LOGO_PATH}?v=20260921-brand-2`
 
 const defaultContact = {
   email: 'contato@petertecnet.com.br',
