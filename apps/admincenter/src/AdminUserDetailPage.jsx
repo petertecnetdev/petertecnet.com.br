@@ -107,7 +107,7 @@ function resourceValue(row) {
   return dateTime(row.created_at)
 }
 
-export default function AdminUserDetailPage({ userId, apiRequest, applications = [], onBack }) {
+export default function AdminUserDetailPage({ userId, apiRequest, applications = [], onBack, detailActions = null }) {
   const [detail, setDetail] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -334,11 +334,11 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
 
     {error && <div className="aud-error">{error}</div>}
 
-    <section className="aud-hero">
+    <section className="aud-hero aud-hero--compact">
       <div className="aud-identity">
         <div className="aud-avatar">{user.avatar ? <img src={user.avatar} alt=""/> : fullName(user).slice(0, 2).toUpperCase()}</div>
         <div>
-          <p className="aud-kicker">USUÁRIO #{user.id} / VISÃO 360°</p>
+          <p className="aud-kicker">USUÁRIO #{user.id}</p>
           <h2>{fullName(user)}</h2>
           <p>{user.email} <span>·</span> @{user.user_name || 'sem-usuario'}</p>
           <div className="aud-chips">
@@ -348,39 +348,54 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
           </div>
         </div>
       </div>
-      <div className="aud-hero-meta">
-        <Field label="Criado em" value={dateTime(user.created_at)}/>
-        <Field label="Última atividade" value={dateTime(summary.last_activity_at)}/>
-        <Field label="Último login" value={dateTime(summary.last_login_at)}/>
+
+      <div className="aud-hero-side">
+        {detailActions && <div className="aud-hero-actions">{detailActions}</div>}
+        <div className="aud-hero-meta aud-hero-meta--compact">
+          <Field label="Última atividade" value={dateTime(summary.last_activity_at)}/>
+          <Field label="Último login" value={dateTime(summary.last_login_at)}/>
+        </div>
       </div>
     </section>
 
-    <div className="aud-metrics">
+    <div className="aud-metrics aud-metrics--compact">
       <Metric label="Interações" value={compact(summary.total_interactions)} detail={`${compact(summary.interactions_30d)} nos últimos 30 dias`}/>
       <Metric label="Aplicações" value={summary.applications || 0} detail="vínculos de acesso"/>
-      <Metric label="Estabelecimentos" value={summary.establishments || 0} detail={`${summary.productions || 0} produção(ões)`}/>
-      <Metric label="Itens" value={summary.items || 0} detail="diretos ou dos estabelecimentos"/>
-      <Metric label="Employers" value={summary.employments || 0} detail={`${summary.team_members || 0} membros na equipe`}/>
-      <Metric label="Eventos" value={summary.events || 0} detail="das produções vinculadas"/>
-      <Metric label="Pedidos" value={summary.orders || 0} detail="compras, vendas e agendamentos"/>
-      <Metric label="Ingressos" value={summary.event_passes || 0} detail="participações do usuário"/>
+      {Number(summary.establishments || 0) > 0 && <Metric label="Estabelecimentos" value={summary.establishments} detail="vínculos ativos"/>}
+      {Number(summary.productions || 0) > 0 && <Metric label="Produções" value={summary.productions} detail="produções vinculadas"/>}
+      {Number(summary.events || 0) > 0 && <Metric label="Eventos" value={summary.events} detail="eventos vinculados"/>}
+      {Number(summary.orders || 0) > 0 && <Metric label="Pedidos" value={summary.orders} detail="compras, vendas e agendamentos"/>}
     </div>
 
     <nav className="aud-tabs" aria-label="Seções do usuário">
       {[
-        ['overview', 'Visão geral'], ['resources', 'Vínculos e recursos'], ['activity', 'Atividades'], ['security', 'Segurança'],
+        ['overview', 'Resumo'], ['resources', 'Recursos'], ['activity', 'Atividade'], ['security', 'Segurança'],
       ].map(([key, label]) => <button type="button" key={key} className={tab === key ? 'active' : ''} aria-current={tab === key ? 'page' : undefined} onClick={event => switchTab(event, key)}>{label}</button>)}
     </nav>
 
     {tab === 'overview' && <div className="aud-section-stack">
       <section className="aud-card">
         <header><div><span>IDENTIDADE</span><h3>Dados do usuário</h3></div></header>
-        <div className="aud-fields-grid">
-          <Field label="ID" value={`#${user.id}`}/><Field label="Nome" value={fullName(user)}/><Field label="E-mail" value={user.email}/><Field label="Usuário" value={user.user_name ? `@${user.user_name}` : '—'}/>
-          <Field label="Telefone" value={user.phone}/><Field label="CPF" value={user.cpf_masked}/><Field label="Nascimento" value={dateOnly(user.birthdate)}/><Field label="Ocupação" value={user.occupation}/>
-          <Field label="Cidade/UF" value={[user.city, user.uf].filter(Boolean).join('/')}/><Field label="CEP" value={user.postal_code}/><Field label="Endereço" value={user.address}/><Field label="Perfil" value={user.profile?.name}/>
+        <div className="aud-fields-grid aud-fields-grid--essential">
+          <Field label="ID" value={`#${user.id}`}/>
+          <Field label="E-mail" value={user.email}/>
+          <Field label="Telefone" value={user.phone}/>
+          <Field label="Usuário" value={user.user_name ? `@${user.user_name}` : '—'}/>
+          <Field label="Cidade/UF" value={[user.city, user.uf].filter(Boolean).join('/')}/>
+          <Field label="Perfil" value={user.profile?.name}/>
         </div>
-        {user.about && <div className="aud-about"><span>Sobre</span><p>{user.about}</p></div>}
+        <details className="aud-more-details">
+          <summary>Mais dados cadastrais</summary>
+          <div className="aud-fields-grid">
+            <Field label="Criado em" value={dateTime(user.created_at)}/>
+            <Field label="CPF" value={user.cpf_masked}/>
+            <Field label="Nascimento" value={dateOnly(user.birthdate)}/>
+            <Field label="Ocupação" value={user.occupation}/>
+            <Field label="CEP" value={user.postal_code}/>
+            <Field label="Endereço" value={user.address}/>
+          </div>
+          {user.about && <div className="aud-about"><span>Sobre</span><p>{user.about}</p></div>}
+        </details>
       </section>
 
       <section className="aud-card">
