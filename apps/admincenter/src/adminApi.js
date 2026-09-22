@@ -56,17 +56,32 @@ export function getAdminApiDiagnostics() {
 
 function delay(ms, signal) {
   return new Promise((resolve, reject) => {
-    const timer = window.setTimeout(resolve, ms)
+    let settled = false
+    let timer
+
+    const cleanup = () => {
+      if (timer) window.clearTimeout(timer)
+      signal?.removeEventListener('abort', onAbort)
+    }
+
+    const settle = (callback, value) => {
+      if (settled) return
+      settled = true
+      cleanup()
+      callback(value)
+    }
+
+    const onAbort = () => {
+      settle(reject, signal.reason || new DOMException('The operation was aborted.', 'AbortError'))
+    }
+
+    timer = window.setTimeout(() => settle(resolve), ms)
     if (!signal) return
     if (signal.aborted) {
-      window.clearTimeout(timer)
-      reject(signal.reason || new DOMException('The operation was aborted.', 'AbortError'))
+      onAbort()
       return
     }
-    signal.addEventListener('abort', () => {
-      window.clearTimeout(timer)
-      reject(signal.reason || new DOMException('The operation was aborted.', 'AbortError'))
-    }, { once: true })
+    signal.addEventListener('abort', onAbort, { once: true })
   })
 }
 
