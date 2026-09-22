@@ -77,14 +77,13 @@ export function AdminAuthProvider({ children }) {
 
     setState(current => ({ ...current, status: 'checking', error: '' }))
     try {
-      const [me, dashboard] = await Promise.all([
-        rawRequest('/auth/me', { timeout: 10000 }, token),
-        rawRequest('/admin/ecosystem/dashboard', { timeout: 12000 }, token),
-      ])
+      // Authentication must depend only on the identity endpoint. A temporary
+      // failure in dashboard/analytics must never lock the whole Admin Center.
+      const me = await rawRequest('/auth/me', { timeout: 10000 }, token)
       if (sequence !== sequenceRef.current) return { authorized: false }
       const user = userFrom(me)
-      setState({ status: 'authenticated', user, error: '', bootstrapDashboard: dashboard })
-      return { authorized: true, user, dashboard }
+      setState({ status: 'authenticated', user, error: '', bootstrapDashboard: null })
+      return { authorized: true, user, dashboard: null }
     } catch (error) {
       if (sequence !== sequenceRef.current) return { authorized: false }
       const resolved = resolveAdminSession({ hasToken: true, meStatus: error?.status || 500, adminStatus: error?.status || 500 })
