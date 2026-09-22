@@ -897,6 +897,7 @@ function Dashboard({ user, onLogout }) {
           </section>
 
           <section id="establishments-admin-integration" className="section-anchor admin-native-module" data-admin-page-key="establishments" hidden={activePage !== 'establishments'} aria-hidden={activePage !== 'establishments'}>
+            <SectionHeading kicker="ESTABELECIMENTOS" title="Estabelecimentos" text="Consulte os estabelecimentos do ecossistema e cadastre novos registros rapidamente."/>
             {activePage === 'establishments' && <AdminModuleBoundary name="Estabelecimentos"><Suspense fallback={<ModuleSkeleton title="Carregando estabelecimentos…" />}>
               <AdminEstablishmentsPage quickCreateToken={quickCreate.target === 'establishments' ? quickCreate.token : 0} />
             </Suspense></AdminModuleBoundary>}
