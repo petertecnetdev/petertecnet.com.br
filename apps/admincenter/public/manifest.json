@@ -28,9 +28,9 @@
       "purpose": "any"
     },
     {
-      "src": "/petertecnetlogo.png",
+      "src": "/petertecnet-brand.svg",
       "sizes": "any",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ]
