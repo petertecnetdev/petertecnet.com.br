@@ -53,7 +53,7 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
 
   async function loadUsers(page = 1, { quiet = false } = {}) {
     const sequence = ++usersSequenceRef.current
-    if (!quiet && !loadedOnceRef.current) setLoading(true)
+    if (!quiet) setLoading(true)
     setError('')
 
     try {
