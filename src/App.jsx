@@ -69,7 +69,7 @@ function MarketingHeader({ menuOpen, setMenuOpen }) {
   const closeMenu = () => setMenuOpen(false)
   return <header className="pt-nav">
     <a className="pt-brand" href="/#inicio" onClick={closeMenu} aria-label="Peter Tecnet — início">
-      <span className="pt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span>
+      <span className="pt-brand-mark"><img src="/petertecnet-brand.svg" alt="" /></span>
       <span><strong>Peter Tecnet</strong><small>Technology ecosystem</small></span>
     </a>
     <button className="pt-menu-toggle" type="button" aria-label="Abrir menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><span /><span /></button>
@@ -90,7 +90,7 @@ function ApplicationCard({ application, index }) {
       <span>{application.version ? `v${application.version}` : 'Peter Tecnet'}</span>
     </div>
     <div className="app-logo-wrap">
-      <img src={resolveAssetUrl(application.logo) || '/petertecnetlogo.png'} alt={`Logo ${application.name}`} loading="lazy" />
+      <img src={resolveAssetUrl(application.logo) || '/petertecnet-brand.svg'} alt={`Logo ${application.name}`} loading="lazy" />
     </div>
     <h3>{application.name}</h3>
     <p>{application.description || 'Produto digital desenvolvido e evoluído dentro do ecossistema Peter Tecnet.'}</p>
@@ -103,7 +103,7 @@ function CatalogCard({ item }) {
   const identifier = item.slug || item.id
   return <article className="catalog-card" data-tilt>
     <a className="catalog-media" href={`/solucoes/${encodeURIComponent(identifier)}`} aria-label={`Ver ${item.name}`}>
-      {image ? <img src={image} alt={item.name} loading="lazy" /> : <span className="catalog-placeholder"><img src="/petertecnetlogo.png" alt="" /></span>}
+      {image ? <img src={image} alt={item.name} loading="lazy" /> : <span className="catalog-placeholder"><img src="/petertecnet-brand.svg" alt="" /></span>}
       {item.is_featured && <span className="featured-pill">Destaque</span>}
     </a>
     <div className="catalog-body">
@@ -217,7 +217,7 @@ function LandingPage() {
 
           <aside className="hero-console" data-reveal data-tilt aria-label="Ecossistema Peter Tecnet em tempo real">
             <div className="console-head"><span><i /> ECOSYSTEM / LIVE</span><small>API CONNECTED</small></div>
-            <div className="console-logo"><img src="/petertecnetlogo.png" alt="Peter Tecnet" /><span className="ring ring-a" /><span className="ring ring-b" /></div>
+            <div className="console-logo"><img src="/petertecnet-brand.svg" alt="Peter Tecnet" /><span className="ring ring-a" /><span className="ring ring-b" /></div>
             <div className="console-stats">
               <div><strong>{appsStatus === 'success' ? applications.length : '—'}</strong><span>plataformas ativas</span></div>
               <div><strong>{catalogStatus === 'success' ? catalog.length : '—'}</strong><span>soluções no catálogo</span></div>
@@ -242,7 +242,7 @@ function LandingPage() {
               <div className="recommended-apps">
                 {appsStatus === 'loading' && <span className="mini-loading">Buscando produtos do ecossistema…</span>}
                 {appsStatus === 'success' && recommendedApps.length === 0 && <span className="mini-loading">Produto desta área em integração ao ecossistema.</span>}
-                {recommendedApps.map(application => <a key={application.id || application.slug} href={application.url || '#ecossistema'} target={application.url ? '_blank' : undefined} rel={application.url ? 'noreferrer' : undefined}><img src={resolveAssetUrl(application.logo) || '/petertecnetlogo.png'} alt="" /><span><strong>{application.name}</strong><small>{application.description || 'Produto Peter Tecnet'}</small></span><b>↗</b></a>)}
+                {recommendedApps.map(application => <a key={application.id || application.slug} href={application.url || '#ecossistema'} target={application.url ? '_blank' : undefined} rel={application.url ? 'noreferrer' : undefined}><img src={resolveAssetUrl(application.logo) || '/petertecnet-brand.svg'} alt="" /><span><strong>{application.name}</strong><small>{application.description || 'Produto Peter Tecnet'}</small></span><b>↗</b></a>)}
               </div>
               <a className="text-link path-contact" href={`mailto:${contact.email}?subject=${encodeURIComponent(`Quero resolver: ${activePath.label}`)}`}>Quero conversar sobre esse objetivo <span>↗</span></a>
             </div>
@@ -296,7 +296,7 @@ function LandingPage() {
       <section className="conversion-section" id="contato">
         <div className="conversion-grid" aria-hidden="true" />
         <div className="pt-container conversion-inner" data-reveal>
-          <span className="conversion-orbit"><img src="/petertecnetlogo.png" alt="" /></span>
+          <span className="conversion-orbit"><img src="/petertecnet-brand.svg" alt="" /></span>
           <p className="kicker">Próximo passo</p>
           <h2>Você chegou procurando tecnologia. <span>Saia com um caminho.</span></h2>
           <p>Explore uma plataforma agora ou conte qual problema sua empresa precisa resolver. A Peter Tecnet pode atender com um produto do ecossistema ou construir a solução adequada.</p>
@@ -305,7 +305,7 @@ function LandingPage() {
       </section>
     </main>
 
-    <footer className="pt-footer"><div className="pt-container footer-grid"><div className="pt-brand"><span className="pt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span><span><strong>Peter Tecnet</strong><small>Tecnologia em movimento</small></span></div><p>© {new Date().getFullYear()} Peter Tecnet · CNPJ 42.595.409/0001-48</p><nav><a href="/login">Administrar</a><a href={contact.instagram} target="_blank" rel="noreferrer">Instagram ↗</a><a href="#inicio">Topo ↑</a></nav></div></footer>
+    <footer className="pt-footer"><div className="pt-container footer-grid"><div className="pt-brand"><span className="pt-brand-mark"><img src="/petertecnet-brand.svg" alt="" /></span><span><strong>Peter Tecnet</strong><small>Tecnologia em movimento</small></span></div><p>© {new Date().getFullYear()} Peter Tecnet · CNPJ 42.595.409/0001-48</p><nav><a href="/login">Administrar</a><a href={contact.instagram} target="_blank" rel="noreferrer">Instagram ↗</a><a href="#inicio">Topo ↑</a></nav></div></footer>
   </div>
 }
 
@@ -349,8 +349,8 @@ function ProductPage({ identifier }) {
     return () => controller.abort()
   }, [identifier])
 
-  if (status === 'loading') return <div className="product-state"><img src="/petertecnetlogo.png" alt="" /><p>Consultando o catálogo Peter Tecnet…</p></div>
-  if (status === 'error' || status === 'not-found') return <div className="product-state"><img src="/petertecnetlogo.png" alt="" /><h1>{status === 'not-found' ? 'Solução não encontrada.' : 'Não foi possível carregar esta solução.'}</h1><p>Você pode voltar ao catálogo e explorar outras opções disponíveis.</p><a className="pt-button pt-button-primary" href="/#catalogo">Voltar ao catálogo <span>↗</span></a></div>
+  if (status === 'loading') return <div className="product-state"><img src="/petertecnet-brand.svg" alt="" /><p>Consultando o catálogo Peter Tecnet…</p></div>
+  if (status === 'error' || status === 'not-found') return <div className="product-state"><img src="/petertecnet-brand.svg" alt="" /><h1>{status === 'not-found' ? 'Solução não encontrada.' : 'Não foi possível carregar esta solução.'}</h1><p>Você pode voltar ao catálogo e explorar outras opções disponíveis.</p><a className="pt-button pt-button-primary" href="/#catalogo">Voltar ao catálogo <span>↗</span></a></div>
 
   const { item, establishment, otherItems } = payload
   const image = getItemImage(item)
@@ -373,7 +373,7 @@ function ProductPage({ identifier }) {
             <div className="product-price"><small>Investimento</small><strong>{formatCurrency(item.price)}</strong></div>
             <div className="hero-actions"><a className="pt-button pt-button-primary" href={`mailto:${contactEmail}?subject=${interestSubject}&body=${interestBody}`}>Tenho interesse <span>↗</span></a><a className="pt-button pt-button-secondary" href="/#catalogo">Explorar catálogo <span>↘</span></a></div>
           </div>
-          <div className="product-visual" data-reveal data-tilt>{image ? <img src={image} alt={item.name} /> : <span><img src="/petertecnetlogo.png" alt="Peter Tecnet" /></span>}<div className="product-visual-data"><small>CATALOG / PETER TECNET</small><b>{item.slug || `ITEM-${item.id}`}</b></div></div>
+          <div className="product-visual" data-reveal data-tilt>{image ? <img src={image} alt={item.name} /> : <span><img src="/petertecnet-brand.svg" alt="Peter Tecnet" /></span>}<div className="product-visual-data"><small>CATALOG / PETER TECNET</small><b>{item.slug || `ITEM-${item.id}`}</b></div></div>
         </div>
       </section>
 
@@ -381,7 +381,7 @@ function ProductPage({ identifier }) {
 
       {otherItems.length > 0 && <section className="related-section"><div className="pt-container"><div className="section-heading" data-reveal><p className="kicker">Continue explorando</p><h2>Outras soluções do <span>mesmo catálogo.</span></h2></div><div className="catalog-grid">{otherItems.slice(0, 4).map(candidate => <CatalogCard item={candidate} key={candidate.id || candidate.slug} />)}</div></div></section>}
     </main>
-    <footer className="pt-footer"><div className="pt-container footer-grid"><div className="pt-brand"><span className="pt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span><span><strong>Peter Tecnet</strong><small>Tecnologia em movimento</small></span></div><p>© {new Date().getFullYear()} Peter Tecnet</p><nav><a href="/#catalogo">Catálogo</a><a href="/">Início</a></nav></div></footer>
+    <footer className="pt-footer"><div className="pt-container footer-grid"><div className="pt-brand"><span className="pt-brand-mark"><img src="/petertecnet-brand.svg" alt="" /></span><span><strong>Peter Tecnet</strong><small>Tecnologia em movimento</small></span></div><p>© {new Date().getFullYear()} Peter Tecnet</p><nav><a href="/#catalogo">Catálogo</a><a href="/">Início</a></nav></div></footer>
   </div>
 }
 
