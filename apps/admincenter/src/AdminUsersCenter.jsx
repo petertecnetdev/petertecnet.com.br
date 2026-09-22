@@ -43,6 +43,7 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   const [users, setUsers] = useState([])
   const [filters] = useState(() => readAdminSessionState('users-filters', DEFAULT_LIST_SETTINGS))
   const [search, setSearch] = useState('')
+  const [appliedSearch, setAppliedSearch] = useState('')
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 })
   const [detailUserId, setDetailUserId] = useState(detailUserFromUrl)
   const [inviteOpen, setInviteOpen] = useState(false)
@@ -52,7 +53,7 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   const loadedOnceRef = useRef(false)
   const usersSequenceRef = useRef(0)
 
-  async function loadUsers(page = 1, { quiet = false, searchTerm = search } = {}) {
+  async function loadUsers(page = 1, { quiet = false, searchTerm = appliedSearch } = {}) {
     const sequence = ++usersSequenceRef.current
     if (!quiet) setLoading(true)
     setError('')
@@ -134,11 +135,14 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
 
   function submitSearch(event) {
     event.preventDefault()
-    void loadUsers(1, { searchTerm: search })
+    const normalizedSearch = String(search || '').trim()
+    setAppliedSearch(normalizedSearch)
+    void loadUsers(1, { searchTerm: normalizedSearch })
   }
 
   function clearSearch() {
     setSearch('')
+    setAppliedSearch('')
     void loadUsers(1, { searchTerm: '' })
   }
 
@@ -222,7 +226,7 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
       ) : (
         <div className="acu-empty">
           <strong>Nenhum usuário encontrado.</strong>
-          <span>{search ? 'Tente outro nome ou e-mail.' : 'Convide o primeiro usuário para começar.'}</span>
+          <span>{appliedSearch ? 'Tente outro nome ou e-mail.' : 'Convide o primeiro usuário para começar.'}</span>
         </div>
       )}
 
