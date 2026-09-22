@@ -4,6 +4,7 @@ export default class AdminModuleBoundary extends Component {
   constructor(props) {
     super(props)
     this.state = { error: null, revision: 0 }
+    this.errorHeadingRef = null
   }
 
   static getDerivedStateFromError(error) {
@@ -14,18 +15,39 @@ export default class AdminModuleBoundary extends Component {
     console.error(`[Admin Center] Falha isolada no módulo ${this.props.name || 'administrativo'}`, error, info)
   }
 
+  componentDidUpdate(previousProps, previousState) {
+    if (!previousState.error && this.state.error && this.errorHeadingRef) {
+      this.errorHeadingRef.focus()
+    }
+  }
+
   retry = () => {
     this.setState(state => ({ error: null, revision: state.revision + 1 }))
   }
 
   render() {
     if (this.state.error) {
-      return <section className="admin-module-error" role="alert">
-        <div className="admin-module-error-icon">!</div>
+      const moduleName = this.props.name || 'Área administrativa'
+      const headingId = 'admin-module-error-heading'
+      const descriptionId = 'admin-module-error-description'
+
+      return <section
+        className="admin-module-error"
+        role="alert"
+        aria-labelledby={headingId}
+        aria-describedby={descriptionId}
+      >
+        <div className="admin-module-error-icon" aria-hidden="true">!</div>
         <div>
           <small>MÓDULO ISOLADO</small>
-          <h3>{this.props.name || 'Área administrativa'} encontrou um problema</h3>
-          <p>O restante do Admin Center continua disponível. Tente carregar somente esta área novamente.</p>
+          <h3
+            id={headingId}
+            ref={node => { this.errorHeadingRef = node }}
+            tabIndex="-1"
+          >
+            {moduleName} encontrou um problema
+          </h3>
+          <p id={descriptionId}>O restante do Admin Center continua disponível. Tente carregar somente esta área novamente.</p>
           <button type="button" onClick={this.retry}>Tentar novamente</button>
         </div>
       </section>
