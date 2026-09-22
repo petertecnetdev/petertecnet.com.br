@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { confirmAction } from './utils/uiDialog.js'
 import { readAdminSessionState, writeAdminSessionState } from './adminPersistence.js'
 import { adminRequest as apiRequest } from './adminApi.js'
 import AdminEstablishmentCatalog from './AdminEstablishmentCatalog.jsx'
@@ -110,10 +109,6 @@ function Field({ label, children, wide = false }) {
   return <label className={`aep-field ${wide ? 'wide' : ''}`}><span>{label}</span>{children}</label>
 }
 
-function Status({ active, children, tone = '' }) {
-  return <span className={`aep-status ${active ? 'active' : ''} ${tone}`}><i />{children}</span>
-}
-
 export default function AdminEstablishmentsPageV2({ quickCreateToken = 0 }) {
   const [rows, setRows] = useState([])
   const [applications, setApplications] = useState([])
@@ -218,28 +213,6 @@ export default function AdminEstablishmentsPageV2({ quickCreateToken = 0 }) {
       setNotice(editingId ? 'Establishment atualizado com sucesso.' : `Establishment #${id || ''} criado com sucesso.`)
       setMode('list'); setEditing(null); setResourceEditor(null); setReloadKey(value => value + 1)
       window.dispatchEvent(new CustomEvent('admin-entity-updated', { detail: { entity: 'establishment' } })); window.setTimeout(scrollTop, 0)
-    } catch (err) { setError(err.message) }
-    finally { setSaving(false) }
-  }
-
-  async function quickUpdate(row, patch, message) {
-    setError(''); setNotice('')
-    try {
-      await apiRequest(`/admin/ecosystem/establishments/${row.id}`, { method: 'PUT', body: JSON.stringify(patch) })
-      setNotice(message); setReloadKey(value => value + 1)
-    } catch (err) { setError(err.message) }
-  }
-
-  async function remove(row) {
-    const confirmed = await confirmAction({
-      tone: 'danger', eyebrow: 'EXCLUSÃO DE ESTABLISHMENT', title: `Excluir ${establishmentName(row)}?`,
-      message: 'O registro será removido, mas a trilha de auditoria continuará preservada no ecossistema.', confirmLabel: 'Excluir establishment', cancelLabel: 'Cancelar',
-    })
-    if (!confirmed) return
-    setSaving(true); setError('')
-    try {
-      await apiRequest(`/admin/ecosystem/establishments/${row.id}`, { method: 'DELETE' })
-      setNotice('Establishment excluído.'); setReloadKey(value => value + 1)
     } catch (err) { setError(err.message) }
     finally { setSaving(false) }
   }
