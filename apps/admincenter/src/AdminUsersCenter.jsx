@@ -42,6 +42,7 @@ function applicationNames(user) {
 export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   const [users, setUsers] = useState([])
   const [filters] = useState(() => readAdminSessionState('users-filters', DEFAULT_LIST_SETTINGS))
+  const [search, setSearch] = useState('')
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 })
   const [detailUserId, setDetailUserId] = useState(detailUserFromUrl)
   const [inviteOpen, setInviteOpen] = useState(false)
@@ -51,7 +52,7 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   const loadedOnceRef = useRef(false)
   const usersSequenceRef = useRef(0)
 
-  async function loadUsers(page = 1, { quiet = false } = {}) {
+  async function loadUsers(page = 1, { quiet = false, searchTerm = search } = {}) {
     const sequence = ++usersSequenceRef.current
     if (!quiet) setLoading(true)
     setError('')
@@ -62,6 +63,8 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
         per_page: String(filters?.per_page || DEFAULT_LIST_SETTINGS.per_page),
         sort: String(filters?.sort || DEFAULT_LIST_SETTINGS.sort),
       })
+      const normalizedSearch = String(searchTerm || '').trim()
+      if (normalizedSearch) params.set('search', normalizedSearch)
       const payload = await apiRequest(`/admin/ecosystem/users?${params.toString()}`)
       if (sequence !== usersSequenceRef.current) return
 
@@ -86,7 +89,7 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
   }, [filters])
 
   useEffect(() => {
-    void loadUsers(1)
+    void loadUsers(1, { searchTerm: '' })
   }, [])
 
   useEffect(() => {
@@ -129,6 +132,16 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
     setDetailUserId(null)
   }
 
+  function submitSearch(event) {
+    event.preventDefault()
+    void loadUsers(1, { searchTerm: search })
+  }
+
+  function clearSearch() {
+    setSearch('')
+    void loadUsers(1, { searchTerm: '' })
+  }
+
   if (detailUserId) {
     return <AdminUserDetailPage userId={detailUserId} apiRequest={apiRequest} applications={applications} onBack={closeDetail}/>
   }
@@ -147,6 +160,21 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
           + Convidar usuário
         </button>
       </header>
+
+      <form className="acu-filter-bar" role="search" onSubmit={submitSearch}>
+        <label className="acu-field acu-field--search">
+          <span>Buscar usuário</span>
+          <input
+            type="search"
+            value={search}
+            onChange={event => setSearch(event.target.value)}
+            placeholder="Nome, e-mail ou usuário"
+            autoComplete="off"
+          />
+        </label>
+        <button type="submit" className="acu-secondary" disabled={loading}>Buscar</button>
+        {search && <button type="button" className="acu-secondary" disabled={loading} onClick={clearSearch}>Limpar</button>}
+      </form>
 
       {loading ? (
         <div className="acu-loading">Carregando usuários…</div>
@@ -194,7 +222,7 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
       ) : (
         <div className="acu-empty">
           <strong>Nenhum usuário encontrado.</strong>
-          <span>Convide o primeiro usuário para começar.</span>
+          <span>{search ? 'Tente outro nome ou e-mail.' : 'Convide o primeiro usuário para começar.'}</span>
         </div>
       )}
 
