@@ -1,6 +1,6 @@
 (() => {
   const TAG = 'pt-processing-indicator'
-  const OFFICIAL_LOGO = '/petertecnetlogo.png?v=20260907-official-loader'
+  const OFFICIAL_LOGO = '/petertecnet-brand.svg?v=20260907-official-loader'
   if (customElements.get(TAG)) return
 
   const DEFAULT_MESSAGES = [
