@@ -10,7 +10,7 @@ const requestStats = new Map()
 const lastStormNotice = new Map()
 const STORM_WINDOW_MS = 60000
 const STORM_THRESHOLD = 25
-const MAX_RATE_LIMIT_RETRY_MS = 5000
+const MAX_RATE_LIMIT_RETRY_MS = 60000
 
 function routeKey(path) {
   return String(path || '').split('?')[0]
@@ -91,11 +91,19 @@ function composeSignals(...signals) {
   }
 }
 
+function parseRetryAfter(value) {
+  if (!value) return 0
+  const seconds = Number(value)
+  if (Number.isFinite(seconds) && seconds > 0) return seconds
+  const retryAt = Date.parse(value)
+  return Number.isFinite(retryAt) ? Math.max(0, (retryAt - Date.now()) / 1000) : 0
+}
+
 function requestError(response, payload) {
   const validation = Object.values(payload?.errors || {}).flat()?.[0]
   const error = new Error(validation || payload?.error || payload?.message || 'Não foi possível concluir a operação.')
   error.status = response.status
-  error.retryAfter = Number(response.headers.get('Retry-After') || payload?.retry_after || 0)
+  error.retryAfter = parseRetryAfter(response.headers.get('Retry-After')) || Number(payload?.retry_after || 0)
   error.payload = payload
   return error
 }
