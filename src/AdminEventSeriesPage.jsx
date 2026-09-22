@@ -252,7 +252,7 @@ export default function AdminEventSeriesPage() {
 
   return <main className="aes-page">
     <header className="aes-header">
-      <a className="aes-brand" href="/" aria-label="Peter Tecnet"><img src="/petertecnetlogo.png" alt="" /><span><strong>Peter Tecnet</strong><small>Admin Center</small></span></a>
+      <a className="aes-brand" href="/" aria-label="Peter Tecnet"><img src="/petertecnet-brand.svg" alt="" /><span><strong>Peter Tecnet</strong><small>Admin Center</small></span></a>
       <div><p>Eventos · Operação recorrente</p><h1>Criar agenda a partir de um evento</h1><span>Reaproveite um evento existente para criar várias edições em datas específicas ou em dias fixos da semana.</span></div>
       <div className="aes-header__actions"><a href="/admin/events/tickets">Ingressos</a><a href="/">Ecossistema ↗</a></div>
     </header>
