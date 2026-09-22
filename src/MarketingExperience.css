@@ -144,6 +144,11 @@ body { margin: 0; }
 
 .mkt-hero {
   position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(90deg, rgba(1,7,11,.94) 0%, rgba(1,7,11,.78) 38%, rgba(1,7,11,.34) 68%, rgba(1,7,11,.58) 100%),
+    url('/petertecnet-background.svg') center center / cover no-repeat;
+  overflow: hidden;
   min-height: 780px;
   display: grid;
   align-items: center;
@@ -471,7 +476,7 @@ body { margin: 0; }
   .mkt-nav-cta { justify-content: space-between; }
   .mkt-pointer { display: none; }
 
-  .mkt-hero { min-height: auto; padding-top: calc(var(--mkt-header-height) + 66px); }
+  .mkt-hero { min-height: auto; padding-top: calc(var(--mkt-header-height) + 66px); background-position: 56% center; }
   .mkt-hero-layout, .mkt-detail-layout, .mkt-goal-layout, .mkt-section-heading.is-split, .mkt-product-info-grid { grid-template-columns: 1fr; }
   .mkt-hero-layout { gap: 52px; }
   .mkt-command { min-height: 480px; }
@@ -497,7 +502,7 @@ body { margin: 0; }
   .mkt-brand-mark img { width: 25px; height: 25px; }
   .mkt-brand small { display: none; }
 
-  .mkt-hero { padding-bottom: 72px; }
+  .mkt-hero { padding-bottom: 72px; background-position: 62% center; }
   .mkt-hero-copy h1 { font-size: clamp(41px, 13.2vw, 62px); }
   .mkt-hero-lead { font-size: 15px; }
   .mkt-hero-actions { display: grid; grid-template-columns: 1fr; }
