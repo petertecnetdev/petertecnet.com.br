@@ -35,7 +35,7 @@ function Shell({ children }) {
   return <div className="mkt-shell discovery-shell">
     <header className="mkt-header">
       <a className="mkt-brand" href="/" aria-label="Peter Tecnet — início">
-        <span className="mkt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span>
+        <span className="mkt-brand-mark"><img src="/petertecnet-brand.svg" alt="" /></span>
         <span><strong>Peter Tecnet</strong><small>Technology ecosystem</small></span>
       </a>
       <nav className="mkt-nav discovery-nav" aria-label="Navegação principal">
