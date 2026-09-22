@@ -197,7 +197,7 @@ export default function ApplicationBrandingManager({ applications = [] }) {
 
   const published = payload?.published || {}
   const preview = { ...published, ...form }
-  const fallback = selected?.logo || '/petertecnetlogo.png'
+  const fallback = selected?.logo || '/petertecnet-brand.svg'
 
   return <section className="branding-manager" aria-busy={busy}>
     <header className="branding-manager__head">
