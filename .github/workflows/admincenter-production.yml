@@ -94,7 +94,7 @@ jobs:
 
           tar -C apps/admincenter/dist -czf "$ARCHIVE" .
 
-          scp \
+          scp -4 \
             -P "$PORT" \
             -o StrictHostKeyChecking=accept-new \
             -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
@@ -129,7 +129,7 @@ jobs:
           rm -rf "$PREVIOUS" 2>/dev/null || true
           REMOTE
 
-          ssh \
+          ssh -4 \
             -p "$PORT" \
             -o StrictHostKeyChecking=accept-new \
             -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
