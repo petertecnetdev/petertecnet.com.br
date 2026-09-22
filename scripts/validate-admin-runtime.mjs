@@ -13,7 +13,7 @@ const check = (label, condition) => checks.push([label, Boolean(condition)])
 
 check('single AdminAuthProvider owns admin authentication', main.includes('<AdminAuthProvider>') && app.includes('useAdminAuth'))
 check('front no longer authorizes by literal owner email', !app.includes("OWNER_EMAIL") && !auth.includes("petertecnet@gmail.com"))
-check('admin permission is verified through protected API endpoint', auth.includes("/admin/ecosystem/dashboard"))
+check('admin session is verified through protected identity endpoint', auth.includes("rawRequest('/auth/me'") && !auth.includes("Promise.all([\n        rawRequest('/auth/me'"))
 check('shared AdminDataProvider cache is mounted', main.includes('<AdminDataProvider>') && data.includes('petertecnet_admin_data_cache_v2'))
 check('executive overview is direct React composition', app.includes('<ExecutiveOverview') && !overview.includes('createPortal') && !overview.includes('MutationObserver'))
 check('runtime does not mount legacy DOM bridges', !main.includes('AdminSessionGuard') && !main.includes('AdminOverviewNavigationBridge'))
