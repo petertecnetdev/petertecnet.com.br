@@ -16,9 +16,9 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/logopetertecnet.png?v=20260918-brand-1",
-      "sizes": "768x768",
-      "type": "image/png",
+      "src": "/petertecnet-brand.svg?v=20260918-brand-1",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
