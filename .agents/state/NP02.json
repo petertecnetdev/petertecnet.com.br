@@ -1,18 +1,18 @@
 {
-  "version": 13,
+  "version": 14,
   "agent_id": "NP02",
   "display_name": "NP02 · Frontend Platform",
   "role": "frontend_platform",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "current_task_id": "TASK-20260922-EVENTEDITOR01",
-  "last_seen_at": "2026-09-22T10:10:00-03:00",
-  "last_read_at": "2026-09-22T10:10:00-03:00",
-  "checkpoint": "OWNER solicitou evolução visual de criação/edição de eventos. Auditoria confirmou EventExperienceEditorSurface compartilhado; foco atual é aproximar a hierarquia da EventViewPage e corrigir contraste/legibilidade dos botões.",
-  "next_action": "Ajustar EventExperienceEditorSurface e CSS na branch agent/np02/event-editor-view-parity; rodar lint:overlays, testes e build; abrir PR e validar workflows.",
-  "last_commit": "81f8672d6477e9c50355980bc2ce344b18c45d13",
+  "last_seen_at": "2026-09-22T10:48:00-03:00",
+  "last_read_at": "2026-09-22T10:48:00-03:00",
+  "checkpoint": "Event create/edit corrigidos e publicados na VPS pública. PR #606 mergeado; produção serve release cf9d2bbe4da832dabed9493b4494c6eacf530d27 com CSS de contraste do editor. Detectado desalinhamento do Deploy VPS do GitHub Actions com a VPS pública atual.",
+  "next_action": "Aguardar QA visual NP03; encaminhar para NP10 a correção dos secrets/host do deploy automático.",
+  "last_commit": "cf9d2bbe4da832dabed9493b4494c6eacf530d27",
   "last_error": null,
   "tasks_completed_today": 0,
-  "updated_at": "2026-09-22T10:10:00-03:00",
+  "updated_at": "2026-09-22T10:48:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "np02-production-follow-instagram-review",
   "read_message_ids": [
@@ -45,6 +45,6 @@
   ],
   "run_id": "np02-20260922-1010-event-editor",
   "run_started_at": "2026-09-22T10:10:00-03:00",
-  "run_finished_at": null,
-  "heartbeat_seq": 12
+  "run_finished_at": "2026-09-22T10:48:00-03:00",
+  "heartbeat_seq": 13
 }
