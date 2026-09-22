@@ -72,7 +72,10 @@ function runProbe(test, file, attempts = 4) {
       '--dump-dom', pathToFileURL(file).href,
     ], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, timeout: 15000 })
     last = run
-    // Chromium can emit a valid dumped DOM and still exit non-zero because of\n    // runner-only DBus/desktop-service warnings. The contract is the DOM result,\n    // so accept it whenever the probe completed and produced our assertion payload.\n    const result = parse(run.stdout)
+    // Chromium can emit a valid dumped DOM and still exit non-zero because of
+    // runner-only DBus/desktop-service warnings. The contract is the DOM result,
+    // so accept it whenever the probe completed and produced our assertion payload.
+    const result = parse(run.stdout)
     rmSync(profile, { recursive: true, force: true })
     if (result) return { result, attempt }
   }
