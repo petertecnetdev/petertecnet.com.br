@@ -202,10 +202,10 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
         <footer className="acu-pagination">
           <span>Página {pagination.current_page || 1} de {pagination.last_page || 1}</span>
           <div>
-            <button className="acu-secondary" disabled={!pagination.previous_page || loading} onClick={() => loadUsers(pagination.previous_page)}>
+            <button className="acu-secondary" disabled={(pagination.current_page || 1) <= 1 || loading} onClick={() => loadUsers(pagination.previous_page || Math.max(1, (pagination.current_page || 1) - 1))}>
               ← Anterior
             </button>
-            <button className="acu-secondary" disabled={!pagination.next_page || loading} onClick={() => loadUsers(pagination.next_page)}>
+            <button className="acu-secondary" disabled={(pagination.current_page || 1) >= (pagination.last_page || 1) || loading} onClick={() => loadUsers(pagination.next_page || Math.min((pagination.last_page || 1), (pagination.current_page || 1) + 1))}>
               Próxima →
             </button>
           </div>
