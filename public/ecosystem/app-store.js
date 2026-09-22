@@ -3,7 +3,7 @@
   window.__PETERTECNET_APP_STORE__ = true;
 
   const API_URL = 'https://api.petertecnet.com.br/api/applications';
-  const FALLBACK_LOGO = '/petertecnetlogo.png';
+  const FALLBACK_LOGO = '/petertecnet-brand.svg';
   const STORE_ID = 'peter-app-store';
   const NETWORK_TIMEOUT_MS = 5000;
 
