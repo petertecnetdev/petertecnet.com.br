@@ -33,12 +33,12 @@ const SLUG_BY_PAGE = Object.fromEntries(navItems.map(([id, , , slug]) => [id, sl
 
 function pageFromLocation() {
   const token = new URL(window.location.href).searchParams.get('page') || ''
-  return PAGE_BY_SLUG[token] || 'dashboard'
+  return PAGE_BY_SLUG[token] || 'users'
 }
 
 function writePage(page, mode = 'pushState') {
   const url = new URL(window.location.href)
-  if (page === 'dashboard') url.searchParams.delete('page')
+  if (page === 'users') url.searchParams.delete('page')
   else url.searchParams.set('page', SLUG_BY_PAGE[page] || page)
   url.hash = ''
   window.history[mode]({ ...(window.history.state || {}), adminPage: page }, '', `${url.pathname}${url.search}`)
@@ -331,7 +331,7 @@ function Dashboard({ user, onLogout }) {
   }, [query, request])
 
   function go(section) {
-    const page = SLUG_BY_PAGE[section] ? section : 'dashboard'
+    const page = SLUG_BY_PAGE[section] ? section : 'users'
     setSidebarOpen(false)
     setLauncherOpen(false)
     setActivePage(page)
