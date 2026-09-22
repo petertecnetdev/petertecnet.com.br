@@ -62,7 +62,7 @@ jobs:
           article_html="$(curl --fail --silent --show-error --location --max-time 20 \
             https://petertecnet.com.br/blog/como-criar-catalogo-digital-para-empresa)"
           grep -Fq "Como criar um catálogo digital para sua empresa" <<<"$article_html"
-          grep -Fq "petertecnetlogo.png" <<<"$article_html"
+          grep -Fq "petertecnet-brand.svg" <<<"$article_html"
 
           service_html="$(curl --fail --silent --show-error --location --max-time 20 \
             https://petertecnet.com.br/servicos/desenvolvimento-de-software)"
