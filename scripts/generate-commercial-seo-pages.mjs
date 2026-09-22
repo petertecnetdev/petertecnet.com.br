@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 
-const root=process.cwd(), dist=join(root,'dist'), origin='https://petertecnet.com.br', logo=`${origin}/logopetertecnet.png`
+const root=process.cwd(), dist=join(root,'dist'), origin='https://petertecnet.com.br', logo=`${origin}/petertecnet-brand.svg`
 const esc=v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')
 
 const products=[
