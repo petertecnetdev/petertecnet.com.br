@@ -57,7 +57,7 @@ function formatDate(value) {
 
 function Header() {
   return <header className="support-nav">
-    <a className="support-brand" href="/"><img src="/petertecnetlogo.png" alt=""/><span><b>Peter Tecnet</b><small>Support Center</small></span></a>
+    <a className="support-brand" href="/"><img src="/petertecnet-brand.svg" alt=""/><span><b>Peter Tecnet</b><small>Support Center</small></span></a>
     <nav><a href="/">Início</a><a href="/#ecossistema">Ecossistema</a><a className="support-nav-cta" href="#abrir-chamado">Abrir chamado</a></nav>
   </header>
 }
@@ -213,7 +213,7 @@ function SupportApp() {
         {session && !ticket && !loadingTicket && <div className="support-card recovery-card"><h2>Não foi possível abrir o acompanhamento.</h2><p>{error || 'A credencial deste chamado pode ter expirado ou sido removida deste navegador.'}</p><button className="primary-button" onClick={newTicket}>Abrir novo chamado</button></div>}
       </section>
     </main>
-    <footer className="support-footer"><a className="support-brand" href="/"><img src="/petertecnetlogo.png" alt=""/><span><b>Peter Tecnet</b><small>Tecnologia em movimento</small></span></a><p>Suporte central do ecossistema Peter Tecnet.</p><a href="/">Voltar ao site</a></footer>
+    <footer className="support-footer"><a className="support-brand" href="/"><img src="/petertecnet-brand.svg" alt=""/><span><b>Peter Tecnet</b><small>Tecnologia em movimento</small></span></a><p>Suporte central do ecossistema Peter Tecnet.</p><a href="/">Voltar ao site</a></footer>
   </div>
 }
 
