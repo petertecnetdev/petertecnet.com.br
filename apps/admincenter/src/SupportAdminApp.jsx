@@ -170,7 +170,7 @@ export default function SupportAdminApp() {
 
   return <div className="support-admin-shell">
     <header className="support-admin-topbar">
-      <a className="support-admin-brand" href="/"><img src="/petertecnetlogo.png" alt=""/><span><b>Peter Tecnet</b><small>Admin Center / Support</small></span></a>
+      <a className="support-admin-brand" href="/"><img src="/petertecnet-brand.svg" alt=""/><span><b>Peter Tecnet</b><small>Admin Center / Support</small></span></a>
       <div><a href="https://petertecnet.com.br/suporte" target="_blank" rel="noreferrer">Ver central pública ↗</a><button onClick={() => loadList()}>↻ Atualizar</button><a className="back-link" href="/">← Dashboard</a></div>
     </header>
 
