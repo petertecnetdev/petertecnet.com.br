@@ -38,6 +38,11 @@
     contain-intrinsic-size: auto 180px;
   }
 
+  :where(.admin-shell) .acu-simple-user {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 66px;
+  }
+
   :where(.admin-shell) :where(.metrics-grid,.aac-grid,.aep-grid,.itm-grid,.aud-grid) {
     grid-template-columns: repeat(auto-fit,minmax(min(100%,var(--adm-grid-min)),1fr));
   }
