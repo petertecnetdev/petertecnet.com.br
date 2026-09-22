@@ -49,15 +49,17 @@ const establishmentName = row => row?.fantasy || row?.name || `Establishment #${
 const userName = user => [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.user_name || user?.email || `Usuário #${user?.id || '—'}`
 const establishmentLogo = row => asArray(row?.files).find(item => ['logo', 'avatar', 'image'].includes(item?.type) && item?.public_url)?.public_url || ''
 const linkedAppIds = row => Array.from(new Set([row?.app_id, ...asArray(row?.applications).map(app => app.id)].map(Number).filter(Boolean)))
+const establishmentOwnerId = row => Number(row?.user_id || row?.owner_id || row?.owner?.id || row?.user?.id) || null
 
 function formFrom(row) {
   const appIds = linkedAppIds(row).map(String)
+  const ownerId = establishmentOwnerId(row)
   return {
     ...EMPTY_FORM,
     name: row?.name || '', fantasy: row?.fantasy || '', slug: row?.slug || '', cnpj: row?.cnpj || '', type: row?.type || '',
     category: row?.category || '', phone: row?.phone || '', email: row?.email || '', description: row?.description || '',
     city: row?.city || '', uf: row?.uf || '', cep: row?.cep || '', address: row?.address || '', website_url: row?.website_url || '',
-    instagram_url: row?.instagram_url || '', user_id: row?.user_id ? String(row.user_id) : '',
+    instagram_url: row?.instagram_url || '', user_id: ownerId ? String(ownerId) : '',
     app_id: row?.app_id ? String(row.app_id) : (appIds[0] || ''), app_ids: appIds,
     is_published: bool(row?.is_published), is_approved: bool(row?.is_approved), is_featured: bool(row?.is_featured), is_cancelled: bool(row?.is_cancelled),
   }
@@ -207,7 +209,7 @@ export default function AdminEstablishmentsPageV2({ quickCreateToken = 0 }) {
         method: editingId ? 'PUT' : 'POST', body: JSON.stringify(payloadFrom(form, Boolean(editingId))),
       })
       const id = editingId || result?.establishment?.id || result?.data?.id
-      if (editingId && Number(form.user_id) !== Number(editing.user_id)) {
+      if (editingId && Number(form.user_id) !== establishmentOwnerId(editing)) {
         await apiRequest(`/admin/ecosystem/establishments/${editingId}/owner`, { method: 'PUT', body: JSON.stringify({ user_id: Number(form.user_id) }) })
       }
       setNotice(editingId ? 'Establishment atualizado com sucesso.' : `Establishment #${id || ''} criado com sucesso.`)
@@ -242,7 +244,7 @@ export default function AdminEstablishmentsPageV2({ quickCreateToken = 0 }) {
   function launchResource(action, app) {
     if (!editing?.id) { setError('Salve o establishment antes de criar recursos vinculados.'); return }
     if (!savedAppIds.has(Number(app.id))) { setError(`Salve o vínculo com ${app.name || app.slug} antes de criar recursos.`); return }
-    setResourceEditor({ action, app, establishment: { ...editing, ...form, id: editing.id, user_id: Number(form.user_id) || editing.user_id } })
+    setResourceEditor({ action, app, establishment: { ...editing, ...form, id: editing.id, user_id: Number(form.user_id) || establishmentOwnerId(editing) } })
     setMode(action.mode || 'resource'); setError(''); setNotice(''); window.setTimeout(scrollTop, 0)
   }
 
@@ -341,27 +343,14 @@ export default function AdminEstablishmentsPageV2({ quickCreateToken = 0 }) {
       <Field label="Aplicação"><select value={filters.app_id} onChange={e => setFilters(current => ({ ...current, app_id: e.target.value }))}><option value="">Todas</option>{applications.map(app => <option key={app.id} value={app.id}>{app.name}</option>)}</select></Field>
       <Field label="Proprietário"><select value={filters.user_id} onChange={e => setFilters(current => ({ ...current, user_id: e.target.value }))}><option value="">Todos</option>{users.map(user => <option key={user.id} value={user.id}>{userName(user)}</option>)}</select></Field>
       <Field label="Aprovação"><select value={filters.approval} onChange={e => setFilters(current => ({ ...current, approval: e.target.value }))}><option value="">Todos</option><option value="approved">Aprovados</option><option value="pending">Pendentes</option></select></Field>
-      <Field label="Publicação"><select value={filters.publication} onChange={e => setFilters(current => ({ ...current, publication: e.target.value }))}><option value="">Todos</option><option value="published">Publicados</option><option value="hidden">Ocultos</option></select></Field>
+      <Field label="Publicação"><select value={filters.publication} onChange={e => setFilters(current => ({ ...current, publication: e.target.value }))}><option value="">Todos</option><option value="published">Publicados</option><option value="draft">Rascunhos</option></select></Field>
       <Field label="Cidade"><input value={filters.city} onChange={e => setFilters(current => ({ ...current, city: e.target.value }))} /></Field>
       <Field label="UF"><input maxLength="2" value={filters.uf} onChange={e => setFilters(current => ({ ...current, uf: e.target.value.toUpperCase() }))} /></Field>
       <Field label="Tipo"><input value={filters.type} onChange={e => setFilters(current => ({ ...current, type: e.target.value }))} /></Field>
-      <button className="aep-secondary aep-filter-clear" type="button" onClick={() => setFilters({ ...EMPTY_FILTERS })}>Limpar filtros</button>
-    </div></section>
-    <section className="aep-card aep-table-card"><div className="aep-table-wrap"><table className="aep-table"><thead><tr><th scope="col">Establishment</th><th scope="col">Proprietário</th><th scope="col">Aplicações</th><th scope="col">Localização</th><th scope="col">Estado</th><th scope="col">Ações</th></tr></thead><tbody>
-      {loading && <tr><td colSpan="6" className="aep-empty">Carregando establishments…</td></tr>}
-      {!loading && !rows.length && <tr><td colSpan="6" className="aep-empty">Nenhum establishment encontrado.</td></tr>}
-      {!loading && rows.map(row => {
-        const logo = establishmentLogo(row)
-        const linkedApps = row.applications?.length ? row.applications : (row.app ? [row.app] : [])
-        return <tr key={row.id}>
-          <td data-label="Establishment"><div className="aep-identity"><span className="aep-row-logo">{logo ? <img src={logo} alt="" /> : String(establishmentName(row))[0]}</span><div><b>{establishmentName(row)}</b><small>#{row.id} · {row.type || row.category || 'sem classificação'}</small></div></div></td>
-          <td data-label="Proprietário"><b>{row.user ? userName(row.user) : `Usuário #${row.user_id || '—'}`}</b><small className="aep-block">{row.user?.email || ''}</small></td>
-          <td data-label="Aplicações"><div className="aep-tags">{linkedApps.length ? linkedApps.map(app => <span key={app.id}>{app.name || app.slug}</span>) : <span>Sem vínculo</span>}</div></td>
-          <td data-label="Localização"><b>{[row.city, row.uf].filter(Boolean).join(' / ') || '—'}</b><small className="aep-block">{row.address || row.cep || ''}</small></td>
-          <td data-label="Estado"><div className="aep-statuses"><Status active={bool(row.is_approved)}>Aprovado</Status><Status active={bool(row.is_published)} tone="cyan">Publicado</Status>{bool(row.is_featured) && <Status active tone="warning">Destaque</Status>}</div></td>
-          <td data-label="Ações"><div className="aep-row-actions"><button className="primary" type="button" onClick={() => startEdit(row)}>Editar</button><button type="button" onClick={() => quickUpdate(row, { is_approved: !bool(row.is_approved) }, bool(row.is_approved) ? 'Aprovação revogada.' : 'Establishment aprovado.')}>{bool(row.is_approved) ? 'Revogar' : 'Aprovar'}</button><button type="button" onClick={() => quickUpdate(row, { is_published: !bool(row.is_published) }, bool(row.is_published) ? 'Establishment ocultado.' : 'Establishment publicado.')}>{bool(row.is_published) ? 'Ocultar' : 'Publicar'}</button><button className="danger" type="button" disabled={saving} onClick={() => remove(row)}>Excluir</button></div></td>
-        </tr>
-      })}
-    </tbody></table></div></section>
+    </div><button className="aep-clear" type="button" onClick={() => setFilters({ ...EMPTY_FILTERS })}>Limpar filtros</button></section>
+
+    <section className="aep-card aep-table-card">
+      {loading ? <div className="aep-state">Carregando establishments…</div> : rows.length === 0 ? <div className="aep-state">Nenhum establishment encontrado.</div> : <div className="aep-table-wrap"><table className="aep-table"><thead><tr><th>Establishment</th><th>Proprietário</th><th>Aplicações</th><th>Status</th><th>Localização</th><th>Ações</th></tr></thead><tbody>{rows.map(row => <tr key={row.id}><td><div className="aep-establishment-cell"><span className="aep-avatar">{establishmentLogo(row) ? <img src={establishmentLogo(row)} alt="" /> : establishmentName(row).slice(0, 2).toUpperCase()}</span><span><b>{establishmentName(row)}</b><small>#{row.id} · {row.type || 'tipo não definido'}</small></span></div></td><td><b>{userName(row.user || row.owner || { id: row.user_id })}</b><small>{row.user?.email || row.owner?.email || ''}</small></td><td><div className="aep-app-chips">{asArray(row.applications).map(app => <span key={app.id}>{app.name || app.slug}</span>)}{!asArray(row.applications).length && row.app_id ? <span>App #{row.app_id}</span> : null}</div></td><td><div className="aep-statuses"><Status active={bool(row.is_approved)}>Aprovado</Status><Status active={bool(row.is_published)}>Publicado</Status>{bool(row.is_featured) && <Status active tone="featured">Destaque</Status>}{bool(row.is_cancelled) && <Status active tone="danger">Cancelado</Status>}</div></td><td><b>{[row.city, row.uf].filter(Boolean).join(' / ') || '—'}</b><small>{row.phone || row.email || ''}</small></td><td><div className="aep-actions"><button type="button" onClick={() => startEdit(row)}>Abrir</button><button type="button" onClick={() => quickUpdate(row, { is_approved: !bool(row.is_approved) }, bool(row.is_approved) ? 'Aprovação removida.' : 'Establishment aprovado.')}>{bool(row.is_approved) ? 'Revisar' : 'Aprovar'}</button><button type="button" onClick={() => quickUpdate(row, { is_published: !bool(row.is_published) }, bool(row.is_published) ? 'Publicação removida.' : 'Establishment publicado.')}>{bool(row.is_published) ? 'Despublicar' : 'Publicar'}</button><button className="danger" type="button" onClick={() => remove(row)}>Excluir</button></div></td></tr>)}</tbody></table></div>}
+    </section>
   </div>
 }
