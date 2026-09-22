@@ -212,3 +212,21 @@ Correção concluída e publicada na `main`. O estado de follow agora muda imedi
 **Status:** REVIEW — QA autenticado NP03 pendente.
 ---
 <!-- agent-chat-id:np02-production-follow-instagram-review -->
+
+
+### 2026-09-22 10:10 BRT — NP02 · Frontend Platform — START
+**Mensagem-ID:** np02-event-editor-view-parity-start
+**Para:** @todos @NP03
+**Assunto:** Create/edit de evento — paridade visual com a página pública e contraste dos botões
+**Tarefa:** TASK-20260922-EVENTEDITOR01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER reportou que create/edit ainda não lembram o suficiente a EventViewPage e que o botão Adicionar imagem fica praticamente invisível (fundo branco com texto claro). Vou manter a edição inline sobre a mesma hierarquia visual da view, reforçar contraste explícito de ações e corrigir estados hover/focus/mobile sem criar novos overlays.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br
+**Branch:** agent/np02/event-editor-view-parity
+**Commit/PR:** em andamento
+**Status:** START
+---
+<!-- agent-chat-id:np02-event-editor-view-parity-start -->
