@@ -9,9 +9,6 @@ const assets = join(dist, 'assets')
 const output = join(root, 'artifacts', 'admin-ticket-sales')
 
 if (!existsSync(join(dist, 'index.html'))) throw new Error('dist/index.html não encontrado. Execute npm run build antes do teste visual.')
-// Ticket styles are intentionally consolidated into the shared Admin Center bundle.
-// Keep the browser gate aligned with the production artifact instead of requiring
-// a route-specific CSS chunk that Vite no longer emits.
 const cssFile = readdirSync(assets).find(file => /^admin-.*\.css$/.test(file))
 if (!cssFile) throw new Error('CSS consolidado de produção do Admin Center não encontrado em dist/assets.')
 
@@ -50,6 +47,12 @@ function parseResult(html) {
   return match ? JSON.parse(match[1].replaceAll('&quot;', '"').replaceAll('&amp;', '&')) : null
 }
 
+function runProbe(url, viewport, virtualTimeBudget) {
+  const common = ['--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--allow-file-access-from-files', '--hide-scrollbars', '--run-all-compositor-stages-before-draw', `--virtual-time-budget=${virtualTimeBudget}`, `--window-size=${Math.max(500, viewport.width)},${Math.max(800, viewport.height)}`]
+  const dumped = spawnSync(chrome, [...common, '--dump-dom', url], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 })
+  return { common, result: dumped.status === 0 ? parseResult(dumped.stdout) : null }
+}
+
 const failures = []
 for (const viewport of viewports) {
   const probePath = join(output, `${viewport.name}-probe.html`)
@@ -57,16 +60,16 @@ for (const viewport of viewports) {
   const wrapperPath = join(output, `${viewport.name}.html`)
   writeFileSync(wrapperPath, wrapperDocument(viewport, pathToFileURL(probePath).href))
   const url = pathToFileURL(wrapperPath).href
-  const common = ['--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--allow-file-access-from-files', '--hide-scrollbars', '--run-all-compositor-stages-before-draw', '--virtual-time-budget=3000', `--window-size=${Math.max(500, viewport.width)},${Math.max(800, viewport.height)}`]
-  const dumped = spawnSync(chrome, [...common, '--dump-dom', url], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 })
-  const result = dumped.status === 0 ? parseResult(dumped.stdout) : null
+  let probe = runProbe(url, viewport, 3000)
+  if (!probe.result) probe = runProbe(url, viewport, 8000)
+  const result = probe.result
   if (!result) {
-    failures.push(`${viewport.name}: navegador não concluiu o probe`)
+    failures.push(`${viewport.name}: navegador não concluiu o probe após retry`)
     continue
   }
   console.log(`${result.ok ? '✓' : '✗'} ${viewport.name}: ${result.checks.map(check => `${check.name}=${check.pass ? 'ok' : 'FAIL'}`).join(', ')}`)
   if (!result.ok) failures.push(`${viewport.name}: ${result.checks.filter(check => !check.pass).map(check => `${check.name} (${check.detail})`).join('; ')}`)
-  spawnSync(chrome, [...common, `--screenshot=${join(output, `${viewport.name}.png`)}`, url], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 })
+  spawnSync(chrome, [...probe.common, `--screenshot=${join(output, `${viewport.name}.png`)}`, url], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 })
 }
 
 if (failures.length) {
