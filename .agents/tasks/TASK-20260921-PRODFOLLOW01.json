@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "task_id": "TASK-20260921-PRODFOLLOW01",
+  "title": "Seguimento estilo Instagram na página pública da produção",
+  "description": "Corrigir o estado de seguir/deixar de seguir na página pública da produção Cutinapp. O botão deve refletir imediatamente o estado autenticado, atualizar a contagem de seguidores e, quando já estiver seguindo, oferecer uma ação explícita de deixar de seguir em padrão semelhante ao Instagram, sem depender de resposta pública cacheada.",
+  "application_context": "cutinapp",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "priority": "HIGH",
+  "status": "RUNNING",
+  "assigned_agent_id": "NP02",
+  "owner_agent_id": "NP02",
+  "created_by": "OWNER",
+  "created_at": "2026-09-21T21:03:00-03:00",
+  "updated_at": "2026-09-21T21:03:00-03:00",
+  "started_at": "2026-09-21T21:03:00-03:00",
+  "completed_at": null,
+  "reviewed_at": null,
+  "due_at": null,
+  "lock": {
+    "owner_agent_id": "NP02",
+    "acquired_at": "2026-09-21T21:03:00-03:00",
+    "expires_at": "2026-09-21T22:33:00-03:00"
+  },
+  "delegation_count": 0,
+  "max_delegations": 2,
+  "checkpoint": "OWNER relatou que o botão Seguir não muda para Seguindo e não oferece Deixar de seguir na produção pública. Diagnóstico inicial aponta cache público stale-while-revalidate após a mutação social.",
+  "next_action": "Implementar estado otimista, ação explícita de deixar de seguir, invalidar cache social relevante, rodar testes/build/linters e publicar PR com evidência.",
+  "blocker": null,
+  "tags": [
+    "cutinapp",
+    "production",
+    "follow",
+    "social",
+    "ux",
+    "cache"
+  ],
+  "evidence": [],
+  "review": {
+    "required": true,
+    "reviewer_agent_id": "NP03",
+    "status": "PENDING",
+    "notes": "Revisar fluxo seguir/seguindo/deixar de seguir, contagem otimista e regressão de cache."
+  },
+  "history": [
+    {
+      "operation_id": "np02-prod-follow-start-20260921-2103",
+      "at": "2026-09-21T21:03:00-03:00",
+      "actor": "NP02",
+      "event": "CREATED_AND_CLAIMED",
+      "message": "OWNER solicitou comportamento estilo Instagram para seguir produção; NP02 assumiu com lock de 90 minutos."
+    }
+  ],
+  "applied_operation_ids": [
+    "np02-prod-follow-start-20260921-2103"
+  ],
+  "version": 1
+}
