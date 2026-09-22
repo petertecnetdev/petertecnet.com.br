@@ -147,7 +147,7 @@ function Header() {
   const close = () => setOpen(false)
   return <header className="mkt-header hub-header">
     <a className="mkt-brand" href="/" onClick={close} aria-label="Peter Tecnet — início">
-      <span className="mkt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span>
+      <span className="mkt-brand-mark"><img src="/petertecnet-brand.svg" alt="" /></span>
       <span><strong>Peter Tecnet</strong><small>Soluções em tecnologia</small></span>
     </a>
     <button className="mkt-menu" type="button" aria-label="Abrir menu" aria-expanded={open} onClick={() => setOpen(value => !value)}><i /><i /></button>
@@ -166,7 +166,7 @@ function Footer({ contact = defaultContact }) {
   return <footer className="mkt-footer">
     <div className="mkt-container mkt-footer-grid">
       <div className="mkt-footer-brand">
-        <span className="mkt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span>
+        <span className="mkt-brand-mark"><img src="/petertecnet-brand.svg" alt="" /></span>
         <div><strong>Peter Tecnet</strong><p>Produtos, serviços e soluções em tecnologia do básico ao avançado.</p></div>
       </div>
       <div className="mkt-footer-links">
@@ -202,7 +202,7 @@ function PlatformCard({ application, index }) {
   const copy = applicationSeo[slug]
   return <article className="mkt-platform-card" data-reveal data-tilt>
     <div className="mkt-card-index"><span>{String(index + 1).padStart(2, '0')}</span><small>PRODUTO PETER TECNET</small></div>
-    <a className="mkt-platform-logo" href={applicationHref(application)}><img src={resolveAssetUrl(application.logo) || '/petertecnetlogo.png'} alt={`Logo ${application.name}`} loading="lazy" /></a>
+    <a className="mkt-platform-logo" href={applicationHref(application)}><img src={resolveAssetUrl(application.logo) || '/petertecnet-brand.svg'} alt={`Logo ${application.name}`} loading="lazy" /></a>
     <p className="mkt-card-eyebrow">{copy?.eyebrow || 'Plataforma'}</p><h3><a href={applicationHref(application)}>{application.name}</a></h3><p>{copy?.description || application.description || 'Plataforma desenvolvida pela Peter Tecnet.'}</p><a className="mkt-text-link" href={applicationHref(application)}>Conhecer a plataforma <span>↗</span></a>
   </article>
 }
@@ -325,10 +325,10 @@ function HomePage({ data }) {
   const about = data.landingEntries.find(entry => entry.cluster === 'home-about')
   const cases = data.caseStudies.length ? data.caseStudies.slice(0, 5).map((entry, index) => ({ entry, application: data.applications.find(app => platformSlug(app) === (entry.metadata?.related_platform || entry.cluster)) || data.applications[index] })) : data.applications.slice(0, 5).map(application => ({ application, entry: null }))
 
-  useEffect(() => { updatePageSeo({ title: 'Peter Tecnet | Software, sites, aplicativos, IA e serviços digitais', description: 'Desenvolvimento de software, sites, landing pages, aplicativos, e-commerce, automação, IA, integrações, banco de dados e serviços digitais.', path: '/', schema: { '@context': 'https://schema.org', '@type': 'Organization', name: 'Peter Tecnet', url: ORIGIN, taxID: CNPJ, logo: `${ORIGIN}/petertecnetlogo.png` } }) }, [])
+  useEffect(() => { updatePageSeo({ title: 'Peter Tecnet | Software, sites, aplicativos, IA e serviços digitais', description: 'Desenvolvimento de software, sites, landing pages, aplicativos, e-commerce, automação, IA, integrações, banco de dados e serviços digitais.', path: '/', schema: { '@context': 'https://schema.org', '@type': 'Organization', name: 'Peter Tecnet', url: ORIGIN, taxID: CNPJ, logo: `${ORIGIN}/petertecnet-brand.svg` } }) }, [])
 
   return <Chrome contact={data.contact}><main>
-    <section className="mkt-hero hub-hero"><div className="mkt-grid" aria-hidden="true" /><div className="mkt-aurora mkt-aurora-a" aria-hidden="true" /><div className="mkt-container hub-hero-layout"><div className="mkt-hero-copy" data-reveal><p className="mkt-kicker"><span /> PETER TECNET</p><h1>{hero?.title || <>Tecnologia para transformar uma necessidade em <em>algo que funciona.</em></>}</h1><p className="mkt-hero-lead">{hero?.excerpt || 'Criamos software, sites, aplicativos, automações, integrações e produtos digitais. Também resolvemos demandas menores quando você só precisa que uma tarefa digital seja feita de forma prática.'}</p><div className="mkt-hero-actions"><a className="mkt-btn is-primary" href="/orcamento">Conte o que você precisa <span>↗</span></a><a className="mkt-btn is-ghost" href="#servicos">Conhecer serviços <span>↘</span></a></div><div className="hub-hero-proof"><span><strong>{data.applications.length || '—'}</strong> plataformas próprias</span><span><strong>{data.catalog.length || '—'}</strong> produtos e serviços</span><span><strong>1</strong> parceiro de tecnologia</span></div></div><aside className="hub-hero-panel" data-reveal><div className="hub-hero-mark"><img src="/petertecnetlogo.png" alt="Peter Tecnet" /><span /><span /></div><p>Do primeiro contato à entrega</p><div><span>IDEIA</span><b>→</b><span>PROJETO</span><b>→</b><span>ENTREGA</span></div><small>Software · Sites · Apps · IA · Serviços digitais</small></aside></div></section>
+    <section className="mkt-hero hub-hero"><div className="mkt-grid" aria-hidden="true" /><div className="mkt-aurora mkt-aurora-a" aria-hidden="true" /><div className="mkt-container hub-hero-layout"><div className="mkt-hero-copy" data-reveal><p className="mkt-kicker"><span /> PETER TECNET</p><h1>{hero?.title || <>Tecnologia para transformar uma necessidade em <em>algo que funciona.</em></>}</h1><p className="mkt-hero-lead">{hero?.excerpt || 'Criamos software, sites, aplicativos, automações, integrações e produtos digitais. Também resolvemos demandas menores quando você só precisa que uma tarefa digital seja feita de forma prática.'}</p><div className="mkt-hero-actions"><a className="mkt-btn is-primary" href="/orcamento">Conte o que você precisa <span>↗</span></a><a className="mkt-btn is-ghost" href="#servicos">Conhecer serviços <span>↘</span></a></div><div className="hub-hero-proof"><span><strong>{data.applications.length || '—'}</strong> plataformas próprias</span><span><strong>{data.catalog.length || '—'}</strong> produtos e serviços</span><span><strong>1</strong> parceiro de tecnologia</span></div></div><aside className="hub-hero-panel" data-reveal><div className="hub-hero-mark"><img src="/petertecnet-brand.svg" alt="Peter Tecnet" /><span /><span /></div><p>Do primeiro contato à entrega</p><div><span>IDEIA</span><b>→</b><span>PROJETO</span><b>→</b><span>ENTREGA</span></div><small>Software · Sites · Apps · IA · Serviços digitais</small></aside></div></section>
 
     <section className="hub-services" id="servicos"><div className="mkt-container"><div className="mkt-section-heading is-split" data-reveal><div><p className="mkt-kicker">O QUE FAZEMOS</p><h2>Serviços para quem precisa <span>criar, melhorar ou resolver.</span></h2></div><p>Você pode chegar com uma ideia completa ou apenas explicar o problema. Organizamos o caminho e mostramos qual tipo de solução faz sentido.</p></div><div className="hub-service-grid">{data.services.map(service => <ServiceCard service={service} key={service.slug} />)}</div></div></section>
 
@@ -377,7 +377,7 @@ function QuotePage({ data }) {
 }
 
 function NotFound({ contact }) {
-  return <Chrome contact={contact}><main className="mkt-page-state"><img src="/petertecnetlogo.png" alt="" /><h1>Página não encontrada.</h1><p>Volte para a Peter Tecnet e encontre produtos, serviços e plataformas.</p><a className="mkt-btn is-primary" href="/">Ir para o início</a></main></Chrome>
+  return <Chrome contact={contact}><main className="mkt-page-state"><img src="/petertecnet-brand.svg" alt="" /><h1>Página não encontrada.</h1><p>Volte para a Peter Tecnet e encontre produtos, serviços e plataformas.</p><a className="mkt-btn is-primary" href="/">Ir para o início</a></main></Chrome>
 }
 
 function MarketingHubRouter() {
