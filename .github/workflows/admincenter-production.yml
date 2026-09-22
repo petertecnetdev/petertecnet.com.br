@@ -63,83 +63,12 @@ jobs:
       - name: Browser shell regression
         run: npm run validate:shell-browser
 
-      - name: Configure SSH
+      - name: Production deployment mode
         if: github.event_name != 'pull_request'
         working-directory: .
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
-          set -euo pipefail
-          test -n "$VPS_HOST"
-          test -n "$VPS_USER"
-          test -n "$VPS_SSH_KEY"
-          install -d -m 700 "$HOME/.ssh"
-          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
-          chmod 600 "$HOME/.ssh/id_ed25519"
-          : > "$HOME/.ssh/known_hosts"
-          chmod 600 "$HOME/.ssh/known_hosts"
-
-      - name: Publish atomic frontend release
-        if: github.event_name != 'pull_request'
-        working-directory: .
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_PORT: ${{ secrets.VPS_PORT }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          TARGET: /var/www/admincenter.petertecnet.com.br
-        run: |
-          set -euo pipefail
-          PORT="${VPS_PORT:-22}"
-          ARCHIVE="$RUNNER_TEMP/admincenter-${GITHUB_SHA}.tar.gz"
-          REMOTE_ARCHIVE="/tmp/admincenter-${GITHUB_SHA}.tar.gz"
-          REMOTE_SCRIPT="$RUNNER_TEMP/admincenter-publish.sh"
-
-          tar -C apps/admincenter/dist -czf "$ARCHIVE" .
-
-          scp -4 \
-            -P "$PORT" \
-            -o StrictHostKeyChecking=accept-new \
-            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
-            "$ARCHIVE" "$VPS_USER@$VPS_HOST:$REMOTE_ARCHIVE"
-
-          cat > "$REMOTE_SCRIPT" <<'REMOTE'
-          set -Eeuo pipefail
-          TARGET="$1"
-          SHA="$2"
-          ARCHIVE="$3"
-          NEXT="$TARGET/.dist.next.$SHA"
-          PREVIOUS="$TARGET/.dist.previous.$SHA.$$"
-          LIVE="$TARGET/dist"
-
-          [[ "$TARGET" == /var/www/* ]] || exit 20
-          [[ "$ARCHIVE" == /tmp/admincenter-*.tar.gz ]] || exit 21
-          test -f "$ARCHIVE"
-
-          rm -rf "$NEXT" 2>/dev/null || true
-          mkdir -p "$NEXT"
-          tar -xzf "$ARCHIVE" -C "$NEXT"
-          rm -f "$ARCHIVE"
-          test -f "$NEXT/index.html"
-
-          if [[ -e "$LIVE" ]]; then mv "$LIVE" "$PREVIOUS"; fi
-          if ! mv "$NEXT" "$LIVE"; then
-            [[ -e "$PREVIOUS" ]] && mv "$PREVIOUS" "$LIVE" || true
-            exit 22
-          fi
-
-          printf '%s\n' "$SHA" > "$TARGET/.admincenter-main-release"
-          rm -rf "$PREVIOUS" 2>/dev/null || true
-          REMOTE
-
-          ssh -4 \
-            -p "$PORT" \
-            -o StrictHostKeyChecking=accept-new \
-            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
-            -o ConnectTimeout=20 \
-            "$VPS_USER@$VPS_HOST" \
-            "bash -s -- '$TARGET' '$GITHUB_SHA' '$REMOTE_ARCHIVE'" < "$REMOTE_SCRIPT"
+          echo "Production deploy is pull-based on petertecnetserver."
+          echo "The server checks origin/main every 30 seconds, validates the Admin Center, and publishes atomically."
 
       - name: Health check
         if: github.event_name != 'pull_request'
@@ -148,7 +77,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          for attempt in $(seq 1 12); do
+          for attempt in $(seq 1 36); do
             code="$(curl -L -sS -o /tmp/admincenter-health.html -w '%{http_code}' --max-time 15 https://admincenter.petertecnet.com.br/ || true)"
             if [[ "$code" == "200" ]]; then
               grep -q '<div id="root"></div>' /tmp/admincenter-health.html
