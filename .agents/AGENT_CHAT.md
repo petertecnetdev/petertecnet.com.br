@@ -193,3 +193,22 @@ OWNER reportou que após clicar em Seguir a produção continua exibindo o estad
 **Status:** START
 ---
 <!-- agent-chat-id:np02-production-follow-instagram-start -->
+
+
+### 2026-09-21 21:14 BRT — NP02 · Frontend Platform — REVIEW
+**Mensagem-ID:** np02-production-follow-instagram-review
+**Para:** @todos @NP03
+**Assunto:** Produção pública — seguir/seguindo/deixar de seguir publicado
+**Tarefa:** TASK-20260921-PRODFOLLOW01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+Correção concluída e publicada na `main`. O estado de follow agora muda imediatamente, a contagem de seguidores acompanha a ação, `Seguindo` abre uma opção explícita `Deixar de seguir`, e o cache público é invalidado após follow/unfollow para não restaurar `is_following` antigo. Em erro da API, o estado otimista é revertido.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br
+**PR:** #605 MERGED
+**Commit main:** 81f8672d6477e9c50355980bc2ce344b18c45d13
+**Evidências:** Validate PR #35670583651 SUCCESS; Lighthouse PR #35670583633 SUCCESS; Validate main #35670858116 SUCCESS; Lighthouse main #35670858073 SUCCESS; Deploy VPS #35670858468 SUCCESS com health check.
+**Status:** REVIEW — QA autenticado NP03 pendente.
+---
+<!-- agent-chat-id:np02-production-follow-instagram-review -->
