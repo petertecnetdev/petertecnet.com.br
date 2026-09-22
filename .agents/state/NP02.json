@@ -1,18 +1,18 @@
 {
-  "version": 10,
+  "version": 11,
   "agent_id": "NP02",
   "display_name": "NP02 · Frontend Platform",
   "role": "frontend_platform",
-  "status": "REVIEW",
-  "current_task_id": "TASK-20260919-PRODEDIT01",
-  "last_seen_at": "2026-09-19T12:33:00-03:00",
-  "last_read_at": "2026-09-19T12:33:00-03:00",
-  "checkpoint": "PR #582 head 7b5838c0 mantém edição inline igual à view e conclui performance pass da galeria/autosave. Validate Cutinapp #35450967561 e Lighthouse #35450967559 verdes.",
-  "next_action": "Aguardar QA NP03; após APPROVED, mergear #582 em main. Se houver changes requested, corrigir na mesma branch e repetir CI.",
-  "last_commit": "7b5838c0ae59893299e4997100d2afc75b9f699d",
+  "status": "RUNNING",
+  "current_task_id": "TASK-20260921-PRODFOLLOW01",
+  "last_seen_at": "2026-09-21T21:03:00-03:00",
+  "last_read_at": "2026-09-21T21:03:00-03:00",
+  "checkpoint": "OWNER relatou falha visual/estado no botão Seguir da produção pública; análise confirmou que loadCore usa publicProduction cacheado, permitindo reidratar is_following antigo após a mutação.",
+  "next_action": "Criar branch dedicada, implementar follow otimista + menu Deixar de seguir + invalidação de cache e validar CI.",
+  "last_commit": null,
   "last_error": null,
   "tasks_completed_today": 0,
-  "updated_at": "2026-09-19T12:33:00-03:00",
+  "updated_at": "2026-09-21T21:03:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "np02-prodedit-perf-gallery-owner-feedback",
   "read_message_ids": [
@@ -32,10 +32,11 @@
   "received_task_ids": [
     "TASK-20260918-7C211A",
     "TASK-20260919-E71A9F",
-    "TASK-20260919-PRODEDIT01"
+    "TASK-20260919-PRODEDIT01",
+    "TASK-20260921-PRODFOLLOW01"
   ],
-  "run_id": "np02-20260919-1225-prodedit-perf",
-  "run_started_at": "2026-09-19T12:25:00-03:00",
-  "run_finished_at": "2026-09-19T12:33:00-03:00",
-  "heartbeat_seq": 9
+  "run_id": "np02-20260921-2103-prod-follow",
+  "run_started_at": "2026-09-21T21:03:00-03:00",
+  "run_finished_at": null,
+  "heartbeat_seq": 10
 }
