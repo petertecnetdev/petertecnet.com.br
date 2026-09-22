@@ -192,9 +192,7 @@ export default function AdminUserDetailExperience(props) {
     }
   }
 
-  const quickActions = <div className="auc-quick-actions" aria-label="Comunicação rápida com o usuário">
-    <button type="button" className="auc-action auc-action--email" onClick={() => openComposer('email')} disabled={loadingUser || !user?.email}>E-mail</button>
-    <button type="button" className="auc-action auc-action--notification" onClick={() => openComposer('notification')} disabled={loadingUser}>Notificação</button>
+  const quickActions = <div className="auc-quick-actions" aria-label="Ações rápidas do usuário">
     <button type="button" className="auc-action auc-action--both" onClick={() => openComposer('both')} disabled={loadingUser || !user?.email}>Comunicar</button>
     <button type="button" className="auc-action auc-action--impersonate" onClick={() => setImpersonationOpen(true)} disabled={loadingUser || !canImpersonate(user)}>Entrar como usuário</button>
   </div>
@@ -268,19 +266,7 @@ export default function AdminUserDetailExperience(props) {
   </div> : null
 
   return <div className="auc-user-detail-shell" data-user-detail-experience="true">
-    <div className="auc-communication-direct" data-user-communication-direct="true">
-      <section className="aud-card">
-        <header>
-          <div>
-            <span>COMUNICAÇÃO DIRETA</span>
-            <h3>{loadingUser ? 'Carregando destinatário…' : `Falar com ${fullName(user)}`}</h3>
-            <p>{user?.email ? `Envie e-mail, notificação ou os dois canais para ${user.email}.` : 'Envie informações diretamente para este usuário sem sair da ficha.'}</p>
-          </div>
-          {quickActions}
-        </header>
-      </section>
-    </div>
-    <AdminUserDetailPage {...props}/>
+    <AdminUserDetailPage {...props} detailActions={quickActions}/>
     {modal}
     {impersonationOpen && user && <AdminImpersonationDialog user={user} applications={applications} apiRequest={apiRequest} onClose={() => setImpersonationOpen(false)}/>} 
   </div>
