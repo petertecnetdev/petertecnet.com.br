@@ -53,6 +53,7 @@ jobs:
           set -euo pipefail
           test -f dist/index.html
           grep -q 'assets/' dist/index.html
+          printf '%s\\n' "$GITHUB_SHA" > dist/release-sha.txt
 
       - name: Bundle budget
         run: npm run validate:bundle
@@ -150,7 +151,12 @@ jobs:
             code="$(curl -L -sS -o /tmp/admincenter-health.html -w '%{http_code}' --max-time 15 https://admincenter.petertecnet.com.br/ || true)"
             if [[ "$code" == "200" ]]; then
               grep -q '<div id="root"></div>' /tmp/admincenter-health.html
-              exit 0
+              deployed_sha="$(curl -L -fsS --max-time 15 https://admincenter.petertecnet.com.br/release-sha.txt || true)"
+              if [[ "$deployed_sha" == "$GITHUB_SHA" ]]; then
+                echo "Verified public Admin Center release: $deployed_sha"
+                exit 0
+              fi
+              echo "HTTP 200 but release SHA mismatch: expected=$GITHUB_SHA actual=$deployed_sha" >&2
             fi
             sleep 5
           done
