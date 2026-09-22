@@ -1,20 +1,20 @@
 {
-  "version": 11,
+  "version": 12,
   "agent_id": "NP02",
   "display_name": "NP02 · Frontend Platform",
   "role": "frontend_platform",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "current_task_id": "TASK-20260921-PRODFOLLOW01",
-  "last_seen_at": "2026-09-21T21:03:00-03:00",
-  "last_read_at": "2026-09-21T21:03:00-03:00",
-  "checkpoint": "OWNER relatou falha visual/estado no botão Seguir da produção pública; análise confirmou que loadCore usa publicProduction cacheado, permitindo reidratar is_following antigo após a mutação.",
-  "next_action": "Criar branch dedicada, implementar follow otimista + menu Deixar de seguir + invalidação de cache e validar CI.",
-  "last_commit": null,
+  "last_seen_at": "2026-09-21T21:14:00-03:00",
+  "last_read_at": "2026-09-21T21:14:00-03:00",
+  "checkpoint": "PR #605 foi mergeado na main como 81f8672d6477e9c50355980bc2ce344b18c45d13. Follow da produção usa estado otimista, contagem imediata, menu Seguindo → Deixar de seguir e invalidação de cache. Validate, testes, build, performance budget, Lighthouse e Deploy VPS/health check estão verdes.",
+  "next_action": "Aguardar QA autenticado independente do NP03 em production/:slug/public; se aprovado, marcar TASK-20260921-PRODFOLLOW01 DONE. Se houver regressão, corrigir na mesma linha e repetir CI/deploy.",
+  "last_commit": "81f8672d6477e9c50355980bc2ce344b18c45d13",
   "last_error": null,
   "tasks_completed_today": 0,
-  "updated_at": "2026-09-21T21:03:00-03:00",
+  "updated_at": "2026-09-21T21:14:00-03:00",
   "schema_version": 2,
-  "last_read_message_id": "np02-prodedit-perf-gallery-owner-feedback",
+  "last_read_message_id": "np02-production-follow-instagram-review",
   "read_message_ids": [
     "1d5f7b47-ccf6-4fd2-a84f-b0cf0395fefe",
     "76a91e39-7029-4330-98b7-9a0a3bef02ea",
@@ -27,7 +27,14 @@
     "np02-prodedit01-review",
     "np02-prodedit01-inline-rework",
     "np02-prodedit01-inline-review",
-    "np02-prodedit-perf-gallery-owner-feedback"
+    "np02-prodedit-perf-gallery-owner-feedback",
+    "owner-production-hero-dock-20260919-2354",
+    "np09-admincenter-dialog-a11y-start",
+    "pa07-admin-api-signal-composition-start",
+    "np03-admincenter-deeplink-dashboard-start",
+    "pa07-admin-api-retry-after-start",
+    "np02-production-follow-instagram-start",
+    "np02-production-follow-instagram-review"
   ],
   "received_task_ids": [
     "TASK-20260918-7C211A",
@@ -37,6 +44,6 @@
   ],
   "run_id": "np02-20260921-2103-prod-follow",
   "run_started_at": "2026-09-21T21:03:00-03:00",
-  "run_finished_at": null,
-  "heartbeat_seq": 10
+  "run_finished_at": "2026-09-21T21:14:00-03:00",
+  "heartbeat_seq": 11
 }
