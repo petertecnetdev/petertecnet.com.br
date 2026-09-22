@@ -149,6 +149,7 @@ jobs:
             exit 32
           fi
           artifact="$RUNNER_TEMP/petertecnet-frontend-release.tgz"
+          printf '%s\\n' "$GITHUB_SHA" > "$output/release-sha.txt"
           tar -czf "$artifact" "$output"
           repository_checksum="$(printf '%s' "$DEPLOY_REPOSITORY" | cksum | awk '{print $1}')"
           remote_artifact="/tmp/petertecnet-frontend-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${repository_checksum}.tgz"
@@ -510,6 +511,11 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 20 "$HEALTH_URL" >/dev/null
+          if [[ "${{ inputs.deploy_type }}" == "frontend" ]]; then
+            release_sha="$(curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 20 "${HEALTH_URL%/}/release-sha.txt")"
+            [[ "$release_sha" == "$GITHUB_SHA" ]] || { echo "Public release SHA mismatch: expected=$GITHUB_SHA actual=$release_sha" >&2; exit 1; }
+            echo "Verified public release SHA: $release_sha"
+          fi
           echo "Health check passed: $HEALTH_URL"
 
       - name: Post-deploy safe disk cleanup
