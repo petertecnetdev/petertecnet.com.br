@@ -177,7 +177,7 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
           />
         </label>
         <button type="submit" className="acu-secondary" disabled={loading}>Buscar</button>
-        {search && <button type="button" className="acu-secondary" disabled={loading} onClick={clearSearch}>Limpar</button>}
+        {(search || appliedSearch) && <button type="button" className="acu-secondary" disabled={loading} onClick={clearSearch}>Limpar</button>}
       </form>
 
       {loading ? (
