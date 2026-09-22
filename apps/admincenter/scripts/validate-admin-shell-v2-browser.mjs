@@ -57,7 +57,7 @@ function parse(html) {
   return JSON.parse(match[1].replaceAll('&quot;', '"').replaceAll('&amp;', '&'))
 }
 
-function runProbe(test, file, attempts = 3) {
+function runProbe(test, file, attempts = 4) {
   let last = null
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     const profile = join(output, `.chrome-${test.name}-${attempt}`)
@@ -72,7 +72,7 @@ function runProbe(test, file, attempts = 3) {
       '--dump-dom', pathToFileURL(file).href,
     ], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, timeout: 15000 })
     last = run
-    const result = run.status === 0 ? parse(run.stdout) : null
+    // Chromium can emit a valid dumped DOM and still exit non-zero because of\n    // runner-only DBus/desktop-service warnings. The contract is the DOM result,\n    // so accept it whenever the probe completed and produced our assertion payload.\n    const result = parse(run.stdout)
     rmSync(profile, { recursive: true, force: true })
     if (result) return { result, attempt }
   }
