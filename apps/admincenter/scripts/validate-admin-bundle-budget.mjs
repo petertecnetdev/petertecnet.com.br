@@ -20,7 +20,7 @@ const kb = bytes => Math.round((bytes / 1024) * 10) / 10
 const budgets = {
   entryJs: 320 * 1024,
   totalJs: 700 * 1024,
-  totalCss: 300 * 1024,
+  // The Admin Center now ships dedicated responsive/detail styles in lazy modules. Keep a strict ceiling with headroom for the current production baseline.\n  totalCss: 330 * 1024,
   largestLazyJs: 125 * 1024,
 }
 
