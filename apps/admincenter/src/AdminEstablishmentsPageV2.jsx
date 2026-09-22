@@ -7,7 +7,7 @@ import AdminEstablishmentEvents from './AdminEstablishmentEvents.jsx'
 import AdminEstablishmentResourceEditor from './AdminEstablishmentResourceEditor.jsx'
 import './AdminEstablishmentsPage.css'
 
-const EMPTY_FILTERS = { search: '', app_id: '', user_id: '', approval: '', publication: '', city: '', uf: '', type: '' }
+const EMPTY_FILTERS = { search: '' }
 const EMPTY_FORM = {
   name: '', fantasy: '', slug: '', cnpj: '', type: '', category: '', phone: '', email: '', description: '',
   city: '', uf: '', cep: '', address: '', website_url: '', instagram_url: '', user_id: '', app_id: '', app_ids: [],
@@ -50,6 +50,20 @@ const userName = user => [user?.first_name, user?.last_name].filter(Boolean).joi
 const establishmentLogo = row => asArray(row?.files).find(item => ['logo', 'avatar', 'image'].includes(item?.type) && item?.public_url)?.public_url || ''
 const linkedAppIds = row => Array.from(new Set([row?.app_id, ...asArray(row?.applications).map(app => app.id)].map(Number).filter(Boolean)))
 const establishmentOwnerId = row => Number(row?.user_id || row?.owner_id || row?.owner?.id || row?.user?.id) || null
+const establishmentApplications = row => {
+  const apps = asArray(row?.applications)
+  const names = apps.map(app => app?.name || app?.slug).filter(Boolean)
+  if (!names.length) return row?.app_id ? `App #${row.app_id}` : 'Nenhuma'
+  if (names.length <= 2) return names.join(', ')
+  return `${names.slice(0, 2).join(', ')} +${names.length - 2}`
+}
+const establishmentStatus = row => {
+  if (bool(row?.is_cancelled)) return 'Cancelado'
+  if (bool(row?.is_published)) return bool(row?.is_approved) ? 'Publicado' : 'Publicado · pendente'
+  if (bool(row?.is_approved)) return 'Aprovado'
+  return 'Pendente'
+}
+const establishmentLocation = row => [row?.city, row?.uf].filter(Boolean).join(' / ') || 'Não informado'
 
 function formFrom(row) {
   const appIds = linkedAppIds(row).map(String)
@@ -96,10 +110,6 @@ function Field({ label, children, wide = false }) {
   return <label className={`aep-field ${wide ? 'wide' : ''}`}><span>{label}</span>{children}</label>
 }
 
-function Metric({ label, value, detail }) {
-  return <article className="aep-metric"><span>{label}</span><b>{value}</b><small>{detail}</small></article>
-}
-
 function Status({ active, children, tone = '' }) {
   return <span className={`aep-status ${active ? 'active' : ''} ${tone}`}><i />{children}</span>
 }
@@ -108,7 +118,7 @@ export default function AdminEstablishmentsPageV2({ quickCreateToken = 0 }) {
   const [rows, setRows] = useState([])
   const [applications, setApplications] = useState([])
   const [users, setUsers] = useState([])
-  const [filters, setFilters] = useState(() => readAdminSessionState('establishments-filters', EMPTY_FILTERS))
+  const [filters, setFilters] = useState(() => ({ search: String(readAdminSessionState('establishments-filters', EMPTY_FILTERS)?.search || '') }))
   const [mode, setMode] = useState('list')
   const [editing, setEditing] = useState(null)
   const [resourceEditor, setResourceEditor] = useState(null)
@@ -158,13 +168,6 @@ export default function AdminEstablishmentsPageV2({ quickCreateToken = 0 }) {
     return () => window.clearTimeout(timer)
   }, [filters, reloadKey, loadRows])
 
-  const metrics = useMemo(() => ({
-    total: rows.length,
-    approved: rows.filter(row => bool(row.is_approved)).length,
-    published: rows.filter(row => bool(row.is_published)).length,
-    featured: rows.filter(row => bool(row.is_featured)).length,
-    multiApp: rows.filter(row => asArray(row?.applications).length > 1).length,
-  }), [rows])
   const selectedApps = useMemo(() => applications.filter(app => asArray(form?.app_ids).includes(String(app.id))), [applications, form.app_ids])
   const savedAppIds = useMemo(() => new Set(linkedAppIds(editing)), [editing])
   const scrollTop = () => document.getElementById('establishments-admin-integration')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -333,24 +336,77 @@ export default function AdminEstablishmentsPageV2({ quickCreateToken = 0 }) {
     </div>
   }
 
-  return <div className="aep-page">
-    <header className="aep-list-header"><div><p className="eyebrow">ESTABELECIMENTOS</p><h2>Gestão de establishments</h2><p>Empresas, produções, barbearias e demais establishments do ecossistema.</p></div><button className="aep-primary" type="button" onClick={startCreate}>Novo establishment <span>＋</span></button></header>
-    <div className="aep-metrics"><Metric label="Encontrados" value={metrics.total} detail="no filtro atual" /><Metric label="Aprovados" value={metrics.approved} detail="liberados" /><Metric label="Publicados" value={metrics.published} detail="visíveis" /><Metric label="Destaques" value={metrics.featured} detail="prioridade ativa" /><Metric label="Multi-app" value={metrics.multiApp} detail="2+ aplicações" /></div>
+  return <div className="aep-page aep-page--simple">
     {error && <div className="aep-feedback error" role="alert">{error}<button type="button" onClick={() => setError('')}>×</button></div>}
     {notice && <div className="aep-feedback success">{notice}<button type="button" onClick={() => setNotice('')}>×</button></div>}
-    <section className="aep-card aep-filter-card"><div className="aep-filter-grid">
-      <Field label="Pesquisar"><input value={filters.search} onChange={e => setFilters(current => ({ ...current, search: e.target.value }))} placeholder="Nome, CNPJ, e-mail, telefone ou ID" /></Field>
-      <Field label="Aplicação"><select value={filters.app_id} onChange={e => setFilters(current => ({ ...current, app_id: e.target.value }))}><option value="">Todas</option>{applications.map(app => <option key={app.id} value={app.id}>{app.name}</option>)}</select></Field>
-      <Field label="Proprietário"><select value={filters.user_id} onChange={e => setFilters(current => ({ ...current, user_id: e.target.value }))}><option value="">Todos</option>{users.map(user => <option key={user.id} value={user.id}>{userName(user)}</option>)}</select></Field>
-      <Field label="Aprovação"><select value={filters.approval} onChange={e => setFilters(current => ({ ...current, approval: e.target.value }))}><option value="">Todos</option><option value="approved">Aprovados</option><option value="pending">Pendentes</option></select></Field>
-      <Field label="Publicação"><select value={filters.publication} onChange={e => setFilters(current => ({ ...current, publication: e.target.value }))}><option value="">Todos</option><option value="published">Publicados</option><option value="draft">Rascunhos</option></select></Field>
-      <Field label="Cidade"><input value={filters.city} onChange={e => setFilters(current => ({ ...current, city: e.target.value }))} /></Field>
-      <Field label="UF"><input maxLength="2" value={filters.uf} onChange={e => setFilters(current => ({ ...current, uf: e.target.value.toUpperCase() }))} /></Field>
-      <Field label="Tipo"><input value={filters.type} onChange={e => setFilters(current => ({ ...current, type: e.target.value }))} /></Field>
-    </div><button className="aep-clear" type="button" onClick={() => setFilters({ ...EMPTY_FILTERS })}>Limpar filtros</button></section>
 
-    <section className="aep-card aep-table-card">
-      {loading ? <div className="aep-state">Carregando establishments…</div> : rows.length === 0 ? <div className="aep-state">Nenhum establishment encontrado.</div> : <div className="aep-table-wrap"><table className="aep-table"><thead><tr><th>Establishment</th><th>Proprietário</th><th>Aplicações</th><th>Status</th><th>Localização</th><th>Ações</th></tr></thead><tbody>{rows.map(row => <tr key={row.id}><td><div className="aep-establishment-cell"><span className="aep-avatar">{establishmentLogo(row) ? <img src={establishmentLogo(row)} alt="" /> : establishmentName(row).slice(0, 2).toUpperCase()}</span><span><b>{establishmentName(row)}</b><small>#{row.id} · {row.type || 'tipo não definido'}</small></span></div></td><td><b>{userName(row.user || row.owner || { id: row.user_id })}</b><small>{row.user?.email || row.owner?.email || ''}</small></td><td><div className="aep-app-chips">{asArray(row.applications).map(app => <span key={app.id}>{app.name || app.slug}</span>)}{!asArray(row.applications).length && row.app_id ? <span>App #{row.app_id}</span> : null}</div></td><td><div className="aep-statuses"><Status active={bool(row.is_approved)}>Aprovado</Status><Status active={bool(row.is_published)}>Publicado</Status>{bool(row.is_featured) && <Status active tone="featured">Destaque</Status>}{bool(row.is_cancelled) && <Status active tone="danger">Cancelado</Status>}</div></td><td><b>{[row.city, row.uf].filter(Boolean).join(' / ') || '—'}</b><small>{row.phone || row.email || ''}</small></td><td><div className="aep-actions"><button type="button" onClick={() => startEdit(row)}>Abrir</button><button type="button" onClick={() => quickUpdate(row, { is_approved: !bool(row.is_approved) }, bool(row.is_approved) ? 'Aprovação removida.' : 'Establishment aprovado.')}>{bool(row.is_approved) ? 'Revisar' : 'Aprovar'}</button><button type="button" onClick={() => quickUpdate(row, { is_published: !bool(row.is_published) }, bool(row.is_published) ? 'Publicação removida.' : 'Establishment publicado.')}>{bool(row.is_published) ? 'Despublicar' : 'Publicar'}</button><button className="danger" type="button" onClick={() => remove(row)}>Excluir</button></div></td></tr>)}</tbody></table></div>}
+    <section className="aep-card aep-establishments-simple">
+      <header className="aep-establishments-simple__head">
+        <div>
+          <span>ESTABELECIMENTOS</span>
+          <h3>Lista de estabelecimentos</h3>
+          <p>{rows.length} cadastrado(s) no ecossistema</p>
+        </div>
+        <button className="aep-primary aep-simple-create" type="button" onClick={startCreate}>+ Novo estabelecimento</button>
+      </header>
+
+      <div className="aep-simple-filter">
+        <label>
+          <span>Buscar estabelecimento</span>
+          <input
+            type="search"
+            value={filters.search}
+            onChange={event => setFilters({ search: event.target.value })}
+            placeholder="Nome, CNPJ, e-mail, telefone ou ID"
+            autoComplete="off"
+          />
+        </label>
+        {filters.search && <button type="button" className="aep-simple-clear" onClick={() => setFilters({ ...EMPTY_FILTERS })}>Limpar</button>}
+      </div>
+
+      {loading ? (
+        <div className="aep-state aep-simple-state">Carregando estabelecimentos…</div>
+      ) : rows.length === 0 ? (
+        <div className="aep-state aep-simple-state">
+          <strong>Nenhum estabelecimento encontrado.</strong>
+          <span>{filters.search ? 'Tente outro nome, documento ou contato.' : 'Cadastre o primeiro estabelecimento para começar.'}</span>
+        </div>
+      ) : (
+        <div className="aep-simple-list">
+          {rows.map(row => {
+            const owner = row.user || row.owner || { id: row.user_id }
+            return <div className="aep-simple-establishment" key={row.id}>
+              <button type="button" className="aep-simple-establishment__details" onClick={() => startEdit(row)}>
+                <span className="aep-simple-establishment__avatar">
+                  {establishmentLogo(row) ? <img src={establishmentLogo(row)} alt="" /> : establishmentName(row).slice(0, 2).toUpperCase()}
+                </span>
+                <span className="aep-simple-establishment__identity">
+                  <strong>{establishmentName(row)}</strong>
+                  <small>{row.email || row.slug || `#${row.id}`}</small>
+                </span>
+                <span className="aep-simple-establishment__meta">
+                  <small>Proprietário</small>
+                  <strong>{userName(owner)}</strong>
+                </span>
+                <span className="aep-simple-establishment__meta">
+                  <small>Plataformas</small>
+                  <strong>{establishmentApplications(row)}</strong>
+                </span>
+                <span className="aep-simple-establishment__meta">
+                  <small>Status</small>
+                  <strong>{establishmentStatus(row)}</strong>
+                </span>
+                <span className="aep-simple-establishment__meta aep-simple-establishment__location">
+                  <small>Localização</small>
+                  <strong>{establishmentLocation(row)}</strong>
+                </span>
+                <span className="aep-simple-establishment__open" aria-hidden="true">›</span>
+              </button>
+              <button type="button" className="aep-simple-establishment__open-button" onClick={() => startEdit(row)}>Abrir</button>
+            </div>
+          })}
+        </div>
+      )}
     </section>
   </div>
 }
