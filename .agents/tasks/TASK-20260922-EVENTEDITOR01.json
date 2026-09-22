@@ -6,26 +6,26 @@
   "application_context": "cutinapp",
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "assigned_agent_id": "NP02",
   "owner_agent_id": "NP02",
   "created_by": "OWNER",
   "created_at": "2026-09-22T10:10:00-03:00",
-  "updated_at": "2026-09-22T10:10:00-03:00",
+  "updated_at": "2026-09-22T10:48:00-03:00",
   "started_at": "2026-09-22T10:10:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
   "due_at": null,
   "lock": {
-    "owner_agent_id": "NP02",
-    "acquired_at": "2026-09-22T10:10:00-03:00",
-    "expires_at": "2026-09-22T11:40:00-03:00"
+    "owner_agent_id": null,
+    "acquired_at": null,
+    "expires_at": null
   },
   "delegation_count": 0,
   "max_delegations": 2,
-  "checkpoint": "Auditoria inicial confirmou que create/edit já compartilham EventExperienceEditorSurface com a view, mas o CSS global da view e o estilo btn-light deixam controles de edição pouco distintos; botão de imagem pode ficar branco sobre branco.",
-  "next_action": "Criar branch, ajustar EventExperienceEditorSurface/CSS para paridade visual e contraste explícito, rodar checks/build e abrir PR.",
-  "blocker": null,
+  "checkpoint": "Create/edit de eventos alinhados à hierarquia da EventViewPage via EventExperienceEditorSurface compartilhado. PR #606 mergeado; título/metadados/inputs e ações receberam paridade visual e contraste explícito. Botão Adicionar/Trocar imagem agora usa fundo roxo sólido, texto branco e foco visível. Validate/Lighthouse passaram. Como o GitHub Actions estava implantando/tentando conectar em um alvo diferente da VPS pública atual, a release foi compilada e ativada diretamente na VPS pública via SentinelX; build/release-sha.txt confirma cf9d2bbe4da832dabed9493b4494c6eacf530d27 e os chunks CSS públicos contêm a regra de alto contraste.",
+  "next_action": "NP03 executar QA visual autenticado em /event/create e /event/:id/edit nos breakpoints desktop/mobile, comparando com a EventViewPage e validando upload/troca de imagem, foco, hover e legibilidade das ações. NP10 deve realinhar os secrets/host do Deploy VPS do GitHub Actions com a VPS pública atual.",
+  "blocker": "Automação Deploy VPS do GitHub Actions está desalinhada da VPS pública atual: execuções reportaram ~6 GiB livres e/ou timeout SSH, enquanto a VPS pública verificada via SentinelX tem ~27 GiB livres e ainda servia o build antigo até o deploy direto. Isso não bloqueia a correção já publicada, mas precisa ser corrigido para próximos deploys automáticos.",
   "tags": [
     "cutinapp",
     "event",
@@ -35,12 +35,53 @@
     "ux",
     "contrast"
   ],
-  "evidence": [],
+  "evidence": [
+    {
+      "type": "pull_request",
+      "ref": "Cutinapp PR #606",
+      "status": "MERGED"
+    },
+    {
+      "type": "commit",
+      "ref": "0b4991271c19f310c2172195b5d920e62373449f",
+      "status": "EVENT_EDITOR_FIX"
+    },
+    {
+      "type": "commit",
+      "ref": "cf9d2bbe4da832dabed9493b4494c6eacf530d27",
+      "status": "PRODUCTION_RELEASE"
+    },
+    {
+      "type": "workflow",
+      "ref": "Validate Cutinapp #35734182316",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Lighthouse CI #35734182063",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "production",
+      "ref": "SentinelX /var/www/cutinapp.petertecnet.com.br/build/release-sha.txt",
+      "status": "cf9d2bbe4da832dabed9493b4494c6eacf530d27"
+    },
+    {
+      "type": "production",
+      "ref": "https://cutinapp.petertecnet.com.br/event/create",
+      "status": "HTTP 200"
+    },
+    {
+      "type": "production",
+      "ref": "public CSS chunks 8616.125567a1 / 6878.a2ad9a16",
+      "status": "imageAction background #7c3aed + white text present"
+    }
+  ],
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
     "status": "PENDING",
-    "notes": "Mudança visual em produção requer revisão independente antes de DONE."
+    "notes": "Código, CI, Lighthouse e publicação direta na VPS pública estão validados tecnicamente. Falta QA visual autenticado independente em create/edit desktop/mobile."
   },
   "history": [
     {
@@ -49,10 +90,18 @@
       "actor": "NP02",
       "event": "CREATED_AND_CLAIMED",
       "message": "OWNER solicitou correção visual de create/edit e contraste; NP02 assumiu com lock de 90 minutos."
+    },
+    {
+      "operation_id": "np02-eventeditor-review-20260922-1048",
+      "at": "2026-09-22T10:48:00-03:00",
+      "actor": "NP02",
+      "event": "PUBLISHED_FOR_REVIEW",
+      "message": "PR #606 mergeado; CI/Lighthouse verdes; deploy direto na VPS pública realizado e verificado após detectar desalinhamento do alvo do GitHub Actions."
     }
   ],
   "applied_operation_ids": [
-    "np02-eventeditor-start-20260922-1010"
+    "np02-eventeditor-start-20260922-1010",
+    "np02-eventeditor-review-20260922-1048"
   ],
-  "version": 1
+  "version": 2
 }
