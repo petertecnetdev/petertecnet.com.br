@@ -46,7 +46,6 @@ const bool = value => value === true || value === 1 || value === '1'
 const asArray = value => Array.isArray(value) ? value : Array.isArray(value?.data) ? value.data : []
 const establishmentName = row => row?.fantasy || row?.name || `Establishment #${row?.id || '—'}`
 const userName = user => [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.user_name || user?.email || `Usuário #${user?.id || '—'}`
-const establishmentLogo = row => asArray(row?.files).find(item => ['logo', 'avatar', 'image'].includes(item?.type) && item?.public_url)?.public_url || ''
 const linkedAppIds = row => Array.from(new Set([row?.app_id, ...asArray(row?.applications).map(app => app.id)].map(Number).filter(Boolean)))
 const establishmentOwnerId = row => Number(row?.user_id || row?.owner_id || row?.owner?.id || row?.user?.id) || null
 const establishmentApplications = row => {
@@ -309,21 +308,21 @@ export default function AdminEstablishmentsPageV2({ quickCreateToken = 0 }) {
     </div>
   }
 
-  return <div className="aep-page aep-page--simple">
-    {error && <div className="aep-feedback error" role="alert">{error}<button type="button" onClick={() => setError('')}>×</button></div>}
+  return <div className="acu-root acu-root--simple">
+    {error && <div className="acu-notice acu-notice--danger" role="alert">{error}</div>}
     {notice && <div className="aep-feedback success">{notice}<button type="button" onClick={() => setNotice('')}>×</button></div>}
 
-    <section className="aep-card aep-establishments-simple">
-      <header className="aep-establishments-simple__head">
+    <section className="acu-card acu-users-simple">
+      <header className="acu-users-simple__head">
         <div>
           <span>ESTABELECIMENTOS</span>
           <h3>Lista de estabelecimentos</h3>
           <p>{rows.length} cadastrado(s) no ecossistema</p>
         </div>
-        <button className="aep-primary aep-simple-create" type="button" onClick={startCreate}>+ Novo estabelecimento</button>
+        <button className="acu-invite-button" type="button" onClick={startCreate}>+ Novo estabelecimento</button>
       </header>
 
-      <div className="aep-simple-filter">
+      <div className="aep-objective-search" role="search">
         <label>
           <span>Buscar estabelecimento</span>
           <input
@@ -334,48 +333,42 @@ export default function AdminEstablishmentsPageV2({ quickCreateToken = 0 }) {
             autoComplete="off"
           />
         </label>
-        {filters.search && <button type="button" className="aep-simple-clear" onClick={() => setFilters({ ...EMPTY_FILTERS })}>Limpar</button>}
+        {filters.search && <button type="button" className="acu-secondary" onClick={() => setFilters({ ...EMPTY_FILTERS })}>Limpar</button>}
       </div>
 
       {loading ? (
-        <div className="aep-state aep-simple-state">Carregando estabelecimentos…</div>
+        <div className="acu-loading">Carregando estabelecimentos…</div>
       ) : rows.length === 0 ? (
-        <div className="aep-state aep-simple-state">
+        <div className="acu-empty">
           <strong>Nenhum estabelecimento encontrado.</strong>
           <span>{filters.search ? 'Tente outro nome, documento ou contato.' : 'Cadastre o primeiro estabelecimento para começar.'}</span>
         </div>
       ) : (
-        <div className="aep-simple-list">
+        <div className="acu-simple-list">
           {rows.map(row => {
             const owner = row.user || row.owner || { id: row.user_id }
-            return <div className="aep-simple-establishment" key={row.id}>
-              <button type="button" className="aep-simple-establishment__details" onClick={() => startEdit(row)}>
-                <span className="aep-simple-establishment__avatar">
-                  {establishmentLogo(row) ? <img src={establishmentLogo(row)} alt="" /> : establishmentName(row).slice(0, 2).toUpperCase()}
-                </span>
-                <span className="aep-simple-establishment__identity">
+            return <div className="acu-simple-user" key={row.id}>
+              <button type="button" className="acu-simple-user__details" onClick={() => startEdit(row)}>
+                <span className="acu-simple-user__avatar">{establishmentName(row).slice(0, 2).toUpperCase()}</span>
+                <span className="acu-simple-user__identity">
                   <strong>{establishmentName(row)}</strong>
                   <small>{row.email || row.slug || `#${row.id}`}</small>
                 </span>
-                <span className="aep-simple-establishment__meta">
+                <span className="acu-simple-user__meta">
                   <small>Proprietário</small>
                   <strong>{userName(owner)}</strong>
                 </span>
-                <span className="aep-simple-establishment__meta">
+                <span className="acu-simple-user__meta">
                   <small>Plataformas</small>
                   <strong>{establishmentApplications(row)}</strong>
                 </span>
-                <span className="aep-simple-establishment__meta">
-                  <small>Status</small>
-                  <strong>{establishmentStatus(row)}</strong>
+                <span className="acu-simple-user__meta acu-simple-user__activity">
+                  <small>Status · Localização</small>
+                  <strong>{establishmentStatus(row)} · {establishmentLocation(row)}</strong>
                 </span>
-                <span className="aep-simple-establishment__meta aep-simple-establishment__location">
-                  <small>Localização</small>
-                  <strong>{establishmentLocation(row)}</strong>
-                </span>
-                <span className="aep-simple-establishment__open" aria-hidden="true">›</span>
+                <span className="acu-simple-user__open" aria-hidden="true">›</span>
               </button>
-              <button type="button" className="aep-simple-establishment__open-button" onClick={() => startEdit(row)}>Abrir</button>
+              <button type="button" className="acu-simple-user__impersonate" onClick={() => startEdit(row)}>Abrir</button>
             </div>
           })}
         </div>
