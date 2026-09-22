@@ -144,6 +144,8 @@ jobs:
       - name: Health check
         if: github.event_name != 'pull_request'
         working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           for attempt in $(seq 1 12); do
@@ -151,10 +153,27 @@ jobs:
             if [[ "$code" == "200" ]]; then
               grep -q '<div id="root"></div>' /tmp/admincenter-health.html
               deployed_sha="$(curl -L -fsS --max-time 15 https://admincenter.petertecnet.com.br/release-sha.txt || true)"
+
               if [[ "$deployed_sha" == "$GITHUB_SHA" ]]; then
                 echo "Verified public Admin Center release: $deployed_sha"
                 exit 0
               fi
+
+              # Another main deployment can legitimately supersede this run while the
+              # public health check is executing. Treat a newer descendant commit as
+              # healthy instead of reporting a false deployment failure.
+              if [[ "$deployed_sha" =~ ^[0-9a-f]{40}$ ]]; then
+                comparison="$(curl -fsSL \
+                  -H "Authorization: Bearer $GH_TOKEN" \
+                  -H "Accept: application/vnd.github+json" \
+                  "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/compare/$GITHUB_SHA...$deployed_sha" || true)"
+                comparison_status="$(printf '%s' "$comparison" | jq -r '.status // empty' 2>/dev/null || true)"
+                if [[ "$comparison_status" == "ahead" || "$comparison_status" == "identical" ]]; then
+                  echo "Release $GITHUB_SHA was superseded by newer healthy main release $deployed_sha."
+                  exit 0
+                fi
+              fi
+
               echo "HTTP 200 but release SHA mismatch: expected=$GITHUB_SHA actual=$deployed_sha" >&2
             fi
             sleep 5
