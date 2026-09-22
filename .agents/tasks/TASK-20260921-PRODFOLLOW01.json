@@ -6,25 +6,25 @@
   "application_context": "cutinapp",
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "assigned_agent_id": "NP02",
   "owner_agent_id": "NP02",
   "created_by": "OWNER",
   "created_at": "2026-09-21T21:03:00-03:00",
-  "updated_at": "2026-09-21T21:03:00-03:00",
+  "updated_at": "2026-09-21T21:14:00-03:00",
   "started_at": "2026-09-21T21:03:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
   "due_at": null,
   "lock": {
-    "owner_agent_id": "NP02",
-    "acquired_at": "2026-09-21T21:03:00-03:00",
-    "expires_at": "2026-09-21T22:33:00-03:00"
+    "owner_agent_id": null,
+    "acquired_at": null,
+    "expires_at": null
   },
   "delegation_count": 0,
   "max_delegations": 2,
-  "checkpoint": "OWNER relatou que o botão Seguir não muda para Seguindo e não oferece Deixar de seguir na produção pública. Diagnóstico inicial aponta cache público stale-while-revalidate após a mutação social.",
-  "next_action": "Implementar estado otimista, ação explícita de deixar de seguir, invalidar cache social relevante, rodar testes/build/linters e publicar PR com evidência.",
+  "checkpoint": "Correção implementada e publicada na main. O follow/unfollow agora é otimista, atualiza a contagem imediatamente, exibe Seguindo com menu Deixar de seguir e invalida o cache público após a mutação. PR #605 mergeado como 81f8672d6477e9c50355980bc2ce344b18c45d13; CI pré-merge e pós-merge, Lighthouse e Deploy VPS com health check concluíram com sucesso.",
+  "next_action": "NP03 executar QA autenticado em /production/:slug/public: validar Seguir → Seguindo, menu Deixar de seguir, contagem de seguidores, rollback em falha e responsividade desktop/mobile. Após APPROVED, marcar DONE.",
   "blocker": null,
   "tags": [
     "cutinapp",
@@ -34,12 +34,48 @@
     "ux",
     "cache"
   ],
-  "evidence": [],
+  "evidence": [
+    {
+      "type": "pull_request",
+      "ref": "petertecnetdev/cutinapp.petertecnet.com.br#605",
+      "status": "MERGED"
+    },
+    {
+      "type": "merge_commit",
+      "ref": "81f8672d6477e9c50355980bc2ce344b18c45d13",
+      "status": "DEPLOYED"
+    },
+    {
+      "type": "workflow",
+      "ref": "Validate Cutinapp #35670583651 (PR)",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Lighthouse CI #35670583633 (PR)",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Validate Cutinapp #35670858116 (main)",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Lighthouse CI #35670858073 (main)",
+      "status": "SUCCESS"
+    },
+    {
+      "type": "workflow",
+      "ref": "Deploy VPS #35670858468",
+      "status": "SUCCESS"
+    }
+  ],
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
     "status": "PENDING",
-    "notes": "Revisar fluxo seguir/seguindo/deixar de seguir, contagem otimista e regressão de cache."
+    "notes": "Código, testes, build, performance budget, Lighthouse e deploy/health check estão verdes. Falta QA autenticado independente do fluxo social em produção."
   },
   "history": [
     {
@@ -48,10 +84,18 @@
       "actor": "NP02",
       "event": "CREATED_AND_CLAIMED",
       "message": "OWNER solicitou comportamento estilo Instagram para seguir produção; NP02 assumiu com lock de 90 minutos."
+    },
+    {
+      "operation_id": "np02-prod-follow-review-20260921-2114",
+      "at": "2026-09-21T21:14:00-03:00",
+      "actor": "NP02",
+      "event": "MERGED_DEPLOYED_SUBMITTED_FOR_REVIEW",
+      "message": "PR #605 mergeado na main como 81f8672d; Validate/Lighthouse pré e pós-merge verdes e Deploy VPS #35670858468 concluiu com health check success."
     }
   ],
   "applied_operation_ids": [
-    "np02-prod-follow-start-20260921-2103"
+    "np02-prod-follow-start-20260921-2103",
+    "np02-prod-follow-review-20260921-2114"
   ],
-  "version": 1
+  "version": 2
 }
