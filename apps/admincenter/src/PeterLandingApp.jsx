@@ -170,7 +170,7 @@ function Header() {
 
   return <header className="mkt-header">
     <a className="mkt-brand" href="/" onClick={close} aria-label="Peter Tecnet — início">
-      <span className="mkt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span>
+      <span className="mkt-brand-mark"><img src="/petertecnet-brand.svg" alt="" /></span>
       <span><strong>Peter Tecnet</strong><small>Soluções em tecnologia</small></span>
     </a>
     <button className="mkt-menu" type="button" aria-label="Abrir menu" aria-expanded={open} onClick={() => setOpen(value => !value)}><i /><i /></button>
@@ -188,7 +188,7 @@ function Footer({ contact }) {
   return <footer className="mkt-footer">
     <div className="mkt-container mkt-footer-grid">
       <div className="mkt-footer-brand">
-        <span className="mkt-brand-mark"><img src="/petertecnetlogo.png" alt="" /></span>
+        <span className="mkt-brand-mark"><img src="/petertecnet-brand.svg" alt="" /></span>
         <div><strong>Peter Tecnet</strong><p>Produtos, serviços e soluções em tecnologia do básico ao avançado.</p></div>
       </div>
       <div className="mkt-footer-links">
@@ -211,7 +211,7 @@ function PlatformCard({ application, index }) {
   return <article className="mkt-platform-card" data-reveal data-tilt>
     <div className="mkt-card-index"><span>{String(index + 1).padStart(2, '0')}</span><small>PLATAFORMA</small></div>
     <a className="mkt-platform-logo" href={applicationHref(application)} aria-label={`Conhecer ${application.name}`}>
-      <img src={resolveAssetUrl(application.logo) || '/petertecnetlogo.png'} alt={`Logo ${application.name}`} loading="lazy" />
+      <img src={resolveAssetUrl(application.logo) || '/petertecnet-brand.svg'} alt={`Logo ${application.name}`} loading="lazy" />
     </a>
     <p className="mkt-card-eyebrow">{copy?.eyebrow || 'Solução Peter Tecnet'}</p>
     <h3><a href={applicationHref(application)}>{application.name}</a></h3>
@@ -273,7 +273,7 @@ function PeterLandingExperience() {
           '@id': `${ORIGIN}/#organization`,
           name: 'Peter Tecnet',
           url: `${ORIGIN}/`,
-          logo: `${ORIGIN}/petertecnetlogo.png`,
+          logo: `${ORIGIN}/petertecnet-brand.svg`,
           description: 'Empresa de tecnologia que desenvolve software, aplicativos, sites, plataformas, automações, integrações, soluções com inteligência artificial e serviços digitais.',
         },
         {
@@ -326,7 +326,7 @@ function PeterLandingExperience() {
 
           <aside className="mkt-command" data-reveal data-tilt aria-label="Peter Tecnet">
             <div className="mkt-command-head"><span><i /> PETER TECNET</span><small>SOLUÇÕES EM TECNOLOGIA</small></div>
-            <div className="mkt-command-core"><div className="mkt-core-rings"><span /><span /><span /></div><img src="/petertecnetlogo.png" alt="Peter Tecnet" /></div>
+            <div className="mkt-command-core"><div className="mkt-core-rings"><span /><span /><span /></div><img src="/petertecnet-brand.svg" alt="Peter Tecnet" /></div>
             <div className="mkt-command-stats">
               <div><strong>{status === 'success' ? applications.length : '—'}</strong><span>plataformas próprias</span></div>
               <div><strong>{status === 'success' ? catalog.length : '—'}</strong><span>produtos e serviços</span></div>
@@ -431,7 +431,7 @@ function PeterLandingExperience() {
       <section className="mkt-conversion" id="contato">
         <div className="mkt-grid" aria-hidden="true" />
         <div className="mkt-container mkt-conversion-inner" data-reveal>
-          <div className="mkt-conversion-mark"><img src="/petertecnetlogo.png" alt="" /><span /><span /></div>
+          <div className="mkt-conversion-mark"><img src="/petertecnet-brand.svg" alt="" /><span /><span /></div>
           <p className="mkt-kicker">FALE COM A PETER TECNET</p>
           <h2>Conte o que você precisa. <span>Nós pensamos na melhor forma de resolver.</span></h2>
           <p>Pode ser um site, aplicativo, sistema, automação, integração, documento, serviço online ou uma necessidade que ainda não tem uma solução definida.</p>
