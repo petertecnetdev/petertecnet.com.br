@@ -4,7 +4,7 @@ import App from './App.jsx'
 import { AdminAuthProvider } from './AdminAuthProvider.jsx'
 import { AdminDataProvider } from './AdminDataProvider.jsx'
 import PwaInstallButton from './PwaInstallButton.jsx'
-import SupportAdminApp, { AdminSupportLauncher } from './SupportAdminApp.jsx'
+import SupportAdminApp from './SupportAdminApp.jsx'
 import './App.css'
 import './AdminEstablishmentsFeedback.css'
 import './AdminResponsive.css'
@@ -22,7 +22,6 @@ createRoot(document.getElementById('root')).render(
       {path === '/support' ? <SupportAdminApp /> : (
         <AdminDataProvider>
           <App />
-          <AdminSupportLauncher />
         </AdminDataProvider>
       )}
     </AdminAuthProvider>
