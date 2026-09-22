@@ -33,7 +33,7 @@ function renderBootFailure(error, title = 'Não foi possível manter esta págin
   root.innerHTML = `
     <main style="min-height:100dvh;display:grid;place-items:center;padding:24px;background:#02080c;color:#effcff;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
       <section style="width:min(520px,100%);padding:28px;border:1px solid rgba(116,217,234,.16);border-radius:22px;background:rgba(5,20,29,.96);box-shadow:0 26px 80px rgba(0,0,0,.35)">
-        <img src="/petertecnetlogo.png" alt="Peter Tecnet" style="width:68px;height:68px;object-fit:contain;margin-bottom:14px" />
+        <img src="/petertecnet-brand.svg" alt="Peter Tecnet" style="width:68px;height:68px;object-fit:contain;margin-bottom:14px" />
         <p style="margin:0 0 8px;color:#35dff2;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase">Peter Tecnet</p>
         <h1 style="margin:0 0 12px;font-size:clamp(24px,6vw,36px);line-height:1.15">${title}</h1>
         <p style="margin:0 0 20px;color:#91adb5;line-height:1.6">A interface entrou em um estado inconsistente e foi interrompida antes de deixar uma tela vazia. Recarregue para buscar a versão atual da aplicação.</p>
