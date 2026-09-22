@@ -7,19 +7,18 @@
 
     const originalSync = runtime.sync.bind(runtime)
     let inFlight = null
-    let generation = 0
 
-    runtime.sync = async (...args) => {
-      const requestGeneration = ++generation
+    runtime.sync = (...args) => {
       if (inFlight) return inFlight
 
-      inFlight = Promise.resolve()
+      const request = Promise.resolve()
         .then(() => originalSync(...args))
         .finally(() => {
-          if (requestGeneration === generation) inFlight = null
+          if (inFlight === request) inFlight = null
         })
 
-      return inFlight
+      inFlight = request
+      return request
     }
 
     runtime.__syncGuardInstalled = true
