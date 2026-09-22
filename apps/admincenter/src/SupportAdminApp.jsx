@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './SupportAdminApp.css'
 
 const API = import.meta.env.VITE_API_URL || 'https://api.petertecnet.com.br/api'
@@ -28,8 +28,16 @@ async function request(path, options = {}) {
     error.status = response.status
     throw error
   }
-  if (!response.ok) throw new Error(payload?.message || Object.values(payload?.errors || {}).flat()?.[0] || 'Falha ao concluir a operação.')
+  if (!response.ok) {
+    const error = new Error(payload?.message || Object.values(payload?.errors || {}).flat()?.[0] || 'Falha ao concluir a operação.')
+    error.status = response.status
+    throw error
+  }
   return payload
+}
+
+function isAbortError(error) {
+  return error?.name === 'AbortError'
 }
 
 function label(options, value) { return options.find(([key]) => key === value)?.[1] || value || '—' }
@@ -123,6 +131,9 @@ export default function SupportAdminApp() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [filters, setFilters] = useState({ q: '', status: 'open,in_progress,waiting_customer', priority: '', application_id: '' })
+  const listRequestRef = useRef(null)
+  const listSequenceRef = useRef(0)
+  const detailRequestRef = useRef(null)
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams({ per_page: '80' })
@@ -131,13 +142,19 @@ export default function SupportAdminApp() {
   }, [filters])
 
   async function loadList({ keepSelected = true } = {}) {
+    listRequestRef.current?.abort()
+    const controller = new AbortController()
+    listRequestRef.current = controller
+    const requestSequence = ++listSequenceRef.current
     setLoading(true); setError('')
     try {
+      const signal = controller.signal
       const [summaryPayload, ticketPayload, appsPayload] = await Promise.all([
-        request('/admin/support/summary'),
-        request(`/admin/support/tickets?${queryString}`),
-        applications.length ? Promise.resolve({ applications }) : request('/admin/applications'),
+        request('/admin/support/summary', { signal }),
+        request(`/admin/support/tickets?${queryString}`, { signal }),
+        applications.length ? Promise.resolve({ applications }) : request('/admin/applications', { signal }),
       ])
+      if (controller.signal.aborted || requestSequence !== listSequenceRef.current) return
       const rows = ticketPayload?.data || []
       setSummary(summaryPayload?.summary || {})
       setTickets(rows)
@@ -148,17 +165,34 @@ export default function SupportAdminApp() {
         if (!stillVisible) setSelected(null)
       }
     } catch (err) {
+      if (isAbortError(err) || controller.signal.aborted || requestSequence !== listSequenceRef.current) return
       setError(err.message)
       if (err.status === 401 || err.status === 403) window.location.assign('/')
-    } finally { setLoading(false) }
+    } finally {
+      if (requestSequence === listSequenceRef.current) setLoading(false)
+    }
   }
 
-  useEffect(() => { if (!localStorage.getItem(TOKEN_KEY)) { window.location.assign('/'); return } void loadList({ keepSelected: false }) }, [queryString])
+  useEffect(() => {
+    if (!localStorage.getItem(TOKEN_KEY)) { window.location.assign('/'); return undefined }
+    void loadList({ keepSelected: false })
+    return () => {
+      listRequestRef.current?.abort()
+      detailRequestRef.current?.abort()
+    }
+  }, [queryString])
 
   async function openTicket(row) {
+    detailRequestRef.current?.abort()
+    const controller = new AbortController()
+    detailRequestRef.current = controller
     setError('')
-    try { const payload = await request(`/admin/support/tickets/${row.id}`); setSelected(payload.ticket) }
-    catch (err) { setError(err.message) }
+    try {
+      const payload = await request(`/admin/support/tickets/${row.id}`, { signal: controller.signal })
+      if (!controller.signal.aborted) setSelected(payload.ticket)
+    } catch (err) {
+      if (!isAbortError(err) && !controller.signal.aborted) setError(err.message)
+    }
   }
 
   async function changed(updated) {
