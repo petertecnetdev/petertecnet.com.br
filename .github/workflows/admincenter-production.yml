@@ -65,10 +65,12 @@ jobs:
         if: github.event_name != 'pull_request'
         working-directory: .
         env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           set -euo pipefail
+          test -n "$VPS_HOST"
           test -n "$VPS_USER"
           test -n "$VPS_SSH_KEY"
           install -d -m 700 "$HOME/.ssh"
@@ -81,9 +83,9 @@ jobs:
         if: github.event_name != 'pull_request'
         working-directory: .
         env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
           VPS_USER: ${{ secrets.VPS_USER }}
-          DEPLOY_HOST: admincenter.petertecnet.com.br
           TARGET: /var/www/admincenter.petertecnet.com.br
         run: |
           set -euo pipefail
@@ -98,7 +100,7 @@ jobs:
             -P "$PORT" \
             -o StrictHostKeyChecking=accept-new \
             -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
-            "$ARCHIVE" "$VPS_USER@$DEPLOY_HOST:$REMOTE_ARCHIVE"
+            "$ARCHIVE" "$VPS_USER@$VPS_HOST:$REMOTE_ARCHIVE"
 
           cat > "$REMOTE_SCRIPT" <<'REMOTE'
           set -Eeuo pipefail
@@ -134,7 +136,7 @@ jobs:
             -o StrictHostKeyChecking=accept-new \
             -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
             -o ConnectTimeout=20 \
-            "$VPS_USER@$DEPLOY_HOST" \
+            "$VPS_USER@$VPS_HOST" \
             "bash -s -- '$TARGET' '$GITHUB_SHA' '$REMOTE_ARCHIVE'" < "$REMOTE_SCRIPT"
 
       - name: Health check
