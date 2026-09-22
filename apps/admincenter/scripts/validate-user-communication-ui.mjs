@@ -1,9 +1,9 @@
 import fs from 'node:fs'
 
 const experience = fs.readFileSync(new URL('../src/AdminUserDetailExperience.jsx', import.meta.url), 'utf8')
+const detailPage = fs.readFileSync(new URL('../src/AdminUserDetailPage.jsx', import.meta.url), 'utf8')
 const users = fs.readFileSync(new URL('../src/AdminUsersCenter.jsx', import.meta.url), 'utf8')
 const impersonation = fs.readFileSync(new URL('../src/AdminImpersonation.jsx', import.meta.url), 'utf8')
-const shell = fs.readFileSync(new URL('../src/AdminUserCommunicationShell.css', import.meta.url), 'utf8')
 
 const checks = [
   ['user center mounts communication experience', users.includes("./AdminUserDetailExperience.jsx")],
@@ -13,13 +13,14 @@ const checks = [
   ['impersonation posts the selected application id', impersonation.includes('application_id: Number(applicationId)')],
   ['impersonation requires API handoff before navigation', impersonation.includes("if (!payload?.handoff_url) throw new Error") && impersonation.includes('popup.location.replace(payload.handoff_url)')],
   ['detail experience renders one shell', experience.includes('data-user-detail-experience="true"')],
-  ['communication bar is inside detail shell', experience.includes('data-user-communication-direct="true"')],
-  ['email action is visible', experience.includes('>E-mail</button>')],
-  ['notification action is visible', experience.includes('>Notificação</button>')],
-  ['combined action is visible', experience.includes('>Comunicar</button>')],
+  ['quick actions are injected into user detail header', experience.includes('detailActions={quickActions}') && detailPage.includes('detailActions = null')],
+  ['detail header renders quick actions', detailPage.includes('aud-hero-actions') && detailPage.includes('{detailActions}')],
+  ['combined communication action is visible', experience.includes('>Comunicar</button>')],
+  ['impersonation action is visible in detail header', experience.includes('>Entrar como usuário</button>')],
+  ['composer still supports email channel', experience.includes("email: 'E-mail'") && experience.includes("openComposer('both')")],
+  ['composer still supports notification channel', experience.includes("notification: 'Notificação'")],
   ['individual email endpoint is wired', experience.includes('/communications/email')],
-  ['notification endpoint is wired', experience.includes("'/admin/ecosystem/notifications'" )],
-  ['direct communication is forced visible', shell.includes('visibility: visible !important')],
+  ['notification endpoint is wired', experience.includes("'/admin/ecosystem/notifications'")],
 ]
 
 let failed = false
