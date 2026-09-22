@@ -255,7 +255,7 @@ function Login({ onAuthenticated }) {
     <div className="login-aura aura-one"/><div className="login-aura aura-two"/>
     <section className="login-copy">
       <a className="brand brand-large" href="https://petertecnet.com.br/" target="_blank" rel="noreferrer">
-        <span className="brand-logo"><img src="/petertecnetlogo.png" alt=""/></span>
+        <span className="brand-logo"><img src="/petertecnet-brand.svg" alt=""/></span>
         <span><b>Peter Tecnet</b><small>Admin Center</small></span>
       </a>
       <div>
@@ -267,7 +267,7 @@ function Login({ onAuthenticated }) {
     </section>
     <section className="login-panel">
       <form className="login-card" onSubmit={submit}>
-        <div className="login-mark"><img src="/petertecnetlogo.png" alt="Peter Tecnet"/></div>
+        <div className="login-mark"><img src="/petertecnet-brand.svg" alt="Peter Tecnet"/></div>
         <p className="eyebrow">ADMIN CENTER</p>
         <h2>Entrar</h2>
         <p className="muted">Entre com a conta Google da Peter Tecnet ou use sua senha administrativa.</p>
@@ -782,7 +782,7 @@ function Dashboard({ user, onLogout }) {
     <div className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} aria-hidden="true"/>
     <aside ref={sidebarRef} id="admin-navigation" className={`sidebar ${sidebarOpen ? 'open' : ''}`} aria-label="Navegação administrativa" aria-hidden={!sidebarOpen} onKeyDown={handleSidebarKeyDown}>
       <a className="brand" href="?page=usuarios" tabIndex={sidebarOpen ? 0 : -1} onClick={event => { event.preventDefault(); go('users') }}>
-        <span className="brand-logo"><img src="/petertecnetlogo.png" alt=""/></span>
+        <span className="brand-logo"><img src="/petertecnet-brand.svg" alt=""/></span>
         <span><b>Peter Tecnet</b><small>Admin Center</small></span>
       </a>
       <nav>
@@ -1019,7 +1019,7 @@ function EcosystemLauncher({ applications, onClose }) {
   return <div className="launcher-popover">
     <div className="launcher-head"><div><p className="eyebrow">ECOSYSTEM</p><b>Navegar nas aplicações</b></div><button onClick={onClose}>×</button></div>
     <div className="launcher-grid">
-      <a href="https://petertecnet.com.br/" target="_blank" rel="noreferrer"><span className="launcher-logo"><img src="/petertecnetlogo.png" alt=""/></span><div><b>Peter Tecnet</b><small>Site institucional</small></div><i>↗</i></a>
+      <a href="https://petertecnet.com.br/" target="_blank" rel="noreferrer"><span className="launcher-logo"><img src="/petertecnet-brand.svg" alt=""/></span><div><b>Peter Tecnet</b><small>Site institucional</small></div><i>↗</i></a>
       {applications.filter(app => app.is_active !== false && app.url).map(app => <a key={app.id || app.slug} href={app.url} target="_blank" rel="noreferrer"><span className="launcher-logo">{app.logo ? <img src={app.logo} alt=""/> : String(app.name || 'P')[0]}</span><div><b>{app.name}</b><small>{app.slug || 'Aplicação'}</small></div><i>↗</i></a>)}
     </div>
   </div>
@@ -1073,6 +1073,6 @@ export default function App() {
     setUser(null)
   }
 
-  if (checking) return <div className="boot-screen"><img src="/petertecnetlogo.png" alt=""/><span/><p>Validando sessão administrativa…</p></div>
+  if (checking) return <div className="boot-screen"><img src="/petertecnet-brand.svg" alt=""/><span/><p>Validando sessão administrativa…</p></div>
   return user ? <Dashboard user={user} onLogout={logout}/> : <Login onAuthenticated={setUser}/>
 }
