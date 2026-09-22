@@ -73,6 +73,10 @@
       box-sizing: border-box;
     }
 
+    :where(.admin-shell) :where(a,[role="button"]) {
+      min-block-size: 44px;
+    }
+
     :where(.admin-shell) :where(input,select,textarea) {
       min-inline-size: 0;
       font-size: max(1rem,16px);
