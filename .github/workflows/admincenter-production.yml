@@ -117,8 +117,14 @@ jobs:
           printf '%s' "$HTML" | grep -q 'type="module"'
           ASSET="$(printf '%s' "$HTML" | sed -n 's/.*src="\([^"]*assets\/[^"]*\.js\)".*/\1/p' | head -n1)"
           test -n "$ASSET"
-          curl --fail --silent --show-error --location "https://admincenter.petertecnet.com.br$ASSET" >/dev/null
-          echo "Published asset: $ASSET"
+          BUNDLE="$(curl --fail --silent --show-error --location --retry 5 --retry-all-errors --retry-delay 2 "https://admincenter.petertecnet.com.br$ASSET")"
+          printf '%s' "$BUNDLE" | grep -q '/auth/me'
+          printf '%s' "$BUNDLE" | grep -q 'Usuários'
+          if printf '%s' "$BUNDLE" | grep -q 'AdminSupportLauncher'; then
+            echo "Stale Admin Center bundle detected: AdminSupportLauncher is still present"
+            exit 1
+          fi
+          echo "Verified release ${GITHUB_SHA} in public asset: $ASSET"
 
   smoke:
     name: Smoke Admin Center Production
