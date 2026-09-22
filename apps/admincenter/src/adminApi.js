@@ -208,7 +208,7 @@ export function adminRequest(path, options = {}) {
   const cacheMs = Math.max(0, Number(options.cacheMs || 0))
   const requestKey = `${method}:${path}`
   const cancelKey = method === 'GET'
-    ? String(options.cancelKey || (path.startsWith('/admin/ecosystem/command/search?') ? 'global-admin-search' : '')).trim()
+    ? String(options.cancelKey || (path.startsWith('/admin/ecosystem/command/search?') ? 'global-admin-search' : path.startsWith('/admin/ecosystem/establishments?') ? 'admin-establishments-list' : '')).trim()
     : ''
 
   if (method === 'GET') {
