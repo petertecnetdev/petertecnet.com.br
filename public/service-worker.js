@@ -3,7 +3,7 @@ const CACHE_PREFIX = 'petertecnet-landing-pwa-';
 const ADMIN_CACHE_PREFIX = 'petertecnet-admin-pwa-';
 const STATIC_ASSETS = [
   '/manifest.json',
-  '/logopetertecnet.png',
+  '/petertecnet-brand.svg',
   '/landing-logo-fix.css',
   '/ecosystem/processing-indicator.css',
   '/ecosystem/processing-indicator.js',
@@ -23,7 +23,7 @@ const OFFLINE_HTML = `<!doctype html>
     img{width:72px;height:72px;aspect-ratio:1;object-fit:cover;border-radius:50%;clip-path:circle(50% at 50% 50%);margin-bottom:12px}small{color:#35dff2;font-weight:800;letter-spacing:.16em;text-transform:uppercase}h1{margin:10px 0 12px;font-size:clamp(26px,6vw,38px)}p{margin:0 0 20px;color:#91adb5;line-height:1.6}a{display:inline-flex;min-height:44px;align-items:center;justify-content:center;padding:0 18px;border-radius:12px;background:#dffbff;color:#041217;font-weight:900;text-decoration:none}
   </style>
 </head>
-<body><main><img src="/logopetertecnet.png" alt="Peter Tecnet"><small>Peter Tecnet</small><h1>Você está offline</h1><p>Assim que sua conexão voltar, recarregue a página para acessar a experiência mais recente da Peter Tecnet.</p><a href="/">Tentar novamente</a></main></body>
+<body><main><img src="/petertecnet-brand.svg" alt="Peter Tecnet"><small>Peter Tecnet</small><h1>Você está offline</h1><p>Assim que sua conexão voltar, recarregue a página para acessar a experiência mais recente da Peter Tecnet.</p><a href="/">Tentar novamente</a></main></body>
 </html>`;
 
 self.addEventListener('install', (event) => {
