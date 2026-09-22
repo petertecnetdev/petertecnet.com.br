@@ -6,12 +6,14 @@ on:
       - main
     paths:
       - 'apps/admincenter/**'
+      - 'scripts/validate-admin-ticket-sales-browser.mjs'
       - '.github/workflows/admincenter-production.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'apps/admincenter/**'
+      - 'scripts/validate-admin-ticket-sales-browser.mjs'
       - '.github/workflows/admincenter-production.yml'
   workflow_dispatch:
 
