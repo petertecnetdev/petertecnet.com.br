@@ -54,6 +54,7 @@ check(runtimeMonitor.includes("window.addEventListener('unhandledrejection', onR
 check(runtimeMonitor.includes("window.removeEventListener('error', onError)") && runtimeMonitor.includes('observer.disconnect()'), 'Runtime monitor deve remover listeners/observers no dispose (261/262).')
 check(moduleBoundary.includes('static getDerivedStateFromError') && moduleBoundary.includes('componentDidCatch'), 'Módulos devem isolar falhas com Error Boundary (264/266).')
 check(moduleBoundary.includes('O restante do Admin Center continua disponível'), 'Falha de módulo não pode derrubar todo o Admin Center (266).')
+check(moduleBoundary.includes('boundaryInstanceCounter') && /admin-module-error-heading-\$\{this\.instanceId\}/.test(moduleBoundary), 'Cada Error Boundary deve gerar IDs ARIA únicos para evitar associação incorreta entre módulos (301-380).')
 check(packageJson.scripts?.['validate:dialogs'], 'Build deve validar ausência de alert/confirm/prompt nativos (233-236).')
 check(packageJson.scripts?.['validate:bundle'], 'Admin Center deve possuir budget executável de bundle (281/288).')
 check(packageJson.scripts?.build?.includes('validate:stability'), 'Build deve executar contratos de estabilidade antes do Vite.')

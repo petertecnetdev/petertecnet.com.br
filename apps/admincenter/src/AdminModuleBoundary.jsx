@@ -1,10 +1,14 @@
 import { Component } from 'react'
 
+let boundaryInstanceCounter = 0
+
 export default class AdminModuleBoundary extends Component {
   constructor(props) {
     super(props)
     this.state = { error: null, revision: 0 }
     this.errorHeadingRef = null
+    boundaryInstanceCounter += 1
+    this.instanceId = boundaryInstanceCounter
   }
 
   static getDerivedStateFromError(error) {
@@ -28,8 +32,8 @@ export default class AdminModuleBoundary extends Component {
   render() {
     if (this.state.error) {
       const moduleName = this.props.name || 'Área administrativa'
-      const headingId = 'admin-module-error-heading'
-      const descriptionId = 'admin-module-error-description'
+      const headingId = `admin-module-error-heading-${this.instanceId}`
+      const descriptionId = `admin-module-error-description-${this.instanceId}`
 
       return <section
         className="admin-module-error"
