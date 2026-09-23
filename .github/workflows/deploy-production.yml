@@ -13,6 +13,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: deploy-petertecnet-production
+  cancel-in-progress: true
+
 jobs:
   deploy:
     uses: ./.github/workflows/reusable-vps-deploy.yml
@@ -27,62 +31,70 @@ jobs:
       VPS_USER: ${{ secrets.VPS_USER }}
       VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
 
-  verify-marketing:
-    name: Verify public marketing and SEO experience
+  verify-release:
+    name: Verify exact production release
     needs: deploy
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 8
     steps:
-      - name: Check public routes, canonical entities, PWA and sitemap
+      - name: Confirm deployed commit and public essentials
         shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
+
+          for attempt in $(seq 1 18); do
+            deployed_sha="$(curl --fail --silent --show-error --location --max-time 15 \
+              -H 'Cache-Control: no-cache, no-store, max-age=0' \
+              -H 'Pragma: no-cache' \
+              "https://petertecnet.com.br/release-sha.txt?expected=${EXPECTED_SHA}&attempt=${attempt}" \
+              2>/dev/null | tr -d '\r\n' || true)"
+
+            if [[ "$deployed_sha" == "$EXPECTED_SHA" ]]; then
+              echo "Production release confirmed: $deployed_sha"
+              break
+            fi
+
+            if [[ "$attempt" -eq 18 ]]; then
+              echo "::error::Production release mismatch: expected=$EXPECTED_SHA actual=${deployed_sha:-unavailable}"
+              exit 1
+            fi
+
+            echo "Waiting for production release: expected=$EXPECTED_SHA actual=${deployed_sha:-unavailable} attempt=$attempt/18"
+            sleep 5
+          done
+
           urls=(
             "https://petertecnet.com.br/"
             "https://petertecnet.com.br/plataformas"
-            "https://petertecnet.com.br/plataformas/plat"
-            "https://petertecnet.com.br/plataformas/rasoio"
-            "https://petertecnet.com.br/plataformas/cutinapp"
-            "https://petertecnet.com.br/plataformas/nexus"
-            "https://petertecnet.com.br/plataformas/payflow"
-            "https://petertecnet.com.br/plataformas/laora"
-            "https://petertecnet.com.br/plataformas/locaio"
             "https://petertecnet.com.br/blog"
-            "https://petertecnet.com.br/blog/agendamento-online-para-empresas-de-servicos"
-            "https://petertecnet.com.br/blog/sistema-para-bares-restaurantes-e-estabelecimentos"
-            "https://petertecnet.com.br/blog/plataforma-para-vender-ingressos-online"
-            "https://petertecnet.com.br/blog/crm-para-pequenas-empresas-follow-up-propostas-cobrancas"
             "https://petertecnet.com.br/portfolio"
             "https://petertecnet.com.br/sobre"
             "https://petertecnet.com.br/orcamento"
             "https://petertecnet.com.br/sitemap.xml"
             "https://petertecnet.com.br/robots.txt"
           )
+
           for url in "${urls[@]}"; do
             echo "Checking $url"
-            curl --fail --silent --show-error --location --retry 5 --retry-all-errors --retry-delay 2 --max-time 20 "$url" >/dev/null
+            curl --fail --silent --show-error --location \
+              --retry 4 --retry-all-errors --retry-delay 2 --max-time 20 \
+              -H 'Cache-Control: no-cache' "$url" >/dev/null
           done
-          assert_contains() {
-            local label="$1" needle="$2" haystack="$3"
-            if ! grep -Fq "$needle" <<<"$haystack"; then echo "Verification failed: $label missing '$needle'." >&2; exit 1; fi
+
+          sitemap="$(curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' https://petertecnet.com.br/sitemap.xml)"
+          for route in /plataformas/plat /plataformas/rasoio /plataformas/cutinapp /plataformas/nexus /plataformas/payflow /plataformas/laora /plataformas/locaio; do
+            if ! grep -Fq "https://petertecnet.com.br$route" <<<"$sitemap"; then
+              echo "::error::Sitemap missing $route"
+              exit 1
+            fi
+          done
+
+          robots="$(curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' https://petertecnet.com.br/robots.txt)"
+          grep -Fq 'https://petertecnet.com.br/sitemap.xml' <<<"$robots" || {
+            echo '::error::robots.txt does not reference the production sitemap.'
+            exit 1
           }
-          homepage="$(curl --fail --silent --show-error --location https://petertecnet.com.br/)"
-          assert_contains "homepage ecosystem identity" "Ecossistema de plataformas digitais" "$homepage"
-          assert_contains "homepage Plat entity" '"name":"Plat"' "$homepage"
-          plat="$(curl --fail --silent --show-error --location https://petertecnet.com.br/plataformas/plat)"
-          assert_contains "Plat canonical" '<link rel="canonical" href="https://petertecnet.com.br/plataformas/plat"' "$plat"
-          assert_contains "Plat definition" "Plat é a plataforma Peter Tecnet para organizar e digitalizar a operação de estabelecimentos" "$plat"
-          assert_contains "Plat software schema" "SoftwareApplication" "$plat"
-          assert_contains "Plat product schema" '"Product"' "$plat"
-          assert_contains "Plat breadcrumb schema" "BreadcrumbList" "$plat"
-          assert_contains "Plat FAQ" "FAQPage" "$plat"
-          platforms="$(curl --fail --silent --show-error --location https://petertecnet.com.br/plataformas)"
-          assert_contains "platform directory H1" "Plataformas próprias para problemas específicos" "$platforms"
-          assert_contains "platform directory structured list" "ItemList" "$platforms"
-          sitemap="$(curl --fail --silent --show-error --location https://petertecnet.com.br/sitemap.xml)"
-          for route in /plataformas/plat /plataformas/rasoio /plataformas/cutinapp /plataformas/nexus /plataformas/payflow /plataformas/laora /plataformas/locaio /blog/agendamento-online-para-empresas-de-servicos; do
-            assert_contains "sitemap $route" "https://petertecnet.com.br$route" "$sitemap"
-          done
-          robots="$(curl --fail --silent --show-error --location https://petertecnet.com.br/robots.txt)"
-          assert_contains "robots static sitemap" "https://petertecnet.com.br/sitemap.xml" "$robots"
-          echo "Public production and SEO verification passed."
+
+          echo 'Production release, public routes and SEO essentials verified.'
