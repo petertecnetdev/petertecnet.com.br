@@ -18,6 +18,7 @@ const users = read('src/AdminUsersCenter.jsx')
 const notifications = read('src/NotificationsCenter.jsx')
 const applicationsCenter = read('src/AdminApplicationsCenter.jsx')
 const apiClient = read('src/adminApi.js')
+const userDetail = read('src/AdminUserDetailPage.jsx')
 
 check('dashboard fallback is not aggressive', app.includes('BACKGROUND_REFRESH_MS = 120000') && !app.includes('}, 15000)'))
 check('agent polling is contextual and >= 60s', agents.includes("dataset?.adminPage === 'agents'") && agents.includes('}, 60000)'))
@@ -46,6 +47,9 @@ check('replaceable reads compose caller and internal AbortSignals', apiClient.in
 check('forbidden module responses do not expire the whole session', !apiClient.includes("response.status === 401 || response.status === 403"))
 check('command palette exposes direct creation actions', app.includes("new-establishment") && app.includes("new-item") && app.includes("onQuickAction"))
 check('native creation modules accept command-palette triggers', establishments.includes('quickCreateToken') && items.includes('quickCreateToken'))
+check('async module fallbacks use the standard processing indicator', app.includes("import AdminProcessingIndicator from './AdminProcessingIndicator.jsx'") && app.includes('function ModuleSkeleton') && app.includes('<AdminProcessingIndicator'))
+check('admin session validation uses the standard processing indicator', app.includes('title="Validando sessão administrativa"') && !app.includes('className="boot-screen"'))
+check('user detail loading uses the standard processing indicator', userDetail.includes('title="Carregando usuário"') && userDetail.includes('title="Carregando atividades"') && !userDetail.includes('aud-loader'))
 
 if (failures.length) {
   console.error(`\n${failures.length} contrato(s) de runtime violado(s).`)
