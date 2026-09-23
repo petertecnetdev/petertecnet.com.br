@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'petertecnet-landing-pwa-v5-landing-background';
+const CACHE_VERSION = 'petertecnet-landing-pwa-v6-runtime-loopfix';
 const CACHE_PREFIX = 'petertecnet-landing-pwa-';
 const ADMIN_CACHE_PREFIX = 'petertecnet-admin-pwa-';
 const STATIC_ASSETS = [
