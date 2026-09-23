@@ -6,25 +6,21 @@
   "application_context": "cutinapp",
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "assigned_agent_id": "NP02",
   "owner_agent_id": "NP02",
   "created_by": "OWNER",
   "created_at": "2026-09-23T15:04:00-03:00",
-  "updated_at": "2026-09-23T15:04:00-03:00",
+  "updated_at": "2026-09-23T15:16:00-03:00",
   "started_at": "2026-09-23T15:04:00-03:00",
   "completed_at": null,
   "reviewed_at": null,
   "due_at": null,
-  "lock": {
-    "owner_agent_id": "NP02",
-    "acquired_at": "2026-09-23T15:04:00-03:00",
-    "expires_at": "2026-09-23T16:34:00-03:00"
-  },
+  "lock": null,
   "delegation_count": 0,
   "max_delegations": 2,
-  "checkpoint": "Diagnóstico: GET público do evento retornou HTTP 200 e preflight CORS 204; logs não mostram exceção Laravel para o slug. A tela converte qualquer Alert danger de topo em SweetAlert global, inclusive falhas transitórias. EventViewPage não oferece retry local.",
-  "next_action": "Criar branch, implementar recuperação/retry localizado na EventViewPage e impedir que falhas auxiliares de comércio/comunidade derrubem a experiência com modal global; rodar testes/lint/build e abrir PR.",
+  "checkpoint": "Correção implementada e mergeada na main via PR #627. EventViewPage separa falha inicial de erros de ação e oferece retry inline; Comunidade e Commerce mantêm falhas de leitura locais com retry, sem SweetAlert global bloqueante.",
+  "next_action": "QA visual independente NP03: abrir o slug reportado e simular falhas de rede em comunidade/commerce para confirmar degradação localizada.",
   "blocker": null,
   "tags": [
     "cutinapp",
@@ -34,7 +30,32 @@
     "resilience",
     "ux"
   ],
-  "evidence": [],
+  "evidence": [
+    {
+      "type": "pull_request",
+      "value": "https://github.com/petertecnetdev/cutinapp.petertecnet.com.br/pull/627"
+    },
+    {
+      "type": "merge_commit",
+      "value": "a7685ee2f7f8aae07a22e5f72e906d5b65b48e93"
+    },
+    {
+      "type": "ci",
+      "value": "Validate Cutinapp #35900275917 SUCCESS"
+    },
+    {
+      "type": "ci",
+      "value": "Lighthouse CI #35900275765 SUCCESS"
+    },
+    {
+      "type": "diagnostic",
+      "value": "No horário do incidente, GET do evento retornou 200 e preflight CORS 204; sem exceção Laravel do slug."
+    },
+    {
+      "type": "deployment",
+      "value": "Nenhum pull/build/deploy na VPS; merge usou [skip ci] para não disparar o workflow Deploy VPS no fluxo local atual."
+    }
+  ],
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
@@ -48,10 +69,18 @@
       "actor": "NP02",
       "event": "CREATED_AND_CLAIMED",
       "message": "OWNER reportou falha de comunicação na página pública; NP02 diagnosticou endpoint/CORS e assumiu correção de resiliência frontend."
+    },
+    {
+      "operation_id": "np02-eventpublicrecovery-review-20260923-1516",
+      "at": "2026-09-23T15:16:00-03:00",
+      "actor": "NP02",
+      "event": "READY_FOR_REVIEW",
+      "message": "PR #627 mergeado em main após Validate e Lighthouse SUCCESS; sem deploy VPS. QA visual NP03 pendente."
     }
   ],
   "applied_operation_ids": [
-    "np02-eventpublicrecovery-start-20260923-1504"
+    "np02-eventpublicrecovery-start-20260923-1504",
+    "np02-eventpublicrecovery-review-20260923-1516"
   ],
-  "version": 1
+  "version": 2
 }
