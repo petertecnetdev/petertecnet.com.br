@@ -8,7 +8,7 @@
   "status": "RUNNING",
   "owner_agent_id": "NP02",
   "requested_by": "OWNER",
-  "version": 1,
+  "version": 2,
   "delegation_count": 0,
   "lock_acquired_at": "2026-09-23T16:00:00-03:00",
   "lock_expires_at": "2026-09-23T17:30:00-03:00",
@@ -22,7 +22,14 @@
     "Validar lint de overlays, UX e testes/build quando disponíveis",
     "Abrir PR e integrar em main conforme ordem do OWNER"
   ],
-  "evidence": [],
-  "checkpoint": "Bootstrap concluído; escopo do OWNER recebido.",
-  "next_action": "Implementar pacote na branch agent/np02/fastix-competitive-100."
+  "evidence": [
+    "Cutinapp PR #628 merged into main at 02393239ed804cbaa2078357b8f17427319ef13d",
+    "Validate Cutinapp PR gate: overlays/dialogs/react-stability/ux-regressions/Jest/build/perf-budget success",
+    "Lighthouse CI PR gate: success",
+    "Deploy VPS workflow changed to workflow_dispatch only; merge did not trigger Deploy VPS",
+    "API PR #519 adds generic discovery starting_price; CI baseline on API main is already failing and branch rerun is under verification"
+  ],
+  "checkpoint": "Frontend competitive package merged to Cutinapp main. API generic starting_price PR #519 remains pending verification against a pre-existing failing main baseline.",
+  "next_action": "Verify API PR #519 no longer introduces CutinappDiscoveryFilters regression, merge it, confirm no VPS deploy, then close task.",
+  "updated_at": "2026-09-23T16:36:00-03:00"
 }
