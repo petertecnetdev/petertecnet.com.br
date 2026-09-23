@@ -1,7 +1,10 @@
 (() => {
   const TAG = 'pt-processing-indicator'
-  const LEGACY_LOGO_PATH = '/petertecnet-brand.svg'
-  const PREVIOUS_OFFICIAL_LOGO_PATH = '/petertecnet-brand.svg'
+  const LEGACY_LOGO_PATHS = new Set([
+    '/logopetertecnet.png',
+    '/petertecnetlogo.png',
+    '/petertecnet-logo-circular.jpg',
+  ])
   const OFFICIAL_LOGO_PATH = '/petertecnet-brand.svg'
   const OFFICIAL_LOGO = `${OFFICIAL_LOGO_PATH}?v=20260921-brand-2`
   if (customElements.get(TAG)) return
@@ -161,12 +164,14 @@
     document.querySelectorAll('img').forEach(img => {
       const source = img.getAttribute('src') || ''
       const pathname = logoPathname(source)
-      if (pathname === LEGACY_LOGO_PATH || pathname === PREVIOUS_OFFICIAL_LOGO_PATH) {
-        img.setAttribute('src', OFFICIAL_LOGO)
+      if (pathname === OFFICIAL_LOGO_PATH) {
         img.dataset.peterBrandLogo = 'true'
         return
       }
-      if (pathname === OFFICIAL_LOGO_PATH) img.dataset.peterBrandLogo = 'true'
+      if (LEGACY_LOGO_PATHS.has(pathname)) {
+        if (source !== OFFICIAL_LOGO) img.setAttribute('src', OFFICIAL_LOGO)
+        img.dataset.peterBrandLogo = 'true'
+      }
     })
   }
 
