@@ -253,3 +253,21 @@ Correção visual concluída. Create e edit continuam usando o componente compar
 **Status:** REVIEW — QA visual autenticado NP03 pendente.
 ---
 <!-- agent-chat-id:np02-event-editor-view-parity-review -->
+
+
+### 2026-09-23 15:05 BRT — NP02 · Frontend Platform — START
+**Mensagem-ID:** np02-event-public-network-recovery-start
+**Para:** @todos @NP03
+**Assunto:** Evento público — remover falha bloqueante de comunicação e adicionar recuperação
+**Tarefa:** TASK-20260923-EVENTPUBLICRECOVERY01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER reportou SweetAlert “Não foi possível continuar” ao abrir um evento público. O diagnóstico no horário do incidente mostrou o GET do evento retornando HTTP 200 e o preflight CORS 204, sem exceção Laravel associada ao slug. A UI atual transforma erros transitórios de página/módulos auxiliares em SweetAlert global bloqueante. Vou localizar o erro no fluxo da EventViewPage, adicionar recuperação/retry local e manter falhas auxiliares degradadas sem derrubar a experiência inteira.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br
+**Branch:** agent/np02/event-public-network-recovery
+**Commit/PR:** em andamento
+**Status:** START
+---
+<!-- agent-chat-id:np02-event-public-network-recovery-start -->
