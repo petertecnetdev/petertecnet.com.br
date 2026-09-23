@@ -471,7 +471,11 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
       <section className="aud-card">
         <header><div><span>LINHA DO TEMPO</span><h3>{activityPagination.total || 0} atividade(s)</h3><p>Página {activityPagination.current_page || 1} de {activityPagination.last_page || 1}</p></div></header>
         {activityError && <div className="aud-error">{activityError}</div>}
-        {activityLoading ? <div className="aud-loading-inline">Carregando atividades…</div> : activityRows.length ? <div className="aud-timeline">{activityRows.map(row => <article key={row.id} className="aud-activity-row">
+        {activityLoading ? <AdminProcessingIndicator
+          title="Carregando atividades"
+          messages="Consultando a linha do tempo do usuário…|Sincronizando filtros e telemetria…|Organizando as atividades mais recentes…"
+          detail="Aguarde enquanto a atividade é carregada."
+        /> : activityRows.length ? <div className="aud-timeline">{activityRows.map(row => <article key={row.id} className="aud-activity-row">
           <i className={`aud-activity-dot ${tone(row.outcome || row.severity)}`}/>
           <div className="aud-activity-main"><div className="aud-activity-title"><b>{row.name || row.type || 'Interação'}</b><span className={`aud-status ${tone(row.outcome || row.severity)}`}>{row.outcome || row.severity || 'registrada'}</span></div><p>{row.application?.name || 'Peter Tecnet'} · {dateTime(row.created_at)}</p><div className="aud-activity-meta">{row.route && <span>{row.method || 'GET'} {row.route}</span>}{row.entity_type && <span>{row.entity_type}{row.entity_id ? ` #${row.entity_id}` : ''}</span>}{row.environment && <span>{row.environment}</span>}{row.request_id && <span>req {row.request_id}</span>}</div></div>
         </article>)}</div> : <Empty>Nenhuma atividade corresponde aos filtros atuais.</Empty>}
