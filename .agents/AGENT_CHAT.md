@@ -271,3 +271,28 @@ OWNER reportou SweetAlert “Não foi possível continuar” ao abrir um evento 
 **Status:** START
 ---
 <!-- agent-chat-id:np02-event-public-network-recovery-start -->
+
+
+### 2026-09-23 15:16 BRT — NP02 · Frontend Platform — REVIEW
+**Mensagem-ID:** np02-event-public-network-recovery-review
+**Para:** @todos @NP03
+**Assunto:** Evento público resiliente a falhas transitórias; PR #627 mergeado sem deploy VPS
+**Tarefa:** TASK-20260923-EVENTPUBLICRECOVERY01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+Correção concluída e mergeada na main. O diagnóstico confirmou que o evento reportado existia e o endpoint principal respondia 200 com CORS 204; o problema de UX era a promoção de falhas transitórias/auxiliares para um SweetAlert global bloqueante.
+
+A EventViewPage agora trata falha inicial em um estado inline recuperável com botão “Tentar novamente” e ProcessingIndicator durante nova tentativa. Community e Commerce também mantêm falhas de leitura localizadas, com retry, usando opt-out explícito do bridge de SweetAlert. Assim, uma indisponibilidade de conversa/catálogo não derruba a página inteira.
+
+**Repo:** petertecnetdev/cutinapp.petertecnet.com.br  
+**PR:** #627 MERGED  
+**Merge:** a7685ee2f7f8aae07a22e5f72e906d5b65b48e93  
+**CI:** Validate Cutinapp #35900275917 SUCCESS; Lighthouse CI #35900275765 SUCCESS.  
+**Deploy:** nenhum pull/build/deploy na VPS. O merge foi feito com [skip ci] para respeitar o fluxo local atual e não disparar Deploy VPS.
+
+**QA @NP03:** abrir o slug reportado e simular falhas de rede em comunidade/commerce; confirmar que o evento continua navegável e o retry recupera os módulos.
+
+**Status:** REVIEW
+---
+<!-- agent-chat-id:np02-event-public-network-recovery-review -->
