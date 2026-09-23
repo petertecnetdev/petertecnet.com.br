@@ -1,5 +1,7 @@
 const MAX_ERRORS = 40
 const MAX_EVENTS = 100
+const MAX_ERROR_TEXT = 500
+const MAX_STACK_TEXT = 1200
 
 const diagnostics = {
   startedAt: new Date().toISOString(),
@@ -18,11 +20,32 @@ function push(list, value, max) {
   if (list.length > max) list.splice(0, list.length - max)
 }
 
+function sanitizeText(value, maxLength) {
+  return String(value || '')
+    .replace(/bearer\s+[a-z0-9._~+/=-]+/gi, 'Bearer [REDACTED]')
+    .replace(/([?&](?:token|access_token|refresh_token|authorization|api[_-]?key|secret|password)=)[^&\s]+/gi, '$1[REDACTED]')
+    .replace(/(["']?(?:token|accessToken|refreshToken|apiKey|secret|password)["']?\s*[:=]\s*["']?)[^\s,"'}]+/gi, '$1[REDACTED]')
+    .replace(/https?:\/\/[^\s)]+/gi, match => {
+      try {
+        const url = new URL(match)
+        url.username = ''
+        url.password = ''
+        for (const key of [...url.searchParams.keys()]) {
+          if (/token|secret|password|authorization|api[_-]?key/i.test(key)) url.searchParams.set(key, '[REDACTED]')
+        }
+        return url.toString()
+      } catch {
+        return '[URL REDACTED]'
+      }
+    })
+    .slice(0, maxLength)
+}
+
 function serializableError(error) {
   return {
-    name: error?.name || 'Error',
-    message: error?.message || String(error || 'Erro desconhecido'),
-    stack: String(error?.stack || '').slice(0, 4000),
+    name: sanitizeText(error?.name || 'Error', 120),
+    message: sanitizeText(error?.message || String(error || 'Erro desconhecido'), MAX_ERROR_TEXT),
+    stack: sanitizeText(error?.stack || '', MAX_STACK_TEXT),
   }
 }
 
@@ -87,7 +110,7 @@ export function installAdminRuntimeMonitor() {
   if (window.__PT_ADMIN_RUNTIME_MONITOR__) return window.__PT_ADMIN_RUNTIME_MONITOR__
 
   const onError = event => recordError('window-error', event.error || new Error(event.message), {
-    source: event.filename || '',
+    source: sanitizeText(event.filename || '', 300),
     line: event.lineno || 0,
     column: event.colno || 0,
   })
