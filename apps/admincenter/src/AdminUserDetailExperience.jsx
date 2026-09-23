@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import AdminUserDetailPage from './AdminUserDetailPage.jsx'
 import { AdminImpersonationDialog, canImpersonate } from './AdminImpersonation.jsx'
+import AdminUserAccessManager from './AdminUserAccessManager.jsx'
 import './AdminUserCommunication.css'
 import './AdminUserCommunicationShell.css'
 
@@ -43,6 +44,8 @@ export default function AdminUserDetailExperience(props) {
   const [user, setUser] = useState(null)
   const [open, setOpen] = useState(false)
   const [impersonationOpen, setImpersonationOpen] = useState(false)
+  const [accessManagerOpen, setAccessManagerOpen] = useState(false)
+  const [detailRevision, setDetailRevision] = useState(0)
   const [form, setForm] = useState({ ...EMPTY_FORM })
   const [sending, setSending] = useState(false)
   const [loadingUser, setLoadingUser] = useState(true)
@@ -194,6 +197,7 @@ export default function AdminUserDetailExperience(props) {
 
   const quickActions = <div className="auc-quick-actions" aria-label="Ações rápidas do usuário">
     <button type="button" className="auc-action auc-action--both" onClick={() => openComposer('both')} disabled={loadingUser || !user?.email}>Comunicar</button>
+    <button type="button" className="auc-action auc-action--access" onClick={() => setAccessManagerOpen(true)} disabled={loadingUser || !user}>Administrar acesso</button>
     <button type="button" className="auc-action auc-action--impersonate" onClick={() => setImpersonationOpen(true)} disabled={loadingUser || !canImpersonate(user)}>Entrar como usuário</button>
   </div>
 
@@ -266,8 +270,20 @@ export default function AdminUserDetailExperience(props) {
   </div> : null
 
   return <div className="auc-user-detail-shell" data-user-detail-experience="true">
-    <AdminUserDetailPage {...props} detailActions={quickActions}/>
+    <AdminUserDetailPage key={String(userId) + ':' + String(detailRevision)} {...props} detailActions={quickActions}/>
     {modal}
+    {accessManagerOpen && user && <AdminUserAccessManager
+      open={accessManagerOpen}
+      user={user}
+      applications={applications}
+      apiRequest={apiRequest}
+      onClose={() => setAccessManagerOpen(false)}
+      onChanged={() => setDetailRevision(current => current + 1)}
+      onDeleted={() => {
+        setAccessManagerOpen(false)
+        props.onBack?.()
+      }}
+    />}
     {impersonationOpen && user && <AdminImpersonationDialog user={user} applications={applications} apiRequest={apiRequest} onClose={() => setImpersonationOpen(false)}/>} 
   </div>
 }
