@@ -59,6 +59,10 @@ jobs:
         run: |
           set -euo pipefail
 
+          normalize_sha() {
+            printf '%s' "$1" | tr -d '\r\n' | sed 's/\\n$//'
+          }
+
           verified=false
           for attempt in $(seq 1 6); do
             deployed_sha="$(curl --fail --silent --show-error --location --max-time 15 \
@@ -66,7 +70,8 @@ jobs:
               -H 'Cache-Control: no-cache, no-store, max-age=0' \
               -H 'Pragma: no-cache' \
               "https://petertecnet.com.br/release-sha.txt?expected=${EXPECTED_SHA}&attempt=${attempt}" \
-              2>/dev/null | tr -d '\r\n' || true)"
+              2>/dev/null || true)"
+            deployed_sha="$(normalize_sha "$deployed_sha")"
 
             if [[ "$deployed_sha" == "$EXPECTED_SHA" ]]; then
               echo "Production release confirmed via public HTTPS: $deployed_sha"
@@ -80,8 +85,9 @@ jobs:
               -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
               -o ConnectTimeout=15 \
               -p "${VPS_PORT:-22}" "$VPS_USER@$VPS_HOST" \
-              "tr -d '\\r\\n' < /var/www/petertecnet.com.br/dist/release-sha.txt" \
+              "cat /var/www/petertecnet.com.br/dist/release-sha.txt" \
               2>/dev/null || true)"
+            deployed_sha="$(normalize_sha "$deployed_sha")"
 
             if [[ "$deployed_sha" == "$EXPECTED_SHA" ]]; then
               echo "Production release confirmed via VPS artifact: $deployed_sha"
