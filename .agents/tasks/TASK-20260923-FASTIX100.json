@@ -5,10 +5,10 @@
   "context": "cutinapp",
   "repo": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "owner_agent_id": "NP02",
   "requested_by": "OWNER",
-  "version": 2,
+  "version": 3,
   "delegation_count": 0,
   "lock_acquired_at": "2026-09-23T16:00:00-03:00",
   "lock_expires_at": "2026-09-23T17:30:00-03:00",
@@ -27,9 +27,13 @@
     "Validate Cutinapp PR gate: overlays/dialogs/react-stability/ux-regressions/Jest/build/perf-budget success",
     "Lighthouse CI PR gate: success",
     "Deploy VPS workflow changed to workflow_dispatch only; merge did not trigger Deploy VPS",
-    "API PR #519 adds generic discovery starting_price; CI baseline on API main is already failing and branch rerun is under verification"
+    "API PR #519 adds generic discovery starting_price; CI baseline on API main is already failing and branch rerun is under verification",
+    "API PR #519 merged into main at 8d0fe5b39110160401936a53d0c1e7cc905ad7c4",
+    "API branch after fix: CutinappDiscoveryFiltersTest PASS; full suite 40 failed / 458 passed versus main baseline 40 failed / 457 passed",
+    "API merge did not trigger Deploy VPS; only API CI push workflow ran",
+    "Frontend merge main did not trigger Deploy VPS; only Validate Cutinapp and Lighthouse ran"
   ],
-  "checkpoint": "Frontend competitive package merged to Cutinapp main. API generic starting_price PR #519 remains pending verification against a pre-existing failing main baseline.",
-  "next_action": "Verify API PR #519 no longer introduces CutinappDiscoveryFilters regression, merge it, confirm no VPS deploy, then close task.",
-  "updated_at": "2026-09-23T16:36:00-03:00"
+  "checkpoint": "Implementation merged in Cutinapp main and API main. Frontend PR gates green. Generic discovery starting_price merged with no additional failures versus pre-existing API main baseline. VPS deploy remains manual-only.",
+  "next_action": "Independent QA NP03: validate landing search/discovery, event purchase CTA/FAQ, checkout trust/processing, support center, producer landing and starting-price cards on local pull.",
+  "updated_at": "2026-09-23T16:39:00-03:00"
 }
