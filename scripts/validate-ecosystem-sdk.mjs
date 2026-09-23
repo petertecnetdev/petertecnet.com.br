@@ -68,6 +68,9 @@ const accountGatewayTelemetryVersion = accountGateway.match(/const TELEMETRY_VER
 if (!telemetryVersion) throw new Error('Telemetry SDK version marker is missing.')
 if (!launcherTelemetryVersion) throw new Error('Ecosystem v3 telemetry version marker is missing.')
 if (!accountGatewayTelemetryVersion) throw new Error('Account Gateway telemetry version marker is missing.')
+if (accountGateway.includes('dockLauncherInNavbar')) throw new Error('Account Gateway must not dock the ecosystem launcher into application navbars.')
+if (!accountGateway.includes("launcher.setAttribute('data-peter-headless', 'true')")) throw new Error('Account Gateway must preserve the ecosystem launcher only as a headless SSO bridge.')
+if (!accountGateway.includes("launcher.style.display = 'none'")) throw new Error('Headless ecosystem launcher must stay out of the visual layout.')
 if (telemetryVersion !== launcherTelemetryVersion) {
   throw new Error(`Telemetry version drift: runtime ${telemetryVersion} != launcher ${launcherTelemetryVersion}`)
 }
