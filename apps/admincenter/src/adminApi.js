@@ -5,6 +5,7 @@ const inflightReads = new Map()
 const inflightMutations = new Map()
 const replaceableReads = new Map()
 const memoryCache = new Map()
+const requestGenerations = new Map()
 const requestHistory = new Map()
 const requestStats = new Map()
 const lastStormNotice = new Map()
@@ -14,6 +15,16 @@ const MAX_RATE_LIMIT_RETRY_MS = 60000
 
 function routeKey(path) {
   return String(path || '').split('?')[0]
+}
+
+function nextRequestGeneration(requestKey) {
+  const generation = Number(requestGenerations.get(requestKey) || 0) + 1
+  requestGenerations.set(requestKey, generation)
+  return generation
+}
+
+function isCurrentRequestGeneration(requestKey, generation) {
+  return Number(requestGenerations.get(requestKey) || 0) === generation
 }
 
 function recordRequestStart(path) {
@@ -216,6 +227,7 @@ export function adminRequest(path, options = {}) {
     if (cached && cached.expiresAt > Date.now()) return Promise.resolve(cached.value)
     if (!options.force && inflightReads.has(requestKey)) return inflightReads.get(requestKey)
 
+    const generation = nextRequestGeneration(requestKey)
     const controller = cancelKey ? new AbortController() : null
     if (controller) {
       const previous = replaceableReads.get(cancelKey)
@@ -226,7 +238,7 @@ export function adminRequest(path, options = {}) {
     const composed = composeSignals(options.signal, controller?.signal)
     const requestOptions = composed.signal ? { ...options, signal: composed.signal } : options
     const promise = execute(path, requestOptions).then(payload => {
-      if (method === 'GET' && cacheMs > 0) {
+      if (method === 'GET' && cacheMs > 0 && isCurrentRequestGeneration(requestKey, generation)) {
         memoryCache.set(requestKey, { value: payload, expiresAt: Date.now() + cacheMs })
       }
       return payload
