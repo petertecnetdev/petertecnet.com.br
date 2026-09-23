@@ -17,7 +17,8 @@ const manifest = JSON.parse(read('public/manifest.json'));
 const worker = read('public/service-worker.js');
 
 assert(index.includes('id="root"'), 'index.html must keep the React root mount.');
-assert(index.includes('<pt-processing-indicator'), 'index.html must keep the branded bootstrap loader.');
+assert(index.includes('data-pt-bootstrap-shell="true"'), 'index.html must keep a lightweight branded bootstrap shell.');
+assert(!index.includes('<pt-processing-indicator hidden>'), 'bootstrap shell cannot contain a processing indicator that may become permanently visible.');
 assert(index.includes(OFFICIAL_LOGO), 'index.html must use the official Peter Tecnet brand symbol.');
 assert(fs.existsSync(path.join(root, 'public', 'petertecnet-brand.svg')), 'official brand symbol asset must exist in public/.');
 assert(index.includes('data-sw="/service-worker.js"'), 'landing must register the dedicated service worker.');
@@ -52,7 +53,9 @@ if (fs.existsSync(dist)) {
     const builtIndex = fs.readFileSync(builtIndexPath, 'utf8');
     assert(builtIndex.includes(OFFICIAL_LOGO), 'production index must reference the official circular logo.');
     assert(builtIndex.includes('/service-worker.js'), 'production index must register the landing service worker.');
+    assert(builtIndex.includes('data-pt-bootstrap-shell="true"'), 'production index must retain the lightweight bootstrap shell.');
+    assert(!builtIndex.includes('<pt-processing-indicator hidden>'), 'production bootstrap shell cannot contain the processing indicator trap.');
   }
 }
 
-console.log('[landing-pwa] branding, bootstrap, manifest and service-worker contract OK');
+console.log('[landing-pwa] branding, safe bootstrap, manifest and service-worker contract OK');
