@@ -1,6 +1,4 @@
 img[src*="/petertecnet-brand.svg"],
-img[src*="/petertecnet-brand.svg"],
-img[src*="/petertecnet-brand.svg"],
 img[data-peter-brand-logo="true"],
 .mkt-brand-mark img,
 .pt-brand-mark img,
@@ -29,9 +27,75 @@ img[data-peter-brand-logo="true"],
   height: 124px;
 }
 
+/* Keep the hero logo physically centered and completely inside its orbit. */
+.hub-hero-panel > div.hub-hero-visual {
+  display: grid !important;
+  place-items: center !important;
+  align-items: center !important;
+  justify-items: center !important;
+  gap: 0 !important;
+  margin: 0 !important;
+  font-weight: 400 !important;
+  letter-spacing: normal !important;
+}
+
+.hub-hero-visual > .hub-hero-mark {
+  position: relative !important;
+  inset: auto !important;
+  margin: 0 !important;
+  transform: none !important;
+  overflow: hidden !important;
+}
+
 .hub-hero-mark img {
-  width: 122px;
-  height: 122px;
+  width: 104px !important;
+  height: 104px !important;
+  object-fit: contain !important;
+  box-sizing: border-box;
+  padding: 3px;
+}
+
+/* 2026-09-23: uploaded futuristic artwork as the landing hero background.
+   The asymmetric overlays preserve the electric-blue artwork while keeping
+   the headline, paragraph and controls readable on every viewport. */
+.hub-shell .hub-hero {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(1, 7, 12, 0.96) 0%,
+      rgba(1, 7, 12, 0.91) 28%,
+      rgba(1, 7, 12, 0.76) 52%,
+      rgba(1, 7, 12, 0.48) 76%,
+      rgba(1, 7, 12, 0.62) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(1, 8, 14, 0.30) 0%,
+      rgba(1, 8, 14, 0.12) 48%,
+      rgba(1, 8, 14, 0.80) 100%
+    ),
+    url('/petertecnet-landing-bg.webp') center center / cover no-repeat !important;
+}
+
+.hub-shell .hub-hero .mkt-grid {
+  opacity: 0.16 !important;
+}
+
+.hub-shell .hub-hero .mkt-aurora-a,
+.hub-shell .hub-hero .mkt-aurora-b {
+  opacity: 0.055 !important;
+}
+
+.hub-shell .hub-hero-copy h1,
+.hub-shell .hub-hero-copy .mkt-hero-lead,
+.hub-shell .hub-hero-copy .mkt-kicker {
+  text-shadow: 0 3px 24px rgba(0, 0, 0, 0.72);
+}
+
+.hub-shell .hub-hero-panel {
+  background: linear-gradient(150deg, rgba(5, 28, 38, 0.90), rgba(1, 9, 14, 0.97) 74%) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 @media (max-width: 720px) {
@@ -41,7 +105,13 @@ img[data-peter-brand-logo="true"],
   }
 
   .hub-hero-mark img {
-    width: 108px;
-    height: 108px;
+    width: 90px !important;
+    height: 90px !important;
+  }
+
+  .hub-shell .hub-hero {
+    background:
+      linear-gradient(180deg, rgba(1, 7, 12, 0.88) 0%, rgba(1, 7, 12, 0.72) 42%, rgba(1, 7, 12, 0.88) 100%),
+      url('/petertecnet-landing-bg.webp') 50% center / cover no-repeat !important;
   }
 }
