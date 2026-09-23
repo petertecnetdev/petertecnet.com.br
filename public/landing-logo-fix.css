@@ -1,3 +1,8 @@
+/* Preserve native hidden semantics even when the processing component has a display rule. */
+pt-processing-indicator[hidden] {
+  display: none !important;
+}
+
 img[src*="/petertecnet-brand.svg"],
 img[data-peter-brand-logo="true"],
 .mkt-brand-mark img,
