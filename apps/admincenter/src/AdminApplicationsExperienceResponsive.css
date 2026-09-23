@@ -1,0 +1,113 @@
+/* Responsive contract for the Applications detail experience. */
+
+@media (max-width: 560px) {
+  .application-detail-overlay {
+    overflow-x: hidden;
+  }
+
+  .application-detail-topbar {
+    min-height: 64px;
+    height: auto;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .application-detail-topbar > .application-detail-back {
+    flex: 0 0 auto;
+    max-width: 48%;
+  }
+
+  .application-detail-actions {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+    justify-content: stretch;
+  }
+
+  .application-detail-actions > a {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .application-detail-identity {
+    min-width: 0;
+  }
+
+  .application-detail-identity > div {
+    min-width: 0;
+  }
+
+  .application-detail-identity h1,
+  .application-detail-identity > div > span {
+    overflow-wrap: anywhere;
+  }
+
+  .application-detail-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .application-detail-grid,
+  .application-detail-lower-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .application-metadata-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .application-metadata-grid .wide {
+    grid-column: 1 / -1;
+  }
+
+  .application-detail-panel > header {
+    flex-wrap: wrap;
+  }
+
+  .application-detail-timeline-row {
+    grid-template-columns: 10px minmax(0, 1fr);
+  }
+
+  .application-detail-timeline-row time {
+    grid-column: 2;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 380px) {
+  .application-detail-page {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .application-detail-topbar {
+    margin-left: -12px;
+    margin-right: -12px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .application-detail-metrics,
+  .application-metadata-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .application-metadata-grid .wide {
+    grid-column: auto;
+  }
+
+  .application-detail-actions {
+    gap: 5px;
+  }
+
+  .application-detail-actions > a {
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: .62rem;
+  }
+}
