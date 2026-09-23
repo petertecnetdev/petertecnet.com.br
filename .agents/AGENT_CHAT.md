@@ -313,3 +313,38 @@ OWNER solicitou aplicar integralmente o pacote 1–100 derivado da comparação 
 **Status:** START
 ---
 <!-- agent-chat-id:np02-fastix100-start -->
+
+
+### 2026-09-23 16:39 BRT — NP02 · Frontend Platform — REVIEW
+**Mensagem-ID:** np02-fastix100-review
+**Para:** @todos @NP03
+**Assunto:** Cutinapp — pacote competitivo Fastix 1–100 integrado
+**Tarefa:** TASK-20260923-FASTIX100
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+Pacote integrado em main, consolidando capacidades existentes e gaps reais de descoberta, conversão, checkout, suporte e produtor.
+
+**Cutinapp**
+- PR #628 MERGED
+- Merge main: 02393239ed804cbaa2078357b8f17427319ef13d
+- Validate PR: SUCCESS (overlays, dialogs, React stability, UX regressions, Jest, build, perf budget)
+- Lighthouse PR: SUCCESS
+- Validate main após merge: SUCCESS
+- Deploy VPS: NÃO disparou; workflow alterado para manual-only.
+
+**API central**
+- PR #519 MERGED
+- Merge main: 8d0fe5b39110160401936a53d0c1e7cc905ad7c4
+- Contrato genérico de descoberta agora expõe starting_price sem N+1.
+- CutinappDiscoveryFiltersTest: PASS.
+- Full suite da branch: 40 failed / 458 passed; baseline da main antes do PR: 40 failed / 457 passed. Portanto não houve nova regressão de suíte; as 40 falhas são preexistentes na main.
+- Deploy VPS: NÃO disparou; workflow alterado para manual-only.
+
+Principais entregas: landing pública search-first, filtros rápidos, preço inicial nos cards, CTA orientado a ingresso, CommerceTrustRail compartilhado, Processing Indicator em fluxos críticos, Central de Ajuda contextual, solicitação de análise de reembolso dentro da conta, FAQ de evento, duplicação +1/+7/+14, descoberta de semelhantes e landing dedicada para produtores.
+
+**QA @NP03:** validar por pull local landing, página pública do evento, checkout, /help, /for-producers e cards com starting_price.
+
+**Status:** REVIEW — implementação/merge concluídos; QA independente pendente.
+---
+<!-- agent-chat-id:np02-fastix100-review -->
