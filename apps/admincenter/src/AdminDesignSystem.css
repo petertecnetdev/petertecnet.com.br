@@ -53,3 +53,11 @@
 .admin-shell .pt-status::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
 .admin-shell .pt-status--success{color:var(--pt-success)}.admin-shell .pt-status--warning{color:var(--pt-warning)}.admin-shell .pt-status--danger{color:var(--pt-danger)}
 @media(max-width:980px){:root{--pt-topbar-height:64px}.admin-shell .content{padding-inline:clamp(14px,4vw,24px)}}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    scroll-behavior:auto !important;
+    transition-duration:0.01ms !important;
+  }
+}
