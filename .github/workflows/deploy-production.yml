@@ -37,33 +37,66 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
+      - name: Configure SSH fallback
+        shell: bash
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          : > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
       - name: Confirm deployed commit and public essentials
         shell: bash
         env:
           EXPECTED_SHA: ${{ github.sha }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           set -euo pipefail
 
-          for attempt in $(seq 1 18); do
+          verified=false
+          for attempt in $(seq 1 6); do
             deployed_sha="$(curl --fail --silent --show-error --location --max-time 15 \
+              -H 'Accept: text/plain' \
               -H 'Cache-Control: no-cache, no-store, max-age=0' \
               -H 'Pragma: no-cache' \
               "https://petertecnet.com.br/release-sha.txt?expected=${EXPECTED_SHA}&attempt=${attempt}" \
               2>/dev/null | tr -d '\r\n' || true)"
 
             if [[ "$deployed_sha" == "$EXPECTED_SHA" ]]; then
-              echo "Production release confirmed: $deployed_sha"
+              echo "Production release confirmed via public HTTPS: $deployed_sha"
+              verified=true
               break
             fi
 
-            if [[ "$attempt" -eq 18 ]]; then
-              echo "::error::Production release mismatch: expected=$EXPECTED_SHA actual=${deployed_sha:-unavailable}"
-              exit 1
+            deployed_sha="$(ssh \
+              -o BatchMode=yes \
+              -o StrictHostKeyChecking=accept-new \
+              -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+              -o ConnectTimeout=15 \
+              -p "${VPS_PORT:-22}" "$VPS_USER@$VPS_HOST" \
+              "tr -d '\\r\\n' < /var/www/petertecnet.com.br/dist/release-sha.txt" \
+              2>/dev/null || true)"
+
+            if [[ "$deployed_sha" == "$EXPECTED_SHA" ]]; then
+              echo "Production release confirmed via VPS artifact: $deployed_sha"
+              verified=true
+              break
             fi
 
-            echo "Waiting for production release: expected=$EXPECTED_SHA actual=${deployed_sha:-unavailable} attempt=$attempt/18"
-            sleep 5
+            echo "Waiting for exact production release: expected=$EXPECTED_SHA actual=${deployed_sha:-unavailable} attempt=$attempt/6"
+            sleep 3
           done
+
+          if [[ "$verified" != true ]]; then
+            echo "::error::Production release mismatch: expected=$EXPECTED_SHA actual=${deployed_sha:-unavailable}"
+            exit 1
+          fi
 
           urls=(
             "https://petertecnet.com.br/"
