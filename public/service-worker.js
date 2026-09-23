@@ -1,9 +1,10 @@
-const CACHE_VERSION = 'petertecnet-landing-pwa-v4-official-logo';
+const CACHE_VERSION = 'petertecnet-landing-pwa-v5-landing-background';
 const CACHE_PREFIX = 'petertecnet-landing-pwa-';
 const ADMIN_CACHE_PREFIX = 'petertecnet-admin-pwa-';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/petertecnet-brand.svg',
+  '/petertecnet-landing-bg.webp',
   '/landing-logo-fix.css',
   '/ecosystem/processing-indicator.css',
   '/ecosystem/processing-indicator.js',
