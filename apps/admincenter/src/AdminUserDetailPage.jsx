@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import './AdminUserDetailPage.css'
+import AdminProcessingIndicator from './AdminProcessingIndicator.jsx'
 import { confirmAction } from './utils/uiDialog.js'
 
 const EMPTY_ACTIVITY_FILTERS = {
@@ -316,7 +317,13 @@ export default function AdminUserDetailPage({ userId, apiRequest, applications =
     })
   }
 
-  if (loading) return <div className="aud-page aud-loading"><div className="aud-loader"/><p>Montando a visão 360° do usuário…</p></div>
+  if (loading) return <div className="aud-page">
+    <AdminProcessingIndicator
+      title="Carregando usuário"
+      messages="Consultando os dados do usuário…|Sincronizando acessos, recursos e atividade…|Organizando a ficha administrativa…"
+      detail="Aguarde enquanto as informações são carregadas."
+    />
+  </div>
 
   if (!user) return <div className="aud-page"><button type="button" className="aud-back" onClick={onBack}>← Voltar para usuários</button><div className="aud-error">{error || 'Não foi possível carregar este usuário.'}</div></div>
 
