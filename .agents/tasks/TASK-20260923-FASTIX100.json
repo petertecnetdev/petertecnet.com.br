@@ -1,0 +1,28 @@
+{
+  "schema_version": 2,
+  "task_id": "TASK-20260923-FASTIX100",
+  "title": "Cutinapp — maturidade competitiva Fastix 1–100",
+  "context": "cutinapp",
+  "repo": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "priority": "HIGH",
+  "status": "RUNNING",
+  "owner_agent_id": "NP02",
+  "requested_by": "OWNER",
+  "version": 1,
+  "delegation_count": 0,
+  "lock_acquired_at": "2026-09-23T16:00:00-03:00",
+  "lock_expires_at": "2026-09-23T17:30:00-03:00",
+  "scope": "Implementar o pacote competitivo 1–100 priorizando descoberta, conversão, confiança, checkout, produtor, recorrência, social, SEO, acessibilidade, performance e observabilidade, preservando componentes e arquitetura existentes.",
+  "acceptance": [
+    "Home orientada a descoberta com busca e filtros rápidos",
+    "Evento orientado a conversão com hierarquia compra-primeiro",
+    "Checkout com confiança, recuperação e feedback de processamento",
+    "Recursos sociais/produção preservados sem competir com CTA primário",
+    "Sem novos overlays conflitantes",
+    "Validar lint de overlays, UX e testes/build quando disponíveis",
+    "Abrir PR e integrar em main conforme ordem do OWNER"
+  ],
+  "evidence": [],
+  "checkpoint": "Bootstrap concluído; escopo do OWNER recebido.",
+  "next_action": "Implementar pacote na branch agent/np02/fastix-competitive-100."
+}
