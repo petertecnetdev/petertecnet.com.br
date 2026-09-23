@@ -3,6 +3,7 @@ import { readAdminSessionState, writeAdminSessionState } from './adminPersistenc
 import AdminUserDetailPage from './AdminUserDetailExperience.jsx'
 import AdminProspectInvitation from './AdminProspectInvitation.jsx'
 import { AdminImpersonationDialog, canImpersonate } from './AdminImpersonation.jsx'
+import AdminProcessingIndicator from './AdminProcessingIndicator.jsx'
 
 const DEFAULT_LIST_SETTINGS = { sort: 'newest', per_page: '50' }
 
@@ -181,7 +182,11 @@ export default function AdminUsersCenter({ apiRequest, applications = [] }) {
       </form>
 
       {loading ? (
-        <div className="acu-loading">Carregando usuários…</div>
+        <AdminProcessingIndicator
+          title={loadedOnceRef.current ? 'Atualizando usuários' : 'Carregando usuários'}
+          messages="Consultando os usuários do ecossistema…|Sincronizando perfis, plataformas e atividade…|Organizando a lista administrativa…"
+          detail={appliedSearch ? `Buscando por “${appliedSearch}”.` : 'Aguarde enquanto os dados são carregados.'}
+        />
       ) : users.length ? (
         <div className="acu-simple-list">
           {users.map(user => (
