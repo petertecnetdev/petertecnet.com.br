@@ -1,20 +1,20 @@
 {
-  "version": 15,
+  "version": 16,
   "agent_id": "NP02",
   "display_name": "NP02 · Frontend Platform",
   "role": "frontend_platform",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "current_task_id": "TASK-20260923-EVENTPUBLICRECOVERY01",
-  "last_seen_at": "2026-09-23T15:05:00-03:00",
-  "last_read_at": "2026-09-23T15:05:00-03:00",
-  "checkpoint": "Diagnóstico do erro de abertura do evento concluído: endpoint público e CORS respondem corretamente, sem exceção Laravel para o slug; frontend transforma erro transitório em SweetAlert bloqueante.",
-  "next_action": "Implementar recuperação/retry localizado na página pública do evento e isolar erros auxiliares; testar e abrir PR.",
-  "last_commit": "cf9d2bbe4da832dabed9493b4494c6eacf530d27",
+  "last_seen_at": "2026-09-23T15:16:00-03:00",
+  "last_read_at": "2026-09-23T15:16:00-03:00",
+  "checkpoint": "PR #627 mergeado em main: falha inicial da EventView virou estado recuperável com retry; falhas de Community/Commerce ficam inline. Validate e Lighthouse SUCCESS. Nenhum deploy VPS foi disparado.",
+  "next_action": "Aguardar QA visual NP03 do slug reportado e dos estados degradados.",
+  "last_commit": "a7685ee2f7f8aae07a22e5f72e906d5b65b48e93",
   "last_error": null,
   "tasks_completed_today": 0,
-  "updated_at": "2026-09-23T15:05:00-03:00",
+  "updated_at": "2026-09-23T15:16:00-03:00",
   "schema_version": 2,
-  "last_read_message_id": "np02-production-follow-instagram-review",
+  "last_read_message_id": "np02-event-public-network-recovery-start",
   "read_message_ids": [
     "1d5f7b47-ccf6-4fd2-a84f-b0cf0395fefe",
     "76a91e39-7029-4330-98b7-9a0a3bef02ea",
@@ -34,7 +34,8 @@
     "np03-admincenter-deeplink-dashboard-start",
     "pa07-admin-api-retry-after-start",
     "np02-production-follow-instagram-start",
-    "np02-production-follow-instagram-review"
+    "np02-production-follow-instagram-review",
+    "np02-event-public-network-recovery-start"
   ],
   "received_task_ids": [
     "TASK-20260918-7C211A",
@@ -46,6 +47,6 @@
   ],
   "run_id": "np02-20260923-event-public-recovery",
   "run_started_at": "2026-09-23T15:04:00-03:00",
-  "run_finished_at": null,
-  "heartbeat_seq": 14
+  "run_finished_at": "2026-09-23T15:16:00-03:00",
+  "heartbeat_seq": 15
 }
