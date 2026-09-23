@@ -32,16 +32,44 @@
     <meta name="twitter:description" content="Empresa brasileira de tecnologia fundada em Brasília, com software, aplicativos, IA, automações, APIs e integrações para todo o Brasil." />
     <meta name="twitter:image" content="https://petertecnet.com.br/thumbnail.jpg" />
     <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://petertecnet.com.br/#organization","name":"Peter Tecnet","legalName":"Peter Tecnet","url":"https://petertecnet.com.br/","logo":{"@type":"ImageObject","url":"https://petertecnet.com.br/petertecnet-brand.svg"},"taxID":"42.595.409/0001-48","email":"contato@petertecnet.com.br","description":"Empresa brasileira de tecnologia fundada em Brasília, com atuação em todo o Brasil, que cria plataformas digitais e desenvolve software, aplicativos, sites, IA, APIs, automações e integrações.","foundingLocation":{"@type":"Place","name":"Brasília, Distrito Federal, Brasil","address":{"@type":"PostalAddress","addressLocality":"Brasília","addressRegion":"DF","addressCountry":"BR"}},"areaServed":{"@type":"Country","name":"Brasil"},"sameAs":["https://www.instagram.com/petertecnet/"],"knowsAbout":["Plataformas digitais","Software empresarial","Agendamento online","Eventos e ingressos","Catálogo digital","CRM e vendas","Automação","APIs e integrações","Inteligência artificial"]},{"@type":"WebSite","@id":"https://petertecnet.com.br/#website","url":"https://petertecnet.com.br/","name":"Peter Tecnet","publisher":{"@id":"https://petertecnet.com.br/#organization"},"inLanguage":"pt-BR"},{"@type":"WebPage","@id":"https://petertecnet.com.br/#homepage","url":"https://petertecnet.com.br/","name":"Peter Tecnet | Tecnologia para todo o Brasil","description":"Empresa brasileira de tecnologia fundada em Brasília e com atuação nacional. Conheça plataformas e serviços de software, aplicativos, IA, automação, APIs e integrações.","isPartOf":{"@id":"https://petertecnet.com.br/#website"},"about":{"@id":"https://petertecnet.com.br/#organization"},"inLanguage":"pt-BR"},{"@type":"ItemList","@id":"https://petertecnet.com.br/#platforms","name":"Plataformas Peter Tecnet","itemListElement":[{"@type":"ListItem","position":1,"name":"Plat","url":"https://petertecnet.com.br/plataformas/plat"},{"@type":"ListItem","position":2,"name":"Rasoio","url":"https://petertecnet.com.br/plataformas/rasoio"},{"@type":"ListItem","position":3,"name":"Cutinapp","url":"https://petertecnet.com.br/plataformas/cutinapp"},{"@type":"ListItem","position":4,"name":"Nexus","url":"https://petertecnet.com.br/plataformas/nexus"},{"@type":"ListItem","position":5,"name":"PayFlow","url":"https://petertecnet.com.br/plataformas/payflow"},{"@type":"ListItem","position":6,"name":"Laora","url":"https://petertecnet.com.br/plataformas/laora"},{"@type":"ListItem","position":7,"name":"Locaio","url":"https://petertecnet.com.br/plataformas/locaio"}]}]}</script>
-    <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.3/dist/sweetalert2.all.min.js"></script>
-    <script defer src="/ecosystem/processing-indicator.js?v=20260921-brand-2"></script>
-    <script defer src="/ecosystem/address-forms.js?v=20260908-city-v2"></script>
-    <script defer src="/ecosystem/install-app.js?v=20260905-installed-registry" data-app-name="Peter Tecnet" data-app-slug="peter-tecnet" data-sw="/service-worker.js" data-manifest="/manifest.json" data-detect-installed="related-app"></script>
-    <script defer src="/ecosystem/app-store.js?v=20260905-installed-open"></script>
-    <script defer src="/ecosystem/app-store-install-state.js?v=20260905-installed-open-2"></script>
-      <script defer src="https://petertecnet.com.br/ecosystem/peter-impersonation.js?v=1.2.0" data-app-slug="peter-tecnet" data-api-base="https://api.petertecnet.com.br/api"></script>
   </head>
   <body>
-    <div id="root"><pt-processing-indicator screen title="Preparando a Peter Tecnet" messages="Conectando as soluções do ecossistema Peter Tecnet…|Organizando produtos e serviços para você…|Sincronizando informações com segurança…|Quase lá — preparando uma experiência mais rápida e inteligente…"></pt-processing-indicator></div>
+    <div id="root"><div aria-hidden="true" style="min-height:100vh;background:#01070b;color:#eefcff;padding:22px 24px;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"><span style="display:inline-flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em"><img src="/petertecnet-brand.svg?v=20260921-brand-2" alt="" width="34" height="34" style="display:block;width:34px;height:34px" />Peter Tecnet</span><pt-processing-indicator hidden></pt-processing-indicator></div></div>
     <script type="module" src="/src/entry.jsx"></script>
+    <script data-sw="/service-worker.js">
+      (() => {
+        const optionalScripts = [
+          { src: 'https://cdn.jsdelivr.net/npm/sweetalert2@11.26.3/dist/sweetalert2.all.min.js' },
+          { src: '/ecosystem/processing-indicator.js?v=20260921-brand-2' },
+          { src: '/ecosystem/address-forms.js?v=20260908-city-v2' },
+          { src: '/ecosystem/install-app.js?v=20260905-installed-registry', attrs: { 'data-app-name': 'Peter Tecnet', 'data-app-slug': 'peter-tecnet', 'data-sw': '/service-worker.js', 'data-manifest': '/manifest.json', 'data-detect-installed': 'related-app' } },
+          { src: '/ecosystem/app-store.js?v=20260905-installed-open' },
+          { src: '/ecosystem/app-store-install-state.js?v=20260905-installed-open-2' },
+          { src: '/ecosystem/peter-impersonation.js?v=1.2.0', attrs: { 'data-app-slug': 'peter-tecnet', 'data-api-base': 'https://api.petertecnet.com.br/api' } },
+        ]
+
+        const appendScript = ({ src, attrs = {} }) => new Promise(resolve => {
+          const script = document.createElement('script')
+          script.src = src
+          script.async = true
+          Object.entries(attrs).forEach(([name, value]) => script.setAttribute(name, value))
+          script.addEventListener('load', resolve, { once: true })
+          script.addEventListener('error', resolve, { once: true })
+          document.head.appendChild(script)
+        })
+
+        const loadOptionalScripts = async () => {
+          for (const descriptor of optionalScripts) await appendScript(descriptor)
+        }
+
+        const scheduleOptionalScripts = () => {
+          if ('requestIdleCallback' in window) window.requestIdleCallback(() => void loadOptionalScripts(), { timeout: 2500 })
+          else window.setTimeout(() => void loadOptionalScripts(), 1200)
+        }
+
+        if (document.readyState === 'complete') scheduleOptionalScripts()
+        else window.addEventListener('load', scheduleOptionalScripts, { once: true })
+      })()
+    </script>
   </body>
 </html>
