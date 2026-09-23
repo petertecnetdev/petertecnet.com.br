@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import AdminModuleBoundary from './AdminModuleBoundary.jsx'
+import AdminProcessingIndicator from './AdminProcessingIndicator.jsx'
 import { connectMissionControlRealtime } from './missionControlRealtime.js'
 import { loadGoogleIdentity } from './services/googleIdentity.js'
 import { adminRequest as request } from './adminApi.js'
@@ -273,7 +274,11 @@ function Login({ onAuthenticated }) {
         <p className="muted">Entre com a conta Google da Peter Tecnet ou use sua senha administrativa.</p>
         {googleStatus !== 'unavailable' && <div className={`admin-google-login status-${googleStatus}`}>
           <div ref={googleButtonRef}/>
-          {googleStatus === 'loading' && <small>Carregando acesso seguro com Google…</small>}
+          {googleStatus === 'loading' && <AdminProcessingIndicator
+            title="Preparando acesso Google"
+            messages="Inicializando autenticação segura…|Conectando ao Google…|Preparando o acesso administrativo…"
+            detail="Aguarde enquanto o provedor de identidade é carregado."
+          />}
         </div>}
         {googleStatus === 'ready' && <div className="login-divider"><span>ou use sua senha</span></div>}
         <label>E-mail<input type="email" autoComplete="username" value={form.email} onChange={event => setForm({ ...form, email: event.target.value })} required/></label>
@@ -1027,7 +1032,11 @@ function EcosystemLauncher({ applications, onClose }) {
 }
 
 function ModuleSkeleton({ title = 'Carregando módulo…' }) {
-  return <div className="admin-module-skeleton" role="status" aria-live="polite"><span/><div><b>{title}</b><small>Preparando a área administrativa sem interromper o restante do painel.</small></div></div>
+  return <AdminProcessingIndicator
+    title={title}
+    messages="Carregando os recursos necessários…|Sincronizando o módulo com a API central…|Preparando a interface administrativa…"
+    detail="Aguarde enquanto o conteúdo é preparado."
+  />
 }
 
 function DashboardSkeleton() {
@@ -1074,6 +1083,11 @@ export default function App() {
     setUser(null)
   }
 
-  if (checking) return <div className="boot-screen"><img src="/petertecnet-brand.svg" alt=""/><span/><p>Validando sessão administrativa…</p></div>
+  if (checking) return <AdminProcessingIndicator
+    screen
+    title="Validando sessão administrativa"
+    messages="Verificando sua sessão…|Confirmando as permissões administrativas…|Preparando o Admin Center…"
+    detail="Aguarde enquanto seu acesso é validado com segurança."
+  />
   return user ? <Dashboard user={user} onLogout={logout}/> : <Login onAuthenticated={setUser}/>
 }
