@@ -1,20 +1,20 @@
 {
   "auditor": "budysroyale@gmail.com",
   "project": "api",
-  "checked_at": "2026-09-24T15:46:19Z",
+  "checked_at": "2026-09-24T20:45:07Z",
   "status": "ACTIVE",
   "heartbeat_status": "ACTIVE",
   "last_heartbeat": "2026-09-24T14:48:59Z",
   "last_cycle_id": "20260924-1142-r1",
   "last_main_sha_analyzed": "b0095a6eca84008d8b143c12e17c11f358b5ba5e",
-  "pending": 2,
+  "pending": 1,
   "claimed": 0,
-  "implementing": 0,
+  "implementing": 1,
   "implemented_waiting_verification": 1,
   "verified": 0,
   "reopened": 0,
   "blocked": 0,
-  "hours_since_heartbeat": 0.95,
+  "hours_since_heartbeat": 5.94,
   "verification_due_count": 0,
-  "notes": "Auditor ACTIVE: ciclo concluído com analysis_started/analysis_completed e três achados fundamentados. API-AUD-001 aguarda verificação há menos de 24h; API-AUD-002 e API-AUD-003 permanecem PENDING."
+  "notes": "Auditor ACTIVE: ciclo concluído com analysis_started/analysis_completed e três achados fundamentados. API-AUD-001 aguarda verificação há menos de 24h. API-AUD-002 está IMPLEMENTING pela Plus: transição já serializada na main; proteção da atribuição concorrente ainda permanece no escopo. API-AUD-003 segue PENDING."
 }
