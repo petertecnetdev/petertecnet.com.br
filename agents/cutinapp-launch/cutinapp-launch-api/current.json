@@ -4,13 +4,23 @@
   "repository": "petertecnetdev/api.petertecnet.com.br",
   "task": "Prevent draft/private event tickets from leaking through public ticket endpoints while preserving producer management",
   "priority": "P0",
-  "status": "IMPLEMENTING",
+  "status": "DONE",
   "areas": ["app/Http/Controllers/TicketController.php"],
   "started_at": "2026-09-24T19:13:47-03:00",
-  "checked_at": "2026-09-24T19:13:47-03:00",
-  "commits": [],
+  "checked_at": "2026-09-24T19:20:00-03:00",
+  "completed_at": "2026-09-24T19:20:00-03:00",
+  "commits": ["b96126790011c12d8b1221c3e85b54f28f7702a3"],
   "evidence": [
-    "Public GET /ticket, /ticket/show/{id}, and /ticket/event/{eventId} currently query Ticket/Event without Event::publiclyVisible(), exposing ticket inventory/pricing for draft or private events.",
-    "Producer ticket creation is owned by a separate launch agent only at the frontend; this API hardening is independent and preserves authenticated event-owner/admin management access."
-  ]
+    "Confirmed legacy public GET /ticket, /ticket/show/{id}, and /ticket/event/{eventId} queried Ticket/Event without Event::publiclyVisible(), exposing ticket inventory/pricing for draft/private/cancelled events.",
+    "Public ticket list and detail now require the related event to satisfy the shared Event::publiclyVisible() scope; event ticket listing now resolves only a publicly visible event.",
+    "Authenticated producer write endpoints and listByProduction/listByUser management paths were intentionally left unchanged, preserving draft-event ticket setup.",
+    "Modern Cutinapp v1 producer flow remains independent: /v1/apps/{application}/events/{eventId}/tickets and /tickets are authenticated under app.context/capabilities."
+  ],
+  "tests": [
+    "Static inspection of route middleware and controller query scopes completed.",
+    "No VPS/build/deploy executed by policy; owner performs local runtime validation."
+  ],
+  "risk": "Low: change narrows only legacy unauthenticated read visibility to the existing canonical public-event scope.",
+  "gate_status": "Ticket inventory privacy hardened; producer draft ticket management preserved.",
+  "next_independent_blocker": "Audit Mercado Pago webhook/order finalization for idempotent paid-state transition and exactly-once pass issuance; separately, cutinapp-launch-events owns the P0 create-draft -> first-ticket -> publish frontend blocker."
 }
