@@ -5,18 +5,20 @@
   "context": "cutinapp",
   "repo": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "REVIEW",
+  "status": "RUNNING",
   "owner_agent_id": "NP02",
   "requested_by": "OWNER",
-  "version": 3,
+  "version": 4,
   "delegation_count": 0,
-  "lock_acquired_at": "2026-09-23T16:00:00-03:00",
-  "lock_expires_at": "2026-09-23T17:30:00-03:00",
-  "scope": "Implementar o pacote competitivo 1–100 priorizando descoberta, conversão, confiança, checkout, produtor, recorrência, social, SEO, acessibilidade, performance e observabilidade, preservando componentes e arquitetura existentes.",
+  "lock_acquired_at": "2026-09-23T21:30:00-03:00",
+  "lock_expires_at": "2026-09-23T23:00:00-03:00",
+  "scope": "Implementar o pacote competitivo 1–100 priorizando descoberta, conversão, confiança, checkout, produtor, recorrência, social, SEO, acessibilidade, performance e observabilidade, preservando componentes e arquitetura existentes. Follow-up OWNER: aproximar o seletor/resumo de compra da referência FasTix e exibir Política de Compra/Termos no fluxo.",
   "acceptance": [
     "Home orientada a descoberta com busca e filtros rápidos",
     "Evento orientado a conversão com hierarquia compra-primeiro",
     "Checkout com confiança, recuperação e feedback de processamento",
+    "Resumo de compra lateral com itens, total e CTA no padrão solicitado",
+    "Aviso legal de Política de Compra e Termos de Uso visível antes da compra",
     "Recursos sociais/produção preservados sem competir com CTA primário",
     "Sem novos overlays conflitantes",
     "Validar lint de overlays, UX e testes/build quando disponíveis",
@@ -31,9 +33,10 @@
     "API PR #519 merged into main at 8d0fe5b39110160401936a53d0c1e7cc905ad7c4",
     "API branch after fix: CutinappDiscoveryFiltersTest PASS; full suite 40 failed / 458 passed versus main baseline 40 failed / 457 passed",
     "API merge did not trigger Deploy VPS; only API CI push workflow ran",
-    "Frontend merge main did not trigger Deploy VPS; only Validate Cutinapp and Lighthouse ran"
+    "Frontend merge main did not trigger Deploy VPS; only Validate Cutinapp and Lighthouse ran",
+    "Follow-up branch feat/event-purchase-fastix-terms commit d1a424947a169c99a87dd9ee12996520662d095d; PR #629 opened"
   ],
-  "checkpoint": "Implementation merged in Cutinapp main and API main. Frontend PR gates green. Generic discovery starting_price merged with no additional failures versus pre-existing API main baseline. VPS deploy remains manual-only.",
-  "next_action": "Independent QA NP03: validate landing search/discovery, event purchase CTA/FAQ, checkout trust/processing, support center, producer landing and starting-price cards on local pull.",
-  "updated_at": "2026-09-23T16:39:00-03:00"
+  "checkpoint": "OWNER requested Fastix-like event purchase summary. PR #629 is open with summary card, total, CTA and legal notice; CI is running.",
+  "next_action": "Wait for Validate Cutinapp and Lighthouse CI on PR #629; merge to main if green; then update task/state and hand off local validation.",
+  "updated_at": "2026-09-23T21:34:00-03:00"
 }
