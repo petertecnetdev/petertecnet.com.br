@@ -1,0 +1,20 @@
+{
+  "auditor": "pedauva@gmail.com",
+  "project": "admin-center",
+  "checked_at": null,
+  "status": "ACTIVE",
+  "heartbeat_status": "ACTIVE",
+  "last_heartbeat": "2026-09-24T11:57:17-03:00",
+  "last_cycle_id": "2026-09-24-admin-audit-002",
+  "last_main_sha_analyzed": "a66680bd2a7a05b0ef55865c954e68c26db10e9c",
+  "pending": 1,
+  "claimed": 0,
+  "implementing": 0,
+  "implemented_waiting_verification": 1,
+  "verified": 0,
+  "reopened": 0,
+  "blocked": 0,
+  "hours_since_heartbeat": null,
+  "verification_due_count": 0,
+  "notes": "1 IMPLEMENTED aguardando verificação; snapshot inicial, idade será calculada pela tarefa Plus no próximo ciclo."
+}
