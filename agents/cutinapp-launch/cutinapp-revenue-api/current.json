@@ -1,0 +1,27 @@
+{
+  "identity": "cutinapp-revenue-api",
+  "task": "Restore API CI before revenue features",
+  "project": "petertecnetdev/api.petertecnet.com.br",
+  "priority": "P0",
+  "status": "IMPLEMENTING",
+  "updated_at": "2026-09-24T20:12:28-03:00",
+  "areas": [
+    "API CI",
+    "commerce totals",
+    "architecture guardrails",
+    "Cutinapp payment reliability"
+  ],
+  "problem": "API CI on main is red, blocking the verified API deploy workflow. The failing suite includes architecture guardrails and several unit/feature groups. One deterministic failure was a stale CommerceTotalsTest expectation: 10.25*2 + 14.99 = 35.49 and minus 5.50 = 29.99, while the test expected 35.50/30.00.",
+  "solution": "Corrected only the stale financial test expectation; production money calculation remains cent-based and unchanged. Continuing to treat remaining CI failures as the release gate before starting API revenue features.",
+  "commits": {
+    "api": "cb23798284235708f4a8f1e51d57e995f60c11ef"
+  },
+  "evidence": [
+    "API CI run 36069836371 failed before this change.",
+    "CommerceTotals implementation converts values to integer cents and returns 35.49 subtotal / 29.99 total for the fixture.",
+    "CI log showed the exact mismatch in tests/Unit/Domain/Commerce/CommerceTotalsTest.php: expected total 30.0, actual 29.99.",
+    "Commit cb23798284235708f4a8f1e51d57e995f60c11ef pushed to main with corrected expectations."
+  ],
+  "production_gate": "API CI RED — deploy remains blocked until the complete suite is green.",
+  "next_blocker": "Re-run/inspect API CI for cb23798284235708f4a8f1e51d57e995f60c11ef and fix the next deterministic failure group without weakening architecture or security guardrails."
+}
