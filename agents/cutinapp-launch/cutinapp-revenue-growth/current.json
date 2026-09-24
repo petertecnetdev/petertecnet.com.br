@@ -1,19 +1,30 @@
 {
   "agent": "cutinapp-revenue-growth",
-  "updated_at": "2026-09-24T22:50:00Z",
-  "priority": "P2",
-  "status": "VERIFYING_DEPLOY",
-  "task": "Index producer acquisition landing and expose it in sitemap",
-  "impact": "Turns the existing producer landing from noindex into an organic acquisition surface for searches related to selling tickets and managing events.",
-  "repositories": ["petertecnetdev/cutinapp.petertecnet.com.br"],
-  "files": ["src/components/SeoManager.js", "public/sitemap.xml"],
-  "commits": ["6d84859e9c7c3f3ea7947d1b1af4b92e51777b77", "ecaa76e59e59ce9ea1cfd00f30f159c61fca3eb2"],
-  "evidence": [
-    "Existing /for-producers route and conversion CTA already existed.",
-    "SeoManager previously omitted /for-producers from PUBLIC_ROUTES, causing noindex,nofollow.",
-    "public/sitemap.xml previously omitted /for-producers.",
-    "Added producer-intent title/description, canonical via SeoManager, WebPage/Service JSON-LD and sitemap entry.",
-    "Deploy VPS workflow run 36069590893 is pending for commit ecaa76e59e59ce9ea1cfd00f30f159c61fca3eb2; production verification must wait for green deployment."
+  "updated_at": "2026-09-24T20:48:00-03:00",
+  "priority": "P1",
+  "status": "VERIFYING_DEPLOY_PIPELINE",
+  "task": "Prevent stale validated Cutinapp releases from overwriting newer main releases",
+  "impact": "Protects autonomous delivery from deploying an older validated SHA after main has advanced; this was blocking reliable publication and verification of organic acquisition changes.",
+  "repositories": [
+    "petertecnetdev/cutinapp.petertecnet.com.br",
+    "petertecnetdev/petertecnet.com.br"
   ],
-  "next": "Verify production sitemap, canonical/robots/meta/JSON-LD after deploy; then expand producer-intent acquisition without doorway pages."
+  "files": [
+    ".github/workflows/deploy-vps.yml",
+    "agents/cutinapp-launch/cutinapp-revenue-growth/current.json"
+  ],
+  "commits": [
+    "6d84859e9c7c3f3ea7947d1b1af4b92e51777b77",
+    "ecaa76e59e59ce9ea1cfd00f30f159c61fca3eb2",
+    "e318cde0ca20980a6609b7f2568e557d815c3811"
+  ],
+  "evidence": [
+    "Producer acquisition SEO change passed tests/build/performance validation.",
+    "Deploy run 36069590893 failed because main advanced from ecaa76e to 4146bb2 while the ecaa76e artifact was being deployed.",
+    "A later exact-SHA deploy for c6370dd atomically activated successfully but public release-sha verification observed e3a257f, an older ancestor, showing stale queued deployments could still overwrite newer releases.",
+    "Added a freshness job to deploy-vps.yml: workflow_run deployments now proceed only when the validated SHA still equals current main HEAD; stale validations are skipped and the newest validation owns deployment.",
+    "Manual workflow_dispatch remains available and deploys an explicitly supplied SHA or current main when omitted.",
+    "Search Console/GA4 metrics remain unavailable to this agent in the current connected toolset; no organic metrics were invented or written to revenue-scorecard.json."
+  ],
+  "next": "Wait for validation of e318cde0/main, confirm the freshness guard allows only current main to deploy, then verify /for-producers metadata and sitemap in production before expanding producer-intent acquisition."
 }
