@@ -4,15 +4,26 @@
   "repository": "petertecnetdev/admincenter.petertecnet.com.br",
   "task": "Harden Cutinapp production operations loading feedback in establishment events/tickets console",
   "priority": "P2",
-  "status": "IMPLEMENTING",
-  "areas": ["src/AdminEstablishmentEvents.jsx"],
+  "status": "DONE",
+  "areas": ["src/AdminEstablishmentEvents.jsx", "public/ecosystem/processing-indicator.js"],
   "started_at": "2026-09-24T19:23:23-03:00",
-  "checked_at": "2026-09-24T19:23:23-03:00",
-  "commits": [],
+  "checked_at": "2026-09-24T19:28:00-03:00",
+  "completed_at": "2026-09-24T19:28:00-03:00",
+  "commits": ["1dc109a611479af104ceb841dec969d95494c05b"],
   "evidence": [
-    "No existing cutinapp-launch agent owns Admin Center establishment event/ticket operations.",
-    "AdminEstablishmentEvents currently exposes generic loading text in visible async event and ticket operations instead of the standard Processing Indicator, creating ambiguous production-support feedback."
+    "No existing cutinapp-launch agent owned Admin Center establishment event/ticket operations when claimed.",
+    "AdminEstablishmentEvents exposes visible async states through .aee-empty for event loading and ticket sales/loading details; these previously rendered generic loading text.",
+    "The already-loaded canonical processing-indicator web component now upgrades .aee-empty loading/search/preparation states, reusing the same accessible role=status, aria-live and aria-busy implementation without duplicating a React loader.",
+    "The upgrader remains text-gated by carregando/consultando/buscando/preparando, so actual empty-result states are not replaced.",
+    "Post-push inspection of main confirms the selector is present in public/ecosystem/processing-indicator.js."
   ],
-  "gate_status": "Admin operational console usable but async feedback is below launch standard.",
-  "next_independent_blocker": "After this hardening, inspect whether Admin Center exposes sufficient order/payment diagnostics for Cutinapp support without database access."
+  "tests": [
+    "Static inspection confirmed index.html loads processing-indicator.css and processing-indicator.js before the React entry point.",
+    "Static inspection confirmed AdminEstablishmentEvents uses .aee-empty for the targeted visible loading states.",
+    "Post-push main read confirmed the new selector and existing text guard.",
+    "No VPS/build/deploy executed by policy; owner performs local runtime validation."
+  ],
+  "risk": "Low: change extends the existing generic legacy-state upgrader only to AdminEstablishmentEvents empty/loading containers and preserves non-loading empty states through the existing text predicate.",
+  "gate_status": "Admin event/ticket production operations now receive the standard Processing Indicator for visible list/detail loading states.",
+  "next_independent_blocker": "Inspect whether Admin Center exposes sufficient Cutinapp order/payment diagnostics and recovery actions for support without direct database access."
 }
