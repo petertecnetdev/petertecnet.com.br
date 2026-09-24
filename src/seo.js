@@ -13,6 +13,10 @@ function upsertMeta(selector, attributes) {
   })
 }
 
+function removeMeta(selector) {
+  document.head.querySelector(selector)?.remove()
+}
+
 function upsertCanonical(href) {
   let element = document.head.querySelector('link[rel="canonical"]')
   if (!element) {
@@ -53,17 +57,30 @@ function normalizePath(path) {
   return normalized || '/'
 }
 
+function resolveSocialImage(image) {
+  if (!image || /^data:/i.test(image)) return DEFAULT_IMAGE
+  try {
+    return new URL(image, PUBLIC_ORIGIN).href
+  } catch {
+    return DEFAULT_IMAGE
+  }
+}
+
 export function updatePageSeo({ title, description, path = '/', image, type = 'website', robots, schema, keywords } = {}) {
   const normalizedPath = normalizePath(path)
   const canonical = `${PUBLIC_ORIGIN}${normalizedPath === '/' ? '/' : normalizedPath}`
   const pageTitle = title || 'Peter Tecnet | Software, aplicativos, IA e soluções digitais no Brasil'
   const pageDescription = description || 'Empresa brasileira de tecnologia fundada em Brasília, com atuação em todo o Brasil. Software, aplicativos, sites, IA, automações, APIs e integrações.'
-  const pageImage = image && !/^data:/i.test(image) ? image : DEFAULT_IMAGE
+  const pageImage = resolveSocialImage(image)
 
   document.title = pageTitle
   upsertCanonical(canonical)
   upsertMeta('meta[name="description"]', { name: 'description', content: pageDescription })
-  if (Array.isArray(keywords) && keywords.length) upsertMeta('meta[name="keywords"]', { name: 'keywords', content: keywords.join(', ') })
+  if (Array.isArray(keywords) && keywords.length) {
+    upsertMeta('meta[name="keywords"]', { name: 'keywords', content: keywords.join(', ') })
+  } else {
+    removeMeta('meta[name="keywords"]')
+  }
   upsertMeta('meta[name="robots"]', { name: 'robots', content: robots || 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' })
   upsertMeta('meta[name="author"]', { name: 'author', content: 'Peter Tecnet' })
   upsertMeta('meta[property="og:type"]', { property: 'og:type', content: type })
