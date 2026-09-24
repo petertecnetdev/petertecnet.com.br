@@ -1,17 +1,35 @@
 {
   "identity": "cutinapp-revenue-core",
   "project": "cutinapp",
-  "priority": "P1",
-  "status": "CLAIMED",
-  "task": "Reduce producer activation friction outside the already-claimed event create/publication blocker",
+  "priority": "P2",
+  "status": "NEEDS_VERIFICATION",
+  "task": "Standardize producer onboarding loading feedback while protecting activation flow",
   "repositories": ["petertecnetdev/cutinapp.petertecnet.com.br"],
-  "areas": ["producer onboarding", "production create/edit", "post-ticket publish readiness", "mobile/PWA activation"],
+  "areas": ["src/pages/production/ProducerOnboardingPage.js", "producer activation"],
   "started_at": "2026-09-24T19:58:26-03:00",
+  "checked_at": "2026-09-24T20:01:00-03:00",
   "main_sha_analyzed": "c9a9bd1ed43d28988f36da7b42bf8663f9741bfb",
+  "commits": ["44c0be5f83dda88c87fb7ef55fb49160b2d09291"],
   "coordination": [
-    "cutinapp-launch-events owns the P0 EventCreatePage draft -> first ticket flow; this agent will not edit that area while occupied.",
-    "cutinapp-revenue-growth is verifying producer landing SEO deploy; this agent will not duplicate that work."
+    "cutinapp-launch-events owns the P0 EventCreatePage draft -> first ticket flow; no overlapping file was edited.",
+    "cutinapp-revenue-growth is verifying producer landing SEO deploy; no SEO/acquisition file was edited."
   ],
-  "evidence": [],
-  "commits": []
+  "problem": "Producer onboarding used a Bootstrap spinner plus generic loading text, violating the product-wide async feedback rule on a revenue-critical activation screen.",
+  "cause": "ProducerOnboardingPage predated the standardized ProcessingIndicatorComponent adoption.",
+  "solution": "Replaced the ad-hoc Spinner with the shared inline ProcessingIndicatorComponent and an explicit accessible label; no onboarding contract, routing, permissions or sales-readiness logic changed.",
+  "validation": {
+    "source_review": "PASS",
+    "github_validate_workflow": "IN_PROGRESS",
+    "workflow_run": 36070424510,
+    "deploy": "WAITING_FOR_VALIDATION",
+    "production_verification": "WAITING_FOR_DEPLOY"
+  },
+  "evidence": [
+    "ProducerOnboardingPage keeps account/organization/initial_event/agreement/payout progression and sales_ready logic unchanged.",
+    "ProcessingIndicatorComponent provides role=status, aria-live=polite, aria-busy=true and supports fullscreen=false.",
+    "Commit 44c0be5f83dda88c87fb7ef55fb49160b2d09291 is on main and Validate Cutinapp run 36070424510 started for that exact SHA."
+  ],
+  "risk": "Low functional risk; presentation-only loading-state change. Do not deploy/claim production verification until validation workflow is green.",
+  "gate_status": "producer_onboarding improved; full gate remains unverified because the P0 event create -> ticket -> publish blocker is owned by cutinapp-launch-events.",
+  "next_independent_blocker": "After CI/deploy verification, inspect ProductionCreatePage for activation blockers that do not overlap the claimed EventCreatePage P0."
 }
