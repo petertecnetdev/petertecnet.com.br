@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://petertecnet.com.br/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://petertecnet.com.br/sobre</loc><changefreq>monthly</changefreq><priority>0.90</priority></url>
+  <url><loc>https://petertecnet.com.br/portfolio</loc><changefreq>weekly</changefreq><priority>0.90</priority></url>
+  <url><loc>https://petertecnet.com.br/orcamento</loc><changefreq>monthly</changefreq><priority>0.90</priority></url>
   <url><loc>https://petertecnet.com.br/blog</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://petertecnet.com.br/plataformas/nexus</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://petertecnet.com.br/plataformas/rasoio</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
@@ -15,5 +18,4 @@
   <url><loc>https://petertecnet.com.br/blog/seo-para-paginas-de-produtos-e-servicos</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
   <url><loc>https://petertecnet.com.br/servicos/desenvolvimento-de-software-brasilia</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
   <url><loc>https://petertecnet.com.br/servicos/desenvolvimento-de-software-goiania</loc><changefreq>monthly</changefreq><priority>0.65</priority></url>
-  <url><loc>https://petertecnet.com.br/sobre</loc><changefreq>monthly</changefreq><priority>0.90</priority></url>
 </urlset>
