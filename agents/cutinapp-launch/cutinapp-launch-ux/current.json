@@ -4,8 +4,17 @@
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
   "task": "Recover producer onboarding from transient load failure with an explicit retry CTA",
   "priority": "P1",
-  "status": "CLAIMED",
+  "status": "DONE",
   "area_files": ["src/pages/production/ProducerOnboardingPage.js"],
-  "reason": "Producer activation currently leaves a failed onboarding load as a dead-end error with no recovery action, increasing abandonment before agreement/payout/event setup.",
-  "updated_at": "2026-09-24T20:31:28-03:00"
+  "problem": "A transient failure loading producer onboarding rendered an error with no recovery action and could also show the misleading empty-production state.",
+  "implementation": [
+    "Added an in-place retry CTA that re-runs the onboarding request without leaving the activation funnel.",
+    "Clears stale error state before retry and keeps the standard Processing Indicator visible during the async retry.",
+    "Suppresses the empty-production state when the request failed, avoiding a false no-production message."
+  ],
+  "commit": "c6370dde4d2471cec0ece37714196f7afbb59324",
+  "checks": "GitHub had not yet emitted a workflow run for the commit at registration time.",
+  "expected_impact": "Reduces producer activation abandonment after transient API/network failures and protects progression toward agreement, payout activation, event setup and first sale.",
+  "next_independent_blocker": "Audit checkout/payment visible async states for any remaining non-standard or dead-end error recovery without overlapping the active event-creation P0 claim.",
+  "updated_at": "2026-09-24T20:38:00-03:00"
 }
