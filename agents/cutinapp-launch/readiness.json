@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "product": "cutinapp",
+  "owner": "cutinapp-launch-gatekeeper",
+  "updated_at": null,
+  "overall_status": "UNKNOWN",
+  "gates": [
+    {
+      "id": "auth_session",
+      "name": "Login Google e sessão",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "producer_onboarding",
+      "name": "Produtor consegue iniciar sem bloqueio desnecessário",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "admin_impersonation",
+      "name": "Impersonação administrativa autorizada e auditável",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "production_create_edit",
+      "name": "Produção pode ser criada e editada",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "event_create_edit",
+      "name": "Evento pode ser criado e editado",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "tickets_batches",
+      "name": "Ingressos e lotes podem ser cadastrados",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "event_publish",
+      "name": "Evento pode ser publicado",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "public_listing",
+      "name": "Evento publicado aparece publicamente",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "event_discovery",
+      "name": "Participante consegue encontrar evento",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "cart_isolation",
+      "name": "Carrinho é isolado por usuário",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "checkout",
+      "name": "Checkout completa sem erro",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "mercadopago_payment",
+      "name": "Mercado Pago aceita pagamento real",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "payment_webhook",
+      "name": "Confirmação/webhook atualiza estado corretamente",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "single_ticket_issuance",
+      "name": "Ingresso é emitido uma única vez",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "qr_generation",
+      "name": "QR válido é gerado",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "ticket_visibility",
+      "name": "Comprador correto visualiza ingresso/QR",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "checkin_valid",
+      "name": "Check-in válido funciona",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "duplicate_checkin_block",
+      "name": "Segundo check-in é bloqueado",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "producer_sales_visibility",
+      "name": "Produtor consegue acompanhar vendas",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "admin_operations",
+      "name": "Admin Center opera recursos críticos",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "landing_cutinapp_entry",
+      "name": "Peter Tecnet direciona corretamente para Cutinapp",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "sharing_public",
+      "name": "Compartilhamento público funciona",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "pwa",
+      "name": "PWA funciona nos fluxos essenciais",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "build_ci",
+      "name": "Build/testes/CI essenciais passam",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    },
+    {
+      "id": "no_known_p0_p1",
+      "name": "Não há P0/P1 conhecido sem bloqueio registrado",
+      "status": "UNKNOWN",
+      "evidence": [],
+      "last_verified_at": null,
+      "commit": null,
+      "notes": null
+    }
+  ]
+}
