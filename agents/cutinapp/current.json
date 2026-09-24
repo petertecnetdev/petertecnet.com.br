@@ -2,15 +2,15 @@
   "agent_email": "userpetertecnet@gmail.com",
   "project": "cutinapp",
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
-  "cycle_id": "cut-audit-20260924-1136",
+  "cycle_id": "cut-audit-20260924-1136-r2",
   "heartbeat_at": "2026-09-24T11:36:00-03:00",
-  "main_sha_analyzed": "4fee83ab8902792ecc2e0cf8ca36a78261b3010d",
+  "main_sha_analyzed": "287ec60fb5dee80bbfee0d99e70b92347f35813f",
   "analysis_started_at": "2026-09-24T11:36:00-03:00",
   "analysis_completed_at": "2026-09-24T11:36:00-03:00",
   "verification_started_at": "2026-09-24T11:36:00-03:00",
   "verification_completed_at": "2026-09-24T11:36:00-03:00",
-  "new_analysis_started_at": null,
-  "new_analysis_completed_at": null,
+  "new_analysis_started_at": "2026-09-24T11:36:00-03:00",
+  "new_analysis_completed_at": "2026-09-24T11:36:00-03:00",
   "improvements": [
     {
       "id": "CUT-AUD-001",
@@ -19,9 +19,7 @@
       "title": "Busca de conversas pode exibir resposta obsoleta após troca rápida de consulta",
       "description": "loadConversations() aceita respostas assíncronas concorrentes sem sequence/cancelamento. Uma consulta antiga pode resolver depois de uma consulta nova e sobrescrever conversations com dados da consulta anterior.",
       "evidence": "src/pages/MessagesPage.js: loadConversations chama messagingService.conversations(...) e executa setConversations(response?.data || []) sem comparar a consulta/resposta com a solicitação vigente. O mesmo callback é acionado pelo debounce da busca e pelo polling periódico.",
-      "files": [
-        "src/pages/MessagesPage.js"
-      ],
+      "files": ["src/pages/MessagesPage.js"],
       "main_sha_found": "4fee83ab8902792ecc2e0cf8ca36a78261b3010d",
       "created_at": "2026-09-24T11:36:00-03:00",
       "created_by": "userpetertecnet@gmail.com",
@@ -34,10 +32,7 @@
       "title": "Estados de carregamento usam texto genérico em vez do Processing Indicator padrão",
       "description": "A tela de mensagens exibe 'Carregando conversas…' e 'Abrindo conversa…' diretamente no conteúdo, sem usar o ProcessingIndicatorComponent padrão, contrariando o padrão de processamento assíncrono visível.",
       "evidence": "src/pages/MessagesPage.js não importa ProcessingIndicatorComponent; o JSX renderiza cut-chat-state com 'Carregando conversas…' e 'Abrindo conversa…' enquanto loading/threadLoading estão ativos.",
-      "files": [
-        "src/pages/MessagesPage.js",
-        "src/components/ProcessingIndicatorComponent.js"
-      ],
+      "files": ["src/pages/MessagesPage.js", "src/components/ProcessingIndicatorComponent.js"],
       "main_sha_found": "4fee83ab8902792ecc2e0cf8ca36a78261b3010d",
       "created_at": "2026-09-24T11:36:00-03:00",
       "created_by": "userpetertecnet@gmail.com",
@@ -50,23 +45,33 @@
       "title": "Carregar mais usa texto genérico de processamento",
       "description": "O carregamento incremental das notificações apresenta 'Carregando...' no botão durante uma operação assíncrona, em vez de usar o Processing Indicator padrão exigido para processamento visível.",
       "evidence": "src/pages/NotificationsPage.js renderiza o botão de paginação com disabled={moreLoading} e conteúdo {moreLoading ? 'Carregando...' : 'Carregar mais'}; o arquivo não importa ProcessingIndicatorComponent.",
-      "files": [
-        "src/pages/NotificationsPage.js",
-        "src/components/ProcessingIndicatorComponent.js"
-      ],
+      "files": ["src/pages/NotificationsPage.js", "src/components/ProcessingIndicatorComponent.js"],
       "main_sha_found": "4fee83ab8902792ecc2e0cf8ca36a78261b3010d",
+      "created_at": "2026-09-24T11:36:00-03:00",
+      "created_by": "userpetertecnet@gmail.com",
+      "status": "PENDING"
+    },
+    {
+      "id": "CUT-AUD-004",
+      "priority": "P2",
+      "area": "Produção / experiência / concorrência assíncrona",
+      "title": "Atualização de galeria pode aplicar resposta após troca de produção ou desmontagem",
+      "description": "O callback de atualização da galeria agenda uma chamada assíncrona a productionExperience(slug) e, para payloads de capa, chama loadCore(). A função loadCore executa setData(response) sem validar o flag active do efeito que registrou o callback. Se a rota mudar ou o componente desmontar enquanto a requisição estiver pendente, uma resposta antiga pode atualizar o estado de uma produção anterior ou de um componente já desmontado.",
+      "evidence": "src/pages/production/ProductionPublicPage.js: loadCore = useCallback(async () => { const response = await cutinappService.publicProduction(slug); setData(response); return response; }, [slug]);; no efeito de subscribeGalleryUpdates, o timer executa const details = await cutinappService.productionExperience(slug); if (active) setExperience(details); if (payload?.action === 'cover' && active) await loadCore();. O guard active existe no efeito, mas loadCore não recebe nem revalida esse guard antes do setData.",
+      "files": ["src/pages/production/ProductionPublicPage.js"],
+      "main_sha_found": "287ec60fb5dee80bbfee0d99e70b92347f35813f",
       "created_at": "2026-09-24T11:36:00-03:00",
       "created_by": "userpetertecnet@gmail.com",
       "status": "PENDING"
     }
   ],
   "summary": {
-    "total": 3,
+    "total": 4,
     "p0": 0,
     "p1": 1,
-    "p2": 2,
+    "p2": 3,
     "p3": 0,
-    "pending": 3,
+    "pending": 4,
     "claimed": 0,
     "implementing": 0,
     "implemented": 0,
@@ -77,16 +82,16 @@
     "discarded": 0
   },
   "audit_counters": {
-    "cycles": 1,
-    "new_points": 3,
+    "cycles": 2,
+    "new_points": 4,
     "implemented_checked": 0,
     "verified": 0,
     "reopened": 0,
     "p0": 0,
     "p1": 1,
-    "p2": 2,
+    "p2": 3,
     "p3": 0,
-    "pending": 3
+    "pending": 4
   },
   "next_cycle_at": null
 }
