@@ -1,0 +1,17 @@
+{
+  "identity": "cutinapp-launch-core",
+  "project": "cutinapp",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "task": "Harden producer event creation async feedback for launch",
+  "priority": "P2",
+  "status": "IMPLEMENTING",
+  "areas": [
+    "src/pages/event/EventCreatePage.js"
+  ],
+  "started_at": "2026-09-24T18:57:20-03:00",
+  "main_sha_analyzed": "d801b4b0862a191e0f2921de5e52de45f5944e42",
+  "commits": [],
+  "evidence": [
+    "Quick production creation, event reuse loading, production template loading and production item loading expose generic text/spinner instead of the standard Processing Indicator."
+  ]
+}
