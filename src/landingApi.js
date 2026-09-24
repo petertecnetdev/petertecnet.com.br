@@ -66,8 +66,23 @@ export const getItemImage = item => {
 }
 
 const API_TIMEOUT_MS = 6000
+const API_RETRY_DELAY_MS = 250
+const TRANSIENT_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504])
 
-const apiGet = async (path, signal) => {
+const delay = (milliseconds, signal) => new Promise((resolve, reject) => {
+  if (signal?.aborted) {
+    reject(new DOMException('Request aborted', 'AbortError'))
+    return
+  }
+
+  const timeout = window.setTimeout(resolve, milliseconds)
+  signal?.addEventListener('abort', () => {
+    window.clearTimeout(timeout)
+    reject(new DOMException('Request aborted', 'AbortError'))
+  }, { once: true })
+})
+
+const requestJson = async (path, signal) => {
   const controller = new AbortController()
   let timedOut = false
   const abortFromCaller = () => controller.abort()
@@ -102,6 +117,20 @@ const apiGet = async (path, signal) => {
   } finally {
     window.clearTimeout(timeout)
     signal?.removeEventListener('abort', abortFromCaller)
+  }
+}
+
+const apiGet = async (path, signal) => {
+  try {
+    return await requestJson(path, signal)
+  } catch (error) {
+    if (error?.name === 'AbortError' || signal?.aborted) throw error
+
+    const retryable = error?.name === 'TimeoutError' || TRANSIENT_STATUSES.has(error?.status)
+    if (!retryable) throw error
+
+    await delay(API_RETRY_DELAY_MS, signal)
+    return requestJson(path, signal)
   }
 }
 
