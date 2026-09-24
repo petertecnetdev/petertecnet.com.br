@@ -1,7 +1,7 @@
 {
   "auditor": "budysroyale@gmail.com",
   "project": "api",
-  "checked_at": "2026-09-24T20:45:07Z",
+  "checked_at": "2026-09-24T21:47:43Z",
   "status": "ACTIVE",
   "heartbeat_status": "ACTIVE",
   "last_heartbeat": "2026-09-24T14:48:59Z",
@@ -14,7 +14,7 @@
   "verified": 0,
   "reopened": 0,
   "blocked": 0,
-  "hours_since_heartbeat": 5.94,
+  "hours_since_heartbeat": 6.98,
   "verification_due_count": 0,
-  "notes": "Auditor ACTIVE: ciclo concluído com analysis_started/analysis_completed e três achados fundamentados. API-AUD-001 aguarda verificação há menos de 24h. API-AUD-002 está IMPLEMENTING pela Plus: transição já serializada na main; proteção da atribuição concorrente ainda permanece no escopo. API-AUD-003 segue PENDING."
+  "notes": "Auditor ACTIVE: ciclo concluído com analysis_started/analysis_completed e três achados fundamentados. API-AUD-001 aguarda verificação há menos de 24h. API-AUD-002 segue IMPLEMENTING: transition() está serializado com transação e lockForUpdate; assign() ainda mantém a janela TOCTOU entre checagem de disponibilidade/conflito e update. API-AUD-003 segue PENDING."
 }
