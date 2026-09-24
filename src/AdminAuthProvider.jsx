@@ -22,6 +22,20 @@ function makeError(payload, response, fallback = 'Não foi possível concluir a 
   return error
 }
 
+function composeAbortSignal(callerSignal, internalSignal) {
+  if (!callerSignal) return internalSignal
+  if (typeof AbortSignal?.any === 'function') return AbortSignal.any([callerSignal, internalSignal])
+  const controller = new AbortController()
+  const abort = event => controller.abort(event?.target?.reason)
+  if (callerSignal.aborted || internalSignal.aborted) {
+    controller.abort(callerSignal.reason || internalSignal.reason)
+  } else {
+    callerSignal.addEventListener('abort', abort, { once: true })
+    internalSignal.addEventListener('abort', abort, { once: true })
+  }
+  return controller.signal
+}
+
 export function AdminAuthProvider({ children }) {
   const initialToken = localStorage.getItem(ADMIN_TOKEN_KEY) || ''
   const [state, setState] = useState({
@@ -35,12 +49,12 @@ export function AdminAuthProvider({ children }) {
   const rawRequest = useCallback(async (path, options = {}, explicitToken = null) => {
     const token = explicitToken ?? localStorage.getItem(ADMIN_TOKEN_KEY) ?? ''
     const controller = new AbortController()
-    const timeout = window.setTimeout(() => controller.abort(), options.timeout || 18000)
+    const timeout = window.setTimeout(() => controller.abort(new DOMException('Request timeout', 'TimeoutError')), options.timeout || 18000)
     try {
       const response = await fetch(`${ADMIN_API}${path}`, {
         ...options,
         cache: options.cache || 'no-store',
-        signal: controller.signal,
+        signal: composeAbortSignal(options.signal, controller.signal),
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
@@ -52,7 +66,10 @@ export function AdminAuthProvider({ children }) {
       if (!response.ok) throw makeError(payload, response)
       return payload
     } catch (error) {
-      if (error?.name === 'AbortError') throw new Error('A API demorou para responder.')
+      if (error?.name === 'AbortError' || error?.name === 'TimeoutError') {
+        if (options.signal?.aborted) throw error
+        throw new Error('A API demorou para responder.')
+      }
       throw error
     } finally {
       window.clearTimeout(timeout)
@@ -77,8 +94,6 @@ export function AdminAuthProvider({ children }) {
 
     setState(current => ({ ...current, status: 'checking', error: '' }))
     try {
-      // Authentication must depend only on the identity endpoint. A temporary
-      // failure in dashboard/analytics must never lock the whole Admin Center.
       const me = await rawRequest('/auth/me', { timeout: 10000 }, token)
       if (sequence !== sequenceRef.current) return { authorized: false }
       const user = userFrom(me)
