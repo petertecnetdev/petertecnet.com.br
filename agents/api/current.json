@@ -1,0 +1,95 @@
+{
+  "agent_email": "budysroyale@gmail.com",
+  "project": "api",
+  "repository": "petertecnetdev/api.petertecnet.com.br",
+  "channel_repository": "petertecnetdev/petertecnet.com.br",
+  "cycle_id": "20260924-1142-r1",
+  "heartbeat_at": "2026-09-24T14:42:00Z",
+  "main_sha_analyzed": "c4ee3d4f69d4dae9400b3bae1f5579bd1f61cc5c",
+  "analysis_started_at": "2026-09-24T14:42:00Z",
+  "analysis_completed_at": "2026-09-24T14:42:00Z",
+  "verification_started_at": "2026-09-24T14:42:00Z",
+  "verification_completed_at": "2026-09-24T14:42:00Z",
+  "new_analysis_started_at": null,
+  "new_analysis_completed_at": null,
+  "improvements": [
+    {
+      "id": "API-AUD-001",
+      "priority": "P1",
+      "area": "Idempotência / isolamento entre aplicações",
+      "title": "Idempotency-Key pode perder o escopo real da aplicação e da rota",
+      "description": "EnsureIdempotentRequest é executado no grupo api antes dos route middlewares que estabelecem o ApplicationContext. O middleware tenta obter a aplicação apenas dos atributos já resolvidos e da rota, mas não lê os headers X-Peter-App/X-App-Slug usados pelo BindApplicationContext. Em rotas que dependem desse middleware, applicationKey pode cair em 'global'. Além disso, o request_fingerprint usa a assinatura da rota (template) e payload, sem incluir valores efetivos de parâmetros de rota ou query. Isso pode permitir colisão/replay de uma mesma chave entre contextos distintos quando a operação e payload coincidem.",
+      "evidence": "app/Http/Kernel.php coloca EnsureIdempotentRequest no grupo api antes dos route middlewares; app/Http/Middleware/EnsureIdempotentRequest.php usa atributos de application e route('application'), mas não lê os headers; applicationKey retorna 'global' quando não encontra contexto. O fingerprint usa routeSignature + payload normalizado. app/Http/Middleware/BindApplicationContext.php mostra que X-Peter-App/X-App-Slug são resolvidos posteriormente como route middleware.",
+      "files": [
+        "app/Http/Kernel.php",
+        "app/Http/Middleware/EnsureIdempotentRequest.php",
+        "app/Http/Middleware/BindApplicationContext.php",
+        "app/Http/Middleware/ResolveApplicationContext.php",
+        "routes/api.php"
+      ],
+      "main_sha_found": "c4ee3d4f69d4dae9400b3bae1f5579bd1f61cc5c",
+      "created_at": "2026-09-24T14:42:00Z",
+      "created_by": "budysroyale@gmail.com",
+      "status": "PENDING"
+    },
+    {
+      "id": "API-AUD-002",
+      "priority": "P1",
+      "area": "Bookings / concorrência",
+      "title": "Transição de agendamento não é atomicamente protegida contra concorrência",
+      "description": "AppointmentWorkflowController.transition lê o estado atual, valida a ação permitida e depois executa update sem condicionar a atualização ao estado lido nem usar lock/transação para a transição. Duas requisições concorrentes com ações conflitantes podem ambas passar pela validação e sobrescrever o estado uma da outra, retornando sucesso e emitindo notificações incompatíveis. A operação de assign também verifica disponibilidade antes do update sem proteção contra TOCTOU.",
+      "evidence": "Em transition(), o estado é lido em $current, a lista $allowed é consultada e, depois, $order->update($changes) ocorre sem where do estado esperado/lock/transação. Em assign(), assertAttendantAvailability e hasScheduleConflict são executados antes de $order->update(['attendant_id' => ...]) sem lock que serialize a disputa pelo mesmo intervalo.",
+      "files": [
+        "app/Domain/Scheduling/Http/Controllers/AppointmentWorkflowController.php"
+      ],
+      "main_sha_found": "c4ee3d4f69d4dae9400b3bae1f5579bd1f61cc5c",
+      "created_at": "2026-09-24T14:42:00Z",
+      "created_by": "budysroyale@gmail.com",
+      "status": "PENDING"
+    },
+    {
+      "id": "API-AUD-003",
+      "priority": "P2",
+      "area": "Performance / Bookings",
+      "title": "Consulta de disponibilidade multiplica queries por dia solicitado",
+      "description": "AvailabilityController.dates itera até 60 dias e chama availableTimesForDate() para cada dia. Cada chamada consulta work schedules, blocked schedules e orders separadamente. Assim, uma única requisição pode disparar aproximadamente três consultas por dia, chegando a cerca de 180 consultas antes do processamento em PHP. Os novos índices recentes ajudam cada lookup, mas não eliminam o padrão N+1 por intervalo de datas.",
+      "evidence": "dates() faz loop de $days e chama availableTimesForDate() em cada iteração. availableTimesForDate() executa queries independentes em EmployerSchedule para work, EmployerSchedule para bloqueios e Order para agendamentos. A migration c4ee3d4 indexa a busca de appointments, mas o fan-out por dia permanece.",
+      "files": [
+        "app/Domain/Scheduling/Http/Controllers/AvailabilityController.php",
+        "database/migrations/2026_09_24_114800_add_completed_at_index_to_idempotent_requests_table.php",
+        "database/migrations/2026_09_24_124500_add_scheduling_lookup_indexes_to_appointments_table.php",
+        "database/migrations/2026_09_24_134800_add_appointment_availability_index_to_orders_table.php"
+      ],
+      "main_sha_found": "c4ee3d4f69d4dae9400b3bae1f5579bd1f61cc5c",
+      "created_at": "2026-09-24T14:42:00Z",
+      "created_by": "budysroyale@gmail.com",
+      "status": "PENDING"
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "p0": 0,
+    "p1": 2,
+    "p2": 1,
+    "p3": 0,
+    "pending": 3,
+    "claimed": 0,
+    "implementing": 0,
+    "implemented": 0,
+    "verified": 0,
+    "reopened": 0,
+    "blocked": 0,
+    "duplicate": 0,
+    "discarded": 0
+  },
+  "audit_counters": {
+    "new_points": 3,
+    "verified": 0,
+    "reopened": 0,
+    "implemented_checked": 0,
+    "p0": 0,
+    "p1": 2,
+    "p2": 1,
+    "p3": 0
+  }
+}
