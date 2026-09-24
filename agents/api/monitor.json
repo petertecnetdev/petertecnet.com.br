@@ -1,0 +1,20 @@
+{
+  "auditor": "budysroyale@gmail.com",
+  "project": "api",
+  "checked_at": null,
+  "status": "ACTIVE",
+  "heartbeat_status": "ACTIVE",
+  "last_heartbeat": "2026-09-24T14:48:59Z",
+  "last_cycle_id": "20260924-1142-r1",
+  "last_main_sha_analyzed": "b0095a6eca84008d8b143c12e17c11f358b5ba5e",
+  "pending": 2,
+  "claimed": 0,
+  "implementing": 0,
+  "implemented_waiting_verification": 1,
+  "verified": 0,
+  "reopened": 0,
+  "blocked": 0,
+  "hours_since_heartbeat": null,
+  "verification_due_count": 0,
+  "notes": "1 IMPLEMENTED aguardando verificação; snapshot inicial, idade será calculada pela tarefa Plus no próximo ciclo."
+}
