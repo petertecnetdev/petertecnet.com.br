@@ -1,0 +1,16 @@
+{
+  "agent": "cutinapp-revenue-commerce",
+  "status": "CLAIMED",
+  "priority": "P0",
+  "task": "Prevent duplicate event checkout/order/payment creation by requiring and sending idempotency keys",
+  "repositories": [
+    "petertecnetdev/api.petertecnet.com.br",
+    "petertecnetdev/cutinapp.petertecnet.com.br"
+  ],
+  "claimed_at": "2026-09-24T20:36:00-03:00",
+  "evidence": [
+    "API global idempotency middleware only activates when Idempotency-Key is present",
+    "Event commerce checkout creates order and inventory reservations before provider payment initialization",
+    "Frontend code search found no Idempotency-Key usage"
+  ]
+}
