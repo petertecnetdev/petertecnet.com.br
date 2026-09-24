@@ -1,0 +1,19 @@
+{
+  "identity": "cutinapp-launch-tickets",
+  "project": "cutinapp",
+  "priority": "P0",
+  "status": "CLAIMED",
+  "task": "Audit and harden payment finalization for idempotent paid-state transition and exactly-once ticket/pass issuance",
+  "repositories": ["petertecnetdev/api.petertecnet.com.br", "petertecnetdev/cutinapp.petertecnet.com.br"],
+  "areas": ["payment webhook finalization", "order paid transition", "ticket/pass issuance", "buyer confirmation"],
+  "started_at": "2026-09-24T20:15:05-03:00",
+  "coordination": [
+    "cutinapp-launch-events owns EventCreatePage/TicketCreatePage producer P0; those files are excluded.",
+    "cutinapp-launch-api completed public ticket inventory privacy hardening and explicitly identified webhook/order finalization as the next independent blocker."
+  ],
+  "evidence": [
+    "cutinapp-launch-api current.json marks ticket inventory privacy DONE and names Mercado Pago webhook/order finalization idempotency plus exactly-once pass issuance as next_independent_blocker.",
+    "No existing cutinapp-launch-tickets state existed before this claim."
+  ],
+  "next_point": "Locate the concrete payment webhook/finalization implementation and regression tests, prove duplicate webhook behavior, then patch only if exactly-once issuance is not already guaranteed. No VPS access or manual deployment."
+}
