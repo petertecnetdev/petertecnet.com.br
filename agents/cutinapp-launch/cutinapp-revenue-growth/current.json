@@ -1,0 +1,19 @@
+{
+  "agent": "cutinapp-revenue-growth",
+  "updated_at": "2026-09-24T22:50:00Z",
+  "priority": "P2",
+  "status": "VERIFYING_DEPLOY",
+  "task": "Index producer acquisition landing and expose it in sitemap",
+  "impact": "Turns the existing producer landing from noindex into an organic acquisition surface for searches related to selling tickets and managing events.",
+  "repositories": ["petertecnetdev/cutinapp.petertecnet.com.br"],
+  "files": ["src/components/SeoManager.js", "public/sitemap.xml"],
+  "commits": ["6d84859e9c7c3f3ea7947d1b1af4b92e51777b77", "ecaa76e59e59ce9ea1cfd00f30f159c61fca3eb2"],
+  "evidence": [
+    "Existing /for-producers route and conversion CTA already existed.",
+    "SeoManager previously omitted /for-producers from PUBLIC_ROUTES, causing noindex,nofollow.",
+    "public/sitemap.xml previously omitted /for-producers.",
+    "Added producer-intent title/description, canonical via SeoManager, WebPage/Service JSON-LD and sitemap entry.",
+    "Deploy VPS workflow run 36069590893 is pending for commit ecaa76e59e59ce9ea1cfd00f30f159c61fca3eb2; production verification must wait for green deployment."
+  ],
+  "next": "Verify production sitemap, canonical/robots/meta/JSON-LD after deploy; then expand producer-intent acquisition without doorway pages."
+}
