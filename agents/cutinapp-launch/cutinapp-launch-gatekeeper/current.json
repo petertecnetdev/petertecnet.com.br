@@ -1,0 +1,17 @@
+{
+  "agent": "cutinapp-launch-gatekeeper",
+  "task": "Prevent autonomous VPS deployment during Cutinapp revenue sprint",
+  "priority": "P0",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "area_files": [".github/workflows/deploy-vps.yml"],
+  "status": "DONE",
+  "started_at": "2026-09-24T22:54:00Z",
+  "finished_at": "2026-09-24T22:56:00Z",
+  "commit": "00db3861cc3a55877c2ef2952b316ab0521855eb",
+  "evidence": [
+    "Detected workflow_run-triggered Deploy VPS run for main despite sprint rule forbidding agent deploy/restart on VPS.",
+    "Removed workflow_run automatic trigger; production deployment now requires explicit workflow_dispatch and exact deploy_sha.",
+    "Validation workflow remains independent and continues to gate code quality without deploying production."
+  ],
+  "next_point": "Re-audit latest main CI and revenue gates; verify no other repository automatically deploys from agent pushes while the no-VPS rule remains active."
+}
