@@ -1,16 +1,25 @@
 {
   "agent": "cutinapp-revenue-commerce",
-  "status": "CLAIMED",
-  "priority": "P0",
-  "task": "Prevent duplicate event checkout/order/payment creation by requiring and sending idempotency keys",
+  "status": "IMPLEMENTING",
+  "priority": "P1",
+  "task": "Align frontend retry handling with API idempotency processing response",
   "repositories": [
-    "petertecnetdev/api.petertecnet.com.br",
-    "petertecnetdev/cutinapp.petertecnet.com.br"
+    "petertecnetdev/cutinapp.petertecnet.com.br",
+    "petertecnetdev/api.petertecnet.com.br"
   ],
   "claimed_at": "2026-09-24T20:36:00-03:00",
-  "evidence": [
-    "API global idempotency middleware only activates when Idempotency-Key is present",
-    "Event commerce checkout creates order and inventory reservations before provider payment initialization",
-    "Frontend code search found no Idempotency-Key usage"
-  ]
+  "updated_at": "2026-09-24T20:42:00-03:00",
+  "findings": [
+    "Frontend already sends a stable Idempotency-Key for event checkout and reuses it across transient retries.",
+    "API middleware returns HTTP 425 with Idempotency-Status=processing while an identical request is still executing.",
+    "Frontend isIdempotencyProcessing currently recognizes only HTTP 409, so a legitimate concurrent/replayed checkout can surface as an error instead of waiting and replaying safely.",
+    "Mercado Pago provider payment creation already uses an order-derived idempotency key; fulfillment counts existing EventPass rows before issuing missing passes."
+  ],
+  "implementation": {
+    "change": "Treat both 409 and 425 with Idempotency-Status=processing as bounded retryable idempotency responses.",
+    "local_commit": "32bd7b9",
+    "test": "CommerceService.transientRetry.test.js: 7/7 passed, including new HTTP 425 processing retry regression test.",
+    "push": "BLOCKED: clean isolated checkout has no GitHub HTTPS credential on VPS; production main was not modified and no deploy was attempted."
+  },
+  "next": "Publish the already-tested two-file frontend change through the GitHub-connected path, then require CI green and verify the production release before marking DONE."
 }
