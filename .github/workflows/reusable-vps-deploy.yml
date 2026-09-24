@@ -20,6 +20,11 @@ on:
         required: false
         default: ''
         type: string
+      deploy_sha:
+        description: Optional exact commit SHA to deploy. Primarily used by validated Laravel workflow_run deployments.
+        required: false
+        default: ''
+        type: string
     secrets:
       VPS_HOST:
         required: false
@@ -182,6 +187,7 @@ jobs:
           DEPLOY_PATH: ${{ inputs.deploy_path }}
           DEPLOY_TYPE: ${{ inputs.deploy_type }}
           DEPLOY_BRANCH: ${{ inputs.deploy_branch }}
+          DEPLOY_SHA: ${{ inputs.deploy_sha }}
           DEPLOY_REPOSITORY: ${{ github.repository }}
           FRONTEND_OUTPUT: ${{ steps.frontend_build.outputs.output_name }}
           FRONTEND_ARTIFACT: ${{ steps.frontend_build.outputs.remote_artifact }}
@@ -206,6 +212,7 @@ jobs:
           FRONTEND_ARTIFACT="${5:-}"
           FRONTEND_OUTPUT_HINT="${6:-}"
           FRONTEND_SOURCE_SHA="${7:-}"
+          DEPLOY_SHA="${8:-}"
           RELEASE_EXTRACT=""
 
           on_exit() {
@@ -332,7 +339,25 @@ jobs:
 
           OLD_SHA="$(git rev-parse HEAD)"
           git fetch --prune origin "$DEPLOY_BRANCH"
-          TARGET_SHA="$(git rev-parse "origin/$DEPLOY_BRANCH")"
+          BRANCH_SHA="$(git rev-parse "origin/$DEPLOY_BRANCH")"
+          TARGET_SHA="$BRANCH_SHA"
+
+          if [[ -n "$DEPLOY_SHA" ]]; then
+            if [[ ! "$DEPLOY_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+              echo "Invalid deploy SHA: $DEPLOY_SHA" >&2
+              exit 29
+            fi
+            if ! git cat-file -e "$DEPLOY_SHA^{commit}" 2>/dev/null; then
+              echo "Requested deploy SHA is not available after fetching $DEPLOY_BRANCH: $DEPLOY_SHA" >&2
+              exit 29
+            fi
+            if ! git merge-base --is-ancestor "$DEPLOY_SHA" "$BRANCH_SHA"; then
+              echo "Requested deploy SHA $DEPLOY_SHA is not contained in origin/$DEPLOY_BRANCH ($BRANCH_SHA)." >&2
+              exit 29
+            fi
+            TARGET_SHA="$DEPLOY_SHA"
+            echo "Deploy locked to validated SHA: $TARGET_SHA"
+          fi
 
           case "$DEPLOY_TYPE" in
             frontend)
@@ -407,7 +432,7 @@ jobs:
                   if (path ~ /^\.(build|dist)\.(next|previous|failed)\./) next
                   if (path ~ /^(build|dist)\.rollback\.[0-9]{14}\//) next
                   if (path ~ /^\.env($|\.)/) next
-                  if (path ~ /\.bak\.[0-9]{8}-[0-9]{6}-[0-9]+$/) next
+                  if (path ~ /\.bak($|\.)/) next
                   print
                 }
               ')"
@@ -417,9 +442,24 @@ jobs:
                 exit 26
               fi
               if ! git merge-base --is-ancestor "$OLD_SHA" "$TARGET_SHA"; then
-                echo "Refusing deploy: local commits would be discarded in $DEPLOY_PATH." >&2
-                git log --oneline --decorate "$TARGET_SHA..$OLD_SHA" >&2 || true
-                exit 27
+                MERGE_BASE="$(git merge-base "$OLD_SHA" "$TARGET_SHA")"
+                divergence_safe=true
+                while IFS= read -r changed_path; do
+                  [[ -n "$changed_path" ]] || continue
+                  if ! git diff --quiet "$OLD_SHA" "$TARGET_SHA" -- "$changed_path"; then
+                    echo "Divergent local commit still changes target content: $changed_path" >&2
+                    divergence_safe=false
+                  fi
+                done < <(git diff --name-only "$MERGE_BASE..$OLD_SHA")
+
+                if [[ "$divergence_safe" != true ]]; then
+                  echo "Refusing deploy: local commits contain content not present in deploy target." >&2
+                  git log --oneline --decorate "$TARGET_SHA..$OLD_SHA" >&2 || true
+                  exit 27
+                fi
+
+                echo "Local branch history diverges, but every local-only changed path is byte-equivalent in target; safe to reconcile."
+                git log --oneline --decorate "$TARGET_SHA..$OLD_SHA" || true
               fi
               if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then git checkout "$DEPLOY_BRANCH"; else git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"; fi
               git reset --hard "$TARGET_SHA"
@@ -496,7 +536,7 @@ jobs:
           max_attempts=3
           for attempt in $(seq 1 "$max_attempts"); do
             echo "SSH deploy attempt $attempt/$max_attempts"
-            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=20 -o ConnectionAttempts=1 -o ServerAliveInterval=30 -o ServerAliveCountMax=8 -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH' '$DEPLOY_REPOSITORY' '$FRONTEND_ARTIFACT' '$FRONTEND_OUTPUT' '$FRONTEND_SOURCE_SHA'" < "$REMOTE_SCRIPT_FILE"; then exit 0; else exit_code=$?; fi
+            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=20 -o ConnectionAttempts=1 -o ServerAliveInterval=30 -o ServerAliveCountMax=8 -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "bash -s -- '$DEPLOY_PATH' '$DEPLOY_TYPE' '$DEPLOY_BRANCH' '$DEPLOY_REPOSITORY' '$FRONTEND_ARTIFACT' '$FRONTEND_OUTPUT' '$FRONTEND_SOURCE_SHA' '$DEPLOY_SHA'" < "$REMOTE_SCRIPT_FILE"; then exit 0; else exit_code=$?; fi
             if [[ "$exit_code" -ne 75 && "$exit_code" -ne 255 ]]; then exit "$exit_code"; fi
             [[ "$attempt" -eq "$max_attempts" ]] && exit "$exit_code"
             sleep_seconds=$((10 + (repository_checksum + attempt * 7) % 11))
