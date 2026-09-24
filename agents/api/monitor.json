@@ -1,7 +1,7 @@
 {
   "auditor": "budysroyale@gmail.com",
   "project": "api",
-  "checked_at": null,
+  "checked_at": "2026-09-24T15:46:19Z",
   "status": "ACTIVE",
   "heartbeat_status": "ACTIVE",
   "last_heartbeat": "2026-09-24T14:48:59Z",
@@ -14,7 +14,7 @@
   "verified": 0,
   "reopened": 0,
   "blocked": 0,
-  "hours_since_heartbeat": null,
+  "hours_since_heartbeat": 0.95,
   "verification_due_count": 0,
-  "notes": "1 IMPLEMENTED aguardando verificação; snapshot inicial, idade será calculada pela tarefa Plus no próximo ciclo."
+  "notes": "Auditor ACTIVE: ciclo concluído com analysis_started/analysis_completed e três achados fundamentados. API-AUD-001 aguarda verificação há menos de 24h; API-AUD-002 e API-AUD-003 permanecem PENDING."
 }
