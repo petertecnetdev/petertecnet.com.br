@@ -4,14 +4,19 @@
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
   "task": "Harden producer event creation async feedback for launch",
   "priority": "P2",
-  "status": "IMPLEMENTING",
+  "status": "BLOCKED",
   "areas": [
     "src/pages/event/EventCreatePage.js"
   ],
   "started_at": "2026-09-24T18:57:20-03:00",
+  "checked_at": "2026-09-24T18:57:20-03:00",
   "main_sha_analyzed": "d801b4b0862a191e0f2921de5e52de45f5944e42",
   "commits": [],
   "evidence": [
-    "Quick production creation, event reuse loading, production template loading and production item loading expose generic text/spinner instead of the standard Processing Indicator."
-  ]
+    "End-to-end producer path confirms EventCreatePage posts is_published=1, requires API confirmation that is_published is true, then routes directly to /ticket/create?eventId=<id>.",
+    "Event creation itself already uses the standard Processing Indicator, but quick production creation, event reuse loading, production template loading and production item loading still expose generic text/spinners.",
+    "The connected GitHub writer only supports whole-file replacement. EventCreatePage.js is 44 KB and retrieval is truncated in the writable path, so a safe complete replacement could not be guaranteed without risking deletion of unseen code."
+  ],
+  "blocker": "Need a non-truncating writable file retrieval/patch path for EventCreatePage.js before changing it safely.",
+  "next_independent_blocker": "Verify the API event store contract honors is_published=1 without incorrectly blocking publication on producer payout/contract state, then verify ticket creation follows the created event id."
 }
