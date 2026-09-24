@@ -59,9 +59,7 @@
           document.head.appendChild(script)
         })
 
-        const loadOptionalScripts = async () => {
-          for (const descriptor of optionalScripts) await appendScript(descriptor)
-        }
+        const loadOptionalScripts = () => Promise.all(optionalScripts.map(appendScript))
 
         const scheduleOptionalScripts = () => {
           if ('requestIdleCallback' in window) window.requestIdleCallback(() => void loadOptionalScripts(), { timeout: 2500 })
