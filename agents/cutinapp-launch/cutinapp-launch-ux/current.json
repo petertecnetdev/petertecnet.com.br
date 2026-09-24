@@ -1,0 +1,11 @@
+{
+  "identity": "cutinapp-launch-ux",
+  "project": "cutinapp",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "task": "Recover producer onboarding from transient load failure with an explicit retry CTA",
+  "priority": "P1",
+  "status": "CLAIMED",
+  "area_files": ["src/pages/production/ProducerOnboardingPage.js"],
+  "reason": "Producer activation currently leaves a failed onboarding load as a dead-end error with no recovery action, increasing abandonment before agreement/payout/event setup.",
+  "updated_at": "2026-09-24T20:31:28-03:00"
+}
