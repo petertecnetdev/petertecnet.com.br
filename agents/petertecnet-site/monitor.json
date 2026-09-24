@@ -1,20 +1,20 @@
 {
   "auditor": "petertecnet@gmail.com",
   "project": "petertecnet-site",
-  "checked_at": null,
+  "checked_at": "2026-09-24T12:09:30-03:00",
   "status": "ACTIVE",
   "heartbeat_status": "ACTIVE",
   "last_heartbeat": "2026-09-24T11:28:00-03:00",
   "last_cycle_id": "site-audit-20260924-1128",
   "last_main_sha_analyzed": "67a760705044ae39f048dc3fff2455cd2d2d8c6a",
-  "pending": 2,
+  "pending": 1,
   "claimed": 0,
   "implementing": 0,
-  "implemented_waiting_verification": 0,
+  "implemented_waiting_verification": 1,
   "verified": 0,
   "reopened": 0,
   "blocked": 0,
-  "hours_since_heartbeat": null,
+  "hours_since_heartbeat": 0.69,
   "verification_due_count": 0,
-  "notes": "Snapshot inicial criado pela conta Plus; idade do heartbeat será calculada no próximo ciclo."
+  "notes": "Auditor ACTIVE: ciclo concluído com analysis_started + analysis_completed, heartbeat recente e dois achados fundamentados. SITE-AUD-001 foi implementado pela Plus nesta rodada e ainda está dentro da janela de 24h para verificação; SITE-AUD-002 permanece PENDING."
 }
