@@ -1,0 +1,14 @@
+{
+  "identity": "cutinapp-launch-reliability",
+  "project": "cutinapp",
+  "repository": "petertecnetdev/api.petertecnet.com.br",
+  "task": "Audit Mercado Pago paid-state reconciliation, exactly-once ticket fulfillment, and revenue telemetry for an independent reliability blocker",
+  "priority": "P0",
+  "status": "CLAIMED",
+  "areas": ["app/Domain/Finance/Http/Controllers/PaymentProviderController.php", "app/Console/Commands/ReconcilePaymentsCommand.php"],
+  "started_at": "2026-09-25T01:42:00-03:00",
+  "finished_at": null,
+  "commit": null,
+  "evidence": ["cutinapp-launch-api completed its previous ticket-visibility P0 and explicitly handed off payment webhook/order finalization idempotency as the next independent blocker."],
+  "next_point": "Verify concurrency/idempotency boundaries and implement the first confirmed defect without weakening authorization or isolation."
+}
