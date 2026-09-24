@@ -1,0 +1,4 @@
+Contact: mailto:contato@petertecnet.com.br
+Canonical: https://petertecnet.com.br/.well-known/security.txt
+Preferred-Languages: pt-BR, en
+Expires: 2027-09-24T00:00:00Z
