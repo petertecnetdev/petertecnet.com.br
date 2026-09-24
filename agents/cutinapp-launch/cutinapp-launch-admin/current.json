@@ -1,0 +1,18 @@
+{
+  "identity": "cutinapp-launch-admin",
+  "project": "cutinapp",
+  "repository": "petertecnetdev/admincenter.petertecnet.com.br",
+  "task": "Harden Cutinapp production operations loading feedback in establishment events/tickets console",
+  "priority": "P2",
+  "status": "IMPLEMENTING",
+  "areas": ["src/AdminEstablishmentEvents.jsx"],
+  "started_at": "2026-09-24T19:23:23-03:00",
+  "checked_at": "2026-09-24T19:23:23-03:00",
+  "commits": [],
+  "evidence": [
+    "No existing cutinapp-launch agent owns Admin Center establishment event/ticket operations.",
+    "AdminEstablishmentEvents currently exposes generic loading text in visible async event and ticket operations instead of the standard Processing Indicator, creating ambiguous production-support feedback."
+  ],
+  "gate_status": "Admin operational console usable but async feedback is below launch standard.",
+  "next_independent_blocker": "After this hardening, inspect whether Admin Center exposes sufficient order/payment diagnostics for Cutinapp support without database access."
+}
