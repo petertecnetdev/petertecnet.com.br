@@ -7,15 +7,32 @@ export default function useLandingMotion(active = true) {
     const root = document.documentElement
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const tiltHandlers = new Map()
+    let scrollFrame = null
+    let pointerFrame = null
+    let latestPointer = null
 
     const updatePointer = event => {
-      root.style.setProperty('--pointer-x', `${event.clientX}px`)
-      root.style.setProperty('--pointer-y', `${event.clientY}px`)
+      latestPointer = event
+      if (pointerFrame !== null) return
+      pointerFrame = window.requestAnimationFrame(() => {
+        pointerFrame = null
+        if (!latestPointer) return
+        root.style.setProperty('--pointer-x', `${latestPointer.clientX}px`)
+        root.style.setProperty('--pointer-y', `${latestPointer.clientY}px`)
+      })
+    }
+
+    const updateScrollNow = () => {
+      const max = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1)
+      root.style.setProperty('--scroll-progress', `${Math.min(window.scrollY / max, 1)}`)
     }
 
     const updateScroll = () => {
-      const max = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1)
-      root.style.setProperty('--scroll-progress', `${Math.min(window.scrollY / max, 1)}`)
+      if (scrollFrame !== null) return
+      scrollFrame = window.requestAnimationFrame(() => {
+        scrollFrame = null
+        updateScrollNow()
+      })
     }
 
     const revealObserver = new IntersectionObserver(entries => {
@@ -75,7 +92,7 @@ export default function useLandingMotion(active = true) {
     })
     mutationObserver.observe(document.body, { childList: true, subtree: true })
 
-    updateScroll()
+    updateScrollNow()
     window.addEventListener('scroll', updateScroll, { passive: true })
     window.addEventListener('resize', updateScroll, { passive: true })
     if (!reduceMotion) window.addEventListener('pointermove', updatePointer, { passive: true })
@@ -86,6 +103,9 @@ export default function useLandingMotion(active = true) {
       window.removeEventListener('scroll', updateScroll)
       window.removeEventListener('resize', updateScroll)
       window.removeEventListener('pointermove', updatePointer)
+      if (scrollFrame !== null) window.cancelAnimationFrame(scrollFrame)
+      if (pointerFrame !== null) window.cancelAnimationFrame(pointerFrame)
+      latestPointer = null
       tiltHandlers.forEach(([onMove, onLeave], element) => {
         element.removeEventListener('pointermove', onMove)
         element.removeEventListener('pointerleave', onLeave)
