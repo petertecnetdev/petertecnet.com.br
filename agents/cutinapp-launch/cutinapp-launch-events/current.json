@@ -5,18 +5,21 @@
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
   "area_files": [
     "src/pages/event/EventCreatePage.js",
+    "src/pages/ticket/TicketCreatePage.js",
     "src/services/EventService.js",
     "app/Domain/Events/Http/Controllers/EventManagementController.php"
   ],
-  "status": "CLAIMED",
+  "status": "CONFIRMED_BLOCKER",
   "started_at": "2026-09-24T19:07:30-03:00",
-  "finished_at": null,
+  "finished_at": "2026-09-24T19:17:00-03:00",
   "commit": null,
   "evidence": [
-    "Cutinapp EventCreatePage sends is_published=1 and then throws unless response.event.is_published === true.",
-    "API EventManagementController::store intentionally forces is_published=false and instructs producer to configure at least one ticket before publish.",
-    "API publish endpoint correctly requires at least one available ticket, so automatic publication during event creation is impossible by design.",
-    "The mismatch creates the event successfully but reports failure to the producer and blocks navigation to /ticket/create?eventId=<id>, preventing the first sellable ticket from being configured."
+    "EventCreatePage appends is_published=1, calls eventService.store, then throws unless response.event.is_published === true before navigating to /ticket/create?eventId=<id>.",
+    "API EventManagementController::store explicitly overwrites is_published=false and returns: Evento criado como rascunho. Configure ao menos um ingresso e publique.",
+    "API EventManagementController::publish correctly rejects publication unless an available Ticket exists, so publication during initial event creation is impossible by design.",
+    "TicketCreatePage accepts the newly-created draft event and is already prepared to configure its first sellable ticket; therefore the frontend assertion is the direct launch blocker.",
+    "The safe fix is localized to EventCreatePage: do not request/assert publication during create; create draft, navigate to ticket setup, and publish only after a sellable ticket exists.",
+    "GitHub fetch_blob now provides the complete EventCreatePage source, but the connected writer only supports whole-file replacement and this cycle did not perform a 44 KB replacement without a local build/test runner; no unsafe partial replacement was attempted."
   ],
-  "next_point": "Remove the impossible publication assertion/request from event creation, keep event as draft, route to first-ticket creation, then publish only after a sellable ticket exists."
+  "next_point": "P0 remains executable: patch EventCreatePage to remove payload.append(is_published, 1) and the response.event.is_published assertion; rename create CTA/loading copy to reflect draft + first-ticket setup; add regression coverage for create→ticket flow, validate CI, then push main."
 }
