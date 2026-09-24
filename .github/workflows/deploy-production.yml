@@ -6,6 +6,8 @@ on:
       - main
     paths-ignore:
       - '.agents/**'
+      - 'agents/**'
+      - 'ecosystem-coordination/**'
       - 'AGENTS.md'
       - '.github/workflows/agent-chat-sync.yml'
   workflow_dispatch:
