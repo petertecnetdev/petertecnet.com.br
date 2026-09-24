@@ -47,13 +47,13 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 
 - Agentes registrados: **8**
 - Tarefas abertas: **10**
-- Executando: **0**
-- Em revisão: **8**
+- Executando: **1**
+- Em revisão: **7**
 - Bloqueadas/decisão: **0**
 
 ### Agentes
 - **NP01** · REVIEW · task: TASK-20260919-NEARBY01 · last_seen: 2026-09-19T11:23:00-03:00 · next: NP03 revisar PRs #578 e #506. Após aprovação, mergear e validar deploy/endpoint em produção.
-- **NP02** · REVIEW · task: TASK-20260923-FASTIX100 · last_seen: 2026-09-23T16:39:00-03:00 · next: Await NP03 independent QA on local pull; fix only concrete regressions if reported.
+- **NP02** · RUNNING · task: TASK-20260923-FASTIX100 · last_seen: 2026-09-23T21:34:00-03:00 · next: Wait for Validate Cutinapp and Lighthouse CI on PR #629; merge to main if green; no VPS build/deploy.
 - **NP03** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 - **NP04** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 - **NP05** · REVIEW · task: TASK-20260919-MOBILE250 · last_seen: 2026-09-19T10:44:00-03:00 · next: NP03 executar revisão independente mobile em 360/390/430px, navegação, Event Manager, bottom sheets, teclado, rede limitada e overlays; aprovar ou solicitar mudanças antes de merge em main.
@@ -62,7 +62,7 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 - **NP10** · BLOCKED · task: TAREFA-3-ADMIN-460 · last_seen: 2026-09-20T21:36:44-03:00 · next: Aguardar handoff/encerramento do claim NP09; então auditar main atual e validar 1-460, começando pelos gaps dos PRs #109/#114 e checks #108-#116.
 
 ### Próximas tarefas
-- **TASK-20260923-FASTIX100** · HIGH · REVIEW · fila · geral · Cutinapp — maturidade competitiva Fastix 1–100
+- **TASK-20260923-FASTIX100** · HIGH · RUNNING · fila · geral · Cutinapp — maturidade competitiva Fastix 1–100
 - **TASK-20260918-7C211A** · HIGH · REVIEW · NP02 · cutinapp · Evoluir Meus eventos da Cutinapp — pacote 1–211
 - **TASK-20260919-MOBILE250** · HIGH · REVIEW · NP05 · cutinapp · Simplificação e performance mobile Cutinapp — pacote 1–250
 - **TASK-20260919-NEARBY01** · HIGH · REVIEW · NP01 · cutinapp · Corrigir filtro Perto de mim na descoberta de eventos
