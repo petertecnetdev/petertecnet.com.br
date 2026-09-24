@@ -6,6 +6,7 @@ const assets = join(dist, 'assets')
 const MAX_JS_ENTRY = 300 * 1024
 const MAX_CSS_ENTRY = 160 * 1024
 const MAX_TOTAL_INITIAL = 650 * 1024
+const MAX_HERO_VIDEO = 2 * 1024 * 1024
 
 const files = await readdir(assets)
 let total = 0
@@ -23,10 +24,18 @@ for (const file of files) {
   if (file.endsWith('.css') && size > MAX_CSS_ENTRY) violations.push(`${file}: ${size} bytes > CSS budget ${MAX_CSS_ENTRY}`)
 }
 
+try {
+  const heroVideo = join(dist, 'video.mp4')
+  const { size } = await stat(heroVideo)
+  if (size > MAX_HERO_VIDEO) violations.push(`video.mp4: ${size} bytes > hero video budget ${MAX_HERO_VIDEO}`)
+} catch (error) {
+  if (error?.code !== 'ENOENT') throw error
+}
+
 if (total > MAX_TOTAL_INITIAL) violations.push(`initial JS/CSS: ${total} bytes > budget ${MAX_TOTAL_INITIAL}`)
 if (violations.length) {
   console.error('[performance-budget] FAILED')
   violations.forEach(item => console.error(' -', item))
   process.exit(1)
 }
-console.log(`[performance-budget] OK: initial assets ${total} bytes (budget ${MAX_TOTAL_INITIAL})`)
+console.log(`[performance-budget] OK: initial assets ${total} bytes (budget ${MAX_TOTAL_INITIAL}); hero video <= ${MAX_HERO_VIDEO} bytes`)
