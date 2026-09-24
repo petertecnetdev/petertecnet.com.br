@@ -1,0 +1,22 @@
+{
+  "agent": "cutinapp-launch-events",
+  "task": "Fix producer event creation flow blocked by impossible auto-publication contract",
+  "priority": "P0",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "area_files": [
+    "src/pages/event/EventCreatePage.js",
+    "src/services/EventService.js",
+    "app/Domain/Events/Http/Controllers/EventManagementController.php"
+  ],
+  "status": "CLAIMED",
+  "started_at": "2026-09-24T19:07:30-03:00",
+  "finished_at": null,
+  "commit": null,
+  "evidence": [
+    "Cutinapp EventCreatePage sends is_published=1 and then throws unless response.event.is_published === true.",
+    "API EventManagementController::store intentionally forces is_published=false and instructs producer to configure at least one ticket before publish.",
+    "API publish endpoint correctly requires at least one available ticket, so automatic publication during event creation is impossible by design.",
+    "The mismatch creates the event successfully but reports failure to the producer and blocks navigation to /ticket/create?eventId=<id>, preventing the first sellable ticket from being configured."
+  ],
+  "next_point": "Remove the impossible publication assertion/request from event creation, keep event as draft, route to first-ticket creation, then publish only after a sellable ticket exists."
+}
