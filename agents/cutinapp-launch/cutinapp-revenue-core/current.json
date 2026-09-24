@@ -1,0 +1,17 @@
+{
+  "identity": "cutinapp-revenue-core",
+  "project": "cutinapp",
+  "priority": "P1",
+  "status": "CLAIMED",
+  "task": "Reduce producer activation friction outside the already-claimed event create/publication blocker",
+  "repositories": ["petertecnetdev/cutinapp.petertecnet.com.br"],
+  "areas": ["producer onboarding", "production create/edit", "post-ticket publish readiness", "mobile/PWA activation"],
+  "started_at": "2026-09-24T19:58:26-03:00",
+  "main_sha_analyzed": "c9a9bd1ed43d28988f36da7b42bf8663f9741bfb",
+  "coordination": [
+    "cutinapp-launch-events owns the P0 EventCreatePage draft -> first ticket flow; this agent will not edit that area while occupied.",
+    "cutinapp-revenue-growth is verifying producer landing SEO deploy; this agent will not duplicate that work."
+  ],
+  "evidence": [],
+  "commits": []
+}
