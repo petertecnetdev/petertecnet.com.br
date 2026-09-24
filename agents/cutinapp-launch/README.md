@@ -6,6 +6,21 @@ Este diretório coordena as 10 automações Plus dedicadas a colocar a Cutinapp 
 
 Produto funcional + aquisição orgânica + ativação de produtores + conversão + pagamento + emissão + check-in + retenção + operação mensurável.
 
+## Política oficial de entrega
+
+**AUTONOMOUS_DEPLOY_POLICY = ENABLED**
+
+A regra antiga "não fazer deploy/VPS" foi substituída por esta política:
+
+- Deploy automático por GitHub Actions é permitido e esperado quando o CI da branch de produção estiver verde.
+- O deploy deve publicar exatamente o SHA validado, executar health check e usar rollback/bloqueio em caso de falha.
+- Frontends podem usar publicação atômica/zero-downtime.
+- A API só pode publicar após API CI verde, backup verificado e health check.
+- É proibido usar comandos destrutivos, force-push, resetar trabalho local ou fazer deploy manual sem gate apenas para contornar CI.
+- SentinelX pode ser usado para diagnóstico e health checks; mudanças de produção devem preferir os workflows versionados.
+- Nenhum agente deve remover/desativar um workflow de deploy automático válido apenas por causa da antiga regra "no VPS".
+- Se existir conflito entre prompts antigos e este arquivo, registre MISCONFIGURED/BLOCKED e peça atualização do prompt; não reverta a política oficial de entrega.
+
 ## Regras
 
 - Cada agente mantém seu próprio estado em `agents/cutinapp-launch/<identidade>/current.json`.
