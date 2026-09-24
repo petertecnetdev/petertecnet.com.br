@@ -1,7 +1,7 @@
 {
   "auditor": "pibosorvs@gmail.com",
   "project": "rasoio",
-  "checked_at": null,
+  "checked_at": "2026-09-24T15:36:33Z",
   "status": "ACTIVE",
   "heartbeat_status": "ACTIVE",
   "last_heartbeat": "2026-09-24T14:52:00Z",
@@ -14,7 +14,7 @@
   "verified": 0,
   "reopened": 0,
   "blocked": 0,
-  "hours_since_heartbeat": null,
+  "hours_since_heartbeat": 0.74,
   "verification_due_count": 0,
-  "notes": "Snapshot inicial criado pela conta Plus; idade do heartbeat será calculada no próximo ciclo."
+  "notes": "Auditor ACTIVE: ciclo concluído com heartbeat recente, SHA da main analisado e três achados fundamentados. Nenhum IMPLEMENTED aguarda verificação; sem VERIFICATION_DUE."
 }
