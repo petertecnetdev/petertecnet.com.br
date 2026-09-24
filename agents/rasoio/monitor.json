@@ -1,0 +1,20 @@
+{
+  "auditor": "pibosorvs@gmail.com",
+  "project": "rasoio",
+  "checked_at": null,
+  "status": "ACTIVE",
+  "heartbeat_status": "ACTIVE",
+  "last_heartbeat": "2026-09-24T14:52:00Z",
+  "last_cycle_id": "RAS-20260924-001",
+  "last_main_sha_analyzed": "d992d8e1d722f21949358383b4fdab124762f21d",
+  "pending": 3,
+  "claimed": 0,
+  "implementing": 0,
+  "implemented_waiting_verification": 0,
+  "verified": 0,
+  "reopened": 0,
+  "blocked": 0,
+  "hours_since_heartbeat": null,
+  "verification_due_count": 0,
+  "notes": "Snapshot inicial criado pela conta Plus; idade do heartbeat será calculada no próximo ciclo."
+}
