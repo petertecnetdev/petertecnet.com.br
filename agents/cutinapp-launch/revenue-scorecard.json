@@ -2,91 +2,27 @@
   "schema_version": 1,
   "product": "cutinapp",
   "owner": "cutinapp-revenue-ops",
-  "updated_at": null,
+  "updated_at": "2026-09-24T20:21:21-03:00",
   "reporting_window": null,
   "currency": "BRL",
   "metrics": {
-    "organic_visits": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    },
-    "producer_signups": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    },
-    "producer_activations": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    },
-    "median_time_to_first_published_event_minutes": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    },
-    "published_events": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    },
-    "event_page_visits": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    },
-    "add_to_cart": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    },
-    "checkout_started": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    },
-    "payments_approved": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    },
-    "payments_failed": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    },
-    "checkout_conversion_rate": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    },
-    "tickets_sold": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    },
-    "gmv_brl": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    },
-    "platform_revenue_brl": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    },
-    "repeat_purchase_rate": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    },
-    "recurring_producers": {
-      "value": null,
-      "status": "UNINSTRUMENTED",
-      "source": null
-    }
+    "organic_visits": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "producer_signups": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "producer_activations": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "median_time_to_first_published_event_minutes": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "published_events": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "event_page_visits": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "add_to_cart": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "checkout_started": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "payments_approved": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "payments_failed": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "checkout_conversion_rate": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "tickets_sold": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "gmv_brl": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "platform_revenue_brl": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "repeat_purchase_rate": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "recurring_producers": {"value": null, "status": "UNINSTRUMENTED", "source": null}
   },
-  "top_bottleneck": null,
-  "notes": "Valores só podem ser preenchidos com dados reais e fonte verificável. Se não houver instrumentação, implementar a coleta antes de estimar."
+  "top_bottleneck": "No verified revenue/funnel data source is currently connected to the scorecard; Admin Center order/payment diagnostics are the next operational visibility gap.",
+  "notes": "Valores permanecem nulos por regra: somente dados reais com fonte verificável podem preencher o scorecard. Em 2026-09-24T20:21:21-03:00 foi confirmado que o repositório standalone do Admin Center expõe apenas a branch remota main (SHA 1dc109a611479af104ceb841dec969d95494c05b), enquanto a política do sprint informa publicação pela branch admincenter. Nenhuma mudança de produção do Admin Center deve assumir main como branch de deploy até reconciliar essa topologia."
 }
