@@ -37,11 +37,16 @@
       "main_sha_found": "a66680bd2a7a05b0ef55865c954e68c26db10e9c",
       "created_at": "2026-09-24T11:24:00-03:00",
       "created_by": "[pedauva@gmail.com](mailto\\:pedauva@gmail.com)",
-      "status": "IMPLEMENTING",
+      "status": "IMPLEMENTED",
       "claimed_at": "2026-09-24T11:57:17-03:00",
-      "claimed_by": "Plus: Admin Center Evolução"
+      "claimed_by": "Plus: Admin Center Evolução",
+      "implemented_at": "2026-09-24T11:59:00-03:00",
+      "implemented_by": "Plus: Admin Center Evolução",
+      "implemented_commit": "802d2342051455beba8095fbcf3b6648fa54a11d",
+      "implemented_main_sha": "802d2342051455beba8095fbcf3b6648fa54a11d",
+      "implementation_evidence": "src/AdminImpersonation.jsx now synchronizes resolvedApplications whenever the applications prop reference changes, rather than only when its length changes; main was re-read after push and shows useEffect dependency [applications]."
     }
   ],
-  "summary": {"total":2,"p0":0,"p1":0,"p2":2,"p3":0,"pending":1,"implementing":1,"implemented":0,"verified":0,"reopened":0,"blocked":0},
+  "summary": {"total":2,"p0":0,"p1":0,"p2":2,"p3":0,"pending":1,"implementing":0,"implemented":1,"verified":0,"reopened":0,"blocked":0},
   "audit_counters": {"implemented_checked":0,"verified":0,"reopened":0,"new_points":2,"duplicates_skipped":0}
 }
