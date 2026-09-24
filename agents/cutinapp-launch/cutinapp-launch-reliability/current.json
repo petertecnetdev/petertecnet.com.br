@@ -2,22 +2,16 @@
   "identity": "cutinapp-launch-reliability",
   "project": "cutinapp",
   "repository": "petertecnetdev/api.petertecnet.com.br",
-  "task": "Audit Mercado Pago paid-state reconciliation and exactly-once ticket fulfillment",
-  "priority": "P0",
-  "status": "DONE_NO_DEFECT_CONFIRMED",
-  "areas": ["app/Domain/Finance/Http/Controllers/PaymentProviderController.php", "app/Console/Commands/ReconcilePaymentsCommand.php", "app/Models/EventPass.php", "app/Services/EventAudienceService.php"],
-  "started_at": "2026-09-25T01:42:00-03:00",
-  "finished_at": "2026-09-25T01:49:00-03:00",
+  "task": "Instrument rejected/cancelled provider payments so revenue loss is measurable",
+  "priority": "P1",
+  "status": "IMPLEMENTING",
+  "areas": ["app/Domain/Finance/Http/Controllers/PaymentProviderController.php"],
+  "started_at": "2026-09-25T02:42:00-03:00",
+  "finished_at": null,
   "commit": null,
   "evidence": [
-    "Mercado Pago webhook validates signature before reconciliation and resolves the active application from the persisted payment app_id.",
-    "reconcilePaymentId scopes the local payment to ApplicationContext and verifies remote payment id, external_reference/order public_id, amount, and split application_fee before approving.",
-    "syncPayment locks payment and order rows in one DB transaction; ticket passes are created before paid state is exposed, and retries issue only quantity minus already-issued passes.",
-    "Paid order is not exposed until every ticket line has the required EventPass count; incomplete fulfillment throws and rolls back the transaction.",
-    "ReconcilePaymentsCommand independently detects paid orders with missing passes, retries fulfillment, records recovered GMV, and emits explicit unresolved-fulfillment/failure telemetry.",
-    "EventPass creation side effect only marks interest; paid notifications/email remain gated by confirmPaidOrder requiring order.status=paid.",
-    "No code change was made because this audited P0 path already contains the required idempotency and paid-before-fulfillment protections; manufacturing a change here would add risk without protecting revenue."
+    "Mercado Pago paid payments emit payment_paid Interaction telemetry, but rejected/cancelled provider outcomes currently only update payment/order state and release inventory.",
+    "No active commerce claim covers payment failure telemetry; cutinapp-revenue-commerce is implementing frontend HTTP 425 idempotency retry handling in a different area."
   ],
-  "coordination_commit": "c39b1a6770962873b8a180f9388a1789c703e31c",
-  "next_point": "Select the next unclaimed P0/P1 revenue-reliability gap, prioritizing checkout/cart isolation or payment failure observability; do not duplicate cutinapp-launch-api or events claims."
+  "next_point": "Add idempotent generic payment_failed interaction after reconciliation, without changing authorization, payment state transitions, or fulfillment semantics."
 }
