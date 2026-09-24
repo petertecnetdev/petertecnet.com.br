@@ -2,26 +2,66 @@
   "agent_email": "[pedauva@gmail.com](mailto\\:pedauva@gmail.com)",
   "project": "admin-center",
   "repository": "petertecnetdev/petertecnet.com.br",
-  "cycle_id": "2026-09-24-admin-audit-001",
-  "main_sha_analyzed": "f0fb5f6349a7ed3386545a90ec488ced60caa903",
-  "analysis_started_at": null,
-  "analysis_completed_at": null,
-  "verification_started_at": null,
-  "verification_completed_at": null,
-  "new_analysis_started_at": null,
-  "new_analysis_completed_at": null,
+  "cycle_id": "2026-09-24-admin-audit-002",
+  "heartbeat_at": "2026-09-24T11:24:00-03:00",
+  "main_sha_analyzed": "a66680bd2a7a05b0ef55865c954e68c26db10e9c",
+  "analysis_started_at": "2026-09-24T11:24:00-03:00",
+  "verification_started_at": "2026-09-24T11:24:00-03:00",
+  "new_analysis_started_at": "2026-09-24T11:24:00-03:00",
+  "analysis_completed_at": "2026-09-24T11:24:00-03:00",
+  "verification_completed_at": "2026-09-24T11:24:00-03:00",
+  "new_analysis_completed_at": "2026-09-24T11:24:00-03:00",
   "next_cycle_at": null,
-  "improvements": [],
+  "improvements": [
+    {
+      "id": "ADM-AUD-001",
+      "priority": "P2",
+      "area": "arquitetura/confiabilidade",
+      "title": "Support Admin mantém cliente HTTP próprio fora do cliente centralizado",
+      "description": "A tela de suporte implementa um request() local em vez de usar src/adminApi.js. Isso duplica autenticação, tratamento de erros e ciclo de rede e deixa essa superfície fora de timeout, retry GET, deduplicação, cancelamento e diagnósticos centralizados.",
+      "evidence": "src/SupportAdminApp.jsx define API/TOKEN_KEY e sua própria função request() com fetch direto; src/adminApi.js já concentra adminRequest, timeout, retry, deduplicação, cancelamento e diagnósticos. A implementação local também não dispara admin-session-expired no 401.",
+      "files": [
+        "src/SupportAdminApp.jsx",
+        "src/adminApi.js"
+      ],
+      "main_sha_found": "a66680bd2a7a05b0ef55865c954e68c26db10e9c",
+      "created_at": "2026-09-24T11:24:00-03:00",
+      "created_by": "[pedauva@gmail.com](mailto\\:pedauva@gmail.com)",
+      "status": "PENDING"
+    },
+    {
+      "id": "ADM-AUD-002",
+      "priority": "P2",
+      "area": "impersonação/UX",
+      "title": "Modal de impersonação não mantém o estado de aplicações quando o conteúdo muda sem alterar a quantidade",
+      "description": "O efeito que sincroniza applications recebidas usa apenas incomingApplications.length na dependência. Se a lista mudar mantendo o mesmo tamanho, o estado interno resolvedApplications pode permanecer com dados anteriores.",
+      "evidence": "src/AdminImpersonation.jsx usa useEffect com dependência [incomingApplications.length] para executar setResolvedApplications(incomingApplications). A comparação de conteúdo não acompanha alterações de ids, nomes ou status quando o comprimento permanece igual.",
+      "files": [
+        "src/AdminImpersonation.jsx"
+      ],
+      "main_sha_found": "a66680bd2a7a05b0ef55865c954e68c26db10e9c",
+      "created_at": "2026-09-24T11:24:00-03:00",
+      "created_by": "[pedauva@gmail.com](mailto\\:pedauva@gmail.com)",
+      "status": "PENDING"
+    }
+  ],
   "summary": {
-    "total": 0,
+    "total": 2,
     "p0": 0,
     "p1": 0,
-    "p2": 0,
+    "p2": 2,
     "p3": 0,
-    "pending": 0,
+    "pending": 2,
     "implemented": 0,
     "verified": 0,
     "reopened": 0,
     "blocked": 0
+  },
+  "audit_counters": {
+    "implemented_checked": 0,
+    "verified": 0,
+    "reopened": 0,
+    "new_points": 2,
+    "duplicates_skipped": 0
   }
 }
