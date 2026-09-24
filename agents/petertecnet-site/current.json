@@ -1,5 +1,5 @@
 {
-  "agent_email": "[petertecnet@gmail.com](mailto\\:petertecnet@gmail.com)",
+  "agent_email": "petertecnet@gmail.com",
   "project": "petertecnet-site",
   "repository": "petertecnetdev/petertecnet.com.br",
   "cycle_id": "site-audit-20260924-1128",
@@ -19,13 +19,11 @@
       "title": "Manifesto PWA não declara ícones 192x192 e 512x512",
       "description": "O manifest atual declara somente um ícone SVG com sizes=any. Para promoção de instalação em navegadores Chromium, a documentação atual exige ícones de 192px e 512px no manifest.",
       "evidence": "public/manifest.json possui apenas icons[0] com src /petertecnet-brand.svg, sizes any, type image/svg+xml e purpose any maskable; não há entradas 192x192 e 512x512.",
-      "files": [
-        "public/manifest.json"
-      ],
+      "files": ["public/manifest.json"],
       "main_sha_found": "67a760705044ae39f048dc3fff2455cd2d2d8c6a",
       "created_at": "2026-09-24T11:28:00-03:00",
-      "created_by": "[petertecnet@gmail.com](mailto\\:petertecnet@gmail.com)",
-      "status": "PENDING"
+      "created_by": "petertecnet@gmail.com",
+      "status": "IMPLEMENTING"
     },
     {
       "id": "SITE-AUD-002",
@@ -34,37 +32,13 @@
       "title": "Tablist de objetivos não expõe semântica de tabs",
       "description": "A seção de objetivos usa role=tablist, mas os botões filhos não declaram role=tab, aria-selected nem relação com um painel. Isso deixa a semântica anunciada aos leitores de tela incompleta para um controle que se comporta como seleção de conteúdo.",
       "evidence": "src/MarketingHubApp.jsx renderiza div className=path-selector com role=tablist e aria-label=Objetivos; os botões path-option não possuem role=tab, aria-selected ou aria-controls.",
-      "files": [
-        "src/MarketingHubApp.jsx"
-      ],
+      "files": ["src/MarketingHubApp.jsx"],
       "main_sha_found": "67a760705044ae39f048dc3fff2455cd2d2d8c6a",
       "created_at": "2026-09-24T11:28:00-03:00",
-      "created_by": "[petertecnet@gmail.com](mailto\\:petertecnet@gmail.com)",
+      "created_by": "petertecnet@gmail.com",
       "status": "PENDING"
     }
   ],
-  "summary": {
-    "total": 2,
-    "p0": 0,
-    "p1": 0,
-    "p2": 2,
-    "p3": 0,
-    "pending": 2,
-    "claimed": 0,
-    "implementing": 0,
-    "implemented": 0,
-    "verified": 0,
-    "reopened": 0,
-    "blocked": 0
-  },
-  "audit_counters": {
-    "cycles": 1,
-    "analyses": 1,
-    "verifications": 0,
-    "new_analyses": 0,
-    "improvements_created": 2,
-    "verified": 0,
-    "reopened": 0,
-    "blocked": 0
-  }
+  "summary": {"total":2,"p0":0,"p1":0,"p2":2,"p3":0,"pending":1,"claimed":0,"implementing":1,"implemented":0,"verified":0,"reopened":0,"blocked":0},
+  "audit_counters": {"cycles":1,"analyses":1,"verifications":0,"new_analyses":0,"improvements_created":2,"verified":0,"reopened":0,"blocked":0}
 }
