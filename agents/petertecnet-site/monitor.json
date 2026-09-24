@@ -1,0 +1,20 @@
+{
+  "auditor": "petertecnet@gmail.com",
+  "project": "petertecnet-site",
+  "checked_at": null,
+  "status": "ACTIVE",
+  "heartbeat_status": "ACTIVE",
+  "last_heartbeat": "2026-09-24T11:28:00-03:00",
+  "last_cycle_id": "site-audit-20260924-1128",
+  "last_main_sha_analyzed": "67a760705044ae39f048dc3fff2455cd2d2d8c6a",
+  "pending": 2,
+  "claimed": 0,
+  "implementing": 0,
+  "implemented_waiting_verification": 0,
+  "verified": 0,
+  "reopened": 0,
+  "blocked": 0,
+  "hours_since_heartbeat": null,
+  "verification_due_count": 0,
+  "notes": "Snapshot inicial criado pela conta Plus; idade do heartbeat será calculada no próximo ciclo."
+}
