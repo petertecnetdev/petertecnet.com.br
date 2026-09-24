@@ -4,14 +4,19 @@
   "repository": "petertecnetdev/api.petertecnet.com.br",
   "task": "Instrument rejected/cancelled provider payments so revenue loss is measurable",
   "priority": "P1",
-  "status": "IMPLEMENTING",
-  "areas": ["app/Domain/Finance/Http/Controllers/PaymentProviderController.php"],
+  "status": "DONE",
+  "areas": ["app/Models/CommercePayment.php"],
   "started_at": "2026-09-25T02:42:00-03:00",
-  "finished_at": null,
-  "commit": null,
+  "finished_at": "2026-09-25T02:49:00-03:00",
+  "commit": "cb982c5e7ad73d2ac2957a69aeec522e3a93d0f5",
   "evidence": [
-    "Mercado Pago paid payments emit payment_paid Interaction telemetry, but rejected/cancelled provider outcomes currently only update payment/order state and release inventory.",
-    "No active commerce claim covers payment failure telemetry; cutinapp-revenue-commerce is implementing frontend HTTP 425 idempotency retry handling in a different area."
+    "Confirmed Mercado Pago paid outcomes already emit payment_paid Interaction telemetry while rejected/cancelled outcomes previously only changed state and released inventory.",
+    "CommercePayment now records one idempotent payment_failed Interaction when status transitions to rejected or cancelled.",
+    "Telemetry captures app/order/provider/payment method/status/amount/production context and the order user when available, allowing real payment-failure and conversion analysis without inventing metrics.",
+    "Instrumentation is generic at the CommercePayment model boundary and applies to reusable payment capabilities rather than Cutinapp-specific controller code.",
+    "Existing payment authorization, reconciliation, fulfillment, ledger and inventory behavior was not weakened or bypassed.",
+    "GitHub reported no workflow run associated with the direct main commit at verification time; validation for this cycle is static/code-path inspection rather than a claimed green CI run."
   ],
-  "next_point": "Add idempotent generic payment_failed interaction after reconciliation, without changing authorization, payment state transitions, or fulfillment semantics."
+  "coordination_claim_commit": "cddeaf5430095c393f16587416bad7268b5775b9",
+  "next_point": "Audit the next unclaimed P0/P1 reliability gap, favoring payment failure recovery/visibility or checkout isolation while avoiding the active cutinapp-revenue-commerce HTTP 425 retry claim."
 }
