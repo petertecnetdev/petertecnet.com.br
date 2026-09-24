@@ -1,6 +1,6 @@
 export const organizationSeo = {
   name: 'Peter Tecnet',
-  legalName: 'Peter Tecnet',
+  legalName: 'Pedro Ivo Boa Sorte Vargas',
   url: 'https://petertecnet.com.br/',
   logo: 'https://petertecnet.com.br/petertecnet-brand.svg',
   taxID: '42.595.409/0001-48',
@@ -63,6 +63,12 @@ export const platformSeoEntities = {
       'Venda de ingressos e itens em fluxo digital integrado.',
       'Participantes, promoters e operação de acesso organizados no mesmo ecossistema.',
       'Validação de entrada com QR Code.',
+    ],
+    faq: [
+      ['Quem desenvolve e opera a Cutinapp?', 'A Cutinapp é uma plataforma própria desenvolvida e operada pela Peter Tecnet. A empresa responsável é identificada pelo CNPJ 42.595.409/0001-48.'],
+      ['Qual é o CNPJ da Cutinapp?', 'A Cutinapp integra o ecossistema Peter Tecnet, vinculado ao CNPJ 42.595.409/0001-48. Para conferir a situação cadastral atual, prefira a consulta oficial da Receita Federal e da REDESIM.'],
+      ['A Cutinapp é uma plataforma white label de terceiros?', 'Não. A Cutinapp é um produto próprio do ecossistema Peter Tecnet. Serviços externos podem ser integrados à operação, mas a plataforma Cutinapp não é apresentada pela Peter Tecnet como uma solução white label de outra empresa.'],
+      ['Como verificar a confiabilidade da Cutinapp?', 'Confira o domínio oficial, a identificação da empresa responsável, as políticas publicadas, os canais de suporte e as condições do evento. Para dados cadastrais do CNPJ, use a Receita Federal ou a REDESIM como fonte oficial.'],
     ],
   },
   nexus: {
@@ -178,6 +184,23 @@ export const commercialSeoArticles = [
       { heading: 'O fluxo precisa começar no evento e terminar no check-in', paragraphs: ['Uma plataforma de eventos deve manter o vínculo entre evento, ingresso, pagamento, QR Code e entrada validada.', 'Isso reduz etapas manuais e facilita acompanhar a jornada do participante.'] },
       { heading: 'Itens adicionais aumentam a utilidade do checkout', paragraphs: ['Quando o evento vende também produtos ou itens de consumo, um carrinho integrado evita cobranças separadas desnecessárias.', 'O objetivo é manter uma experiência de compra simples e transparente.'] },
       { heading: 'Cutinapp é a plataforma de eventos da Peter Tecnet', paragraphs: ['A Cutinapp é um produto próprio criado para produtores, participantes, artistas e promoters.', 'Sua identidade precisa ser reconhecida por buscadores como uma plataforma específica do ecossistema Peter Tecnet.'] },
+    ],
+  },
+  {
+    slug: 'cutinapp-e-confiavel-cnpj-seguranca',
+    title: 'Cutinapp é confiável? Como verificar CNPJ, empresa responsável e segurança',
+    seoTitle: 'Cutinapp é confiável? CNPJ, empresa responsável e segurança | Peter Tecnet',
+    description: 'Veja como verificar a Cutinapp por fontes oficiais: CNPJ da empresa responsável, Receita Federal, REDESIM, domínio oficial, políticas, suporte e operação de ingressos.',
+    category: 'Cutinapp e confiança',
+    date: '2026-09-24',
+    readTime: '6 min',
+    relatedPlatform: 'cutinapp',
+    intro: 'Antes de comprar um ingresso ou escolher uma plataforma para produzir um evento, é correto verificar quem opera o serviço, quais são os canais oficiais e onde consultar os dados cadastrais da empresa responsável.',
+    sections: [
+      { heading: 'Quem é responsável pela Cutinapp', paragraphs: ['A Cutinapp é uma plataforma própria do ecossistema Peter Tecnet. O CNPJ informado pela Peter Tecnet é 42.595.409/0001-48, vinculado à razão social Pedro Ivo Boa Sorte Vargas.', 'A identidade comercial Peter Tecnet e a plataforma Cutinapp devem ser verificadas pelos domínios oficiais petertecnet.com.br e cutinapp.petertecnet.com.br.'] },
+      { heading: 'Como conferir o CNPJ em fonte oficial', paragraphs: ['A situação cadastral de uma empresa pode mudar e bases de terceiros podem ficar desatualizadas. Por isso, a referência prioritária deve ser o serviço oficial de consulta e emissão de comprovante da Receita Federal e da REDESIM.', 'Em 24 de setembro de 2026, comprovante oficial apresentado pela empresa indicou situação cadastral ATIVA. Para qualquer consulta posterior, confirme novamente o status diretamente na fonte oficial.'] },
+      { heading: 'A Cutinapp não é apresentada como white label de terceiros', paragraphs: ['A Cutinapp é um produto próprio desenvolvido pela Peter Tecnet para descoberta de eventos, venda de ingressos e itens, participantes, promoters, QR Code e check-in.', 'A plataforma pode integrar provedores externos de pagamento e outros serviços de infraestrutura sem deixar de ser um produto próprio da Peter Tecnet.'] },
+      { heading: 'O que verificar antes de comprar ou publicar um evento', paragraphs: ['Use sempre o domínio oficial, confirme os dados do evento e do produtor, leia as políticas aplicáveis e utilize os canais oficiais de suporte quando tiver dúvida.', 'Produtores também devem validar as condições comerciais, o fluxo de pagamentos e repasses e os recursos operacionais necessários para o evento antes da publicação.'] },
     ],
   },
   {
