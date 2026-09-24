@@ -6,10 +6,22 @@ export default function useLandingMotion(active = true) {
 
     const root = document.documentElement
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const saveData = navigator.connection?.saveData === true
     const tiltHandlers = new Map()
     let scrollFrame = null
     let pointerFrame = null
     let latestPointer = null
+
+    const disableHeavyHeroMedia = () => {
+      if (!reduceMotion && !saveData) return
+      document.querySelectorAll('.pt-hero-video').forEach(video => {
+        video.pause()
+        video.removeAttribute('src')
+        video.querySelectorAll('source').forEach(source => source.removeAttribute('src'))
+        video.load()
+        video.hidden = true
+      })
+    }
 
     const updatePointer = event => {
       latestPointer = event
@@ -83,11 +95,13 @@ export default function useLandingMotion(active = true) {
       node.querySelectorAll('[data-tilt]').forEach(attachTilt)
     }
 
+    disableHeavyHeroMedia()
     document.querySelectorAll('[data-reveal]').forEach(observeReveal)
     document.querySelectorAll('[data-tilt]').forEach(attachTilt)
 
     const mutationObserver = new MutationObserver(records => {
       records.forEach(record => record.addedNodes.forEach(registerNode))
+      disableHeavyHeroMedia()
       updateScroll()
     })
     mutationObserver.observe(document.body, { childList: true, subtree: true })
