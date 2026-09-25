@@ -3,20 +3,25 @@
   "project": "cutinapp",
   "task": "Establish verified revenue observability and production-operations visibility without inventing funnel metrics",
   "priority": "P2",
-  "status": "IMPLEMENTING",
+  "status": "BLOCKED",
   "areas": [
     "agents/cutinapp-launch/revenue-scorecard.json",
-    "petertecnetdev/admincenter.petertecnet.com.br revenue/order/payment operations"
+    "petertecnetdev/admincenter.petertecnet.com.br revenue/order/payment operations",
+    "petertecnetdev/petertecnet.com.br .github/workflows/admincenter-production.yml"
   ],
   "started_at": "2026-09-24T20:21:21-03:00",
-  "checked_at": "2026-09-24T20:21:21-03:00",
-  "commits": [],
-  "evidence": [
-    "revenue-scorecard.json currently has all funnel and monetization metrics as UNINSTRUMENTED with null values; no revenue estimate will be fabricated.",
-    "cutinapp-launch-admin completed event/ticket operational loading work and explicitly left order/payment diagnostics as the next independent blocker.",
-    "Admin Center repository currently exposes only main in GitHub; the requested production branch admincenter is not present remotely, so no production-targeted Admin Center edit is safe until branch/deploy topology is reconciled.",
-    "Admin Center main is 1dc109a611479af104ceb841dec969d95494c05b and package scripts provide build/lint/architecture/runtime validation gates."
+  "checked_at": "2026-09-24T21:23:20-03:00",
+  "commits": [
+    "e566f563c53c9e469143090004484844f99d492d"
   ],
-  "risk": "Production branch topology is inconsistent with the sprint instruction. Editing main as if it were the deploy branch could bypass the intended Admin Center release process.",
-  "next_independent_blocker": "Reconcile/create the intended admincenter production branch/workflow from an authoritative source, then add Cutinapp order/payment/GMV/platform-revenue diagnostics using verifiable API data."
+  "evidence": [
+    "revenue-scorecard.json remains null/UNINSTRUMENTED for every funnel and monetization metric because no verified data source has been established.",
+    "GitHub branch enumeration reconfirmed that petertecnetdev/admincenter.petertecnet.com.br exposes only main; no remote admincenter branch exists.",
+    "The central repository contains .github/workflows/admincenter-production.yml named Admin Center Production (main), triggered by main and documenting pull-based atomic publication with public release-sha health verification.",
+    "That workflow sets working-directory apps/admincenter and path filters apps/admincenter/**, but apps/admincenter/package.json and the apps/admincenter directory are absent from the current central main tree, so the workflow cannot currently be treated as a valid deployment path for the standalone Admin Center.",
+    "No Admin Center code was changed and no deployment was forced while the authoritative production topology is contradictory."
+  ],
+  "risk": "Writing revenue operations to the standalone main and assuming it deploys, or creating an admincenter branch ad hoc, could bypass or diverge from the intended atomic production path. The existing central workflow is also stale/broken against the current tree, so it cannot provide the required validation/deploy evidence.",
+  "blocker": "Reconcile Admin Center source-of-truth and deployment workflow: either point the production workflow at petertecnetdev/admincenter.petertecnet.com.br/main with its real validation commands, or restore the declared apps/admincenter source in the central repository. Do not fabricate a branch to mask the mismatch.",
+  "next_independent_blocker": "After deployment topology is reconciled, implement verifiable Cutinapp order/payment/ticket/GMV/platform-revenue diagnostics and populate revenue-scorecard.json only from those measured sources."
 }
