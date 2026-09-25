@@ -2,7 +2,7 @@
   "schema_version": 2,
   "product": "cutinapp",
   "owner": "cutinapp-revenue-ops",
-  "updated_at": "2026-09-24T22:25:10-03:00",
+  "updated_at": "2026-09-24T23:24:36-03:00",
   "reporting_window": null,
   "currency": "BRL",
   "business_model": {
@@ -41,6 +41,6 @@
     "repeat_ticket_purchase_rate": {"value": null, "status": "UNINSTRUMENTED", "source": null},
     "recurring_producers": {"value": null, "status": "UNINSTRUMENTED", "source": null}
   },
-  "top_bottleneck": "Subscription funnel has no verified measurement source yet, and API CI is RED, which correctly blocks implementing/deploying the generic Trial/Subscription/Billing backend. Admin Center production topology also remains unresolved, blocking safe deployment of subscription-operations dashboards.",
-  "notes": "Scorecard migrated to subscription-first semantics on 2026-09-24. All values remain null unless backed by a verifiable source. Ticket GMV/sales are retained only as ecosystem health/value-delivery indicators, not as Cutinapp take rate. The 30-day trial is the current target, not evidence that trials are already active. No definitive subscription price is recorded."
+  "top_bottleneck": "Subscription funnel still has no verified measurement source. API CI run 36074109500 for main SHA cb982c5e7ad73d2ac2957a69aeec522e3a93d0f5 passed clean migrations, canonical routes and the architecture gate but failed the test step; Deploy VPS run 36074260300 was consequently skipped. Generic Trial/Subscription/Billing remains correctly blocked until API CI is green.",
+  "notes": "Subscription-first scorecard. All metric values remain null unless backed by a verifiable source. Ticket GMV/sales are ecosystem health/value-delivery indicators only, never Cutinapp take rate. The 30-day trial is the current target, not evidence that trials are active. No definitive subscription price is recorded. Latest verified release-gate evidence: API CI 36074109500 RED at tests; deploy 36074260300 skipped."
 }
