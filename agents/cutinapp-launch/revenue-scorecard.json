@@ -2,7 +2,7 @@
   "schema_version": 3,
   "product": "cutinapp",
   "owner": "cutinapp-revenue-ops",
-  "updated_at": "2026-09-25T07:23:49-03:00",
+  "updated_at": "2026-09-25T12:22:44-03:00",
   "reporting_window": null,
   "reporting_currency": null,
   "geography": {
@@ -56,14 +56,12 @@
     "localization": ["currency", "locale", "timezone"]
   },
   "verified_delivery_gate": {
-    "api_main_sha": "1c3ea622dcdd9e82340b7c81463b5d01f3f11511",
-    "api_ci_run": 36117378817,
-    "api_ci_status": "completed",
-    "api_ci_conclusion": "failure",
-    "deploy_run": 36117567968,
+    "api_main_sha": "5413b273cccdc153cae1d7b09a038dbbcd74fada",
+    "deploy_run": 36152455682,
     "deploy_status": "completed",
-    "deploy_conclusion": "skipped"
+    "deploy_conclusion": "skipped",
+    "observed_at": "2026-09-25T12:22:44-03:00"
   },
-  "top_bottleneck": "Subscription funnel still has no verified measurement source. API main SHA 1c3ea622dcdd9e82340b7c81463b5d01f3f11511 was verified by API CI run 36117378817, which completed with failure; the dependent Deploy VPS run 36117567968 was skipped. Generic Trial/Subscription/Billing and verified MRR instrumentation remain blocked behind the API CI gate.",
+  "top_bottleneck": "Subscription funnel still has no verified measurement source. Latest observed API main SHA is 5413b273cccdc153cae1d7b09a038dbbcd74fada; Deploy VPS run 36152455682 completed as skipped, so no claim is made that this revision is in production. Verified Trial/Subscription/Billing and MRR instrumentation remain gated by a successful validated delivery path.",
   "notes": "Subscription-first, worldwide scorecard. All metric values remain null unless backed by a verifiable source. Ticket GMV/sales are ecosystem health/value-delivery indicators only, never Cutinapp take rate. The 30-day trial is a target, not evidence that trials are active. No definitive subscription price or currency is recorded. BRL is not a structural reporting/metric assumption; monetary aggregation requires explicit currency context or documented normalization."
 }
