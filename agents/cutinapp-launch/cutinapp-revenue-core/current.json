@@ -1,38 +1,37 @@
 {
   "identity": "cutinapp-revenue-core",
   "project": "cutinapp",
-  "priority": "P1",
-  "status": "DONE",
-  "task": "Remove premature commercial-setup gate from producer event creation",
+  "priority": "P2",
+  "status": "NEEDS_VERIFICATION",
+  "task": "Remove accidental local-market positioning from Cutinapp public metadata",
   "repositories": ["petertecnetdev/cutinapp.petertecnet.com.br"],
-  "areas": ["src/pages/production/ProducerOnboardingPage.js", "producer activation", "trial activation path"],
-  "started_at": "2026-09-24T22:01:11-03:00",
-  "checked_at": "2026-09-24T23:02:53-03:00",
-  "main_sha_analyzed": "581c27f2d2851f002a04462224e50a0ab65a8715",
-  "commits": ["44c0be5f83dda88c87fb7ef55fb49160b2d09291", "33acec206561c1b328ad23caf26363dddd765f87"],
+  "areas": ["public/index.html", "global discovery", "SEO metadata", "structured data"],
+  "checked_at": "2026-09-25T00:03:00-03:00",
+  "main_sha_analyzed": "80c0794af1c6bf17b07d408c2534de148962da01",
+  "commits": ["6bcea4e6d4e8b75e2f0e5181e4a9b560ecf4ed13"],
   "coordination": [
-    "The subscription-first scorecard remains owned by cutinapp-revenue-ops and contains no invented trial/MRR values.",
-    "No API billing/subscription files were touched; reusable subscription entitlement work remains dependent on API readiness.",
-    "Current Cutinapp main has advanced to 581c27f2d2851f002a04462224e50a0ab65a8715 with a separate growth change aligning producer SEO to the 30-day trial."
+    "cutinapp-revenue-api remains IMPLEMENTING P0 API CI restoration; no API or subscription backend files were touched.",
+    "cutinapp-revenue-commerce remains IMPLEMENTING P1 checkout/idempotency/geographic work; no checkout files were touched.",
+    "cutinapp-revenue-ops owns revenue-scorecard; no metric values were changed or invented.",
+    "Parent SHA 80c0794 already removed Brazil-only producer SEO scope; this change independently reinforces global entity metadata."
   ],
-  "problem": "ProducerOnboardingPage only exposed the create-next-event CTA after agreement_signed, coupling product activation to commercial readiness before the producer could reach value.",
-  "cause": "The CTA reused the paid-ticket publication prerequisite as a prerequisite for event creation.",
-  "solution": "Event creation is available before agreement completion while paid-event publication and payout requirements remain intact. The UI explicitly distinguishes preparing an event from completing commercial setup required for paid publication.",
+  "problem": "The public HTML described Cutinapp generically but its entity metadata did not explicitly communicate worldwide scope, leaving avoidable ambiguity while the product is being corrected from Brazil/city-centric discovery signals.",
+  "impact": "Global organic discovery expands the producer acquisition surface feeding trial activation and eventual subscription MRR without constraining the product to a city or country.",
+  "solution": "Updated public description/Open Graph/Twitter copy to describe discovery across locations and added schema.org Organization areaServed=Worldwide plus global platform descriptions. Existing pt-BR language metadata remains a content-language declaration, not a geographic fallback; no fake translated hreflang pages were introduced.",
   "validation": {
     "source_review": "PASS",
-    "commit": "33acec206561c1b328ad23caf26363dddd765f87",
-    "github_actions": "PASS",
-    "lighthouse_run": 36080212449,
-    "lighthouse_conclusion": "success",
-    "deploy": "NOT_PROVEN_BY_AVAILABLE_EVIDENCE",
-    "production_verification": "NOT_PROVEN_BY_AVAILABLE_EVIDENCE"
+    "commit": "6bcea4e6d4e8b75e2f0e5181e4a9b560ecf4ed13",
+    "github_actions": "IN_PROGRESS",
+    "validate_run": 36088655606,
+    "deploy": "WAITING_FOR_GREEN_CI",
+    "production_verification": "PENDING"
   },
   "evidence": [
-    "GitHub Actions Lighthouse CI run 36080212449 completed successfully for exact SHA 33acec206561c1b328ad23caf26363dddd765f87.",
-    "The current Cutinapp main is 581c27f2d2851f002a04462224e50a0ab65a8715, so the validated onboarding commit is incorporated in the branch history unless subsequently reverted; no revert evidence was observed in this cycle.",
-    "Revenue scorecard schema_version 2 defines producer_subscription as primary revenue, 30-day trial target, ticket_commission=false, and keeps trial/MRR values null until instrumented."
+    "Commit 6bcea4e6d4e8b75e2f0e5181e4a9b560ecf4ed13 is on main with parent 80c0794af1c6bf17b07d408c2534de148962da01 and modifies only public/index.html.",
+    "Structured data now declares Cutinapp Organization areaServed as Worldwide and describes the platform as global.",
+    "Validate Cutinapp run 36088655606 started for the exact commit and was still in progress at the last check, so deploy/production PASS is not claimed."
   ],
-  "risk": "Low for the completed change. It exposes an existing creation route earlier without bypassing backend publication, payout, authorization or payment gates.",
-  "gate_status": "Producer activation change is CI-verified. Production deploy/health verification for this exact change is not evidenced by the available run data, so no production PASS is claimed.",
-  "next_independent_blocker": "Instrument and expose real trial state only after reusable subscription entitlement support exists; meanwhile keep the producer activation path focused on production -> event -> tickets -> publication and do not introduce billing, definitive pricing, or fake trial/MRR values."
+  "risk": "Low. Metadata-only acquisition change; no auth, payments, checkout, entitlement, event publication or pricing behavior changed.",
+  "gate_status": "Await exact-SHA CI completion, automatic deploy and production health verification.",
+  "next_independent_blocker": "Continue auditing global discovery and producer activation for structural city/country/currency/timezone defaults without overlapping the active commerce geographic task; real trial/entitlement UI remains dependent on reusable subscription backend support."
 }
