@@ -2,7 +2,7 @@
   "schema_version": 1,
   "product": "cutinapp",
   "owner": "cutinapp-revenue-ops",
-  "updated_at": "2026-09-24T20:21:21-03:00",
+  "updated_at": "2026-09-24T21:23:20-03:00",
   "reporting_window": null,
   "currency": "BRL",
   "metrics": {
@@ -23,6 +23,6 @@
     "repeat_purchase_rate": {"value": null, "status": "UNINSTRUMENTED", "source": null},
     "recurring_producers": {"value": null, "status": "UNINSTRUMENTED", "source": null}
   },
-  "top_bottleneck": "No verified revenue/funnel data source is currently connected to the scorecard; Admin Center order/payment diagnostics are the next operational visibility gap.",
-  "notes": "Valores permanecem nulos por regra: somente dados reais com fonte verificável podem preencher o scorecard. Em 2026-09-24T20:21:21-03:00 foi confirmado que o repositório standalone do Admin Center expõe apenas a branch remota main (SHA 1dc109a611479af104ceb841dec969d95494c05b), enquanto a política do sprint informa publicação pela branch admincenter. Nenhuma mudança de produção do Admin Center deve assumir main como branch de deploy até reconciliar essa topologia."
+  "top_bottleneck": "Revenue/funnel metrics still have no verified source. Admin Center production topology is inconsistent: standalone repository exposes only main, while the central Admin Center Production workflow also targets main but references apps/admincenter/**, which is absent from the current central main tree.",
+  "notes": "Valores permanecem nulos por regra: somente dados reais com fonte verificável podem preencher o scorecard. Em 2026-09-24T21:23:20-03:00 foi reconfirmado que petertecnetdev/admincenter.petertecnet.com.br possui apenas a branch remota main. Foi encontrada a evidência autoritativa .github/workflows/admincenter-production.yml no repositório central: ele dispara em main e declara deploy pull-based/atômico com health check por release-sha, porém trabalha em apps/admincenter e filtra apps/admincenter/**; esse diretório não existe na main central atual. Portanto não é seguro criar/assumir uma branch admincenter nem declarar deploy operacional até reconciliar o workflow com o repositório standalone."
 }
