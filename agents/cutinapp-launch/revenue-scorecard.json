@@ -1,16 +1,24 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "product": "cutinapp",
   "owner": "cutinapp-revenue-ops",
-  "updated_at": "2026-09-24T23:24:36-03:00",
+  "updated_at": "2026-09-25T00:22:15-03:00",
   "reporting_window": null,
-  "currency": "BRL",
+  "reporting_currency": null,
+  "geography": {
+    "scope": "worldwide",
+    "country": null,
+    "region": null,
+    "city": null,
+    "notes": "Geography is a dynamic reporting dimension, never a product-scope fallback. Current concentration in any locality describes observed data distribution only. Monetary metrics must carry an explicit source currency or a documented normalized reporting currency before aggregation."
+  },
   "business_model": {
     "primary_revenue": "producer_subscription",
     "trial_target_days": 30,
     "ticket_commission": false,
-    "plan_price_brl": null,
-    "notes": "Planos e preços permanecem configuráveis/indefinidos. Taxas inevitáveis do gateway de ingressos são separadas da receita Cutinapp. Nenhuma cobrança automática deve ocorrer sem consentimento explícito e configuração comercial validada."
+    "plan_price": null,
+    "plan_currency": null,
+    "notes": "Plans, prices and currencies remain configurable/undefined. Unavoidable ticket-gateway fees are separate from Cutinapp revenue. No automatic charge may occur without explicit consent and validated commercial configuration."
   },
   "metrics": {
     "organic_visits": {"value": null, "status": "UNINSTRUMENTED", "source": null},
@@ -23,12 +31,12 @@
     "producers_with_real_usage_or_sales": {"value": null, "status": "UNINSTRUMENTED", "source": null},
     "trial_to_paid_rate": {"value": null, "status": "UNINSTRUMENTED", "source": null},
     "active_subscribers": {"value": null, "status": "UNINSTRUMENTED", "source": null},
-    "mrr_brl": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "mrr": {"value": null, "currency": null, "status": "UNINSTRUMENTED", "source": null},
     "renewals": {"value": null, "status": "UNINSTRUMENTED", "source": null},
     "subscription_payment_failures": {"value": null, "status": "UNINSTRUMENTED", "source": null},
     "subscription_recoveries": {"value": null, "status": "UNINSTRUMENTED", "source": null},
     "subscriber_churn_rate": {"value": null, "status": "UNINSTRUMENTED", "source": null},
-    "ltv_brl": {"value": null, "status": "INSUFFICIENT_DATA", "source": null},
+    "ltv": {"value": null, "currency": null, "status": "INSUFFICIENT_DATA", "source": null},
     "producer_dau": {"value": null, "status": "UNINSTRUMENTED", "source": null},
     "producer_wau": {"value": null, "status": "UNINSTRUMENTED", "source": null},
     "event_page_visits": {"value": null, "status": "UNINSTRUMENTED", "source": null},
@@ -37,10 +45,16 @@
     "ticket_payments_approved": {"value": null, "status": "UNINSTRUMENTED", "source": null},
     "ticket_payments_failed": {"value": null, "status": "UNINSTRUMENTED", "source": null},
     "tickets_sold": {"value": null, "status": "UNINSTRUMENTED", "source": null},
-    "ticket_gmv_brl": {"value": null, "status": "UNINSTRUMENTED", "source": null},
+    "ticket_gmv": {"value": null, "currency": null, "status": "UNINSTRUMENTED", "source": null},
     "repeat_ticket_purchase_rate": {"value": null, "status": "UNINSTRUMENTED", "source": null},
     "recurring_producers": {"value": null, "status": "UNINSTRUMENTED", "source": null}
   },
-  "top_bottleneck": "Subscription funnel still has no verified measurement source. API CI run 36074109500 for main SHA cb982c5e7ad73d2ac2957a69aeec522e3a93d0f5 passed clean migrations, canonical routes and the architecture gate but failed the test step; Deploy VPS run 36074260300 was consequently skipped. Generic Trial/Subscription/Billing remains correctly blocked until API CI is green.",
-  "notes": "Subscription-first scorecard. All metric values remain null unless backed by a verifiable source. Ticket GMV/sales are ecosystem health/value-delivery indicators only, never Cutinapp take rate. The 30-day trial is the current target, not evidence that trials are active. No definitive subscription price is recorded. Latest verified release-gate evidence: API CI 36074109500 RED at tests; deploy 36074260300 skipped."
+  "dimensions": {
+    "geography": ["country", "region", "city"],
+    "application": ["application_id", "app_id", "app_slug"],
+    "commercial": ["plan_id", "subscription_status", "trial_status"],
+    "localization": ["currency", "locale", "timezone"]
+  },
+  "top_bottleneck": "Subscription funnel still has no verified measurement source. API CI run 36074109500 for main SHA cb982c5e7ad73d2ac2957a69aeec522e3a93d0f5 failed at tests and Deploy VPS run 36074260300 was skipped. Generic Trial/Subscription/Billing remains correctly blocked until API CI is green.",
+  "notes": "Subscription-first, worldwide scorecard. All metric values remain null unless backed by a verifiable source. Ticket GMV/sales are ecosystem health/value-delivery indicators only, never Cutinapp take rate. The 30-day trial is a target, not evidence that trials are active. No definitive subscription price or currency is recorded. Removed BRL as a structural reporting/metric assumption; monetary aggregation requires explicit currency context or documented normalization."
 }
