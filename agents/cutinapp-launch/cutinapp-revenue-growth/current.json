@@ -1,27 +1,29 @@
 {
   "agent": "cutinapp-revenue-growth",
-  "updated_at": "2026-09-24T23:55:00-03:00",
+  "updated_at": "2026-09-25T02:49:54-03:00",
   "priority": "P2",
   "status": "VERIFYING_CI_DEPLOY",
-  "task": "Remove Brazil-only structured-data scope from global producer acquisition SEO",
-  "impact": "Prevents search engines from receiving an explicit Brazil-only service-area signal on the main producer landing while preserving local discovery pages as optional segments rather than Cutinapp identity.",
+  "task": "Expand global producer acquisition landing with high-intent organic content and internal discovery links",
+  "impact": "Targets qualified producer intent around selling tickets online, creating events online, producer platforms and QR check-in while reinforcing a city-independent global product position and trial activation.",
   "repositories": [
     "petertecnetdev/cutinapp.petertecnet.com.br",
     "petertecnetdev/petertecnet.com.br"
   ],
   "files": [
-    "src/components/SeoManager.js",
+    "src/pages/ProducerLandingPage.js",
     "agents/cutinapp-launch/cutinapp-revenue-growth/current.json"
   ],
   "commits": [
-    "80c0794af1c6bf17b07d408c2534de148962da01"
+    "52cba2f7a02bdc6027c666cf4a31846cc00128e2"
   ],
   "evidence": [
-    "Audit found PRODUCER_SEO JSON-LD declaring Service.areaServed as BR on the global /for-producers landing.",
-    "Changed the global producer Service areaServed from BR to Worldwide; no city was substituted as a new global fallback.",
-    "The general /event and root discovery SEO remain city-independent; /eventos local routes derive locality only from an explicit URL segment.",
-    "No Search Console/GA4 integration is available in this run, so impressions, CTR, indexation, trial conversion and MRR were not invented.",
-    "CI status was not yet reported for commit 80c0794a at the time of this cycle; production validation remains pending."
+    "The public /for-producers route already carries a 30-day trial CTA and is present in sitemap.xml with priority 0.98.",
+    "Added substantial producer-facing content for vender ingressos online, criar evento online, plataforma para produtores de eventos and check-in por QR Code instead of creating thin doorway pages.",
+    "Added internal links from the producer acquisition landing to general /event discovery and /productions, strengthening crawl paths to real public inventory.",
+    "The new copy explicitly states that producers are not tied to a specific city and that each event owns its location, preserving global positioning without inventing local inventory.",
+    "No definitive subscription price or unsupported no-commission claim was added; gateway fees remain described separately from the Cutinapp subscription.",
+    "Search Console/GA4 data was not available through the connected tools in this run, so impressions, CTR, indexation, trial conversion and MRR were not invented.",
+    "Production URL retrieval through the web verifier was unavailable in this run; CI/deploy verification for commit 52cba2f7 remains pending."
   ],
-  "next": "Verify CI/deploy for 80c0794a and production JSON-LD, then audit eventSeo, SeoHead, sitemap generation and public production/event schemas for hidden BR/city/locale defaults before expanding global/local landing inventory."
+  "next": "Verify CI/deploy for 52cba2f7 and production rendering/metadata, then use real search data when available to decide whether distinct high-intent pages deserve dedicated URLs; do not create them without enough unique content/search evidence."
 }
