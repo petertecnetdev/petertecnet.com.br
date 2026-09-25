@@ -2,7 +2,7 @@
   "schema_version": 3,
   "product": "cutinapp",
   "owner": "cutinapp-revenue-ops",
-  "updated_at": "2026-09-25T04:24:41-03:00",
+  "updated_at": "2026-09-25T07:23:49-03:00",
   "reporting_window": null,
   "reporting_currency": null,
   "geography": {
@@ -55,6 +55,15 @@
     "commercial": ["plan_id", "subscription_status", "trial_status"],
     "localization": ["currency", "locale", "timezone"]
   },
-  "top_bottleneck": "Subscription funnel still has no verified measurement source. Latest verified API main SHA is 8ef770cf3d38eacbcc74c75fb5bd8a746eafb327; Deploy VPS run 36102240979 completed as skipped, so no unvalidated API build was promoted. Generic Trial/Subscription/Billing and verified MRR instrumentation remain blocked behind the API CI gate.",
+  "verified_delivery_gate": {
+    "api_main_sha": "1c3ea622dcdd9e82340b7c81463b5d01f3f11511",
+    "api_ci_run": 36117378817,
+    "api_ci_status": "completed",
+    "api_ci_conclusion": "failure",
+    "deploy_run": 36117567968,
+    "deploy_status": "completed",
+    "deploy_conclusion": "skipped"
+  },
+  "top_bottleneck": "Subscription funnel still has no verified measurement source. API main SHA 1c3ea622dcdd9e82340b7c81463b5d01f3f11511 was verified by API CI run 36117378817, which completed with failure; the dependent Deploy VPS run 36117567968 was skipped. Generic Trial/Subscription/Billing and verified MRR instrumentation remain blocked behind the API CI gate.",
   "notes": "Subscription-first, worldwide scorecard. All metric values remain null unless backed by a verifiable source. Ticket GMV/sales are ecosystem health/value-delivery indicators only, never Cutinapp take rate. The 30-day trial is a target, not evidence that trials are active. No definitive subscription price or currency is recorded. BRL is not a structural reporting/metric assumption; monetary aggregation requires explicit currency context or documented normalization."
 }
