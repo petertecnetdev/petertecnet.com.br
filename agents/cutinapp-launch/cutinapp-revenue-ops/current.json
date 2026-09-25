@@ -2,7 +2,7 @@
   "identity": "cutinapp-revenue-ops",
   "project": "cutinapp",
   "task": "Operate verified worldwide subscription-revenue observability without inventing commercial metrics",
-  "priority": "P2",
+  "priority": "P1",
   "status": "IMPLEMENTING",
   "areas": [
     "agents/cutinapp-launch/revenue-scorecard.json",
@@ -11,21 +11,22 @@
     "global revenue segmentation"
   ],
   "started_at": "2026-09-24T20:21:21-03:00",
-  "checked_at": "2026-09-25T05:26:16-03:00",
+  "checked_at": "2026-09-25T12:22:44-03:00",
   "commits": [
     "b36b8d6b50374d10d17cdd8c75878c6dc0c82945",
     "6cf0fe8b486527bd78726e714d906fc8f68288ec",
-    "4371e83bb32c7444309ee5a55317445676c55c2b"
+    "4371e83bb32c7444309ee5a55317445676c55c2b",
+    "6c0f5d10dfbec79c6beada7479a65b3e7424b695"
   ],
   "evidence": [
     "revenue-scorecard.json schema_version 3 models producer subscription as primary revenue and explicitly records ticket_commission=false.",
-    "Removed structural BRL assumptions from scorecard: reporting_currency, plan_currency, MRR, LTV and ticket GMV require explicit currency context before monetary values are populated.",
-    "Worldwide scope plus country/region/city and currency/locale/timezone are reporting dimensions without GO/DF/BR fallback.",
     "All subscription and ticket-health metric values remain null because no verified measurement source exists yet; LTV remains INSUFFICIENT_DATA.",
-    "Latest verified API main SHA remains 8ef770cf3d38eacbcc74c75fb5bd8a746eafb327. Latest observed Deploy VPS run 36102240979 completed as skipped, preserving the production gate; no unvalidated API build was promoted.",
+    "Worldwide scope plus country/region/city and currency/locale/timezone remain reporting dimensions without GO/DF/BR fallback.",
+    "Latest observed API main SHA is 5413b273cccdc153cae1d7b09a038dbbcd74fada (fix(onboarding): deploy and audit canonical contract acceptance state).",
+    "Deploy VPS run 36152455682 for that SHA completed as skipped, so this operator does not claim that revision is in production.",
     "No subscription price, automatic recurring charge or Cutinapp ticket commission was introduced."
   ],
-  "risk": "Displaying fabricated subscription metrics, treating a locality/currency as global fallback, or treating the target trial as already active would create false business evidence. Implementing billing while API CI is red would violate the release gate.",
-  "blocker": "API CI remains red. Verified subscription lifecycle instrumentation and billing-dependent Admin Center operations must wait for that P0 gate; metrics must consume real globally segmented sources.",
-  "next_independent_blocker": "After API CI becomes green, instrument generic trial_start/trial_end, entitlement, subscription status, renewal/failure/recovery by application and include country/region/city/currency/locale/timezone context where applicable; then populate scorecard/Admin Center from real sources."
+  "risk": "Displaying fabricated subscription metrics, treating a locality/currency as global fallback, or treating the target trial as already active would create false business evidence. Revenue operations must not claim production delivery while the verified deploy gate is skipped or failing.",
+  "blocker": "Verified subscription lifecycle measurement is still unavailable and the latest observed API delivery path did not deploy. Admin Center MRR/trial-to-paid reporting cannot be populated truthfully until generic lifecycle instrumentation has a validated production source.",
+  "next_independent_blocker": "Restore a successful validated API delivery path, then instrument generic trial_start/trial_end, entitlement, subscription status, renewal/failure/recovery by application with country/region/city/currency/locale/timezone context where applicable; populate scorecard/Admin Center only from those real sources."
 }
