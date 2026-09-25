@@ -3,25 +3,31 @@
   "project": "cutinapp",
   "role": "Growth Activation & Conversion Fixes",
   "priority": "P0",
-  "status": "CLAIMED",
-  "task": "Fix production-reported producer activation blockers: exact event-create validation feedback, readable city autocomplete, Google signup, duplicate producer footer, and draft-to-checkout handoff.",
+  "status": "IMPLEMENTING",
+  "task": "Fix production-reported producer activation blockers: exact event-create validation feedback, readable city autocomplete, Google signup, duplicate producer footer, and verify the event publish handoff.",
   "repositories": [
     "petertecnetdev/cutinapp.petertecnet.com.br"
   ],
+  "branch": "fix/production-feedback-activation-20260925",
   "area_files": [
-    "src/App.js",
     "src/pages/ProducerLandingPage.js",
     "src/pages/auth/RegisterPage.js",
-    "src/pages/event/EventCreatePage.js",
     "src/components/event/EventExperienceEditorSurface.js",
-    "src/components/event/EventExperienceEditorSurface.css",
-    "src/components/location/CityAutocompleteControl.js"
+    "src/components/location/CityAutocompleteControl.js",
+    "src/components/location/CityAutocompleteControl.css"
+  ],
+  "implemented": [
+    "Add Google Identity signup to /register using the existing /auth/google account-creation flow.",
+    "Remove the page-level Peter Tecnet signature on /for-producers so the global shell renders it only once.",
+    "Force readable dark-theme contrast in the city autocomplete dropdown.",
+    "Show the producer an exact checklist of missing/invalid event fields before publish instead of treating the optional image as required.",
+    "Intercept create/publish until required fields are complete and scroll to the explicit validation summary."
   ],
   "coordination": [
-    "No CLAIMED/IMPLEMENTING owner was found for RegisterPage, ProducerLanding/App signature, or CityAutocompleteControl.",
-    "cutinapp-launch-events had the EventCreatePage draft-to-checkout issue as CONFIRMED_BLOCKER, not CLAIMED/IMPLEMENTING; this agent claims the implementation.",
+    "No CLAIMED/IMPLEMENTING owner was found for RegisterPage, ProducerLanding signature, CityAutocompleteControl, or EventExperienceEditorSurface.",
+    "The previously recorded draft-to-checkout P0 is already resolved on current Cutinapp main: EventCreatePage sends is_published=1, requires the API to confirm publication, and then navigates to ticket creation. No duplicate change was made.",
     "Do not touch active cutinapp-growth-conversion files: LocationFields.js, ProductionCreatePage.js, ProductionEditPage.js, postalCode utilities."
   ],
   "started_at": "2026-09-25T01:21:00-03:00",
-  "next_point": "Implement on an isolated branch, validate diff and CI, merge only after checks, then record production/deploy evidence."
+  "next_point": "Open PR, inspect exact diff, run CI, fix any failures, merge only if healthy, then verify deploy evidence."
 }
