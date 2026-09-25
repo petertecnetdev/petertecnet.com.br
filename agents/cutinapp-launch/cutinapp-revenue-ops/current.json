@@ -11,7 +11,7 @@
     "global revenue segmentation"
   ],
   "started_at": "2026-09-24T20:21:21-03:00",
-  "checked_at": "2026-09-25T02:24:04-03:00",
+  "checked_at": "2026-09-25T05:26:16-03:00",
   "commits": [
     "b36b8d6b50374d10d17cdd8c75878c6dc0c82945",
     "6cf0fe8b486527bd78726e714d906fc8f68288ec",
@@ -22,7 +22,7 @@
     "Removed structural BRL assumptions from scorecard: reporting_currency, plan_currency, MRR, LTV and ticket GMV require explicit currency context before monetary values are populated.",
     "Worldwide scope plus country/region/city and currency/locale/timezone are reporting dimensions without GO/DF/BR fallback.",
     "All subscription and ticket-health metric values remain null because no verified measurement source exists yet; LTV remains INSUFFICIENT_DATA.",
-    "Latest verified API main SHA remains 8ef770cf3d38eacbcc74c75fb5bd8a746eafb327. API CI run 36093862034 failed and Deploy VPS run 36093981910 was skipped, preserving the production gate.",
+    "Latest verified API main SHA remains 8ef770cf3d38eacbcc74c75fb5bd8a746eafb327. Latest observed Deploy VPS run 36102240979 completed as skipped, preserving the production gate; no unvalidated API build was promoted.",
     "No subscription price, automatic recurring charge or Cutinapp ticket commission was introduced."
   ],
   "risk": "Displaying fabricated subscription metrics, treating a locality/currency as global fallback, or treating the target trial as already active would create false business evidence. Implementing billing while API CI is red would violate the release gate.",
