@@ -2,37 +2,36 @@
   "identity": "cutinapp-revenue-core",
   "project": "cutinapp",
   "priority": "P2",
-  "status": "DONE",
-  "task": "Remove accidental local-market positioning from Cutinapp public metadata",
+  "status": "IMPLEMENTING",
+  "task": "Remove structural BRL fallback from global Home item discovery",
   "repositories": ["petertecnetdev/cutinapp.petertecnet.com.br"],
-  "areas": ["public/index.html", "global discovery", "SEO metadata", "structured data"],
-  "checked_at": "2026-09-25T00:58:19-03:00",
-  "main_sha_analyzed": "4e4adcfcfc0e5fee82528730360398b47cd31cec",
-  "commits": ["6bcea4e6d4e8b75e2f0e5181e4a9b560ecf4ed13"],
+  "areas": ["src/pages/HomeHubPage.js", "global discovery", "currency localization", "producer value delivery"],
+  "checked_at": "2026-09-25T02:00:00-03:00",
+  "main_sha_analyzed": "ebb4b2b498376d0a1125a543342615555c0954d9",
+  "commits": ["ebb4b2b498376d0a1125a543342615555c0954d9"],
   "coordination": [
-    "The metadata change owned by this agent is complete and its exact-SHA Validate Cutinapp workflow passed.",
-    "A newer main commit 4e4adcfcfc0e5fee82528730360398b47cd31cec independently removes Brazil/BRL defaults from event structured data; this agent will not duplicate that work.",
-    "cutinapp-revenue-ops owns revenue-scorecard; no metric values were changed or invented.",
-    "No subscription price, automatic billing or entitlement behavior was introduced."
+    "Read README, readiness, revenue-scorecard and this agent state before editing.",
+    "cutinapp-launch-tickets owns the P0 exactly-once payment/ticket issuance work and was not duplicated.",
+    "cutinapp-revenue-ops owns the subscription scorecard/Admin Center observability and was not duplicated.",
+    "No subscription price, automatic billing, entitlement or ticket commission behavior was introduced."
   ],
-  "problem": "The public HTML entity metadata did not explicitly communicate worldwide scope, leaving ambiguity while the product was being corrected from country/city-centric discovery signals.",
-  "impact": "Global organic discovery expands the producer acquisition surface feeding trial activation and eventual subscription MRR without constraining the product to a city or country.",
-  "solution": "Public metadata now describes Cutinapp as a global events platform and structured Organization data declares areaServed=Worldwide. A subsequent independent main change also removed BR/BRL fallbacks from event structured data.",
+  "problem": "HomeHubPage formatted every discovered production item with pt-BR/BRL regardless of the event, item or production currency. This was a structural Brazil/BRL fallback on a worldwide discovery surface.",
+  "impact": "Showing the wrong currency damages participant trust and producer value perception outside Brazil, constraining global activation and the usage that must precede producer subscription conversion/retention.",
+  "solution": "Removed the fixed pt-BR/BRL formatter. Item cards now resolve currency dynamically from item, event or production metadata and use the browser locale. When valid currency metadata is absent, the UI renders a neutral localized number rather than inventing BRL or another currency.",
   "validation": {
     "source_review": "PASS",
-    "commit": "6bcea4e6d4e8b75e2f0e5181e4a9b560ecf4ed13",
-    "github_actions": "PASS",
-    "validate_run": 36088655606,
-    "validate_conclusion": "success",
-    "deploy": "NOT_CLAIMED",
-    "production_verification": "NOT_VERIFIED_FROM_AVAILABLE_SOURCE"
+    "commit": "ebb4b2b498376d0a1125a543342615555c0954d9",
+    "github_actions": "PENDING_DISCOVERY",
+    "workflow_runs_found_immediately_after_push": 0,
+    "deploy": "NOT_CLAIMED_UNTIL_CI",
+    "production_verification": "NOT_VERIFIED"
   },
   "evidence": [
-    "Validate Cutinapp run 36088655606 completed successfully for exact SHA 6bcea4e6d4e8b75e2f0e5181e4a9b560ecf4ed13.",
-    "Commit 4e4adcfcfc0e5fee82528730360398b47cd31cec on newer main removes addressCountry=BR and priceCurrency=BRL fallbacks in src/utils/eventSeo.js, using event/ticket country and currency context instead.",
-    "Production URL could not be independently fetched by the available web verifier in this run, so production PASS is not claimed."
+    "Before commit ebb4b2b498376d0a1125a543342615555c0954d9, src/pages/HomeHubPage.js declared Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }) and used it for all discovered item prices.",
+    "Commit ebb4b2b498376d0a1125a543342615555c0954d9 removes that fixed formatter and derives currency from item.currency/item.currency_code, event currency metadata, or production currency metadata.",
+    "Immediate GitHub Actions lookup for the exact SHA returned zero runs; CI/deploy success is therefore not claimed yet."
   ],
-  "risk": "Low. Metadata/SEO acquisition scope only; no auth, payments, checkout, entitlement, event publication or pricing behavior changed by this agent.",
-  "gate_status": "Exact-SHA CI PASS; production verification remains external/unverified in this run.",
-  "next_independent_blocker": "Audit producer activation surfaces for non-commerce structural location defaults and reduce friction from signup to first published event without overlapping active API, checkout or subscription-backend ownership."
+  "risk": "Low-to-medium. Display formatting only; no checkout amount, payment, auth, publication, entitlement or persisted financial data changed.",
+  "gate_status": "Commit pushed to main; exact-SHA CI/deploy not yet available, so production PASS is not claimed.",
+  "next_independent_blocker": "Follow exact-SHA Actions for ebb4b2b498376d0a1125a543342615555c0954d9, then continue auditing producer activation/discovery surfaces for structural locale/currency/location defaults without overlapping active P0 ticket/payment or subscription-observability ownership."
 }
