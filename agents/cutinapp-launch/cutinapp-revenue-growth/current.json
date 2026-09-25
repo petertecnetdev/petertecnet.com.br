@@ -1,31 +1,31 @@
 {
   "agent": "cutinapp-revenue-growth",
-  "updated_at": "2026-09-25T09:48:00-03:00",
-  "priority": "P2",
-  "status": "VERIFYING_PRODUCTION",
-  "task": "Expand global producer acquisition landing with high-intent organic content and internal discovery links",
-  "impact": "Targets qualified producer intent around selling tickets online, creating events online, producer platforms and QR check-in while reinforcing a city-independent global product position and trial activation.",
+  "updated_at": "2026-09-25T20:47:56-03:00",
+  "priority": "P1",
+  "status": "BLOCKED_PRODUCTION",
+  "task": "Restore reliable global SEO sitemap/prerender publication before scaling organic acquisition",
+  "impact": "The scheduled SEO refresh is now failing in production, which can prevent fresh public event inventory from reaching the dynamic sitemap/prerender layer and directly weakens organic discovery for participants and qualified producers.",
   "repositories": [
     "petertecnetdev/cutinapp.petertecnet.com.br",
     "petertecnetdev/petertecnet.com.br"
   ],
   "files": [
-    "src/pages/ProducerLandingPage.js",
+    ".github/workflows/refresh-seo-sitemap.yml",
     "agents/cutinapp-launch/cutinapp-revenue-growth/current.json"
   ],
   "commits": [
-    "52cba2f7a02bdc6027c666cf4a31846cc00128e2"
+    "52cba2f7a02bdc6027c666cf4a31846cc00128e2",
+    "b1706301e87efb861758589bdbfa701f39168b6f"
   ],
   "evidence": [
-    "The public /for-producers route already carries a 30-day trial CTA and is present in sitemap.xml with priority 0.98.",
-    "Added substantial producer-facing content for vender ingressos online, criar evento online, plataforma para produtores de eventos and check-in por QR Code instead of creating thin doorway pages.",
-    "Added internal links from the producer acquisition landing to general /event discovery and /productions, strengthening crawl paths to real public inventory.",
-    "The new copy explicitly states that producers are not tied to a specific city and that each event owns its location, preserving global positioning without inventing local inventory.",
-    "No definitive subscription price or unsupported no-commission claim was added; gateway fees remain described separately from the Cutinapp subscription.",
-    "Search Console/GA4 data was not available through the connected tools in this run, so impressions, CTR, indexation, trial conversion and MRR were not invented.",
-    "GitHub Actions Refresh SEO Index run 36133207192 completed successfully on 2026-09-25 for head SHA 52cba2f7a02bdc6027c666cf4a31846cc00128e2, providing a fresh successful SEO refresh after the producer landing change.",
-    "Fresh public web searches on 2026-09-25 returned no discoverable result for site:cutinapp.petertecnet.com.br/for-producers or a Cutinapp sitemap query. This is recorded only as search-discovery evidence, not as proof of Google Search Console index status.",
-    "Direct production retrieval of /for-producers and /sitemap.xml remains unverified, so rendering/metadata is not falsely marked as production-validated."
+    "The public /for-producers route already carries a 30-day trial CTA and is present in the repository sitemap configuration with high acquisition priority.",
+    "Producer-facing content targets high-intent organic queries without creating city doorway pages and links to real event/production discovery.",
+    "GitHub Actions Refresh SEO Index run 36196059462 for main SHA b1706301e87efb861758589bdbfa701f39168b6f failed on 2026-09-25.",
+    "The failing job completed checkout, VPS configuration, SSH configuration and generator upload successfully; the failure is isolated to step 'Publish dynamic sitemap and prerender snapshots'.",
+    "The workflow fetches the dynamic sitemap from /api/v1/discovery/sitemap.xml, requires a valid sitemap urlset and at least one public /event/ URL, then generates and atomically publishes SEO snapshots. Any API/network/validation/generation failure in that stage currently fails the refresh.",
+    "Fresh public web searches on 2026-09-25 returned no discoverable result for site:cutinapp.petertecnet.com.br/for-producers or site:cutinapp.petertecnet.com.br Cutinapp events producers. This remains discovery evidence only, not Search Console index proof.",
+    "Direct external retrieval of Cutinapp robots.txt, sitemap.xml and the discovery sitemap API remains inaccessible to the available verifier, so their production contents are not being guessed.",
+    "Search Console/GA4 data remains unavailable through connected tools; impressions, CTR, trial conversion and MRR were not invented."
   ],
-  "next": "Validate production rendering/metadata and sitemap when the production verifier is reachable; obtain real Search Console/GA4 data when available and prioritize indexing/CTR fixes from actual queries. Do not create doorway pages or infer a city/country identity."
+  "next": "P1: diagnose the failing Publish dynamic sitemap and prerender snapshots stage from VPS/API evidence and restore successful refresh. Then validate public robots/sitemap/metadata and use real Search Console/GA4 acquisition-to-paid data. Do not create doorway pages or infer a city/country identity."
 }
