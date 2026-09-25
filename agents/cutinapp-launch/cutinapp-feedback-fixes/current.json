@@ -1,0 +1,27 @@
+{
+  "identity": "cutinapp-feedback-fixes",
+  "project": "cutinapp",
+  "role": "Growth Activation & Conversion Fixes",
+  "priority": "P0",
+  "status": "CLAIMED",
+  "task": "Fix production-reported producer activation blockers: exact event-create validation feedback, readable city autocomplete, Google signup, duplicate producer footer, and draft-to-checkout handoff.",
+  "repositories": [
+    "petertecnetdev/cutinapp.petertecnet.com.br"
+  ],
+  "area_files": [
+    "src/App.js",
+    "src/pages/ProducerLandingPage.js",
+    "src/pages/auth/RegisterPage.js",
+    "src/pages/event/EventCreatePage.js",
+    "src/components/event/EventExperienceEditorSurface.js",
+    "src/components/event/EventExperienceEditorSurface.css",
+    "src/components/location/CityAutocompleteControl.js"
+  ],
+  "coordination": [
+    "No CLAIMED/IMPLEMENTING owner was found for RegisterPage, ProducerLanding/App signature, or CityAutocompleteControl.",
+    "cutinapp-launch-events had the EventCreatePage draft-to-checkout issue as CONFIRMED_BLOCKER, not CLAIMED/IMPLEMENTING; this agent claims the implementation.",
+    "Do not touch active cutinapp-growth-conversion files: LocationFields.js, ProductionCreatePage.js, ProductionEditPage.js, postalCode utilities."
+  ],
+  "started_at": "2026-09-25T01:21:00-03:00",
+  "next_point": "Implement on an isolated branch, validate diff and CI, merge only after checks, then record production/deploy evidence."
+}
