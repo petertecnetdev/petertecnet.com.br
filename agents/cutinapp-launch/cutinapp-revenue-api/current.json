@@ -1,27 +1,28 @@
 {
   "identity": "cutinapp-revenue-api",
-  "task": "Restore API CI before revenue features",
+  "task": "Restore API CI before subscription revenue features",
   "project": "petertecnetdev/api.petertecnet.com.br",
   "priority": "P0",
   "status": "IMPLEMENTING",
-  "updated_at": "2026-09-24T20:12:28-03:00",
+  "updated_at": "2026-09-24T22:10:40-03:00",
   "areas": [
     "API CI",
-    "commerce totals",
+    "subscription release gate",
     "architecture guardrails",
     "Cutinapp payment reliability"
   ],
-  "problem": "API CI on main is red, blocking the verified API deploy workflow. The failing suite includes architecture guardrails and several unit/feature groups. One deterministic failure was a stale CommerceTotalsTest expectation: 10.25*2 + 14.99 = 35.49 and minus 5.50 = 29.99, while the test expected 35.50/30.00.",
-  "solution": "Corrected only the stale financial test expectation; production money calculation remains cent-based and unchanged. Continuing to treat remaining CI failures as the release gate before starting API revenue features.",
+  "problem": "API CI remains the mandatory release gate before implementing Subscription/Plan/Trial/Billing features. The latest inspected failing API CI run 36074109500 completed with migrations, canonical routes and the architecture gate green, but the test step failed and the final enforcement step failed. The downstream Deploy VPS workflow for main SHA cb982c5e7ad73d2ac2957a69aeec522e3a93d0f5 was skipped, correctly preventing deployment while validation is not green.",
+  "solution": "Do not start subscription billing features or weaken guardrails while CI is red. The previous deterministic CommerceTotals expectation was corrected without changing production money calculations. This cycle revalidated the release gate and narrowed the current failure class: architecture gate is now green; remaining blocker is the test suite. No speculative production-code change was made without exact failing assertion evidence.",
   "commits": {
-    "api": "cb23798284235708f4a8f1e51d57e995f60c11ef"
+    "api_previous_fix": "cb23798284235708f4a8f1e51d57e995f60c11ef",
+    "api_main_observed": "cb982c5e7ad73d2ac2957a69aeec522e3a93d0f5"
   },
   "evidence": [
-    "API CI run 36069836371 failed before this change.",
-    "CommerceTotals implementation converts values to integer cents and returns 35.49 subtotal / 29.99 total for the fixture.",
-    "CI log showed the exact mismatch in tests/Unit/Domain/Commerce/CommerceTotalsTest.php: expected total 30.0, actual 29.99.",
-    "Commit cb23798284235708f4a8f1e51d57e995f60c11ef pushed to main with corrected expectations."
+    "API CI run 36074109500: clean migrations success, canonical API routes success, architecture gate success, tests failure, enforcement failure.",
+    "Deploy VPS run 36074260300 for SHA cb982c5e7ad73d2ac2957a69aeec522e3a93d0f5 was skipped; backup/deploy jobs did not run because the release gate was not satisfied.",
+    "PendingCheckoutRecoveryService remains app-scoped by app_id and user_id and restricts recoverable Mercado Pago PIX orders to pending/in_process provider states.",
+    "No subscription price, automatic recurring charge or Cutinapp ticket commission was introduced."
   ],
-  "production_gate": "API CI RED — deploy remains blocked until the complete suite is green.",
-  "next_blocker": "Re-run/inspect API CI for cb23798284235708f4a8f1e51d57e995f60c11ef and fix the next deterministic failure group without weakening architecture or security guardrails."
+  "production_gate": "API CI RED — subscription backend feature work and API deploy remain blocked until the complete test suite is green.",
+  "next_blocker": "Obtain the exact failing assertions from the current API CI test step and fix the next deterministic test/regression group. Do not begin Subscription/Plan/Trial/Billing implementation until API CI is green."
 }
