@@ -1,30 +1,27 @@
 {
   "agent": "cutinapp-revenue-growth",
-  "updated_at": "2026-09-24T20:48:00-03:00",
-  "priority": "P1",
-  "status": "VERIFYING_DEPLOY_PIPELINE",
-  "task": "Prevent stale validated Cutinapp releases from overwriting newer main releases",
-  "impact": "Protects autonomous delivery from deploying an older validated SHA after main has advanced; this was blocking reliable publication and verification of organic acquisition changes.",
+  "updated_at": "2026-09-24T22:49:00-03:00",
+  "priority": "P2",
+  "status": "VERIFYING_CI_DEPLOY",
+  "task": "Align producer acquisition SEO with the subscription/trial model",
+  "impact": "Targets qualified producer searches with the actual conversion proposition: 30-day initial trial followed by producer subscription, while avoiding an unverified no-commission claim in search metadata.",
   "repositories": [
     "petertecnetdev/cutinapp.petertecnet.com.br",
     "petertecnetdev/petertecnet.com.br"
   ],
   "files": [
-    ".github/workflows/deploy-vps.yml",
+    "src/components/SeoManager.js",
     "agents/cutinapp-launch/cutinapp-revenue-growth/current.json"
   ],
   "commits": [
-    "6d84859e9c7c3f3ea7947d1b1af4b92e51777b77",
-    "ecaa76e59e59ce9ea1cfd00f30f159c61fca3eb2",
-    "e318cde0ca20980a6609b7f2568e557d815c3811"
+    "581c27f2d2851f002a04462224e50a0ab65a8715"
   ],
   "evidence": [
-    "Producer acquisition SEO change passed tests/build/performance validation.",
-    "Deploy run 36069590893 failed because main advanced from ecaa76e to 4146bb2 while the ecaa76e artifact was being deployed.",
-    "A later exact-SHA deploy for c6370dd atomically activated successfully but public release-sha verification observed e3a257f, an older ancestor, showing stale queued deployments could still overwrite newer releases.",
-    "Added a freshness job to deploy-vps.yml: workflow_run deployments now proceed only when the validated SHA still equals current main HEAD; stale validations are skipped and the newest validation owns deployment.",
-    "Manual workflow_dispatch remains available and deploys an explicitly supplied SHA or current main when omitted.",
-    "Search Console/GA4 metrics remain unavailable to this agent in the current connected toolset; no organic metrics were invented or written to revenue-scorecard.json."
+    "The producer landing already presents a 30-day trial and subscription positioning, with gateway fees explicitly separated from the Cutinapp subscription.",
+    "Updated /for-producers title, meta description and JSON-LD to target producer-platform and 30-day-trial intent without inventing a subscription price.",
+    "The static sitemap already includes /for-producers at priority 0.98.",
+    "The phrase 'sem comissão Cutinapp por ingresso' was not added to search metadata because repository search did not provide enough evidence in this cycle that all commerce/terms logic is already consistent with that promise.",
+    "Search Console/GA4 are not available in the connected toolset for this run; no impressions, CTR, trial conversion or MRR values were invented."
   ],
-  "next": "Wait for validation of e318cde0/main, confirm the freshness guard allows only current main to deploy, then verify /for-producers metadata and sitemap in production before expanding producer-intent acquisition."
+  "next": "Wait for CI/deploy of 581c27f2, verify production metadata/canonical/sitemap when the release is live, then add additional high-intent producer acquisition pages only where each page has distinct useful content and a measurable trial CTA."
 }
