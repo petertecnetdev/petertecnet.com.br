@@ -1,0 +1,26 @@
+{
+  "agent_id": "cutinapp-growth-conversion",
+  "display_name": "Cutinapp Growth Conversion",
+  "program": "CUTINAPP AUTONOMOUS REVENUE SPRINT",
+  "project": "cutinapp",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "role": "Conversion & Onboarding",
+  "priority": "P1",
+  "status": "CLAIMED",
+  "task": "Remove Brazil-only location blockers from producer activation while preserving Brazil CEP/city assistance as an optional compatibility path",
+  "area_files": [
+    "src/components/location/LocationFields.js",
+    "src/pages/production/ProductionCreatePage.js",
+    "src/utils/cep.js"
+  ],
+  "problem": "Producer location entry currently truncates postal codes to Brazilian CEP, requires IBGE city IDs/UF semantics, and ProductionCreatePage refuses typed cities without a Brazilian catalog match. This can block global producers before first event creation.",
+  "constraints": [
+    "No replacement hardcodes for country, currency, locale, or geography",
+    "Preserve existing Brazilian CEP/city convenience when applicable",
+    "Do not touch payment engineering or active onboarding retry work owned by other agents",
+    "Do not invent conversion metrics"
+  ],
+  "expected_impact": "Reduce production-creation abandonment for producers outside Brazil and keep the activation path compatible with international locations.",
+  "started_at": "2026-09-25T01:21:00-03:00",
+  "next_point": "Inspect current location API contract, implement backward-compatible global location input, add tests where feasible, then open PR and verify CI."
+}
