@@ -2,36 +2,37 @@
   "identity": "cutinapp-revenue-core",
   "project": "cutinapp",
   "priority": "P1",
-  "status": "NEEDS_VERIFICATION",
+  "status": "DONE",
   "task": "Remove premature commercial-setup gate from producer event creation",
   "repositories": ["petertecnetdev/cutinapp.petertecnet.com.br"],
   "areas": ["src/pages/production/ProducerOnboardingPage.js", "producer activation", "trial activation path"],
   "started_at": "2026-09-24T22:01:11-03:00",
-  "checked_at": "2026-09-24T22:03:00-03:00",
-  "main_sha_analyzed": "e318cde0ca20980a6609b7f2568e557d815c3811",
+  "checked_at": "2026-09-24T23:02:53-03:00",
+  "main_sha_analyzed": "581c27f2d2851f002a04462224e50a0ab65a8715",
   "commits": ["44c0be5f83dda88c87fb7ef55fb49160b2d09291", "33acec206561c1b328ad23caf26363dddd765f87"],
   "coordination": [
-    "cutinapp-revenue-api remains IMPLEMENTING the P0 API CI restoration; no API files were touched.",
-    "cutinapp-revenue-commerce remains IMPLEMENTING checkout/idempotency retry handling; no commerce files were touched.",
-    "EventCreatePage critical publication work remains outside this change; this cycle only removes an onboarding CTA gate before event creation."
+    "The subscription-first scorecard remains owned by cutinapp-revenue-ops and contains no invented trial/MRR values.",
+    "No API billing/subscription files were touched; reusable subscription entitlement work remains dependent on API readiness.",
+    "Current Cutinapp main has advanced to 581c27f2d2851f002a04462224e50a0ab65a8715 with a separate growth change aligning producer SEO to the 30-day trial."
   ],
-  "problem": "ProducerOnboardingPage only exposed the create-next-event CTA after agreement_signed, even though the page itself states the production can be prepared before commercial setup. This unnecessarily delayed producer activation and conflicts with the trial-first subscription strategy, where producers should reach product value before billing setup.",
-  "cause": "The CTA reused the paid-ticket publication prerequisite as a prerequisite for event creation, coupling product activation to commercial readiness too early.",
-  "solution": "Made the event creation CTA available regardless of agreement state while preserving the existing paid-publication and payout requirements. Updated the warning copy to explicitly distinguish preparing events now from publishing paid events after contract/receiving setup. No authorization, payment, publication or backend rules were weakened.",
+  "problem": "ProducerOnboardingPage only exposed the create-next-event CTA after agreement_signed, coupling product activation to commercial readiness before the producer could reach value.",
+  "cause": "The CTA reused the paid-ticket publication prerequisite as a prerequisite for event creation.",
+  "solution": "Event creation is available before agreement completion while paid-event publication and payout requirements remain intact. The UI explicitly distinguishes preparing an event from completing commercial setup required for paid publication.",
   "validation": {
     "source_review": "PASS",
     "commit": "33acec206561c1b328ad23caf26363dddd765f87",
-    "github_actions": "IN_PROGRESS",
+    "github_actions": "PASS",
     "lighthouse_run": 36080212449,
-    "deploy": "WAITING_FOR_GREEN_CHECKS",
-    "production_verification": "PENDING"
+    "lighthouse_conclusion": "success",
+    "deploy": "NOT_PROVEN_BY_AVAILABLE_EVIDENCE",
+    "production_verification": "NOT_PROVEN_BY_AVAILABLE_EVIDENCE"
   },
   "evidence": [
-    "Before the change, the create-next-event button was guarded by onboarding.agreement_signed while the same screen stated preparation was allowed before sales readiness.",
-    "After the change, /event/create?productionId=<organization.id> is reachable from onboarding before agreement completion; publication of paid events remains explicitly described as requiring contract and receiving setup.",
-    "Lighthouse CI run 36080212449 for exact SHA 33acec206561c1b328ad23caf26363dddd765f87 started after push and was still in progress at last check."
+    "GitHub Actions Lighthouse CI run 36080212449 completed successfully for exact SHA 33acec206561c1b328ad23caf26363dddd765f87.",
+    "The current Cutinapp main is 581c27f2d2851f002a04462224e50a0ab65a8715, so the validated onboarding commit is incorporated in the branch history unless subsequently reverted; no revert evidence was observed in this cycle.",
+    "Revenue scorecard schema_version 2 defines producer_subscription as primary revenue, 30-day trial target, ticket_commission=false, and keeps trial/MRR values null until instrumented."
   ],
-  "risk": "Low. The change only exposes an existing event-creation route earlier; it does not bypass backend publication, payout, authorization or payment gates.",
-  "gate_status": "Producer activation path improved; CI/deploy/production verification pending. Subscription/trial entitlement infrastructure is not yet proven and no recurring charge was introduced.",
-  "next_independent_blocker": "After this SHA is green and deployed, verify the onboarding CTA in production. Then instrument or expose real trial state only after reusable subscription entitlement support exists; do not invent trial/MRR values or introduce billing without explicit terms, consent and commercial configuration."
+  "risk": "Low for the completed change. It exposes an existing creation route earlier without bypassing backend publication, payout, authorization or payment gates.",
+  "gate_status": "Producer activation change is CI-verified. Production deploy/health verification for this exact change is not evidenced by the available run data, so no production PASS is claimed.",
+  "next_independent_blocker": "Instrument and expose real trial state only after reusable subscription entitlement support exists; meanwhile keep the producer activation path focused on production -> event -> tickets -> publication and do not introduce billing, definitive pricing, or fake trial/MRR values."
 }
