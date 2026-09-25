@@ -1,31 +1,29 @@
 {
   "agent": "cutinapp-revenue-commerce",
-  "status": "IMPLEMENTING",
+  "status": "VERIFYING",
   "priority": "P1",
-  "task": "Publish HTTP 425 idempotency recovery and remove geographic assumptions from checkout",
+  "task": "Verify HTTP 425 idempotency recovery, then remove geographic assumptions from checkout",
   "repositories": [
     "petertecnetdev/cutinapp.petertecnet.com.br",
     "petertecnetdev/api.petertecnet.com.br"
   ],
   "claimed_at": "2026-09-24T20:36:00-03:00",
-  "updated_at": "2026-09-24T23:34:00-03:00",
+  "updated_at": "2026-09-25T00:39:00-03:00",
   "findings": [
-    "API middleware can return HTTP 425 with Idempotency-Status=processing while an identical checkout request is still executing; frontend main still recognizes only HTTP 409 as idempotency processing.",
-    "A clean clone from current main was patched to treat 409 and 425 processing responses identically while preserving the same Idempotency-Key and bounded retry behavior.",
-    "CheckoutPage and EventCommercePanel still format every amount as pt-BR/BRL instead of using event/catalog/provider currency and locale capabilities.",
-    "CheckoutPage initializes payment method as PIX and payer fields around CPF/address conventions before provider capabilities are loaded; this is a Brazil-specific assumption that must become capability-driven without removing Mercado Pago's real regional limitations.",
-    "EventCommercePanel formats dates with pt-BR and a synthetic local noon rather than consuming an explicit event timezone/locale contract.",
+    "API middleware intentionally returns HTTP 425 with Idempotency-Status=processing and Retry-After=2 while an identical mutation is still executing.",
+    "Frontend CommerceService recovery recognizes the legacy HTTP 409 processing contract, so HTTP 425 could surface as a checkout error instead of entering bounded same-key recovery.",
+    "Checkout and commerce surfaces still contain pt-BR/BRL/America/Sao_Paulo/PIX/CPF assumptions that must become event/provider capability data without pretending Mercado Pago supports unsupported regions or currencies.",
+    "API commerce still has explicit BRL and America/Sao_Paulo defaults in order creation/retry paths; these require a provider/event currency-timezone contract before changing defaults safely.",
     "No real payment or subscription charge was executed."
   ],
   "implementation": {
-    "change": "Treat both 409 and 425 with Idempotency-Status=processing as bounded retryable idempotency responses.",
-    "isolated_commit": "714a66f",
+    "change": "Normalize only commerce HTTP 425 responses carrying Idempotency-Status=processing to the already-supported internal 409 processing contract, preserving Retry-After and the same Idempotency-Key/bounded retry behavior.",
+    "commit": "cceeb1b19df875c1b25e6c588019abd0c0f8f684",
     "files": [
-      "src/services/CommerceService.js",
-      "src/services/CommerceService.transientRetry.test.js"
+      "src/services/AppApiClient.js"
     ],
-    "validation": "git diff --check passed. The isolated test install attempt timed out before react-scripts became available, so CI is still required before production.",
-    "push": "BLOCKED: the VPS clean clone has no GitHub HTTPS write credential; git push failed without changing remote main."
+    "validation": "GitHub Actions were triggered for the exact commit; Lighthouse was in progress at last verification. Production is not marked verified until CI/deploy complete.",
+    "push": "PUSHED_TO_MAIN"
   },
-  "next": "Publish the already-reviewed two-file 425 fix through a GitHub-authorized write path, require CI green and production health verification, then replace BRL/pt-BR/PIX/CPF assumptions with catalog/provider capability data while preserving current Mercado Pago support."
+  "next": "Require CI/deploy/health success for cceeb1b1. Then introduce a generic commerce currency/locale/timezone capability contract and migrate checkout/history/event commerce away from hardcoded BRL/pt-BR/America/Sao_Paulo without removing real Mercado Pago regional constraints."
 }
