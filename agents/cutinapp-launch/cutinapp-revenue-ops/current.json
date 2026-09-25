@@ -10,20 +10,20 @@
     "Admin Center subscription operations"
   ],
   "started_at": "2026-09-24T20:21:21-03:00",
-  "checked_at": "2026-09-24T22:25:10-03:00",
+  "checked_at": "2026-09-24T23:24:36-03:00",
   "commits": [
-    "b36b8d6b50374d10d17cdd8c75878c6dc0c82945"
+    "b36b8d6b50374d10d17cdd8c75878c6dc0c82945",
+    "6cf0fe8b486527bd78726e714d906fc8f68288ec"
   ],
   "evidence": [
-    "revenue-scorecard.json schema_version 2 now models producer subscription as primary revenue and explicitly records ticket_commission=false.",
-    "Subscription metrics now include trials_started, trials_active, producer activations, time to first published event, producers with real usage/sales, trial_to_paid_rate, active_subscribers, MRR, renewals, payment failures/recoveries, churn, DAU/WAU and LTV.",
-    "Ticket sales and GMV remain in the scorecard only as ecosystem health/value-delivery metrics, not Cutinapp take rate.",
-    "Every metric remains null because no verified measurement source exists yet; LTV is explicitly INSUFFICIENT_DATA.",
-    "The 30-day trial is recorded as the current target only. No definitive subscription price or automatic billing was introduced.",
-    "cutinapp-revenue-api is IMPLEMENTING the P0 API CI restoration; API CI remains RED and therefore generic Trial/Subscription/Billing implementation/deploy is correctly blocked.",
-    "The previously identified Admin Center deployment topology inconsistency remains unresolved, so no unsafe Admin Center deployment was attempted."
+    "revenue-scorecard.json schema_version 2 models producer subscription as primary revenue and explicitly records ticket_commission=false.",
+    "All subscription and ticket-health metric values remain null because no verified measurement source exists yet; LTV remains INSUFFICIENT_DATA.",
+    "API CI run 36074109500 for main SHA cb982c5e7ad73d2ac2957a69aeec522e3a93d0f5 passed clean migrations, migration audit, canonical routes and architecture gate, then failed the test step.",
+    "Deploy VPS run 36074260300 for the same API SHA was skipped, correctly preventing deployment while the release gate is red.",
+    "No subscription price, automatic recurring charge or Cutinapp ticket commission was introduced.",
+    "Scorecard release-gate evidence was refreshed in central commit 6cf0fe8b486527bd78726e714d906fc8f68288ec."
   ],
   "risk": "Displaying fabricated subscription metrics or treating the target trial as already active would create false business evidence. Implementing billing while API CI is red would violate the release gate.",
-  "blocker": "Establish verified subscription lifecycle instrumentation after API CI is green, then expose those measured sources to Admin Center. Reconcile Admin Center deployment source-of-truth before publishing operations dashboards.",
-  "next_independent_blocker": "Once API CI is green, instrument generic trial_start/trial_end, entitlement, subscription status and billing lifecycle events by application_id/app_id/app_slug; then populate this scorecard and Admin Center from those real sources."
+  "blocker": "API CI is still red at the test step. Establish verified subscription lifecycle instrumentation only after that P0 gate is green; then expose measured sources to Admin Center.",
+  "next_independent_blocker": "After API CI becomes green, instrument generic trial_start/trial_end, entitlement, subscription status, renewal/failure/recovery lifecycle by application_id/app_id/app_slug; then populate this scorecard and Admin Center from those real sources."
 }
