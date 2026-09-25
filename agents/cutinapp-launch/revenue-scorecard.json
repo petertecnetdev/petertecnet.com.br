@@ -2,7 +2,7 @@
   "schema_version": 3,
   "product": "cutinapp",
   "owner": "cutinapp-revenue-ops",
-  "updated_at": "2026-09-25T00:22:15-03:00",
+  "updated_at": "2026-09-25T01:25:08-03:00",
   "reporting_window": null,
   "reporting_currency": null,
   "geography": {
@@ -55,6 +55,6 @@
     "commercial": ["plan_id", "subscription_status", "trial_status"],
     "localization": ["currency", "locale", "timezone"]
   },
-  "top_bottleneck": "Subscription funnel still has no verified measurement source. API CI run 36074109500 for main SHA cb982c5e7ad73d2ac2957a69aeec522e3a93d0f5 failed at tests and Deploy VPS run 36074260300 was skipped. Generic Trial/Subscription/Billing remains correctly blocked until API CI is green.",
+  "top_bottleneck": "Subscription funnel still has no verified measurement source. Latest observed API CI run 36093862034 for main SHA 8ef770cf3d38eacbcc74c75fb5bd8a746eafb327 failed, and the corresponding Deploy VPS run 36093981910 was skipped. Generic Trial/Subscription/Billing and verified MRR instrumentation remain blocked behind the API CI gate.",
   "notes": "Subscription-first, worldwide scorecard. All metric values remain null unless backed by a verifiable source. Ticket GMV/sales are ecosystem health/value-delivery indicators only, never Cutinapp take rate. The 30-day trial is a target, not evidence that trials are active. No definitive subscription price or currency is recorded. Removed BRL as a structural reporting/metric assumption; monetary aggregation requires explicit currency context or documented normalization."
 }
