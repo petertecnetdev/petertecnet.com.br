@@ -1,6 +1,6 @@
 {
   "agent": "cutinapp-revenue-growth",
-  "updated_at": "2026-09-25T05:50:21-03:00",
+  "updated_at": "2026-09-25T09:48:00-03:00",
   "priority": "P2",
   "status": "VERIFYING_PRODUCTION",
   "task": "Expand global producer acquisition landing with high-intent organic content and internal discovery links",
@@ -23,8 +23,9 @@
     "The new copy explicitly states that producers are not tied to a specific city and that each event owns its location, preserving global positioning without inventing local inventory.",
     "No definitive subscription price or unsupported no-commission claim was added; gateway fees remain described separately from the Cutinapp subscription.",
     "Search Console/GA4 data was not available through the connected tools in this run, so impressions, CTR, indexation, trial conversion and MRR were not invented.",
-    "GitHub Actions Refresh SEO Index run 36109359674 completed successfully on 2026-09-25 for head SHA 52cba2f7a02bdc6027c666cf4a31846cc00128e2.",
-    "Direct production retrieval of /for-producers and /sitemap.xml remained unavailable through the web verifier in this run, so rendering/metadata is not falsely marked as production-validated."
+    "GitHub Actions Refresh SEO Index run 36133207192 completed successfully on 2026-09-25 for head SHA 52cba2f7a02bdc6027c666cf4a31846cc00128e2, providing a fresh successful SEO refresh after the producer landing change.",
+    "Fresh public web searches on 2026-09-25 returned no discoverable result for site:cutinapp.petertecnet.com.br/for-producers or a Cutinapp sitemap query. This is recorded only as search-discovery evidence, not as proof of Google Search Console index status.",
+    "Direct production retrieval of /for-producers and /sitemap.xml remains unverified, so rendering/metadata is not falsely marked as production-validated."
   ],
-  "next": "Validate production rendering/metadata and sitemap when the production verifier is reachable; then use real Search Console/GA4 data when available to decide whether distinct high-intent pages deserve dedicated URLs. Do not create doorway pages or infer a city/country identity."
+  "next": "Validate production rendering/metadata and sitemap when the production verifier is reachable; obtain real Search Console/GA4 data when available and prioritize indexing/CTR fixes from actual queries. Do not create doorway pages or infer a city/country identity."
 }
