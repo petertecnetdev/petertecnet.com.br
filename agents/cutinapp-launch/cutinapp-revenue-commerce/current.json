@@ -8,25 +8,23 @@
     "petertecnetdev/api.petertecnet.com.br"
   ],
   "claimed_at": "2026-09-24T20:36:00-03:00",
-  "updated_at": "2026-09-25T09:38:00-03:00",
+  "updated_at": "2026-09-25T11:38:00-03:00",
   "findings": [
     "API middleware intentionally returns HTTP 425 with Idempotency-Status=processing and Retry-After=2 while an identical mutation is still executing.",
     "Frontend main still contains the scoped AppApiClient normalization: only commerce HTTP 425 responses carrying Idempotency-Status=processing are converted to the existing internal 409 processing contract, preserving Retry-After for bounded same-key recovery.",
-    "Validate Cutinapp run 36091192466 completed successfully for exact commit cceeb1b19df875c1b25e6c588019abd0c0f8f684.",
-    "Lighthouse CI run 36091192391 completed successfully for exact commit cceeb1b19df875c1b25e6c588019abd0c0f8f684.",
-    "Deploy VPS run 36091313969 failed for that exact commit, so production idempotency recovery remains unverified and this P1 cannot be closed.",
-    "CheckoutPage still hardcodes pt-BR/BRL for money display and pt-BR for PIX expiry labels; boleto payer validation also encodes Brazilian CPF/CEP/UF shape directly in the checkout. These must move behind event/provider capability data, not be globally removed while Mercado Pago/other provider constraints are still real.",
+    "Validate Cutinapp and Lighthouse CI succeeded for current main SHA 907d526027bb47c8ae3b348bb6fedcac1f45adf4.",
+    "Deploy VPS run 36145479199 built and atomically activated exact SHA 907d526027bb47c8ae3b348bb6fedcac1f45adf4, but the immediate public release-sha health probe returned e3a257f35e5c57a4c256aebfde0fbbe26e689a44. Deploy application succeeded; health check failed.",
+    "The mismatch persists after fix(deploy): prevent local builds from overwriting production, so the remaining fault is outside the validated artifact build/atomic activation path or in public serving/routing/cache/upstream release replacement.",
+    "CheckoutPage still hardcodes pt-BR/BRL for money display and pt-BR for PIX expiry labels; boleto payer validation also encodes Brazilian CPF/CEP/UF shape directly in checkout. These must move behind event/provider capability data, not be globally removed while provider constraints are still real.",
     "No real payment or subscription charge was executed."
   ],
   "implementation": {
     "change": "Normalize only commerce HTTP 425 responses carrying Idempotency-Status=processing to the already-supported internal 409 processing contract, preserving Retry-After and the same Idempotency-Key/bounded retry behavior.",
     "commit": "cceeb1b19df875c1b25e6c588019abd0c0f8f684",
-    "files": [
-      "src/services/AppApiClient.js"
-    ],
-    "validation": "Frontend CI and Lighthouse succeeded for the exact commit; Deploy VPS failed, therefore production health is not verified.",
+    "files": ["src/services/AppApiClient.js"],
+    "validation": "Commerce fix remains in main and CI-covered, but production cannot be certified because the public endpoint is serving release SHA e3a257f35e5c57a4c256aebfde0fbbe26e689a44 immediately after successful atomic activation of current main SHA 907d526027bb47c8ae3b348bb6fedcac1f45adf4.",
     "push": "PUSHED_TO_MAIN"
   },
-  "blocked_by": "cutinapp-launch-gatekeeper/deploy consistency: exact commerce SHA must be served and health-checked before closing P1.",
-  "next": "After deploy consistency is restored, validate the exact SHA in production and then introduce a generic commerce currency/locale/timezone/provider-capability contract before migrating CheckoutPage money/date formatting and Brazilian payer fields. Preserve real gateway fees and provider constraints; do not execute real charges."
+  "blocked_by": "cutinapp-launch-gatekeeper/deploy consistency: public serving path must stop returning stale/replaced SHA e3a257f35e5c57a4c256aebfde0fbbe26e689a44 after a successful atomic activation.",
+  "next": "Gatekeeper/reliability should trace nginx document root, reverse proxy/cache/CDN behavior and any VPS process that can replace the live frontend after atomic activation. Once the exact SHA is publicly served and health-checked, validate HTTP 425 same-key recovery in production and then introduce generic currency/locale/timezone/provider-capability contracts. Preserve gateway fees/provider constraints and execute no real charges."
 }
