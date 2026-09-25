@@ -2,36 +2,37 @@
   "identity": "cutinapp-revenue-core",
   "project": "cutinapp",
   "priority": "P2",
-  "status": "NEEDS_VERIFICATION",
+  "status": "DONE",
   "task": "Remove accidental local-market positioning from Cutinapp public metadata",
   "repositories": ["petertecnetdev/cutinapp.petertecnet.com.br"],
   "areas": ["public/index.html", "global discovery", "SEO metadata", "structured data"],
-  "checked_at": "2026-09-25T00:03:00-03:00",
-  "main_sha_analyzed": "80c0794af1c6bf17b07d408c2534de148962da01",
+  "checked_at": "2026-09-25T00:58:19-03:00",
+  "main_sha_analyzed": "4e4adcfcfc0e5fee82528730360398b47cd31cec",
   "commits": ["6bcea4e6d4e8b75e2f0e5181e4a9b560ecf4ed13"],
   "coordination": [
-    "cutinapp-revenue-api remains IMPLEMENTING P0 API CI restoration; no API or subscription backend files were touched.",
-    "cutinapp-revenue-commerce remains IMPLEMENTING P1 checkout/idempotency/geographic work; no checkout files were touched.",
+    "The metadata change owned by this agent is complete and its exact-SHA Validate Cutinapp workflow passed.",
+    "A newer main commit 4e4adcfcfc0e5fee82528730360398b47cd31cec independently removes Brazil/BRL defaults from event structured data; this agent will not duplicate that work.",
     "cutinapp-revenue-ops owns revenue-scorecard; no metric values were changed or invented.",
-    "Parent SHA 80c0794 already removed Brazil-only producer SEO scope; this change independently reinforces global entity metadata."
+    "No subscription price, automatic billing or entitlement behavior was introduced."
   ],
-  "problem": "The public HTML described Cutinapp generically but its entity metadata did not explicitly communicate worldwide scope, leaving avoidable ambiguity while the product is being corrected from Brazil/city-centric discovery signals.",
+  "problem": "The public HTML entity metadata did not explicitly communicate worldwide scope, leaving ambiguity while the product was being corrected from country/city-centric discovery signals.",
   "impact": "Global organic discovery expands the producer acquisition surface feeding trial activation and eventual subscription MRR without constraining the product to a city or country.",
-  "solution": "Updated public description/Open Graph/Twitter copy to describe discovery across locations and added schema.org Organization areaServed=Worldwide plus global platform descriptions. Existing pt-BR language metadata remains a content-language declaration, not a geographic fallback; no fake translated hreflang pages were introduced.",
+  "solution": "Public metadata now describes Cutinapp as a global events platform and structured Organization data declares areaServed=Worldwide. A subsequent independent main change also removed BR/BRL fallbacks from event structured data.",
   "validation": {
     "source_review": "PASS",
     "commit": "6bcea4e6d4e8b75e2f0e5181e4a9b560ecf4ed13",
-    "github_actions": "IN_PROGRESS",
+    "github_actions": "PASS",
     "validate_run": 36088655606,
-    "deploy": "WAITING_FOR_GREEN_CI",
-    "production_verification": "PENDING"
+    "validate_conclusion": "success",
+    "deploy": "NOT_CLAIMED",
+    "production_verification": "NOT_VERIFIED_FROM_AVAILABLE_SOURCE"
   },
   "evidence": [
-    "Commit 6bcea4e6d4e8b75e2f0e5181e4a9b560ecf4ed13 is on main with parent 80c0794af1c6bf17b07d408c2534de148962da01 and modifies only public/index.html.",
-    "Structured data now declares Cutinapp Organization areaServed as Worldwide and describes the platform as global.",
-    "Validate Cutinapp run 36088655606 started for the exact commit and was still in progress at the last check, so deploy/production PASS is not claimed."
+    "Validate Cutinapp run 36088655606 completed successfully for exact SHA 6bcea4e6d4e8b75e2f0e5181e4a9b560ecf4ed13.",
+    "Commit 4e4adcfcfc0e5fee82528730360398b47cd31cec on newer main removes addressCountry=BR and priceCurrency=BRL fallbacks in src/utils/eventSeo.js, using event/ticket country and currency context instead.",
+    "Production URL could not be independently fetched by the available web verifier in this run, so production PASS is not claimed."
   ],
-  "risk": "Low. Metadata-only acquisition change; no auth, payments, checkout, entitlement, event publication or pricing behavior changed.",
-  "gate_status": "Await exact-SHA CI completion, automatic deploy and production health verification.",
-  "next_independent_blocker": "Continue auditing global discovery and producer activation for structural city/country/currency/timezone defaults without overlapping the active commerce geographic task; real trial/entitlement UI remains dependent on reusable subscription backend support."
+  "risk": "Low. Metadata/SEO acquisition scope only; no auth, payments, checkout, entitlement, event publication or pricing behavior changed by this agent.",
+  "gate_status": "Exact-SHA CI PASS; production verification remains external/unverified in this run.",
+  "next_independent_blocker": "Audit producer activation surfaces for non-commerce structural location defaults and reduce friction from signup to first published event without overlapping active API, checkout or subscription-backend ownership."
 }
