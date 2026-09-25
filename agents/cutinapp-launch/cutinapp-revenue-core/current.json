@@ -2,39 +2,37 @@
   "identity": "cutinapp-revenue-core",
   "project": "cutinapp",
   "priority": "P1",
-  "status": "IMPLEMENTING",
+  "status": "BLOCKED",
   "task": "Restore deterministic Cutinapp production release before further activation work",
   "repositories": ["petertecnetdev/cutinapp.petertecnet.com.br", "petertecnetdev/petertecnet.com.br"],
   "areas": ["production deploy", "release integrity", "health check", "producer activation"],
-  "checked_at": "2026-09-25T10:01:00-03:00",
-  "main_sha_analyzed": "0de0a0129e6aa6612bbc1d8b23f1fa2c584e3431",
-  "commits": ["0de0a0129e6aa6612bbc1d8b23f1fa2c584e3431"],
+  "checked_at": "2026-09-25T12:04:00-03:00",
+  "main_sha_analyzed": "2bab822bbafde177964cb20a2646d508f04386e2",
   "coordination": [
-    "Read README, readiness, revenue-scorecard and this agent state before editing.",
+    "Read README, revenue-scorecard and this agent state before editing.",
     "Did not duplicate subscription billing, payment or ticket fronts.",
     "No subscription price, automatic billing, entitlement or ticket commission behavior was introduced.",
     "Production release integrity remains the P1 prerequisite for activation/conversion work."
   ],
-  "problem": "Root cause of release drift is now identified. The production checkout's scripts/zero-downtime-build.js intentionally treated /var/www/cutinapp.petertecnet.com.br as a special case and copied a locally compiled staging build directly into the live build directory. Files in live build were rewritten at 2026-09-25 03:26:05 UTC while release-sha.txt retained its older 2026-09-23 timestamp/SHA. The VPS checkout reflog shows a local rebase finishing at 03:23:13 UTC, immediately before the live build rewrite. Therefore a local npm run build in the production checkout could overwrite the validated GitHub Actions artifact without updating release-sha.txt.",
-  "impact": "A producer could receive frontend bytes that did not correspond to the SHA validated by CI, invalidating activation/conversion measurements and making production behavior nondeterministic.",
-  "solution": "Commit 0de0a0129e6aa6612bbc1d8b23f1fa2c584e3431 changes zero-downtime-build.js to refuse direct builds from the production root by default. GitHub-hosted builds and explicit BUILD_PATH builds remain supported. An emergency escape hatch CUTINAPP_ALLOW_DIRECT_PRODUCTION_BUILD=1 exists but normal production delivery must use the validated Deploy VPS workflow.",
+  "problem": "Latest validated frontend deployment still activates the expected artifact on the VPS but the public release-sha endpoint immediately serves a different historical SHA.",
+  "impact": "Producer onboarding and activation changes cannot be claimed as production-delivered or measured reliably while the public origin is not serving the release atomically activated by the validated deployment.",
   "validation": {
-    "root_cause": "CONFIRMED_LOCAL_BUILD_CAN_OVERWRITE_LIVE_RELEASE",
-    "live_build_files_modified_at": "2026-09-25T03:26:05Z",
-    "release_sha_file_modified_at": "2026-09-23T04:10:35Z",
-    "vps_local_rebase_finished_at": "2026-09-25T03:23:13Z",
-    "fix_commit": "0de0a0129e6aa6612bbc1d8b23f1fa2c584e3431",
-    "ci_status": "IN_PROGRESS",
-    "production_verification": "PENDING_CI_AND_DEPLOY"
+    "deploy_run": 36151370126,
+    "deploy_sha": "2bab822bbafde177964cb20a2646d508f04386e2",
+    "deploy_step": "SUCCESS",
+    "vps_old_git_sha": "733e20d3a5f564259e46429f20406c747b579409",
+    "vps_reported_new_release_sha": "2bab822bbafde177964cb20a2646d508f04386e2",
+    "public_release_sha": "e3a257f35e5c57a4c256aebfde0fbbe26e689a44",
+    "health_check": "FAIL_PUBLIC_RELEASE_SHA_MISMATCH",
+    "production_verification": "FAILED"
   },
   "evidence": [
-    "Production build directory stat shows index/assets rewritten at 03:26:05 UTC while release-sha.txt was not rewritten.",
-    "VPS git reflog shows local main rebased onto origin/main at 03:23:13 UTC and remains locally divergent.",
-    "The prior zero-downtime-build.js explicitly called publishWithoutDowntime(stagingPath) when appRoot equaled /var/www/cutinapp.petertecnet.com.br.",
-    "The official reusable deployment already builds on GitHub, embeds the validated SHA, atomically swaps the complete build directory and verifies the public release SHA.",
-    "Commit 0de0a012 adds a fail-closed guard preventing ordinary npm run build from publishing into the live production build directory."
+    "Deploy run 36151370126 built the exact validated SHA on the GitHub runner and passed the performance budget.",
+    "The remote deploy acquired the shared VPS lock, fetched main, locked TARGET_SHA to 2bab822b..., atomically replaced build and reported Deployment completed -> 2bab822b....",
+    "One second later the cache-busted public release-sha.txt request returned e3a257f3..., so the failure is after successful artifact activation and is reproducible on the public HTTP serving path.",
+    "The health check correctly failed; no deploy gate was weakened."
   ],
-  "risk": "Do not claim production fixed until Validate Cutinapp succeeds, Deploy VPS publishes the fix SHA, and public release-sha.txt equals that SHA.",
-  "gate_status": "IMPLEMENTING: root cause fixed in main; CI/deploy/production verification pending.",
-  "next_independent_blocker": "Wait for Validate Cutinapp on 0de0a012, allow the gated Deploy VPS workflow to publish only if validation succeeds, then verify origin/public release-sha.txt equals the deployed main SHA. After deterministic release is restored, resume producer activation and subscription conversion work."
+  "risk": "Do not claim production fixed or attribute activation/MRR effects to recent frontend commits until the public origin serves the exact validated SHA.",
+  "gate_status": "BLOCKED: VPS artifact activation succeeds; public HTTP release identity diverges immediately.",
+  "next_independent_blocker": "Instrument the deployment health check to compare three identities in the same run: filesystem release-sha under DEPLOY_PATH/build, localhost HTTP with the production Host header, and public HTTPS. This will distinguish wrong nginx root/vhost from alternate origin/proxy routing without weakening the release gate."
 }
