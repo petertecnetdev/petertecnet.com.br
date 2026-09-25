@@ -2,37 +2,45 @@
   "identity": "cutinapp-revenue-core",
   "project": "cutinapp",
   "priority": "P1",
-  "status": "BLOCKED",
+  "status": "IMPLEMENTING",
   "task": "Restore deterministic Cutinapp production release before further activation work",
   "repositories": ["petertecnetdev/cutinapp.petertecnet.com.br", "petertecnetdev/petertecnet.com.br"],
   "areas": ["production deploy", "release integrity", "health check", "producer activation"],
-  "checked_at": "2026-09-25T12:04:00-03:00",
-  "main_sha_analyzed": "2bab822bbafde177964cb20a2646d508f04386e2",
+  "checked_at": "2026-09-25T15:59:35-03:00",
+  "main_sha_analyzed": "b1706301e87efb861758589bdbfa701f39168b6f",
   "coordination": [
-    "Read README, revenue-scorecard and this agent state before editing.",
+    "Read README, readiness, revenue-scorecard and this agent state before editing.",
     "Did not duplicate subscription billing, payment or ticket fronts.",
     "No subscription price, automatic billing, entitlement or ticket commission behavior was introduced.",
     "Production release integrity remains the P1 prerequisite for activation/conversion work."
   ],
-  "problem": "Latest validated frontend deployment still activates the expected artifact on the VPS but the public release-sha endpoint immediately serves a different historical SHA.",
+  "problem": "Validated frontend deployments have atomically activated the expected artifact on the VPS while public release-sha immediately served a different historical SHA.",
   "impact": "Producer onboarding and activation changes cannot be claimed as production-delivered or measured reliably while the public origin is not serving the release atomically activated by the validated deployment.",
+  "implementation": {
+    "commit": "b1706301e87efb861758589bdbfa701f39168b6f",
+    "change": "Added a post-deploy diagnostic job that compares the expected validated SHA against the VPS filesystem, localhost nginx using Host: cutinapp.petertecnet.com.br, and public HTTPS. The diagnostic runs even when the reusable deploy job fails and does not weaken the existing release gate.",
+    "classification": [
+      "filesystem mismatch => activation/post-deploy mutation",
+      "filesystem correct + localhost mismatch => nginx root/vhost routing",
+      "filesystem and localhost correct + public mismatch => DNS/proxy/origin routing"
+    ]
+  },
   "validation": {
-    "deploy_run": 36151370126,
-    "deploy_sha": "2bab822bbafde177964cb20a2646d508f04386e2",
-    "deploy_step": "SUCCESS",
-    "vps_old_git_sha": "733e20d3a5f564259e46429f20406c747b579409",
-    "vps_reported_new_release_sha": "2bab822bbafde177964cb20a2646d508f04386e2",
-    "public_release_sha": "e3a257f35e5c57a4c256aebfde0fbbe26e689a44",
-    "health_check": "FAIL_PUBLIC_RELEASE_SHA_MISMATCH",
-    "production_verification": "FAILED"
+    "previous_deploy_run": 36151370126,
+    "previous_deploy_sha": "2bab822bbafde177964cb20a2646d508f04386e2",
+    "previous_public_release_sha": "e3a257f35e5c57a4c256aebfde0fbbe26e689a44",
+    "previous_health_check": "FAIL_PUBLIC_RELEASE_SHA_MISMATCH",
+    "new_validate_run": 36176903295,
+    "new_validate_status_observed": "queued",
+    "production_verification": "PENDING_CI_AND_DEPLOY"
   },
   "evidence": [
-    "Deploy run 36151370126 built the exact validated SHA on the GitHub runner and passed the performance budget.",
-    "The remote deploy acquired the shared VPS lock, fetched main, locked TARGET_SHA to 2bab822b..., atomically replaced build and reported Deployment completed -> 2bab822b....",
-    "One second later the cache-busted public release-sha.txt request returned e3a257f3..., so the failure is after successful artifact activation and is reproducible on the public HTTP serving path.",
-    "The health check correctly failed; no deploy gate was weakened."
+    "The official delivery policy requires exact validated SHA, health check and blocking on failure.",
+    "Previous run 36151370126 reported successful atomic activation of 2bab822b... but public release-sha returned e3a257f3... immediately afterward.",
+    "Commit b1706301... adds read-only release identity probes after the deploy job; it does not force or bypass deployment.",
+    "Validate Cutinapp run 36176903295 was queued for b1706301... at the latest observation."
   ],
-  "risk": "Do not claim production fixed or attribute activation/MRR effects to recent frontend commits until the public origin serves the exact validated SHA.",
-  "gate_status": "BLOCKED: VPS artifact activation succeeds; public HTTP release identity diverges immediately.",
-  "next_independent_blocker": "Instrument the deployment health check to compare three identities in the same run: filesystem release-sha under DEPLOY_PATH/build, localhost HTTP with the production Host header, and public HTTPS. This will distinguish wrong nginx root/vhost from alternate origin/proxy routing without weakening the release gate."
+  "risk": "Do not claim production fixed or attribute activation/MRR effects to recent frontend commits until the diagnostic identifies the serving boundary and public HTTPS serves the exact validated SHA.",
+  "gate_status": "IMPLEMENTING: diagnostic committed; CI/deploy evidence pending.",
+  "next_independent_blocker": "Wait for Validate Cutinapp on b1706301... and the resulting gated deploy. Use diagnose-release-serving output to correct the exact serving layer, then require public release-sha == validated SHA before resuming activation/trial-to-paid work."
 }
