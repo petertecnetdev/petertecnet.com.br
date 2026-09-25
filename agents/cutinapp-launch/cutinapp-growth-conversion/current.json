@@ -6,14 +6,24 @@
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
   "role": "Conversion & Onboarding",
   "priority": "P1",
-  "status": "CLAIMED",
+  "status": "IMPLEMENTING",
   "task": "Remove Brazil-only location blockers from producer activation while preserving Brazil CEP/city assistance as an optional compatibility path",
+  "branch": "agent/cutinapp-growth-conversion-global-location",
   "area_files": [
     "src/components/location/LocationFields.js",
     "src/pages/production/ProductionCreatePage.js",
-    "src/utils/cep.js"
+    "src/utils/postalCode.js",
+    "src/utils/postalCode.test.js"
   ],
-  "problem": "Producer location entry currently truncates postal codes to Brazilian CEP, requires IBGE city IDs/UF semantics, and ProductionCreatePage refuses typed cities without a Brazilian catalog match. This can block global producers before first event creation.",
+  "implemented": [
+    "Preserve alphanumeric/international postal codes instead of coercing every value into an 8-digit CEP",
+    "Expose Brazilian CEP lookup only when the entered value actually matches CEP format",
+    "Allow manual city and region values without requiring an IBGE city id before production creation",
+    "Keep Brazilian city catalog lookup as optional enrichment",
+    "Allow international region names instead of a two-character UF-only field",
+    "Remove pt-BR hardcode from city normalization in production creation",
+    "Record catalog/manual/not-provided location resolution in existing activation telemetry"
+  ],
   "constraints": [
     "No replacement hardcodes for country, currency, locale, or geography",
     "Preserve existing Brazilian CEP/city convenience when applicable",
@@ -22,5 +32,5 @@
   ],
   "expected_impact": "Reduce production-creation abandonment for producers outside Brazil and keep the activation path compatible with international locations.",
   "started_at": "2026-09-25T01:21:00-03:00",
-  "next_point": "Inspect current location API contract, implement backward-compatible global location input, add tests where feasible, then open PR and verify CI."
+  "next_point": "Open PR, inspect the exact diff, run repository CI through GitHub Actions, merge only if checks are healthy, then record handoff."
 }
