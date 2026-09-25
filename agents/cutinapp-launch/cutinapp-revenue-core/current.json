@@ -1,37 +1,43 @@
 {
   "identity": "cutinapp-revenue-core",
   "project": "cutinapp",
-  "priority": "P2",
-  "status": "IMPLEMENTING",
-  "task": "Remove structural BRL fallback from global Home item discovery",
-  "repositories": ["petertecnetdev/cutinapp.petertecnet.com.br"],
-  "areas": ["src/pages/HomeHubPage.js", "global discovery", "currency localization", "producer value delivery"],
-  "checked_at": "2026-09-25T02:00:00-03:00",
-  "main_sha_analyzed": "ebb4b2b498376d0a1125a543342615555c0954d9",
+  "priority": "P1",
+  "status": "BLOCKED",
+  "task": "Restore deterministic Cutinapp production release before further activation work",
+  "repositories": ["petertecnetdev/cutinapp.petertecnet.com.br", "petertecnetdev/petertecnet.com.br"],
+  "areas": ["production deploy", "release integrity", "health check", "producer activation"],
+  "checked_at": "2026-09-25T06:03:00-03:00",
+  "main_sha_analyzed": "52cba2f7a02bdc6027c666cf4a31846cc00128e2",
   "commits": ["ebb4b2b498376d0a1125a543342615555c0954d9"],
   "coordination": [
     "Read README, readiness, revenue-scorecard and this agent state before editing.",
-    "cutinapp-launch-tickets owns the P0 exactly-once payment/ticket issuance work and was not duplicated.",
-    "cutinapp-revenue-ops owns the subscription scorecard/Admin Center observability and was not duplicated.",
-    "No subscription price, automatic billing, entitlement or ticket commission behavior was introduced."
+    "Did not duplicate the P0 ticket/payment or subscription-observability fronts.",
+    "No subscription price, automatic billing, entitlement or ticket commission behavior was introduced.",
+    "Stopped new conversion UX work because production release integrity is a higher-priority P1 prerequisite."
   ],
-  "problem": "HomeHubPage formatted every discovered production item with pt-BR/BRL regardless of the event, item or production currency. This was a structural Brazil/BRL fallback on a worldwide discovery surface.",
-  "impact": "Showing the wrong currency damages participant trust and producer value perception outside Brazil, constraining global activation and the usage that must precede producer subscription conversion/retention.",
-  "solution": "Removed the fixed pt-BR/BRL formatter. Item cards now resolve currency dynamically from item, event or production metadata and use the browser locale. When valid currency metadata is absent, the UI renders a neutral localized number rather than inventing BRL or another currency.",
+  "problem": "Validated Cutinapp main 52cba2f7a02bdc6027c666cf4a31846cc00128e2 built successfully and was atomically activated by Deploy VPS run 36100371244, but the public health probe immediately returned release e3a257f35e5c57a4c256aebfde0fbbe26e689a44. Fresh host inspection later confirmed nginx serves /var/www/cutinapp.petertecnet.com.br/build and both the local origin and public endpoint currently expose e3a257f35e5c57a4c256aebfde0fbbe26e689a44, while the repository workspace HEAD is 0832a9ac80f74373750bb08179e86ac405f05e1b. The workspace also contains numerous automation/worktree and previous-build artifacts. This proves release drift/interference rather than a frontend compilation failure.",
+  "impact": "Producer acquisition and activation changes cannot be trusted to reach users deterministically. Increasing trial conversion or MRR while another process can overwrite the validated release risks measuring and optimizing against an unknown production version.",
+  "solution": "Preserve the failed health gate and do not force deployment. Treat production release ownership/concurrency as the blocker. The deploy pipeline already locks the validated SHA and build artifact; the remaining work is to identify and eliminate the independent process that rewrites the live build after/around GitHub Actions, then rerun the validated deployment and require public release SHA equality.",
   "validation": {
-    "source_review": "PASS",
-    "commit": "ebb4b2b498376d0a1125a543342615555c0954d9",
-    "github_actions": "PENDING_DISCOVERY",
-    "workflow_runs_found_immediately_after_push": 0,
-    "deploy": "NOT_CLAIMED_UNTIL_CI",
-    "production_verification": "NOT_VERIFIED"
+    "source_build": "PASS",
+    "performance_budget": "PASS",
+    "deploy_run": 36100371244,
+    "deploy_activation": "PASS",
+    "public_health": "FAIL_RELEASE_SHA_MISMATCH",
+    "expected_release_sha": "52cba2f7a02bdc6027c666cf4a31846cc00128e2",
+    "observed_public_release_sha": "e3a257f35e5c57a4c256aebfde0fbbe26e689a44",
+    "observed_origin_release_sha": "e3a257f35e5c57a4c256aebfde0fbbe26e689a44",
+    "cloudflare_cache_status": "DYNAMIC",
+    "production_verification": "FAIL"
   },
   "evidence": [
-    "Before commit ebb4b2b498376d0a1125a543342615555c0954d9, src/pages/HomeHubPage.js declared Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }) and used it for all discovered item prices.",
-    "Commit ebb4b2b498376d0a1125a543342615555c0954d9 removes that fixed formatter and derives currency from item.currency/item.currency_code, event currency metadata, or production currency metadata.",
-    "Immediate GitHub Actions lookup for the exact SHA returned zero runs; CI/deploy success is therefore not claimed yet."
+    "Deploy VPS run 36100371244 compiled successfully, passed the performance budget, acquired the VPS deploy lock and reported deployment completed to 52cba2f7a02bdc6027c666cf4a31846cc00128e2.",
+    "The same run failed its health check because release-sha.txt returned e3a257f35e5c57a4c256aebfde0fbbe26e689a44 instead of the expected SHA.",
+    "Fresh SentinelX inspection confirmed nginx root /var/www/cutinapp.petertecnet.com.br/build; local-origin and public release-sha.txt both return e3a257f35e5c57a4c256aebfde0fbbe26e689a44.",
+    "Cloudflare reports cf-cache-status DYNAMIC for release-sha.txt, so the currently observed stale release is present at the origin rather than explained by an edge cache hit.",
+    "The VPS repository workspace currently has HEAD 0832a9ac80f74373750bb08179e86ac405f05e1b plus multiple automation/worktree/build artifacts, indicating other host-side actors exist outside the validated GitHub Actions release path."
   ],
-  "risk": "Low-to-medium. Display formatting only; no checkout amount, payment, auth, publication, entitlement or persisted financial data changed.",
-  "gate_status": "Commit pushed to main; exact-SHA CI/deploy not yet available, so production PASS is not claimed.",
-  "next_independent_blocker": "Follow exact-SHA Actions for ebb4b2b498376d0a1125a543342615555c0954d9, then continue auditing producer activation/discovery surfaces for structural locale/currency/location defaults without overlapping active P0 ticket/payment or subscription-observability ownership."
+  "risk": "High operational risk if deploy is forced: a competing host-side process can make production differ from the SHA that passed CI.",
+  "gate_status": "BLOCKED: production release SHA is not deterministic; no production PASS claimed.",
+  "next_independent_blocker": "Identify which host-side automation/manual process rewrites /var/www/cutinapp.petertecnet.com.br/build, stop that release conflict without deleting source work, then rerun the existing validated deployment and verify origin/public release-sha.txt == current main SHA before resuming activation/conversion work."
 }
