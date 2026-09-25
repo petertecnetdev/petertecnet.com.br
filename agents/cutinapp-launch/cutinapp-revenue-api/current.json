@@ -1,28 +1,30 @@
 {
   "identity": "cutinapp-revenue-api",
-  "task": "Restore API CI before subscription revenue features",
+  "task": "Restore validated API delivery before subscription revenue features",
   "project": "petertecnetdev/api.petertecnet.com.br",
   "priority": "P0",
   "status": "IMPLEMENTING",
-  "updated_at": "2026-09-24T22:10:40-03:00",
+  "updated_at": "2026-09-25T13:10:11-03:00",
   "areas": [
-    "API CI",
-    "subscription release gate",
-    "architecture guardrails",
-    "Cutinapp payment reliability"
+    "API delivery gate",
+    "Laravel runtime permissions",
+    "non-interactive deploy",
+    "subscription release gate"
   ],
-  "problem": "API CI remains the mandatory release gate before implementing Subscription/Plan/Trial/Billing features. The latest inspected failing API CI run 36074109500 completed with migrations, canonical routes and the architecture gate green, but the test step failed and the final enforcement step failed. The downstream Deploy VPS workflow for main SHA cb982c5e7ad73d2ac2957a69aeec522e3a93d0f5 was skipped, correctly preventing deployment while validation is not green.",
-  "solution": "Do not start subscription billing features or weaken guardrails while CI is red. The previous deterministic CommerceTotals expectation was corrected without changing production money calculations. This cycle revalidated the release gate and narrowed the current failure class: architecture gate is now green; remaining blocker is the test suite. No speculative production-code change was made without exact failing assertion evidence.",
+  "problem": "API validation is green for main SHA 5413b273cccdc153cae1d7b09a038dbbcd74fada, and the verified pre-deploy database backup succeeds, but Deploy Producer Onboarding run 36151052497 fails inside the shared Laravel deploy before config:cache/health. The VPS runtime tree contains files the deploy user cannot chmod, and the workflow later invokes a sudo command that is not permitted non-interactively. Deploy VPS run 36152455682 is consequently skipped. Subscription/Plan/Trial/Billing feature work remains gated by reliable validated delivery.",
+  "solution": "Keep the release gate strict. Do not add subscription charging while delivery is broken. The failed deploy proves source validation and backup are healthy; the blocker is operational ownership/sudo policy. The shared deploy must be made non-interactive without weakening .env/config-cache guards, and storage/bootstrap runtime ownership must be normalized safely without deleting uploads, sessions, logs or private identity files. Worktree metadata permission errors are a secondary reliability risk and must not be solved by deleting active worktrees blindly.",
   "commits": {
-    "api_previous_fix": "cb23798284235708f4a8f1e51d57e995f60c11ef",
-    "api_main_observed": "cb982c5e7ad73d2ac2957a69aeec522e3a93d0f5"
+    "api_main_observed": "5413b273cccdc153cae1d7b09a038dbbcd74fada"
   },
   "evidence": [
-    "API CI run 36074109500: clean migrations success, canonical API routes success, architecture gate success, tests failure, enforcement failure.",
-    "Deploy VPS run 36074260300 for SHA cb982c5e7ad73d2ac2957a69aeec522e3a93d0f5 was skipped; backup/deploy jobs did not run because the release gate was not satisfied.",
-    "PendingCheckoutRecoveryService remains app-scoped by app_id and user_id and restricts recoverable Mercado Pago PIX orders to pending/in_process provider states.",
-    "No subscription price, automatic recurring charge or Cutinapp ticket commission was introduced."
+    "Deploy Producer Onboarding run 36151052497: validate job SUCCESS and verified encrypted pre-deploy backup SUCCESS.",
+    "Run 36151052497 deploy job 108124720255: exact validated SHA 5413b273cccdc153cae1d7b09a038dbbcd74fada fetched and reset successfully; composer install and migrations completed.",
+    "The deploy log records many Operation not permitted errors under storage/framework, storage/app/public, storage/app/private and storage/logs during chmod -R ug+rwX.",
+    "After migrations the deploy terminates with sudo: a terminal is required to read the password / a password is required, exit code 1; health check is skipped.",
+    "git fetch also reports permission-denied locks for multiple .git/worktrees/* HEAD refs and failed background gc/reflog; fetch itself still advances origin/main.",
+    "Deploy VPS run 36152455682 for the same SHA completed as skipped, so this revision is not claimed as production-delivered.",
+    "No subscription price, automatic recurring charge, ticket commission or destructive migration was introduced."
   ],
-  "production_gate": "API CI RED — subscription backend feature work and API deploy remain blocked until the complete test suite is green.",
-  "next_blocker": "Obtain the exact failing assertions from the current API CI test step and fix the next deterministic test/regression group. Do not begin Subscription/Plan/Trial/Billing implementation until API CI is green."
+  "production_gate": "BLOCKED — validation and verified backup are green, but Laravel deploy is not reliably non-interactive because runtime ownership and sudo policy are inconsistent. Health was not reached.",
+  "next_blocker": "Fix the shared Laravel deploy/runtime ownership contract safely: preserve all storage data, avoid interactive sudo, retain production config guards, and then rerun the exact validated SHA through backup -> deploy -> health. Only after delivery is green begin generic Plan/Trial/Subscription/Entitlement implementation scoped by application identifiers."
 }
