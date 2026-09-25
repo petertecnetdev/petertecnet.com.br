@@ -1,10 +1,10 @@
 {
   "agent": "cutinapp-revenue-growth",
-  "updated_at": "2026-09-24T22:49:00-03:00",
+  "updated_at": "2026-09-24T23:55:00-03:00",
   "priority": "P2",
   "status": "VERIFYING_CI_DEPLOY",
-  "task": "Align producer acquisition SEO with the subscription/trial model",
-  "impact": "Targets qualified producer searches with the actual conversion proposition: 30-day initial trial followed by producer subscription, while avoiding an unverified no-commission claim in search metadata.",
+  "task": "Remove Brazil-only structured-data scope from global producer acquisition SEO",
+  "impact": "Prevents search engines from receiving an explicit Brazil-only service-area signal on the main producer landing while preserving local discovery pages as optional segments rather than Cutinapp identity.",
   "repositories": [
     "petertecnetdev/cutinapp.petertecnet.com.br",
     "petertecnetdev/petertecnet.com.br"
@@ -14,14 +14,14 @@
     "agents/cutinapp-launch/cutinapp-revenue-growth/current.json"
   ],
   "commits": [
-    "581c27f2d2851f002a04462224e50a0ab65a8715"
+    "80c0794af1c6bf17b07d408c2534de148962da01"
   ],
   "evidence": [
-    "The producer landing already presents a 30-day trial and subscription positioning, with gateway fees explicitly separated from the Cutinapp subscription.",
-    "Updated /for-producers title, meta description and JSON-LD to target producer-platform and 30-day-trial intent without inventing a subscription price.",
-    "The static sitemap already includes /for-producers at priority 0.98.",
-    "The phrase 'sem comissão Cutinapp por ingresso' was not added to search metadata because repository search did not provide enough evidence in this cycle that all commerce/terms logic is already consistent with that promise.",
-    "Search Console/GA4 are not available in the connected toolset for this run; no impressions, CTR, trial conversion or MRR values were invented."
+    "Audit found PRODUCER_SEO JSON-LD declaring Service.areaServed as BR on the global /for-producers landing.",
+    "Changed the global producer Service areaServed from BR to Worldwide; no city was substituted as a new global fallback.",
+    "The general /event and root discovery SEO remain city-independent; /eventos local routes derive locality only from an explicit URL segment.",
+    "No Search Console/GA4 integration is available in this run, so impressions, CTR, indexation, trial conversion and MRR were not invented.",
+    "CI status was not yet reported for commit 80c0794a at the time of this cycle; production validation remains pending."
   ],
-  "next": "Wait for CI/deploy of 581c27f2, verify production metadata/canonical/sitemap when the release is live, then add additional high-intent producer acquisition pages only where each page has distinct useful content and a measurable trial CTA."
+  "next": "Verify CI/deploy for 80c0794a and production JSON-LD, then audit eventSeo, SeoHead, sitemap generation and public production/event schemas for hidden BR/city/locale defaults before expanding global/local landing inventory."
 }
