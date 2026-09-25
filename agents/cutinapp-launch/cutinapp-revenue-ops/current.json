@@ -1,27 +1,29 @@
 {
   "identity": "cutinapp-revenue-ops",
   "project": "cutinapp",
-  "task": "Establish verified revenue observability and production-operations visibility without inventing funnel metrics",
+  "task": "Operate verified subscription-revenue observability without inventing commercial metrics",
   "priority": "P2",
-  "status": "BLOCKED",
+  "status": "IMPLEMENTING",
   "areas": [
     "agents/cutinapp-launch/revenue-scorecard.json",
-    "petertecnetdev/admincenter.petertecnet.com.br revenue/order/payment operations",
-    "petertecnetdev/petertecnet.com.br .github/workflows/admincenter-production.yml"
+    "subscription funnel observability",
+    "Admin Center subscription operations"
   ],
   "started_at": "2026-09-24T20:21:21-03:00",
-  "checked_at": "2026-09-24T21:23:20-03:00",
+  "checked_at": "2026-09-24T22:25:10-03:00",
   "commits": [
-    "e566f563c53c9e469143090004484844f99d492d"
+    "b36b8d6b50374d10d17cdd8c75878c6dc0c82945"
   ],
   "evidence": [
-    "revenue-scorecard.json remains null/UNINSTRUMENTED for every funnel and monetization metric because no verified data source has been established.",
-    "GitHub branch enumeration reconfirmed that petertecnetdev/admincenter.petertecnet.com.br exposes only main; no remote admincenter branch exists.",
-    "The central repository contains .github/workflows/admincenter-production.yml named Admin Center Production (main), triggered by main and documenting pull-based atomic publication with public release-sha health verification.",
-    "That workflow sets working-directory apps/admincenter and path filters apps/admincenter/**, but apps/admincenter/package.json and the apps/admincenter directory are absent from the current central main tree, so the workflow cannot currently be treated as a valid deployment path for the standalone Admin Center.",
-    "No Admin Center code was changed and no deployment was forced while the authoritative production topology is contradictory."
+    "revenue-scorecard.json schema_version 2 now models producer subscription as primary revenue and explicitly records ticket_commission=false.",
+    "Subscription metrics now include trials_started, trials_active, producer activations, time to first published event, producers with real usage/sales, trial_to_paid_rate, active_subscribers, MRR, renewals, payment failures/recoveries, churn, DAU/WAU and LTV.",
+    "Ticket sales and GMV remain in the scorecard only as ecosystem health/value-delivery metrics, not Cutinapp take rate.",
+    "Every metric remains null because no verified measurement source exists yet; LTV is explicitly INSUFFICIENT_DATA.",
+    "The 30-day trial is recorded as the current target only. No definitive subscription price or automatic billing was introduced.",
+    "cutinapp-revenue-api is IMPLEMENTING the P0 API CI restoration; API CI remains RED and therefore generic Trial/Subscription/Billing implementation/deploy is correctly blocked.",
+    "The previously identified Admin Center deployment topology inconsistency remains unresolved, so no unsafe Admin Center deployment was attempted."
   ],
-  "risk": "Writing revenue operations to the standalone main and assuming it deploys, or creating an admincenter branch ad hoc, could bypass or diverge from the intended atomic production path. The existing central workflow is also stale/broken against the current tree, so it cannot provide the required validation/deploy evidence.",
-  "blocker": "Reconcile Admin Center source-of-truth and deployment workflow: either point the production workflow at petertecnetdev/admincenter.petertecnet.com.br/main with its real validation commands, or restore the declared apps/admincenter source in the central repository. Do not fabricate a branch to mask the mismatch.",
-  "next_independent_blocker": "After deployment topology is reconciled, implement verifiable Cutinapp order/payment/ticket/GMV/platform-revenue diagnostics and populate revenue-scorecard.json only from those measured sources."
+  "risk": "Displaying fabricated subscription metrics or treating the target trial as already active would create false business evidence. Implementing billing while API CI is red would violate the release gate.",
+  "blocker": "Establish verified subscription lifecycle instrumentation after API CI is green, then expose those measured sources to Admin Center. Reconcile Admin Center deployment source-of-truth before publishing operations dashboards.",
+  "next_independent_blocker": "Once API CI is green, instrument generic trial_start/trial_end, entitlement, subscription status and billing lifecycle events by application_id/app_id/app_slug; then populate this scorecard and Admin Center from those real sources."
 }
