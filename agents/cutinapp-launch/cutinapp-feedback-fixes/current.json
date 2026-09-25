@@ -3,12 +3,13 @@
   "project": "cutinapp",
   "role": "Growth Activation & Conversion Fixes",
   "priority": "P0",
-  "status": "IMPLEMENTING",
+  "status": "DONE",
   "task": "Fix production-reported producer activation blockers: exact event-create validation feedback, readable city autocomplete, Google signup, duplicate producer footer, and verify the event publish handoff.",
   "repositories": [
     "petertecnetdev/cutinapp.petertecnet.com.br"
   ],
-  "branch": "fix/production-feedback-activation-20260925",
+  "pr": 635,
+  "merged_sha": "6c7b6a23f5d41f7efa5e2dd43bd55d4186b7f69e",
   "area_files": [
     "src/pages/ProducerLandingPage.js",
     "src/pages/auth/RegisterPage.js",
@@ -17,17 +18,28 @@
     "src/components/location/CityAutocompleteControl.css"
   ],
   "implemented": [
-    "Add Google Identity signup to /register using the existing /auth/google account-creation flow.",
-    "Remove the page-level Peter Tecnet signature on /for-producers so the global shell renders it only once.",
-    "Force readable dark-theme contrast in the city autocomplete dropdown.",
-    "Show the producer an exact checklist of missing/invalid event fields before publish instead of treating the optional image as required.",
-    "Intercept create/publish until required fields are complete and scroll to the explicit validation summary."
+    "Added Google Identity signup to /register using the existing /auth/google account-creation/linking flow.",
+    "Removed the page-level Peter Tecnet signature on /for-producers so the global shell renders it only once.",
+    "Forced readable dark-theme contrast in the event city autocomplete dropdown.",
+    "Added an exact checklist of missing/invalid event fields before publish and removed optional image from required readiness.",
+    "Intercepted create/publish while required fields are incomplete and scroll to the explicit validation summary.",
+    "Revalidated event publish handoff: current EventCreatePage already publishes with is_published=1, requires API publication confirmation, and then navigates to ticket creation."
   ],
+  "validation": {
+    "branch_validate": "PASS - Validate Cutinapp #2645",
+    "branch_lighthouse": "PASS - Lighthouse CI #557",
+    "main_validate": "PASS - Validate Cutinapp #2647",
+    "main_lighthouse": "PASS - Lighthouse CI #559",
+    "deploy_run": "Deploy VPS #1539",
+    "deploy_application": "PASS - atomic VPS activation 733e20d3a5f564259e46429f20406c747b579409 -> 6c7b6a23f5d41f7efa5e2dd43bd55d4186b7f69e",
+    "public_root_health": "PASS",
+    "public_release_marker": "WARNING - release-sha endpoint still returned e3a257f35e5c57a4c256aebfde0fbbe26e689a44 immediately after activation, so the workflow concluded failure even though build, activation and root reachability passed. Exact public edge/cache version remains unverified."
+  },
   "coordination": [
-    "No CLAIMED/IMPLEMENTING owner was found for RegisterPage, ProducerLanding signature, CityAutocompleteControl, or EventExperienceEditorSurface.",
-    "The previously recorded draft-to-checkout P0 is already resolved on current Cutinapp main: EventCreatePage sends is_published=1, requires the API to confirm publication, and then navigates to ticket creation. No duplicate change was made.",
-    "Do not touch active cutinapp-growth-conversion files: LocationFields.js, ProductionCreatePage.js, ProductionEditPage.js, postalCode utilities."
+    "No CLAIMED/IMPLEMENTING owner was found for RegisterPage, ProducerLanding signature, CityAutocompleteControl, or EventExperienceEditorSurface when claimed.",
+    "Did not touch active cutinapp-growth-conversion files: LocationFields.js, ProductionCreatePage.js, ProductionEditPage.js, postalCode utilities."
   ],
   "started_at": "2026-09-25T01:21:00-03:00",
-  "next_point": "Open PR, inspect exact diff, run CI, fix any failures, merge only if healthy, then verify deploy evidence."
+  "completed_at": "2026-09-25T02:07:00-03:00",
+  "next_point": "Treat the stale public release-sha marker as deployment-infrastructure follow-up; product fixes are merged, validated and atomically activated on the VPS."
 }
