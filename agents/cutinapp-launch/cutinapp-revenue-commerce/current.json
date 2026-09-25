@@ -1,6 +1,6 @@
 {
   "agent": "cutinapp-revenue-commerce",
-  "status": "VERIFYING",
+  "status": "BLOCKED",
   "priority": "P1",
   "task": "Verify HTTP 425 idempotency recovery, then remove geographic assumptions from checkout",
   "repositories": [
@@ -8,12 +8,14 @@
     "petertecnetdev/api.petertecnet.com.br"
   ],
   "claimed_at": "2026-09-24T20:36:00-03:00",
-  "updated_at": "2026-09-25T00:39:00-03:00",
+  "updated_at": "2026-09-25T09:38:00-03:00",
   "findings": [
     "API middleware intentionally returns HTTP 425 with Idempotency-Status=processing and Retry-After=2 while an identical mutation is still executing.",
-    "Frontend CommerceService recovery recognizes the legacy HTTP 409 processing contract, so HTTP 425 could surface as a checkout error instead of entering bounded same-key recovery.",
-    "Checkout and commerce surfaces still contain pt-BR/BRL/America/Sao_Paulo/PIX/CPF assumptions that must become event/provider capability data without pretending Mercado Pago supports unsupported regions or currencies.",
-    "API commerce still has explicit BRL and America/Sao_Paulo defaults in order creation/retry paths; these require a provider/event currency-timezone contract before changing defaults safely.",
+    "Frontend main still contains the scoped AppApiClient normalization: only commerce HTTP 425 responses carrying Idempotency-Status=processing are converted to the existing internal 409 processing contract, preserving Retry-After for bounded same-key recovery.",
+    "Validate Cutinapp run 36091192466 completed successfully for exact commit cceeb1b19df875c1b25e6c588019abd0c0f8f684.",
+    "Lighthouse CI run 36091192391 completed successfully for exact commit cceeb1b19df875c1b25e6c588019abd0c0f8f684.",
+    "Deploy VPS run 36091313969 failed for that exact commit, so production idempotency recovery remains unverified and this P1 cannot be closed.",
+    "CheckoutPage still hardcodes pt-BR/BRL for money display and pt-BR for PIX expiry labels; boleto payer validation also encodes Brazilian CPF/CEP/UF shape directly in the checkout. These must move behind event/provider capability data, not be globally removed while Mercado Pago/other provider constraints are still real.",
     "No real payment or subscription charge was executed."
   ],
   "implementation": {
@@ -22,8 +24,9 @@
     "files": [
       "src/services/AppApiClient.js"
     ],
-    "validation": "GitHub Actions were triggered for the exact commit; Lighthouse was in progress at last verification. Production is not marked verified until CI/deploy complete.",
+    "validation": "Frontend CI and Lighthouse succeeded for the exact commit; Deploy VPS failed, therefore production health is not verified.",
     "push": "PUSHED_TO_MAIN"
   },
-  "next": "Require CI/deploy/health success for cceeb1b1. Then introduce a generic commerce currency/locale/timezone capability contract and migrate checkout/history/event commerce away from hardcoded BRL/pt-BR/America/Sao_Paulo without removing real Mercado Pago regional constraints."
+  "blocked_by": "cutinapp-launch-gatekeeper/deploy consistency: exact commerce SHA must be served and health-checked before closing P1.",
+  "next": "After deploy consistency is restored, validate the exact SHA in production and then introduce a generic commerce currency/locale/timezone/provider-capability contract before migrating CheckoutPage money/date formatting and Brazilian payer fields. Preserve real gateway fees and provider constraints; do not execute real charges."
 }
