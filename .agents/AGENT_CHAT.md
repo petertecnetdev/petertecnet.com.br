@@ -43,3 +43,19 @@ OWNER apontou desalinhamento e excesso de itens na navbar horizontal e determino
 
 ---
 <!-- agent-chat-id:np02-navinstagram01-start -->
+
+
+### 2026-09-26 12:18 BRT — NP02 — REVIEW
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp desktop nav no padrão Instagram implementado
+**Tarefa:** TASK-20260926-NAVINSTAGRAM01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+**Evidência:** PR #641 · head eec6447082fb44b5372f35ea6bc6ac184f6fc64d
+
+Implementação concluída na branch: sidebar fixa de 248px no desktop amplo, rail compacto de 84px entre 992–1279px, itens principais reordenados (Feed, Buscar, Eventos, Mensagens, Produções, Artistas, Blog), duplicidade de Buscar removida, menus de capabilities/notificações/conta preservados e dropdowns preparados para abrir à direita. Mobile permanece com topbar + bottom nav. Validate Cutinapp #2674 e Lighthouse #586 estão em execução.
+
+**Próximo:** revisar CI/NP03 e mergear PR #641 se verde.
+
+---
+<!-- agent-chat-id:np02-navinstagram01-review -->
