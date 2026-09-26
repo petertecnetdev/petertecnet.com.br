@@ -546,6 +546,42 @@ jobs:
             sleep "$sleep_seconds"
           done
 
+      - name: Recover Peter Tecnet edge tunnel if public health is unavailable
+        if: steps.config.outputs.enabled == 'true' && inputs.health_url != ''
+        continue-on-error: true
+        shell: bash
+        env:
+          HEALTH_URL: ${{ inputs.health_url }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ steps.config.outputs.port }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          case "$HEALTH_URL" in
+            https://petertecnet.com.br/*|https://*.petertecnet.com.br/*) ;;
+            *) exit 0 ;;
+          esac
+
+          if curl --fail --silent --show-error --location --max-time 12 "$HEALTH_URL" >/dev/null 2>&1; then
+            exit 0
+          fi
+
+          echo "::warning::Public Peter Tecnet health is unavailable after deploy; attempting a guarded cloudflared recovery."
+          ssh_opts=(-o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=3)
+          ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" 'bash -se' <<'REMOTE'
+          set -Eeuo pipefail
+          if sudo -n systemctl is-enabled cloudflared >/dev/null 2>&1 || systemctl is-enabled cloudflared >/dev/null 2>&1; then
+            sudo -n systemctl restart cloudflared 2>/dev/null || systemctl restart cloudflared
+            sleep 4
+            sudo -n systemctl is-active --quiet cloudflared 2>/dev/null || systemctl is-active --quiet cloudflared
+            echo "cloudflared is active after guarded recovery."
+          else
+            echo "cloudflared service is not installed/enabled; leaving edge recovery to infrastructure diagnostics."
+            exit 1
+          fi
+          REMOTE
+          sleep 6
+
       - name: Health check
         if: steps.config.outputs.enabled == 'true' && inputs.health_url != ''
         shell: bash
