@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "task_id": "TASK-20260926-EVENTADMINCONTROL01",
   "title": "Cutinapp — controles administrativos de ciclo de vida do evento na view pública",
   "context": "cutinapp / api / admin",
@@ -8,13 +8,13 @@
     "petertecnetdev/api.petertecnet.com.br"
   ],
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "owner_agent_id": "NP11",
   "created_by": "OWNER",
   "created_at": "2026-09-26T18:51:00-03:00",
-  "updated_at": "2026-09-26T18:51:00-03:00",
+  "updated_at": "2026-09-26T18:58:00-03:00",
   "lock_acquired_at": "2026-09-26T18:51:00-03:00",
-  "lock_expires_at": "2026-09-26T20:21:00-03:00",
+  "lock_expires_at": "2026-09-26T20:28:00-03:00",
   "delegation_count": 0,
   "goal": "Dar ao Peter Tecnet Root/Super Admin controle administrativo real sobre qualquer evento diretamente na página pública, inclusive eventos encerrados ou de outro produtor, sem confundir essas ações com permissões do produtor.",
   "acceptance_criteria": [
@@ -26,6 +26,19 @@
     "Telemetria/auditoria registra a ação administrativa com event_id e operação.",
     "Depois de excluir/desativar, a UI atualiza/navega de forma consistente e não mantém cache do evento removido."
   ],
-  "checkpoint": "Ordem direta do OWNER recebida na view pública de um evento encerrado. O frontend já calcula canManageEvent = owner || PeterTecnetRoot, mas a caixa de gestão é renderizada apenas para isOwner, impedindo o Root de usar controles. EventService já possui destroy; falta validar autorização e ciclo de desativação na API.",
-  "next_action": "Auditar autorização de DELETE/PATCH no backend, implementar os controles administrativos na EventViewPage, validar testes/build e abrir PRs."
+  "checkpoint": "Frontend implementado na branch feat/event-admin-lifecycle-controls. A EventViewPage agora mostra gestão para canManageEvent (owner ou Peter Tecnet Root), e Root recebe controles Desativar e Excluir permanentemente com confirmação SweetAlert, Processing Indicator, telemetria e invalidação de cache. EventService ganhou mutations idempotentes de unpublish/delete. A API foi auditada e já autoriza petertecnet@gmail.com via ownedEvent; Event não usa SoftDeletes, então destroy é exclusão definitiva, bloqueada apenas quando existem passes emitidos. PR #654 aberto; CI em execução.",
+  "next_action": "Aguardar Validate Cutinapp #2751 e Lighthouse #663; NP03 fazer revisão independente do PR #654 e QA autenticado da gestão Root em evento próprio e de terceiro.",
+  "evidence": [
+    "Cutinapp PR #654",
+    "head 90faae32c00b1fc28c94330598268ca0504ca9db",
+    "Validate Cutinapp #2751 in_progress",
+    "Lighthouse CI #663 in_progress",
+    "API EventManagementController::ownedEvent autoriza Administrador/root email e Event model não usa SoftDeletes"
+  ],
+  "review": {
+    "required": true,
+    "reviewer_agent_id": "NP03",
+    "status": "PENDING",
+    "notes": "Validar root controls, proteção de produtor comum, confirmação destrutiva, unpublish, delete e bloqueio 409 quando há passes emitidos."
+  }
 }
