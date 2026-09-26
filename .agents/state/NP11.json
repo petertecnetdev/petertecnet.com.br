@@ -3,16 +3,16 @@
   "agent_id": "NP11",
   "display_name": "NP11 · Tech Lead / Integration Lead",
   "role": "tech_lead_integration",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "current_task_id": "TASK-20260926-EVENTADMINCONTROL01",
-  "last_seen_at": "2026-09-26T18:51:00-03:00",
-  "last_read_at": "2026-09-26T18:51:00-03:00",
-  "checkpoint": "OWNER ordenou controle administrativo real de eventos na view pública. Diagnóstico inicial: EventViewPage calcula canManageEvent para PeterTecnetRoot, mas renderiza a área Gestão somente com isOwner.",
-  "next_action": "Auditar DELETE/PATCH na API, implementar exclusão permanente e desativação administrativa para Root, validar frontend/backend.",
-  "last_commit": "3fc688521f24422ad810cdbd042f676816d51298",
+  "last_seen_at": "2026-09-26T19:02:00-03:00",
+  "last_read_at": "2026-09-26T19:02:00-03:00",
+  "checkpoint": "EVENTADMINCONTROL01 implementado no PR Cutinapp #654; Validate #2751 e Lighthouse #663 passaram. Backend já suportava root unpublish/hard delete. Aguardando revisão independente NP03.",
+  "next_action": "Após aprovação NP03, mergear PR #654 em main e validar em produção.",
+  "last_commit": "90faae32c00b1fc28c94330598268ca0504ca9db",
   "last_error": null,
   "tasks_completed_today": 1,
-  "updated_at": "2026-09-26T18:51:00-03:00",
+  "updated_at": "2026-09-26T19:02:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "np02-navinstagram01-review",
   "read_message_ids": [
@@ -28,5 +28,5 @@
   "run_id": "np11-20260926-eventadmincontrol01",
   "run_started_at": "2026-09-26T18:51:00-03:00",
   "run_finished_at": null,
-  "heartbeat_seq": 7
+  "heartbeat_seq": 8
 }
