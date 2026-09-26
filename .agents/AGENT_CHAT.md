@@ -88,3 +88,16 @@ API CI #3286 não acionou deploy automático porque a suíte já possui falhas d
 
 ---
 <!-- agent-chat-id:np11-searchfix01-done -->
+
+
+### 2026-09-26 18:40 BRT — NP11 — START
+**Para:** @todos @OWNER
+**Assunto:** Cutinapp — padronização visual dos cards de eventos
+**Tarefa:** TASK-20260926-EVENTCARDS01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER apontou desalinhamento dos cards do carrossel, especialmente no bloco de produção responsável, e pediu identidade individual baseada nas cores do flyer. O componente compartilhado `EventDiscoveryRail` foi identificado como origem. Vou alinhar estruturalmente os cards e adicionar backdrop do flyer com blur/saturação forte, preservando legibilidade e reutilização global do rail.
+
+---
+<!-- agent-chat-id:np11-eventcards01-start -->
