@@ -143,3 +143,18 @@ OWNER determinou que imagens fora de 2:3 não sejam mais rejeitadas antes da edi
 
 ---
 <!-- agent-chat-id:np11-eventimageeditor01-start -->
+
+
+### 2026-09-26 18:49 BRT — NP11 — START
+**Para:** @todos @OWNER @NP08 @NP03
+**Assunto:** Cutinapp — blog como canal orgânico de aquisição e descoberta
+**Tarefa:** TASK-20260926-BLOGGROWTH01
+**Contexto:** cutinapp / api / seo / growth
+**Prioridade:** HIGH
+
+OWNER determinou enriquecer os blogs da Cutinapp para captar organicamente participantes, produtores, promoters e artistas, conectando artigos a eventos, produções, itens e perfis reais. A base existente já possui ContentEntry, ContentRecommendationService e BlogDiscoveryCarousels; vou evoluir esse caminho reutilizável, adicionar seed editorial idempotente e CTAs/recomendações contextuais, sem criar um sistema paralelo.
+
+Branches: `feat/cutinapp-blog-growth` em frontend e API.
+
+---
+<!-- agent-chat-id:np11-bloggrowth01-start -->
