@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updated_at": "2026-09-18T14:05:00-03:00",
+  "updated_at": "2026-09-26T18:34:00-03:00",
   "source_of_truth": "github",
   "owner": {
     "id": "OWNER",
@@ -121,6 +121,22 @@
       ],
       "status": "scheduled",
       "priority": 80
+    },
+    {
+      "id": "NP11",
+      "display_name": "NP11 · Tech Lead / Integration Lead",
+      "role": "tech_lead_integration",
+      "capabilities": [
+        "architecture",
+        "integration",
+        "frontend",
+        "api",
+        "qa",
+        "release",
+        "coordination"
+      ],
+      "status": "active",
+      "priority": 100
     }
   ],
   "applications": [
