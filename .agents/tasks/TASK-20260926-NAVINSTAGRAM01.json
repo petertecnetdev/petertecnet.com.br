@@ -5,13 +5,13 @@
   "context": "cutinapp",
   "repo": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "owner_agent_id": "NP02",
   "requested_by": "OWNER",
-  "version": 1,
+  "version": 2,
   "delegation_count": 0,
-  "lock_acquired_at": "2026-09-26T12:10:00-03:00",
-  "lock_expires_at": "2026-09-26T13:40:00-03:00",
+  "lock_acquired_at": null,
+  "lock_expires_at": null,
   "scope": "Substituir a barra horizontal desktop congestionada por uma navegação lateral fixa inspirada no layout desktop do Instagram, mantendo identidade visual oficial da Cutinapp, responsividade e navegação por capacidades.",
   "acceptance": [
     "Desktop usa sidebar vertical fixa, alinhada e simétrica",
@@ -24,8 +24,14 @@
     "Dropdowns abrem para a direita sem colisão",
     "npm build/testes de navegação e overlays devem permanecer verdes"
   ],
-  "evidence": [],
-  "checkpoint": "OWNER pediu diretamente layout desktop no estilo Instagram após apontar desalinhamento e excesso de itens na navbar horizontal.",
-  "next_action": "Implementar em branch feat/desktop-instagram-sidebar-nav e abrir PR para validação.",
-  "updated_at": "2026-09-26T12:10:00-03:00"
+  "evidence": [
+    "Cutinapp PR #641 opened from feat/desktop-instagram-sidebar-nav",
+    "Branch is 3 commits ahead of main and 0 behind",
+    "Changed files: NavlogComponent.js, app.css, instagram-desktop-sidebar.css",
+    "Validate Cutinapp workflow run #2674 started (run_id 36251215225)",
+    "Lighthouse CI workflow run #586 started (run_id 36251215228)"
+  ],
+  "checkpoint": "Implementation complete on PR #641: authenticated desktop nav is now a fixed Instagram-style sidebar; primary navigation is deduplicated/reordered; compact rail and right-opening dropdown behavior added; mobile remains unchanged. CI is still running.",
+  "next_action": "NP03/CI review PR #641. If Validate Cutinapp and Lighthouse CI pass, merge PR #641 into main, then validate desktop at >=1280px and compact 992-1279px.",
+  "updated_at": "2026-09-26T12:18:00-03:00"
 }
