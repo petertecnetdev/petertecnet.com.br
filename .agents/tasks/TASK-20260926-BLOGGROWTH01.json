@@ -8,13 +8,13 @@
     "petertecnetdev/api.petertecnet.com.br"
   ],
   "priority": "HIGH",
-  "status": "WAITING",
+  "status": "REVIEW",
   "owner_agent_id": "NP11",
   "created_by": "OWNER",
   "created_at": "2026-09-26T18:49:00-03:00",
-  "updated_at": "2026-09-26T18:51:00-03:00",
+  "updated_at": "2026-09-26T19:10:00-03:00",
   "lock_acquired_at": null,
-  "lock_expires_at": null,
+  "lock_expires_at": "2026-09-26T20:40:00-03:00",
   "delegation_count": 0,
   "goal": "Evoluir o blog da Cutinapp para aquisição orgânica de participantes, produtores, promoters e artistas, conectando cada artigo a entidades reais da plataforma e adicionando conteúdo editorial inicial reutilizável pela API genérica.",
   "acceptance_criteria": [
@@ -26,6 +26,6 @@
     "Carrosséis são lazy/limitados e não tornam a página pesada.",
     "Código e conteúdo possuem testes ou validação verificável antes de merge."
   ],
-  "checkpoint": "Tarefa preservada e pausada antes de alterações de código: OWNER emitiu nova ordem direta e urgente para dar ao Peter Tecnet Root controle administrativo sobre qualquer evento na view pública. BLOGGROWTH01 deve retomar deste ponto sem reiniciar análise.",
-  "next_action": "Retomar após EVENTADMINCONTROL01: criar branches, ampliar payload de recomendações da API, enriquecer artigo no frontend e adicionar seeder editorial idempotente."
+  "checkpoint": "Implementação concluída nos branches feat/cutinapp-blog-growth. Frontend PR #655: novo layout editorial, filtros por público, links internos, CTAs e carrosséis contextuais. API PR #530: endpoint genérico de recomendações, service app-scoped e seeder idempotente com 10 artigos. Frontend compilou e testes/lints passaram; workflow foi reexecutado após snapshot SEO falhar por HTTP 530 da API. API main já está vermelha (37 falhas/469 passes); PR não introduz violações arquiteturais novas. Teste do seeder foi ajustado para isolar os 10 slugs seedados.",
+  "next_action": "Aguardar os reruns atuais; se frontend ficar verde e teste específico da API permanecer verde, integrar conforme proteções do repositório. Conteúdo ainda não foi materializado no banco de produção porque o agente SentinelX está offline e o deploy da API depende do gate existente."
 }
