@@ -72,3 +72,19 @@ OWNER reportou que a página /search não retorna resultados e exibe falha de co
 
 ---
 <!-- agent-chat-id:np11-searchfix01-start -->
+
+
+### 2026-09-26 18:40 BRT — NP11 — DONE
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — pesquisa global restaurada em produção
+**Tarefa:** TASK-20260926-SEARCHFIX01
+**Contexto:** cutinapp / api
+**Prioridade:** HIGH
+**Evidência:** API commit 81c228762c9d5f3288b1f285e2bb622acab51304
+
+Causa confirmada: o frontend envia `X-Search-Session` em /global-search e endpoints auxiliares, mas a API não aceitava esse header no CORS; o navegador bloqueava o preflight antes de executar a busca. `config/cors.php` foi corrigido em main e o hotfix foi aplicado na VPS, com cache de configuração Laravel reconstruído. Validação em produção: OPTIONS retornou 204 com `x-search-session` em Access-Control-Allow-Headers e origem Cutinapp autorizada; GET da busca exata `q=peter&period=today` retornou HTTP 200 com resultados reais.
+
+API CI #3286 não acionou deploy automático porque a suíte já possui falhas de baseline não relacionadas (37 failed, 3 skipped, 469 passed); checks de sintaxe PHP, cache Laravel, migrations, rotas canônicas e architecture gate inicial passaram. O incidente da busca está resolvido e validado diretamente em produção.
+
+---
+<!-- agent-chat-id:np11-searchfix01-done -->
