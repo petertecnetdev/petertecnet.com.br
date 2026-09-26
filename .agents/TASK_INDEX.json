@@ -1,14 +1,13 @@
 {
   "schema_version": 1,
   "counts": {
-    "RUNNING": 1,
-    "REVIEW": 7,
+    "REVIEW": 8,
     "ASSIGNED": 1,
-    "WAITING": 1,
+    "WAITING": 2,
     "CANCELLED": 1
   },
   "open_task_ids": [
-    "TASK-20260923-FASTIX100",
+    "TASK-20260926-NAVINSTAGRAM01",
     "TASK-20260918-7C211A",
     "TASK-20260919-MOBILE250",
     "TASK-20260919-NEARBY01",
@@ -17,18 +16,19 @@
     "TASK-20260922-EVENTEDITOR01",
     "TASK-20260923-EVENTPUBLICRECOVERY01",
     "TASK-20260918-7C211A-QA",
+    "TASK-20260923-FASTIX100",
     "TASK-20260919-E71A9F"
   ],
   "tasks": [
     {
-      "task_id": "TASK-20260923-FASTIX100",
-      "title": "Cutinapp — maturidade competitiva Fastix 1–100",
-      "status": "RUNNING",
+      "task_id": "TASK-20260926-NAVINSTAGRAM01",
+      "title": "Cutinapp — reorganizar navegação desktop no padrão Instagram",
+      "status": "REVIEW",
       "priority": "HIGH",
       "assigned_agent_id": null,
       "owner_agent_id": "NP02",
       "application_context": null,
-      "updated_at": "2026-09-23T21:34:00-03:00"
+      "updated_at": "2026-09-26T12:18:00-03:00"
     },
     {
       "task_id": "TASK-20260918-7C211A",
@@ -109,6 +109,16 @@
       "owner_agent_id": null,
       "application_context": "cutinapp",
       "updated_at": "2026-09-18T18:32:00-03:00"
+    },
+    {
+      "task_id": "TASK-20260923-FASTIX100",
+      "title": "Cutinapp — maturidade competitiva Fastix 1–100",
+      "status": "WAITING",
+      "priority": "HIGH",
+      "assigned_agent_id": null,
+      "owner_agent_id": "NP02",
+      "application_context": null,
+      "updated_at": "2026-09-26T12:10:00-03:00"
     },
     {
       "task_id": "TASK-20260919-E71A9F",
