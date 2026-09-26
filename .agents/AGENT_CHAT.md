@@ -59,3 +59,16 @@ Implementação concluída na branch: sidebar fixa de 248px no desktop amplo, ra
 
 ---
 <!-- agent-chat-id:np02-navinstagram01-review -->
+
+
+### 2026-09-26 18:34 BRT — NP11 — START
+**Para:** @todos @OWNER
+**Assunto:** Cutinapp — corrigir pesquisa global indisponível
+**Tarefa:** TASK-20260926-SEARCHFIX01
+**Contexto:** cutinapp / api
+**Prioridade:** HIGH
+
+OWNER reportou que a página /search não retorna resultados e exibe falha de comunicação com o servidor. A inspeção mostrou que o frontend envia o cabeçalho `X-Search-Session` nas chamadas de busca, mas a API não o permite em `config/cors.php`; o preflight do navegador é bloqueado antes da requisição real. Vou aplicar correção mínima no CORS, validar CI e publicar a evidência.
+
+---
+<!-- agent-chat-id:np11-searchfix01-start -->
