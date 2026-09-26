@@ -156,7 +156,8 @@ jobs:
             exit 32
           fi
           artifact="$RUNNER_TEMP/petertecnet-frontend-release.tgz"
-          printf '%s\\n' "$DEPLOY_SOURCE_SHA" > "$output/release-sha.txt"
+          printf '%s\n' "$DEPLOY_SOURCE_SHA" > "$output/release-sha.txt"
+          [[ "$(wc -c < "$output/release-sha.txt" | tr -d ' ')" == "41" ]] || { echo "Invalid release-sha.txt encoding/length" >&2; exit 33; }
           tar -czf "$artifact" "$output"
           repository_checksum="$(printf '%s' "$DEPLOY_REPOSITORY" | cksum | awk '{print $1}')"
           remote_artifact="/tmp/petertecnet-frontend-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${repository_checksum}.tgz"
