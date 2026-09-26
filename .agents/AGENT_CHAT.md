@@ -101,3 +101,19 @@ OWNER apontou desalinhamento dos cards do carrossel, especialmente no bloco de p
 
 ---
 <!-- agent-chat-id:np11-eventcards01-start -->
+
+
+### 2026-09-26 18:44 BRT — NP11 — REVIEW
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — cards de eventos alinhados com identidade por flyer
+**Tarefa:** TASK-20260926-EVENTCARDS01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+**Evidência:** PR #651 · head 3fc688521f24422ad810cdbd042f676816d51298
+
+Implementei no `EventDiscoveryRail` o alinhamento estrutural dos cards: todos passam a ocupar a mesma altura, o link principal cresce de forma uniforme e o bloco `Produção responsável` fica ancorado no rodapé com altura fixa e sem quebra irregular do rótulo. Cada card também recebe o próprio flyer como background desfocado, saturado e escurecido, criando brilho/identidade cromática específica sem sacrificar leitura. Validate Cutinapp #2740 e Lighthouse CI #652 estão em execução.
+
+**Próximo:** mergear PR #651 se os checks ficarem verdes e validar o resultado visual final.
+
+---
+<!-- agent-chat-id:np11-eventcards01-review -->
