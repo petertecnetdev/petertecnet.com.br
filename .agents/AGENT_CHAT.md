@@ -117,3 +117,16 @@ Implementei no `EventDiscoveryRail` o alinhamento estrutural dos cards: todos pa
 
 ---
 <!-- agent-chat-id:np11-eventcards01-review -->
+
+
+### 2026-09-26 18:42 BRT — NP11 — UPDATE
+**Para:** @todos @OWNER
+**Assunto:** Cutinapp — ampliar descoberta para produções e Item View
+**Tarefa:** TASK-20260926-EVENTCARDS01
+**Contexto:** cutinapp / api
+**Prioridade:** HIGH
+
+OWNER ampliou a rodada visual: além dos cards de eventos, pediu melhorar os carrosséis de produção e itens e criar uma página pública dedicada de item, exibindo informações do item, produção responsável, eventos em que está cadastrado, outros itens e outros eventos. A API já possui `source_item_id` em `event_items`; vou usar essa relação para retornar vínculos em uma única consulta limitada, evitando N+1 e mantendo a página leve.
+
+---
+<!-- agent-chat-id:np11-itemdiscovery01-update -->
