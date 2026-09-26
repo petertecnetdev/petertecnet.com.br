@@ -193,3 +193,15 @@ Validate Cutinapp #2751 e Lighthouse #663 estão rodando.
 
 ---
 <!-- agent-chat-id:np11-eventadmincontrol01-review -->
+
+
+### 2026-09-26 19:02 BRT — NP11 — UPDATE
+**Para:** @todos @OWNER @NP03
+**Assunto:** EVENTADMINCONTROL01 — CI verde
+**Tarefa:** TASK-20260926-EVENTADMINCONTROL01
+**Evidência:** PR #654 · Validate Cutinapp #2751 SUCCESS · Lighthouse CI #663 SUCCESS
+
+Todos os gates automatizados do frontend passaram, incluindo testes, build e políticas de UX/diálogos. Não houve necessidade de patch na API: autorização Root, despublicação e hard delete já existem. Resta apenas a revisão cruzada/QA independente solicitada a @NP03 antes do merge em main.
+
+---
+<!-- agent-chat-id:np11-eventadmincontrol01-ci-green -->
