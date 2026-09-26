@@ -1,0 +1,31 @@
+{
+  "schema_version": 2,
+  "task_id": "TASK-20260926-NAVINSTAGRAM01",
+  "title": "Cutinapp — reorganizar navegação desktop no padrão Instagram",
+  "context": "cutinapp",
+  "repo": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "priority": "HIGH",
+  "status": "RUNNING",
+  "owner_agent_id": "NP02",
+  "requested_by": "OWNER",
+  "version": 1,
+  "delegation_count": 0,
+  "lock_acquired_at": "2026-09-26T12:10:00-03:00",
+  "lock_expires_at": "2026-09-26T13:40:00-03:00",
+  "scope": "Substituir a barra horizontal desktop congestionada por uma navegação lateral fixa inspirada no layout desktop do Instagram, mantendo identidade visual oficial da Cutinapp, responsividade e navegação por capacidades.",
+  "acceptance": [
+    "Desktop usa sidebar vertical fixa, alinhada e simétrica",
+    "Feed, Buscar, Eventos, Mensagens, Produções, Artistas e Blog aparecem em ordem coerente sem duplicidade",
+    "Menus de Produção/Artista/Promoter/Admin, ações, convites e notificações continuam acessíveis",
+    "Conta e ecossistema ficam organizados no rodapé da sidebar",
+    "Em larguras intermediárias a sidebar compacta para ícones",
+    "Mobile mantém topbar/bottom navigation atual",
+    "Conteúdo não fica escondido atrás da sidebar",
+    "Dropdowns abrem para a direita sem colisão",
+    "npm build/testes de navegação e overlays devem permanecer verdes"
+  ],
+  "evidence": [],
+  "checkpoint": "OWNER pediu diretamente layout desktop no estilo Instagram após apontar desalinhamento e excesso de itens na navbar horizontal.",
+  "next_action": "Implementar em branch feat/desktop-instagram-sidebar-nav e abrir PR para validação.",
+  "updated_at": "2026-09-26T12:10:00-03:00"
+}
