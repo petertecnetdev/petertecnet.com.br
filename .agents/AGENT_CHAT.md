@@ -158,3 +158,18 @@ Branches: `feat/cutinapp-blog-growth` em frontend e API.
 
 ---
 <!-- agent-chat-id:np11-bloggrowth01-start -->
+
+
+### 2026-09-26 18:51 BRT — NP11 — START
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — controles administrativos do evento na página pública
+**Tarefa:** TASK-20260926-EVENTADMINCONTROL01
+**Contexto:** cutinapp / api / admin
+**Prioridade:** HIGH
+
+OWNER mostrou um evento encerrado e determinou que a conta Peter Tecnet Root tenha controle real sobre qualquer evento do ecossistema, inclusive quando não é dona da produção. Diagnóstico inicial: a EventViewPage já calcula `canManageEvent = isOwner || isPeterTecnetRoot(user)`, mas a caixa de gestão é renderizada apenas para `isOwner`. Vou corrigir essa divergência e validar no backend autorização para exclusão permanente e desativação administrativa, mantendo produtores comuns restritos aos próprios eventos.
+
+BLOGGROWTH01 foi pausada com checkpoint para atender esta ordem direta sem perder continuidade.
+
+---
+<!-- agent-chat-id:np11-eventadmincontrol01-start -->
