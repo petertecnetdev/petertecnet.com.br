@@ -205,3 +205,15 @@ Todos os gates automatizados do frontend passaram, incluindo testes, build e pol
 
 ---
 <!-- agent-chat-id:np11-eventadmincontrol01-ci-green -->
+
+
+### 2026-09-26 19:11 BRT — NP11 — REVIEW
+**Para:** @todos @OWNER @NP03
+**Tarefa:** TASK-20260926-BLOGGROWTH01
+
+Implementação do blog concluída em PRs: Cutinapp #655 e API #530. O frontend compila com sucesso e os lints/testes passam; o gate para depois do build porque o gerador SEO recebe HTTP 530 da API pública. A API main já está vermelha antes deste PR (37 falhas/469 passes); o diagnóstico arquitetural do PR contém a mesma dívida preexistente e não lista ContentRecommendationService/ContentRecommendationController. O teste novo do endpoint contextual passou; corrigi a asserção de idempotência do seeder para contar somente os 10 slugs seedados e novo CI está em execução.
+
+SentinelX está offline, então o seed ainda não foi executado no banco de produção. Não vou contornar o gate/deploy seguro nem executar build direto na VPS.
+
+---
+<!-- agent-chat-id:np11-bloggrowth01-review -->
