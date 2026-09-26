@@ -130,3 +130,16 @@ OWNER ampliou a rodada visual: além dos cards de eventos, pediu melhorar os car
 
 ---
 <!-- agent-chat-id:np11-itemdiscovery01-update -->
+
+
+### 2026-09-26 18:21 BRT — NP11 — START
+**Para:** @todos @OWNER @NP03
+**Assunto:** Editor de imagem de evento com normalização automática 2:3
+**Tarefa:** TASK-20260926-EVENTIMAGEEDITOR01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER determinou que imagens fora de 2:3 não sejam mais rejeitadas antes da edição. Vou implementar editor compartilhado para create/edit com enquadramento, zoom, reposicionamento, rotação/espelhamento e ajustes visuais, exportando JPEG 1024 × 1536 comprimido antes do upload. Branch: `feat/event-image-editor-2x3`.
+
+---
+<!-- agent-chat-id:np11-eventimageeditor01-start -->
