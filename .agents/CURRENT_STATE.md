@@ -45,10 +45,10 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 <!-- AUTO-STATE:START -->
 ## Snapshot operacional automático
 
-- Agentes registrados: **8**
-- Tarefas abertas: **11**
-- Executando: **0**
-- Em revisão: **8**
+- Agentes registrados: **9**
+- Tarefas abertas: **15**
+- Executando: **1**
+- Em revisão: **10**
 - Bloqueadas/decisão: **0**
 
 ### Agentes
@@ -60,8 +60,10 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 - **NP08** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 - **NP09** · REVIEW · task: TELEMETRY-SCHEMA-NORMALIZATION · last_seen: 2026-09-20T17:20:00-03:00 · next: Aguardar CI e revisão NP03/Tech Lead no PR #511; depois corrigir feedback ou abrir handoff para integração dos novos campos no FrontendTelemetryService.
 - **NP10** · BLOCKED · task: TAREFA-3-ADMIN-460 · last_seen: 2026-09-20T21:36:44-03:00 · next: Aguardar handoff/encerramento do claim NP09; então auditar main atual e validar 1-460, começando pelos gaps dos PRs #109/#114 e checks #108-#116.
+- **NP11** · RUNNING · task: TASK-20260926-EVENTADMINCONTROL01 · last_seen: 2026-09-26T18:51:00-03:00 · next: Auditar DELETE/PATCH na API, implementar exclusão permanente e desativação administrativa para Root, validar frontend/backend.
 
 ### Próximas tarefas
+- **TASK-20260926-EVENTIMAGEEDITOR01** · HIGH · RUNNING · NP11 · cutinapp · Editor de imagem de evento estilo Instagram com normalização automática 2:3
 - **TASK-20260926-NAVINSTAGRAM01** · HIGH · REVIEW · fila · geral · Cutinapp — reorganizar navegação desktop no padrão Instagram
 - **TASK-20260918-7C211A** · HIGH · REVIEW · NP02 · cutinapp · Evoluir Meus eventos da Cutinapp — pacote 1–211
 - **TASK-20260919-MOBILE250** · HIGH · REVIEW · NP05 · cutinapp · Simplificação e performance mobile Cutinapp — pacote 1–250
@@ -70,7 +72,10 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 - **TASK-20260921-PRODFOLLOW01** · HIGH · REVIEW · NP02 · cutinapp · Seguimento estilo Instagram na página pública da produção
 - **TASK-20260922-EVENTEDITOR01** · HIGH · REVIEW · NP02 · cutinapp · Aproximar create/edit de eventos da página pública e corrigir contraste dos botões
 - **TASK-20260923-EVENTPUBLICRECOVERY01** · HIGH · REVIEW · NP02 · cutinapp · Corrigir falha transitória ao abrir evento público da Cutinapp
+- **TASK-20260926-EVENTCARDS01** · HIGH · REVIEW · fila · geral · Cutinapp — padronizar cards de eventos e aplicar identidade visual pelo flyer
+- **TASK-20260926-EVENTADMINCONTROL01** · HIGH · REVIEW · fila · geral · Cutinapp — controles administrativos de ciclo de vida do evento na view pública
 - **TASK-20260918-7C211A-QA** · HIGH · ASSIGNED · NP03 · cutinapp · QA — Meus eventos Cutinapp pacote 1–211
 - **TASK-20260923-FASTIX100** · HIGH · WAITING · fila · geral · Cutinapp — maturidade competitiva Fastix 1–100
 - **TASK-20260919-E71A9F** · HIGH · WAITING · NP02 · cutinapp · Imagem automática de evento por IA com fallback de iniciais
+- **TASK-20260926-BLOGGROWTH01** · HIGH · WAITING · fila · geral · Cutinapp — transformar blog em canal de aquisição e descoberta conectado ao ecossistema
 <!-- AUTO-STATE:END -->
