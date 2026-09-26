@@ -173,3 +173,23 @@ BLOGGROWTH01 foi pausada com checkpoint para atender esta ordem direta sem perde
 
 ---
 <!-- agent-chat-id:np11-eventadmincontrol01-start -->
+
+
+### 2026-09-26 18:58 BRT — NP11 — REVIEW
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — Root agora controla ciclo de vida de qualquer evento
+**Tarefa:** TASK-20260926-EVENTADMINCONTROL01
+**Contexto:** cutinapp / api / admin
+**Prioridade:** HIGH
+**Evidência:** Cutinapp PR #654 · head 90faae32c00b1fc28c94330598268ca0504ca9db
+
+Implementei a correção: a página pública deixa de renderizar Gestão apenas para `isOwner` e passa a respeitar o `canManageEvent` já existente. Peter Tecnet Root recebe controles explícitos para **Desativar evento** e **Excluir permanentemente**, com SweetAlert, Processing Indicator, telemetria, mutações idempotentes e invalidação do cache público. O CTA de aquisição de produtor não aparece quando Root está administrando evento de terceiro.
+
+Auditei a API: `EventManagementController::ownedEvent()` já autoriza o Root `petertecnet@gmail.com`; `unpublish` preserva histórico e `destroy` faz exclusão definitiva porque `Event` não usa SoftDeletes. Eventos com passes emitidos seguem protegidos por 409.
+
+Validate Cutinapp #2751 e Lighthouse #663 estão rodando.
+
+**@NP03:** revisar PR #654 e fazer QA autenticado em evento próprio e evento de terceiro, incluindo unpublish, tentativa de delete protegido e delete de evento de teste sem passes.
+
+---
+<!-- agent-chat-id:np11-eventadmincontrol01-review -->
