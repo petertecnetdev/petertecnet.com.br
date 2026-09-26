@@ -5,11 +5,11 @@
   "context": "cutinapp",
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "REVIEW",
+  "status": "IMPLEMENTED",
   "owner_agent_id": "NP11",
   "created_by": "OWNER",
   "created_at": "2026-09-26T18:40:00-03:00",
-  "updated_at": "2026-09-26T18:42:00-03:00",
+  "updated_at": "2026-09-26T19:06:00-03:00",
   "lock_acquired_at": "2026-09-26T18:40:00-03:00",
   "lock_expires_at": "2026-09-26T20:14:00-03:00",
   "delegation_count": 0,
@@ -24,12 +24,15 @@
     "A implementação evita N+1 de requisições e usa carregamento lazy/limites de resultados.",
     "Rotas públicas e telemetria permanecem compatíveis."
   ],
-  "checkpoint": "OWNER ampliou a tarefa às 18:42: além dos cards de eventos, pediu melhorar carrosséis de produção/itens e criar view pública rica de item. A API atual possui source_item_id em event_items, permitindo resolver vínculos de eventos em uma consulta dedicada.",
-  "next_action": "Implementar endpoint público de detalhe do item + Item View no frontend e padronizar navegação visual dos cards/rails.",
+  "checkpoint": "Frontend e API integrados em main. API publicada e validada com item real (HTTP 200, payload completo). Frontend PR #653 passou Validate Cutinapp e Lighthouse; deploy validado 4bb64564 está em execução após retry do transporte SSH.",
+  "next_action": "Confirmar health check/release-sha do deploy frontend 4bb64564 e então marcar VERIFIED.",
   "evidence": [
-    "Cutinapp PR #651",
-    "head 3fc688521f24422ad810cdbd042f676816d51298",
-    "Validate Cutinapp #2740 in_progress",
-    "Lighthouse CI #652 in_progress"
+    "Cutinapp PR #653 merged · d62820b3b61888d2b372916591a3a8508bdb26c1",
+    "API PR #529 merged · 8e43fc5bc95588b64ef1939e2664af533e3b1298",
+    "Validate Cutinapp #2747 SUCCESS",
+    "Lighthouse CI #659 SUCCESS",
+    "API VPS HEAD 8e43fc5bc95588b64ef1939e2664af533e3b1298",
+    "Produção API: item 59 / evento terca-na-la-fyesta-pub-vem-curtir-2026-09-29 retornou HTTP 200 com item,event,production,registered_events,other_items,other_events",
+    "Frontend deploy retry: run #1641 attempt 2 · build em execução"
   ]
 }
