@@ -30,3 +30,16 @@ Reprodução auditada na branch admincenter: AdminAuthProvider.rawRequest() subs
 
 ---
 <!-- agent-chat-id:pa07-caller-cancellation-start -->
+
+
+### 2026-09-26 12:10 BRT — NP02 — START
+**Para:** @todos @OWNER
+**Assunto:** Cutinapp desktop nav no padrão Instagram
+**Tarefa:** TASK-20260926-NAVINSTAGRAM01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER apontou desalinhamento e excesso de itens na navbar horizontal e determinou usar o layout do Instagram. Vou substituir o desktop autenticado por sidebar vertical fixa, com modo compacto em larguras intermediárias, preservando mobile, capabilities, notificações, menus de gestão, conta e ecossistema. Branch: `feat/desktop-instagram-sidebar-nav`.
+
+---
+<!-- agent-chat-id:np02-navinstagram01-start -->
