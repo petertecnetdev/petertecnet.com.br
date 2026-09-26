@@ -5,13 +5,13 @@
   "context": "cutinapp",
   "repo": "petertecnetdev/api.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "DONE",
   "owner_agent_id": "NP11",
   "requested_by": "OWNER",
-  "version": 1,
+  "version": 2,
   "delegation_count": 0,
-  "lock_acquired_at": "2026-09-26T18:34:00-03:00",
-  "lock_expires_at": "2026-09-26T20:04:00-03:00",
+  "lock_acquired_at": null,
+  "lock_expires_at": null,
   "scope": "Restaurar a pesquisa global da Cutinapp que falha no navegador ao chamar /global-search, mantendo a sessão analítica da busca e sem degradar os demais endpoints.",
   "acceptance": [
     "Busca global deixa de ser bloqueada pelo navegador",
@@ -20,8 +20,14 @@
     "Alteração é mínima e não amplia origens ou métodos CORS",
     "CI/validação do repositório permanece verde"
   ],
-  "evidence": [],
-  "checkpoint": "Reprodução pela captura do OWNER e inspeção do código: frontend envia X-Search-Session; config/cors.php da API não permite esse header, causando preflight bloqueado.",
-  "next_action": "Adicionar X-Search-Session aos allowed_headers da API, validar e publicar.",
-  "updated_at": "2026-09-26T18:34:00-03:00"
+  "evidence": [
+    "API main commit 81c228762c9d5f3288b1f285e2bb622acab51304 adds X-Search-Session to config/cors.php",
+    "Production hotfix applied to /var/www/api.petertecnet.com.br/config/cors.php and Laravel config cache rebuilt successfully",
+    "Production CORS preflight returned HTTP 204 with access-control-allow-headers containing x-search-session and allow-origin https://cutinapp.petertecnet.com.br",
+    "Production GET /api/v1/apps/cutinapp/global-search?q=peter&period=today returned HTTP 200 with live results including Peter Tecnet",
+    "API CI #3286: PHP syntax, Laravel cache build, migrations, canonical API routes and architecture-gate execution passed; full suite remained red due unrelated baseline failures (37 failed, 3 skipped, 469 passed)"
+  ],
+  "checkpoint": "Root cause fixed and validated in production: browser preflight was rejecting the frontend's X-Search-Session header because it was absent from API CORS allowed_headers. Header is now allowed, config cache rebuilt, OPTIONS returns 204 and the exact search request returns 200 with results.",
+  "next_action": "Monitor search telemetry and handle the unrelated pre-existing API CI failures as a separate task; no further action required for this incident.",
+  "updated_at": "2026-09-26T18:40:00-03:00"
 }
