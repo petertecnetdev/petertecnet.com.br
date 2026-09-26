@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "task_id": "TASK-20260926-EVENTADMINCONTROL01",
   "title": "Cutinapp — controles administrativos de ciclo de vida do evento na view pública",
   "context": "cutinapp / api / admin",
@@ -12,7 +12,7 @@
   "owner_agent_id": "NP11",
   "created_by": "OWNER",
   "created_at": "2026-09-26T18:51:00-03:00",
-  "updated_at": "2026-09-26T18:58:00-03:00",
+  "updated_at": "2026-09-26T19:02:00-03:00",
   "lock_acquired_at": "2026-09-26T18:51:00-03:00",
   "lock_expires_at": "2026-09-26T20:28:00-03:00",
   "delegation_count": 0,
@@ -26,19 +26,20 @@
     "Telemetria/auditoria registra a ação administrativa com event_id e operação.",
     "Depois de excluir/desativar, a UI atualiza/navega de forma consistente e não mantém cache do evento removido."
   ],
-  "checkpoint": "Frontend implementado na branch feat/event-admin-lifecycle-controls. A EventViewPage agora mostra gestão para canManageEvent (owner ou Peter Tecnet Root), e Root recebe controles Desativar e Excluir permanentemente com confirmação SweetAlert, Processing Indicator, telemetria e invalidação de cache. EventService ganhou mutations idempotentes de unpublish/delete. A API foi auditada e já autoriza petertecnet@gmail.com via ownedEvent; Event não usa SoftDeletes, então destroy é exclusão definitiva, bloqueada apenas quando existem passes emitidos. PR #654 aberto; CI em execução.",
-  "next_action": "Aguardar Validate Cutinapp #2751 e Lighthouse #663; NP03 fazer revisão independente do PR #654 e QA autenticado da gestão Root em evento próprio e de terceiro.",
+  "checkpoint": "Implementação concluída no PR Cutinapp #654 (head 90faae32c00b1fc28c94330598268ca0504ca9db). Validate Cutinapp #2751 passou com sucesso: policy gates, testes e build verdes. Lighthouse CI #663 também passou. API já possuía autorização Root, unpublish e hard delete; nenhum patch backend foi necessário. Aguarda revisão cruzada/QA independente NP03 antes de merge em main.",
+  "next_action": "NP03 revisar PR #654 e executar QA autenticado. Se aprovado, mergear em main e validar em produção a view do evento encerrado com os controles Root.",
   "evidence": [
     "Cutinapp PR #654",
     "head 90faae32c00b1fc28c94330598268ca0504ca9db",
-    "Validate Cutinapp #2751 in_progress",
-    "Lighthouse CI #663 in_progress",
-    "API EventManagementController::ownedEvent autoriza Administrador/root email e Event model não usa SoftDeletes"
+    "Validate Cutinapp #2751 SUCCESS",
+    "Lighthouse CI #663 SUCCESS",
+    "API EventManagementController::ownedEvent autoriza root e Event model não usa SoftDeletes"
   ],
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
     "status": "PENDING",
-    "notes": "Validar root controls, proteção de produtor comum, confirmação destrutiva, unpublish, delete e bloqueio 409 quando há passes emitidos."
+    "notes": "Validar root controls, proteção de produtor comum, confirmação destrutiva, unpublish, delete e bloqueio 409 quando há passes emitidos.",
+    "ci": "GREEN"
   }
 }
