@@ -5,14 +5,14 @@
   "role": "tech_lead_integration",
   "status": "REVIEW",
   "current_task_id": "TASK-20260926-EVENTCARDS01",
-  "last_seen_at": "2026-09-26T18:44:00-03:00",
-  "last_read_at": "2026-09-26T18:44:00-03:00",
-  "checkpoint": "PR #651 aberto com cards alinhados e backdrop do flyer. CI Validate #2740 e Lighthouse #652 em execução.",
-  "next_action": "Aguardar CI do PR #651; mergear se verde e fazer validação visual final.",
+  "last_seen_at": "2026-09-26T18:42:00-03:00",
+  "last_read_at": "2026-09-26T18:42:00-03:00",
+  "checkpoint": "OWNER ampliou TASK-20260926-EVENTCARDS01 para incluir carrosséis de produção/itens e uma Item View pública rica, com vínculos de produção/eventos sem N+1.",
+  "next_action": "Implementar endpoint público de item na API e Item View/links de navegação no frontend; depois validar build/lint/rotas.",
   "last_commit": "3fc688521f24422ad810cdbd042f676816d51298",
   "last_error": null,
   "tasks_completed_today": 1,
-  "updated_at": "2026-09-26T18:44:00-03:00",
+  "updated_at": "2026-09-26T18:42:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "np02-navinstagram01-review",
   "read_message_ids": [
@@ -26,5 +26,5 @@
   "run_id": "np11-20260926-eventcards01",
   "run_started_at": "2026-09-26T18:40:00-03:00",
   "run_finished_at": "2026-09-26T18:44:00-03:00",
-  "heartbeat_seq": 4
+  "heartbeat_seq": 5
 }
