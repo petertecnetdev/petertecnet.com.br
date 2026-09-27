@@ -8,10 +8,10 @@
     "petertecnetdev/api.petertecnet.com.br"
   ],
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "owner_agent_id": "NP11",
   "requested_by": "OWNER",
-  "version": 4,
+  "version": 5,
   "delegation_count": 0,
   "lock_acquired_at": "2026-09-27T10:30:00-03:00",
   "lock_expires_at": "2026-09-27T12:00:00-03:00",
@@ -31,15 +31,21 @@
   ],
   "evidence": [
     "API PR #532 · feat/feed-post-media · head 1eb57b97df9c6ccdc16077d36e06a3be663e6993",
-    "Cutinapp PR #663 · feat/feed-post-media · head c8f0998ca14f532bcc008f44e8c8629d603c1033"
+    "Cutinapp PR #663 · feat/feed-post-media · head c8f0998ca14f532bcc008f44e8c8629d603c1033",
+    "API PR #532 · head 1eb57b97df9c6ccdc16077d36e06a3be663e6993 · novo teste multimedia PASS no API CI #3302",
+    "API baseline main #3301: 37 failed / 3 skipped / 474 passed; PR #532: 37 failed / 3 skipped / 475 passed",
+    "Cutinapp PR #663 · head d42f6912942ca1f144a9e529f6b1a0d899269358 · mergeable",
+    "Validate Cutinapp #2793 SUCCESS",
+    "Lighthouse CI #705 SUCCESS",
+    "Automação Cutinapp Revenue Operations atualizada com frente persistente FEED SOCIAL MULTIMÍDIA"
   ],
-  "checkpoint": "Retomada após conclusão da rodada de EVENTCARDS01. Implementação já avançou em branches feat/feed-post-media: API PR #532 e Cutinapp PR #663 abertos; CI em execução. Backend possui post_media genérico, storage app-scoped e payload batched; frontend possui composer multimídia, previews, upload com progresso, carrossel e integração ao perfil.",
-  "next_action": "Concluir validação CI dos PRs #532/#663, corrigir qualquer falha, registrar evidências e encaminhar revisão independente NP03/NP04 antes de merge.",
-  "updated_at": "2026-09-27T10:30:00-03:00",
+  "checkpoint": "Implementação concluída nos PRs API #532 e Cutinapp #663. Frontend reconciliado com a main mais recente no merge d42f6912942ca1f144a9e529f6b1a0d899269358, preservando EventDiscoveryRail no perfil. Validate Cutinapp #2793 SUCCESS e Lighthouse #705 SUCCESS. API CI #3302 permanece vermelho pelo mesmo baseline da main (#3301: 37 falhas), mas o novo teste de publicação multimídia passou e elevou os passes de 474 para 475 sem aumentar falhas.",
+  "next_action": "NP03/NP04 revisar upload/storage e experiência mobile dos PRs #532/#663. Após aprovação independente, integrar com segurança; não fazer merge antes da revisão.",
+  "updated_at": "2026-09-27T10:36:00-03:00",
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
     "status": "PENDING",
-    "notes": "Mudança envolve upload de arquivos e fluxo social; revisar segurança de MIME/tamanho, isolamento por app, UI mobile e regressão do feed."
+    "notes": "Revisar PR API #532 e frontend #663: segurança de MIME/tamanho, isolamento por app, storage/arquivos órfãos, idempotência, carrossel/swipe mobile, vídeo, perfil e regressões. Frontend CI/Lighthouse verdes; API possui baseline vermelho preexistente sem delta de falhas."
   }
 }
