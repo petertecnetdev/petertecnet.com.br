@@ -14,40 +14,41 @@
     "health check",
     "producer activation"
   ],
-  "checked_at": "2026-09-26T23:57:36-03:00",
-  "main_sha_analyzed": "6d681a572736cea93282d985bc488e3ee449ae68",
+  "checked_at": "2026-09-27T01:58:45-03:00",
+  "main_sha_analyzed": "a9ca74e014cfe0ebf2c9f7ea8fe614e9a8255782",
   "coordination": [
     "Read README, readiness, revenue-scorecard and this agent state before editing.",
     "Did not duplicate subscription billing, payment, ticket, issue #646 or issue #650 fronts.",
     "No subscription price, automatic billing, entitlement or ticket commission behavior was introduced.",
     "Production release integrity remains the P1 prerequisite for trustworthy activation/MRR measurement."
   ],
-  "problem": "The SSH deployment blocker persists on the newer main SHA 6d681a572736cea93282d985bc488e3ee449ae68 (chore(navbar): record compact navigation implementation). Deploy VPS run 36288651394 passed the stale-release guard but failed in Fetch frontend build environment after roughly 151 seconds. Build frontend, Deploy application and Health check were skipped. The independent Diagnose release serving identity job also failed, consistent with the configured VPS endpoint remaining unreachable from GitHub Actions. This confirms the outage is not isolated to the earlier d737167 attempt.",
-  "impact": "Validated frontend changes, including navbar and activation/conversion work, cannot be proven in production while GitHub Actions cannot reach the VPS. Production attribution for producer activation, trial conversion and MRR remains unsafe.",
+  "problem": "The SSH deployment blocker persists on main SHA a9ca74e014cfe0ebf2c9f7ea8fe614e9a8255782 (fix(nav): install mobile hamburger fail-safe at boot). Deploy VPS run 36294251031 passed the stale-release guard, but Fetch frontend build environment failed after roughly 150 seconds. Build frontend, Deploy application, edge recovery and Health check were skipped. Diagnose release serving identity also failed, consistent with the configured VPS endpoint remaining unreachable from GitHub Actions.",
+  "impact": "Validated frontend changes, including mobile navigation recovery and activation/conversion work, cannot be proven in production while GitHub Actions cannot reach the VPS. Production attribution for producer activation, trial conversion and MRR remains unsafe.",
   "implementation": {
-    "observed_sha": "6d681a572736cea93282d985bc488e3ee449ae68",
-    "deploy_run": 36288651394,
+    "observed_sha": "a9ca74e014cfe0ebf2c9f7ea8fe614e9a8255782",
+    "deploy_run": 36294251031,
     "freshness_guard": "success",
     "fetch_frontend_build_environment": "failure",
     "build_frontend": "skipped",
     "deploy_application": "skipped",
+    "edge_recovery": "skipped",
     "health_check": "skipped",
-    "diagnostic_job": 108534684933,
+    "diagnostic_job": 108550411308,
     "diagnostic_job_conclusion": "failure",
     "next_diagnostic": "Restore GitHub Actions SSH reachability to the configured VPS host/port, then rerun an exact validated SHA through deploy and exact-SHA health verification. Do not weaken the gate or deploy manually around CI."
   },
   "validation": {
-    "expected_sha": "6d681a572736cea93282d985bc488e3ee449ae68",
-    "deploy_run": 36288651394,
+    "expected_sha": "a9ca74e014cfe0ebf2c9f7ea8fe614e9a8255782",
+    "deploy_run": 36294251031,
     "deploy_conclusion": "failure",
     "production_verification": "NOT_REACHED"
   },
   "evidence": [
-    "Deploy VPS run 36288651394 targeted 6d681a572736cea93282d985bc488e3ee449ae68.",
+    "Deploy VPS run 36294251031 targeted a9ca74e014cfe0ebf2c9f7ea8fe614e9a8255782.",
     "Reject stale validated release succeeded before deploy.",
-    "Fetch frontend build environment failed; Build frontend, Deploy application and Health check were skipped.",
-    "Diagnose release serving identity job 108534684933 failed after the deploy failure, so no new production SHA is claimed.",
-    "Navbar quality remains IMPLEMENTING; build-only evidence is insufficient and viewport/functional validation remains pending."
+    "Fetch frontend build environment failed; Build frontend, Deploy application, edge recovery and Health check were skipped.",
+    "Diagnose release serving identity job 108550411308 failed after the deploy failure, so no new production SHA is claimed.",
+    "Revenue scorecard remains subscription-first/worldwide and all revenue funnel values remain uninstrumented; no metric was invented or changed."
   ],
   "risk": "Do not declare newer Cutinapp commits deployed while the configured VPS endpoint remains unreachable from GitHub Actions and health verification is not reached.",
   "gate_status": "BLOCKED: GitHub Actions still cannot complete the VPS pre-deploy environment fetch, so build/deploy/health do not execute.",
