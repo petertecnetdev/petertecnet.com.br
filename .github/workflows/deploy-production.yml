@@ -132,6 +132,33 @@ jobs:
             fi
           done
 
+          if grep -Fqi '/plataformas/inkap' <<<"$sitemap"; then
+            echo '::error::Sitemap still exposes legacy Inkap URL.'
+            exit 1
+          fi
+
+          legacy_inkap_headers="$(curl --silent --show-error --head --max-time 20 \
+            -H 'Cache-Control: no-cache' https://petertecnet.com.br/plataformas/inkap/ || true)"
+          legacy_inkap_status="$(awk 'toupper($1) ~ /^HTTP\// {code=$2} END {print code}' <<<"$legacy_inkap_headers")"
+          legacy_inkap_location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[^:]*:[[:space:]]*/, ""); sub(/\r$/, ""); print; exit}' <<<"$legacy_inkap_headers")"
+
+          case "$legacy_inkap_status" in
+            301|308)
+              if [[ -z "$legacy_inkap_location" || "$legacy_inkap_location" == *'/plataformas/inkap'* ]]; then
+                echo "::error::Legacy Inkap redirect is missing or points back to Inkap: ${legacy_inkap_location:-none}"
+                exit 1
+              fi
+              echo "Legacy Inkap URL permanently redirects to $legacy_inkap_location"
+              ;;
+            404|410)
+              echo "Legacy Inkap URL correctly returns $legacy_inkap_status"
+              ;;
+            *)
+              echo "::error::Legacy Inkap URL must not be indexable; expected 301/308/404/410, got ${legacy_inkap_status:-unavailable}."
+              exit 1
+              ;;
+          esac
+
           robots="$(curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' https://petertecnet.com.br/robots.txt)"
           grep -Fq 'https://petertecnet.com.br/sitemap.xml' <<<"$robots" || {
             echo '::error::robots.txt does not reference the production sitemap.'
