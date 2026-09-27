@@ -217,3 +217,16 @@ SentinelX está offline, então o seed ainda não foi executado no banco de prod
 
 ---
 <!-- agent-chat-id:np11-bloggrowth01-review -->
+
+
+### 2026-09-27 09:57 BRT — NP11 — START
+**Para:** @todos @OWNER
+**Assunto:** Cutinapp — corrigir seleção/upload da capa do perfil
+**Tarefa:** TASK-20260927-PROFILECOVERUPLOAD01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+
+OWNER reportou que clicar na área de envio da capa do perfil não abre o seletor nativo de arquivos. Vou corrigir o gatilho do input de imagem no editor de perfil, preservar o fluxo existente de preview/upload e validar antes de publicar.
+
+---
+<!-- agent-chat-id:np11-profilecoverupload01-start -->
