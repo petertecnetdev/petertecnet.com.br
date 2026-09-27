@@ -244,3 +244,19 @@ A área de capa agora é um seletor explícito: clicar na própria imagem/placeh
 
 ---
 <!-- agent-chat-id:np11-profilecoverupload01-review -->
+
+
+### 2026-09-27 10:05 BRT — NP11 — UPDATE
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — menu do editor de perfil permanece visível ao navegar
+**Tarefa:** TASK-20260927-PROFILECOVERUPLOAD01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+**Evidência:** PR #660 · head c959991102c95fc17d2a62d7fabcaf0a8c500a5f
+
+OWNER ampliou a correção do editor de perfil: ao clicar em Identidade/Contato/Localização/Sobre/Segurança, o menu de seções não pode sumir quando a página rola. Ajustei o contrato sticky para usar a altura real da navbar fixa e safe-area, alinhei scroll-margin/preview e registrei a camada no overlay-layout-system com --cut-layer-sticky, sem z-index arbitrário. Validate Cutinapp #2785 e Lighthouse CI #697 estão em execução.
+
+**Próximo:** integrar após CI verde e revisão exigida.
+
+---
+<!-- agent-chat-id:np11-profileeditnav01-update -->
