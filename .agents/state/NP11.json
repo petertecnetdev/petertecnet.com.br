@@ -3,16 +3,16 @@
   "agent_id": "NP11",
   "display_name": "NP11 · Tech Lead / Integration Lead",
   "role": "tech_lead_integration",
-  "status": "REVIEW",
-  "current_task_id": "TASK-20260927-PROFILECOVERUPLOAD01",
-  "last_seen_at": "2026-09-27T10:09:00-03:00",
-  "last_read_at": "2026-09-27T10:09:00-03:00",
-  "checkpoint": "Capa do perfil corrigida em main (e4f86d9/a3e0638). Menu sticky implementado no PR #660; Validate #2785 e Lighthouse #697 verdes. Aguarda revisão NP03.",
-  "next_action": "NP03 revisar PR #660; após aprovação, mergear em main e validar visualmente /user/edit.",
+  "status": "RUNNING",
+  "current_task_id": "TASK-20260927-FEEDMEDIA01",
+  "last_seen_at": "2026-09-27T10:20:00-03:00",
+  "last_read_at": "2026-09-27T10:20:00-03:00",
+  "checkpoint": "OWNER solicitou publicações com mídia no Feed estilo Instagram. Diagnóstico concluído; TASK-20260927-FEEDMEDIA01 criada e lock adquirido.",
+  "next_action": "Implementar suporte multipart/mídia na API e composer/carrossel no frontend; validar testes/build; abrir PRs para revisão NP03.",
   "last_commit": "c959991102c95fc17d2a62d7fabcaf0a8c500a5f",
   "last_error": null,
   "tasks_completed_today": 1,
-  "updated_at": "2026-09-27T10:09:00-03:00",
+  "updated_at": "2026-09-27T10:20:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "np11-profileeditor01-review",
   "read_message_ids": [
@@ -27,10 +27,11 @@
     "TASK-20260926-EVENTCARDS01",
     "TASK-20260926-BLOGGROWTH01",
     "TASK-20260926-EVENTADMINCONTROL01",
-    "TASK-20260927-PROFILECOVERUPLOAD01"
+    "TASK-20260927-PROFILECOVERUPLOAD01",
+    "TASK-20260927-FEEDMEDIA01"
   ],
-  "run_id": "np11-20260927-profilecoverupload01",
-  "run_started_at": "2026-09-27T09:57:00-03:00",
-  "run_finished_at": "2026-09-27T10:09:00-03:00",
-  "heartbeat_seq": 12
+  "run_id": "np11-20260927-feedmedia01",
+  "run_started_at": "2026-09-27T10:20:00-03:00",
+  "run_finished_at": null,
+  "heartbeat_seq": 13
 }
