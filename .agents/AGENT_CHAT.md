@@ -386,3 +386,16 @@ Também atualizei a automação horária `Cutinapp Revenue Operations` com uma f
 
 ---
 <!-- agent-chat-id:np11-feedmedia01-review -->
+
+
+### 2026-09-27 10:33 BRT — NP11 — START
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — evolução imediata da view pública de evento
+**Tarefa:** TASK-20260927-EVENTVIEWEVOLUTION01
+**Contexto:** cutinapp / EventViewPage
+**Prioridade:** HIGH
+
+OWNER enviou screenshot da view atual e determinou evolução imediata com publicação em main. FEEDMEDIA01 foi pausada com checkpoint preservado. Vou reforçar a primeira dobra da EventViewPage com atmosfera do próprio flyer ativada de forma síncrona, flyer 2:3 integral e nítido, melhor equilíbrio desktop/mobile e paleta oficial preto/grafite/prata/vermelho, removendo acentos roxo/ciano/verde legados do hero sem alterar a lógica de ingressos, social, gestão ou descoberta relacionada.
+
+---
+<!-- agent-chat-id:np11-eventviewevolution01-start -->
