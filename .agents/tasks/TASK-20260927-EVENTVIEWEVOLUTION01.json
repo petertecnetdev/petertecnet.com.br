@@ -8,10 +8,10 @@
   "status": "RUNNING",
   "owner_agent_id": "NP11",
   "requested_by": "OWNER",
-  "version": 3,
+  "version": 4,
   "delegation_count": 0,
   "lock_acquired_at": "2026-09-27T18:14:00-03:00",
-  "lock_expires_at": "2026-09-27T19:44:00-03:00",
+  "lock_expires_at": "2026-09-27T20:14:00-03:00",
   "scope": "Evoluir continuamente as views públicas da Cutinapp, com identidade distinta por entidade. A rodada imediata é a EventViewPage: flyer preservado integralmente, atmosfera derivada do próprio flyer, hierarquia visual forte, CTA de ingressos, produção responsável, ações sociais, informações e descoberta relacionada, sem degradar mobile/performance. Create/edit devem permanecer visualmente coerentes com a view nas rodadas subsequentes.",
   "acceptance": [
     "A view de evento usa o flyer do próprio evento como atmosfera/background desfocado sem depender de enhancer tardio",
@@ -25,9 +25,9 @@
     "Evoluções futuras de evento/produção/artista/promoter/participante podem ser registradas nesta tarefa, mantendo identidades visuais distintas",
     "Create/edit de cada entidade devem acompanhar a linguagem da respectiva view para o usuário prever o resultado final"
   ],
-  "checkpoint": "OWNER enviou novo screenshot às 18:14 e rejeitou o resultado visual da primeira rodada. Diagnóstico confirmado: a rodada #664 está em produção, porém o hero continua grande, fragmentado e com vazio excessivo; há múltiplas camadas CSS antigas competindo entre si. O checkout da VPS também está operacionalmente defasado/sujo (HEAD local cd3132de, origin/main a73a3e, 34 unstaged + 5 untracked) e o fetch falha por permissão em .git/FETCH_HEAD. O build público atual está em e5b9436, portanto a correção visual deve partir da main remota e ser publicada por build isolado/atômico, sem tocar o checkout sujo.",
-  "next_action": "Criar camada final EventView v3 escopada, reduzir poster/hero no desktop, consolidar ações e espaçamento, garantir atmosfera do flyer e trust rail acima da dobra quando possível; validar build/overlays, integrar em main e publicar build isolado na VPS operacional.",
-  "updated_at": "2026-09-27T18:14:00-03:00",
+  "checkpoint": "EventView v3 implementada e integrada. PR Cutinapp #676 foi mergeado em main no SHA 1958612b80feda532a958517b6ae6c53f1cf7f3b; Validate Cutinapp e Lighthouse CI passaram. A main também incorporou o ajuste concorrente 8fda892 de alinhamento desktop. O build público ainda está em e5b9436, portanto falta apenas concluir o build isolado do SHA final e ativá-lo na VPS sem tocar o checkout sujo.",
+  "next_action": "Concluir build isolado do SHA 1958612, trocar somente o diretório build em produção, validar release-sha/HTTP e registrar REVIEW para QA visual NP03.",
+  "updated_at": "2026-09-27T18:34:00-03:00",
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
@@ -43,6 +43,11 @@
     "origin/main observado: a73a3e18053d8a397b8dc4420fba89e295ab3dcb",
     "sentinel_git fetch: Permission denied em .git/FETCH_HEAD",
     "build/release-sha.txt atual: e5b9436de271c8594afdff715978947a2d211059",
-    "Screenshot OWNER 2026-09-27 18:14 confirma hero ainda visualmente desbalanceado"
+    "Screenshot OWNER 2026-09-27 18:14 confirma hero ainda visualmente desbalanceado",
+    "Cutinapp PR #676 MERGED",
+    "main SHA 1958612b80feda532a958517b6ae6c53f1cf7f3b",
+    "Validate Cutinapp 36352053707 SUCCESS",
+    "Lighthouse CI 36352053670 SUCCESS",
+    "main também contém 8fda892c94102a0c3b66a30108404128ba43bae7 (desktop hero/action grid)"
   ]
 }
