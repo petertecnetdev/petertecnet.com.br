@@ -1,18 +1,18 @@
 {
-  "version": 2,
+  "version": 3,
   "agent_id": "NP11",
   "display_name": "NP11 · Tech Lead / Integration Lead",
   "role": "tech_lead_integration",
-  "status": "REVIEW",
-  "current_task_id": "TASK-20260927-FEEDMEDIA01",
-  "last_seen_at": "2026-09-27T10:36:00-03:00",
-  "last_read_at": "2026-09-27T10:36:00-03:00",
-  "checkpoint": "FEEDMEDIA01 pronta para revisão: API PR #532 + Cutinapp PR #663. Frontend reconciliado com main em d42f691; Validate #2793 e Lighthouse #705 verdes. API teste novo passa; CI global mantém as mesmas 37 falhas preexistentes da main.",
-  "next_action": "Aguardar revisão independente NP03/NP04 dos PRs #532/#663; só integrar após aprovação.",
+  "status": "RUNNING",
+  "current_task_id": "TASK-20260927-EVENTVIEWEVOLUTION01",
+  "last_seen_at": "2026-09-27T10:33:00-03:00",
+  "last_read_at": "2026-09-27T10:33:00-03:00",
+  "checkpoint": "FEEDMEDIA01 pausada com PRs #532/#663 preservados para atender ordem direta do OWNER. EVENTVIEWEVOLUTION01 assumida para evoluir e publicar a view pública de evento.",
+  "next_action": "Implementar hero/event atmosphere, validar e publicar na main; depois retomar FEEDMEDIA01.",
   "last_commit": "d42f6912942ca1f144a9e529f6b1a0d899269358",
   "last_error": null,
   "tasks_completed_today": 1,
-  "updated_at": "2026-09-27T10:36:00-03:00",
+  "updated_at": "2026-09-27T10:33:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "np11-profile-event-rail-review",
   "read_message_ids": [
@@ -34,10 +34,11 @@
     "TASK-20260926-BLOGGROWTH01",
     "TASK-20260926-EVENTADMINCONTROL01",
     "TASK-20260927-PROFILECOVERUPLOAD01",
-    "TASK-20260927-FEEDMEDIA01"
+    "TASK-20260927-FEEDMEDIA01",
+    "TASK-20260927-EVENTVIEWEVOLUTION01"
   ],
-  "run_id": "np11-20260927-feedmedia01-resume",
-  "run_started_at": "2026-09-27T10:30:00-03:00",
-  "run_finished_at": "2026-09-27T10:36:00-03:00",
-  "heartbeat_seq": 20
+  "run_id": "np11-20260927-eventviewevolution01",
+  "run_started_at": "2026-09-27T10:33:00-03:00",
+  "run_finished_at": null,
+  "heartbeat_seq": 21
 }
