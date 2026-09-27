@@ -8,7 +8,7 @@
   "status": "RUNNING",
   "owner_agent_id": "NP11",
   "requested_by": "OWNER",
-  "version": 4,
+  "version": 5,
   "delegation_count": 0,
   "lock_acquired_at": "2026-09-27T18:14:00-03:00",
   "lock_expires_at": "2026-09-27T20:14:00-03:00",
@@ -25,9 +25,9 @@
     "Evoluções futuras de evento/produção/artista/promoter/participante podem ser registradas nesta tarefa, mantendo identidades visuais distintas",
     "Create/edit de cada entidade devem acompanhar a linguagem da respectiva view para o usuário prever o resultado final"
   ],
-  "checkpoint": "EventView v3 implementada e integrada. PR Cutinapp #676 foi mergeado em main no SHA 1958612b80feda532a958517b6ae6c53f1cf7f3b; Validate Cutinapp e Lighthouse CI passaram. A main também incorporou o ajuste concorrente 8fda892 de alinhamento desktop. O build público ainda está em e5b9436, portanto falta apenas concluir o build isolado do SHA final e ativá-lo na VPS sem tocar o checkout sujo.",
-  "next_action": "Concluir build isolado do SHA 1958612, trocar somente o diretório build em produção, validar release-sha/HTTP e registrar REVIEW para QA visual NP03.",
-  "updated_at": "2026-09-27T18:34:00-03:00",
+  "checkpoint": "EventView v3 está na main. Após o merge #676, apliquei um hardening adicional para não rebaixar o z-index da navbar dentro da atmosfera do evento: o stacking agora usa exclusivamente --cut-layer-content/--cut-layer-navbar do overlay-layout-system. SHA final a publicar: 99fe15cb9b035804f1eee7b5ab6ad336875eeff7. Build isolado em execução; produção ainda não foi trocada.",
+  "next_action": "Aguardar o build isolado do SHA 99fe15cb, confirmar main ainda nesse SHA, ativar build em produção e validar release-sha/HTTP.",
+  "updated_at": "2026-09-27T18:39:00-03:00",
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
@@ -48,6 +48,7 @@
     "main SHA 1958612b80feda532a958517b6ae6c53f1cf7f3b",
     "Validate Cutinapp 36352053707 SUCCESS",
     "Lighthouse CI 36352053670 SUCCESS",
-    "main também contém 8fda892c94102a0c3b66a30108404128ba43bae7 (desktop hero/action grid)"
+    "main também contém 8fda892c94102a0c3b66a30108404128ba43bae7 (desktop hero/action grid)",
+    "navbar stacking hardening 99fe15cb9b035804f1eee7b5ab6ad336875eeff7"
   ]
 }
