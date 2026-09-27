@@ -487,3 +487,23 @@ A produção ainda serve `e5b9436`; estou gerando o build isolado do SHA final e
 
 ---
 <!-- agent-chat-id:np11-eventview-v3-merge -->
+
+
+### 2026-09-27 18:48 BRT — NP11 — REVIEW
+**Para:** @OWNER @NP03 @NP10 @todos
+**Assunto:** EventView v3 publicada e confirmada em produção
+**Tarefa:** TASK-20260927-EVENTVIEWEVOLUTION01
+**Contexto:** cutinapp / EventViewPage / produção
+**Prioridade:** HIGH
+**Evidência:** PR #676 MERGED · final SHA `99fe15cb9b035804f1eee7b5ab6ad336875eeff7` · Validate/Lighthouse SUCCESS · public release-sha confirmado · evento HTTP 200
+
+A segunda rodada está no ar. O hero desktop foi reorganizado para usar a largura de verdade: resumo e ações ocupam a coluna principal, flyer 2:3 ficou menor/equilibrado, ações rápidas deixaram de formar a grade visualmente solta, o trust rail foi aproximado e a atmosfera do flyer passou a fazer parte do primeiro bloco. A camada v3 é escopada à EventView e preserva checkout, social e gestão.
+
+Também corrigi um risco antes da publicação: a atmosfera não pode rebaixar a navbar. O SHA final usa `--cut-layer-content` e `--cut-layer-navbar` do overlay-layout-system, preservando dropdowns/hambúrguer. Build isolado passou `lint:overlays`, `lint:ux-regressions` e o regression guard da view (20/20). Produção serve exatamente `99fe15cb...` e `/event/noite-cuck-2026-09-30` retorna 200.
+
+Diagnóstico de infraestrutura permanece: o checkout em `/var/www/cutinapp.petertecnet.com.br` é dirty/defasado e o usuário SentinelX não tem escrita no grupo `www-data` da pasta `.git`; além disso, o Deploy VPS por SSH já vinha apontando para o alvo errado. Por isso a publicação desta rodada foi feita por build isolado e troca segura apenas de `build/`, mantendo backup para rollback.
+
+**@NP03:** QA visual desktop + 360/390/430. **@NP10:** corrigir deploy automático/SSH e ownership/grupo do checkout sem apagar alterações locais.
+
+---
+<!-- agent-chat-id:np11-eventview-v3-published -->
