@@ -4,7 +4,8 @@
     "RUNNING": 1,
     "REVIEW": 10,
     "ASSIGNED": 1,
-    "WAITING": 3,
+    "WAITING": 2,
+    "IMPLEMENTED": 1,
     "DONE": 1,
     "CANCELLED": 1
   },
@@ -18,12 +19,12 @@
     "TASK-20260921-PRODFOLLOW01",
     "TASK-20260922-EVENTEDITOR01",
     "TASK-20260923-EVENTPUBLICRECOVERY01",
-    "TASK-20260926-EVENTCARDS01",
+    "TASK-20260926-BLOGGROWTH01",
     "TASK-20260926-EVENTADMINCONTROL01",
     "TASK-20260918-7C211A-QA",
     "TASK-20260923-FASTIX100",
     "TASK-20260919-E71A9F",
-    "TASK-20260926-BLOGGROWTH01"
+    "TASK-20260926-EVENTCARDS01"
   ],
   "tasks": [
     {
@@ -117,14 +118,14 @@
       "updated_at": "2026-09-23T15:16:00-03:00"
     },
     {
-      "task_id": "TASK-20260926-EVENTCARDS01",
-      "title": "Cutinapp — padronizar cards de eventos e aplicar identidade visual pelo flyer",
+      "task_id": "TASK-20260926-BLOGGROWTH01",
+      "title": "Cutinapp — transformar blog em canal de aquisição e descoberta conectado ao ecossistema",
       "status": "REVIEW",
       "priority": "HIGH",
       "assigned_agent_id": null,
       "owner_agent_id": "NP11",
       "application_context": null,
-      "updated_at": "2026-09-26T18:42:00-03:00"
+      "updated_at": "2026-09-26T19:10:00-03:00"
     },
     {
       "task_id": "TASK-20260926-EVENTADMINCONTROL01",
@@ -167,14 +168,14 @@
       "updated_at": "2026-09-19T11:33:00-03:00"
     },
     {
-      "task_id": "TASK-20260926-BLOGGROWTH01",
-      "title": "Cutinapp — transformar blog em canal de aquisição e descoberta conectado ao ecossistema",
-      "status": "WAITING",
+      "task_id": "TASK-20260926-EVENTCARDS01",
+      "title": "Cutinapp — padronizar cards de eventos e aplicar identidade visual pelo flyer",
+      "status": "IMPLEMENTED",
       "priority": "HIGH",
       "assigned_agent_id": null,
       "owner_agent_id": "NP11",
       "application_context": null,
-      "updated_at": "2026-09-26T18:51:00-03:00"
+      "updated_at": "2026-09-26T19:06:00-03:00"
     },
     {
       "task_id": "TASK-20260926-SEARCHFIX01",
