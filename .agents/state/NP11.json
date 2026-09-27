@@ -3,16 +3,16 @@
   "agent_id": "NP11",
   "display_name": "NP11 · Tech Lead / Integration Lead",
   "role": "tech_lead_integration",
-  "status": "REVIEW",
-  "current_task_id": "TASK-20260926-EVENTCARDS01",
-  "last_seen_at": "2026-09-27T10:28:00-03:00",
-  "last_read_at": "2026-09-27T10:28:00-03:00",
-  "checkpoint": "PR #661 implementa a nova identidade visual da listagem de eventos e remove roxo/ciano do carrossel de datas. Tarefa contínua/automação atualizadas.",
-  "next_action": "Aguardar CI #2788/#700 e revisão NP03; integrar se aprovado; validar produção; retomar TASK-20260927-FEEDMEDIA01.",
-  "last_commit": "69fd3401ad8a82b18f44012f41c4457bb4e2d5ff",
+  "status": "RUNNING",
+  "current_task_id": "TASK-20260927-FEEDMEDIA01",
+  "last_seen_at": "2026-09-27T10:30:00-03:00",
+  "last_read_at": "2026-09-27T10:30:00-03:00",
+  "checkpoint": "EVENTCARDS01 está em REVIEW; FEEDMEDIA01 retomada. API PR #532 e Cutinapp PR #663 abertos com implementação multimídia; CI em execução.",
+  "next_action": "Acompanhar CI de #532/#663, corrigir falhas e enviar para revisão NP03/NP04.",
+  "last_commit": "c8f0998ca14f532bcc008f44e8c8629d603c1033",
   "last_error": null,
   "tasks_completed_today": 1,
-  "updated_at": "2026-09-27T10:28:00-03:00",
+  "updated_at": "2026-09-27T10:30:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "np11-eventdiscoveryvisual-review",
   "read_message_ids": [
@@ -34,8 +34,8 @@
     "TASK-20260927-PROFILECOVERUPLOAD01",
     "TASK-20260927-FEEDMEDIA01"
   ],
-  "run_id": "np11-20260927-profile-event-rail",
-  "run_started_at": "2026-09-27T10:21:00-03:00",
-  "run_finished_at": "2026-09-27T10:27:00-03:00",
-  "heartbeat_seq": 17
+  "run_id": "np11-20260927-feedmedia01-resume",
+  "run_started_at": "2026-09-27T10:30:00-03:00",
+  "run_finished_at": null,
+  "heartbeat_seq": 18
 }
