@@ -1,0 +1,22 @@
+{
+  "identity": "cutinapp-direct-reliability",
+  "project": "cutinapp",
+  "task": "Restore Direct message delivery and email reply notifications",
+  "priority": "P0",
+  "status": "IMPLEMENTING",
+  "claimed_at": "2026-09-27T13:45:00-03:00",
+  "areas": [
+    "Direct / messaging",
+    "realtime failure isolation",
+    "email engagement notifications"
+  ],
+  "problem": "Production Direct persists messages but returns HTTP 500 when the realtime broadcaster fails with Pusher 502. The frontend therefore reports 'Mensagem não enviada' even though the row was already committed, inviting retries/duplicate-looking messages. Because deliverMessage aborts at realtime broadcast before queueMessage, the existing email engagement path is also skipped.",
+  "evidence": [
+    "Production logs on 2026-09-27 at 10:54:42 record POST api/v1/apps/cutinapp/messaging/conversations/2/messages failing with Illuminate\\Broadcasting\\BroadcastException: Pusher error code 502.",
+    "MessagingService::send commits the message before deliverMessage; deliverMessage broadcasts before scheduling MessageEngagementService::queueMessage.",
+    "MessageEngagementService and the message-engagement email template already provide grouped email notification and a 'Responder agora' CTA back to /messages?conversation=<id>&engagement=<token>.",
+    "No existing cutinapp-launch agent was found CLAIMED/IMPLEMENTING for this Direct incident; active API and revenue agents are working on separate CI/subscription scopes."
+  ],
+  "implementation": "Isolate realtime, engagement-dispatch and in-app notification transport failures from the durable message operation; preserve polling fallback; add regression coverage; then commit/push through GitHub and respect the validated API deploy gate.",
+  "production_gate": "PENDING_VALIDATED_DEPLOY"
+}
