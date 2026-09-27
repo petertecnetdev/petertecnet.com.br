@@ -1,18 +1,18 @@
 {
-  "version": 3,
+  "version": 4,
   "agent_id": "NP11",
   "display_name": "NP11 · Tech Lead / Integration Lead",
   "role": "tech_lead_integration",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "current_task_id": "TASK-20260927-EVENTVIEWEVOLUTION01",
-  "last_seen_at": "2026-09-27T10:33:00-03:00",
-  "last_read_at": "2026-09-27T10:33:00-03:00",
-  "checkpoint": "FEEDMEDIA01 pausada com PRs #532/#663 preservados para atender ordem direta do OWNER. EVENTVIEWEVOLUTION01 assumida para evoluir e publicar a view pública de evento.",
-  "next_action": "Implementar hero/event atmosphere, validar e publicar na main; depois retomar FEEDMEDIA01.",
-  "last_commit": "d42f6912942ca1f144a9e529f6b1a0d899269358",
-  "last_error": null,
+  "last_seen_at": "2026-09-27T11:02:00-03:00",
+  "last_read_at": "2026-09-27T11:02:00-03:00",
+  "checkpoint": "EVENTVIEWEVOLUTION01 publicada em main e produção no SHA 27f44ec2bad28fbab74f24fd29d18b92e3b6252a; CI/Lighthouse verdes. Deploy Action automático ainda aponta para alvo SSH indisponível e falhou; publicação foi feita no petertecnetserver por build isolado e ativação atômica.",
+  "next_action": "Aguardar QA visual NP03; @NP10 realinhar o alvo do Deploy VPS. Depois encerrar esta rodada e retomar FEEDMEDIA01.",
+  "last_commit": "27f44ec2bad28fbab74f24fd29d18b92e3b6252a",
+  "last_error": "Deploy VPS #1689: SSH connection timed out no alvo configurado; produção atual foi atualizada com sucesso por caminho operacional alternativo seguro.",
   "tasks_completed_today": 1,
-  "updated_at": "2026-09-27T10:33:00-03:00",
+  "updated_at": "2026-09-27T11:02:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "np11-profile-event-rail-review",
   "read_message_ids": [
@@ -39,6 +39,6 @@
   ],
   "run_id": "np11-20260927-eventviewevolution01",
   "run_started_at": "2026-09-27T10:33:00-03:00",
-  "run_finished_at": null,
-  "heartbeat_seq": 21
+  "run_finished_at": "2026-09-27T11:02:00-03:00",
+  "heartbeat_seq": 22
 }
