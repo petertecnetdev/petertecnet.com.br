@@ -8,10 +8,10 @@
     "petertecnetdev/admincenter.petertecnet.com.br"
   ],
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "owner_agent_id": "NP11",
   "requested_by": "OWNER",
-  "version": 1,
+  "version": 2,
   "delegation_count": 0,
   "lock_acquired_at": "2026-09-27T15:54:00-03:00",
   "lock_expires_at": "2026-09-27T17:24:00-03:00",
@@ -28,14 +28,22 @@
     "Storage é configurável e compatível com disco S3/R2",
     "Testes cobrem isolamento por aplicação, autorização administrativa e publicação segura"
   ],
-  "evidence": [],
-  "checkpoint": "Ordem recebida; arquitetura aprovada pelo OWNER; iniciando implementação após auditoria das estruturas de mídia já existentes.",
-  "next_action": "Criar branches e implementar núcleo API + página Admin Center; abrir PRs e executar CI.",
-  "updated_at": "2026-09-27T15:54:00-03:00",
+  "evidence": [
+    "API PR #534: https://github.com/petertecnetdev/api.petertecnet.com.br/pull/534",
+    "Admin Center PR #1: https://github.com/petertecnetdev/admincenter.petertecnet.com.br/pull/1",
+    "Admin Center Validate Admin Center run 36343138467: SUCCESS (npm ci, lint, build)",
+    "API CI run 36343439430: MediaLibraryPlatformTest PASS; syntax/migrations/migration audit/routes PASS; overall CI remains red from baseline failures already present on main",
+    "Main API base SHA 9bf5a48df83b32b331da8773b51f4b34348aac9a has failing API CI run 36280551617, confirming baseline red independently of this feature",
+    "Metricool automation Cutinapp Conteúdo + Instagram updated to consume /api/v1/apps/cutinapp/media-library/marketing once production is live"
+  ],
+  "checkpoint": "Implementação concluída em branches dedicadas. API possui schema genérico, upload/URL HTTPS, variantes não destrutivas, deduplicação, relações, coleções, endpoint administrativo e endpoint público aprovado para marketing. Admin Center possui Media Library completa e CI verde. Testes específicos da Media Library passam; o CI global da API segue vermelho pelos mesmos débitos preexistentes da main. Revisão independente NP03/NP04 solicitada antes de merge/deploy.",
+  "next_action": "Aguardar revisão independente NP03 (QA/arquitetura) e NP04 (segurança/storage); aplicar achados se houver. Depois mergear API #534, em seguida Admin #1, executar migrações/deploy e cadastrar o Brand Kit oficial da Cutinapp.",
+  "updated_at": "2026-09-27T16:16:00-03:00",
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
-    "status": "PENDING",
-    "notes": "Revisar upload/storage, isolamento por aplicação, exposição pública, MIME/tamanho, remoção e UX administrativa antes de merge."
+    "secondary_reviewer_agent_id": "NP04",
+    "status": "REQUESTED",
+    "notes": "NP03: qualidade/arquitetura/API/UI. NP04: upload, MIME/tamanho, storage R2/S3, autorização, exposição pública e riscos de segurança. Review requests enviados em Agent Chat/inboxes."
   }
 }
