@@ -5,13 +5,13 @@
   "context": "cutinapp",
   "repo": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "owner_agent_id": "NP11",
   "requested_by": "OWNER",
-  "version": 1,
+  "version": 2,
   "delegation_count": 0,
-  "lock_acquired_at": "2026-09-27T09:57:00-03:00",
-  "lock_expires_at": "2026-09-27T11:27:00-03:00",
+  "lock_acquired_at": null,
+  "lock_expires_at": null,
   "scope": "Corrigir o clique na capa do perfil para abrir o seletor de arquivos e permitir selecionar/enviar uma nova imagem de capa usando o fluxo existente de atualização de perfil.",
   "acceptance": [
     "Clique na capa/controle de edição abre o seletor nativo de arquivos",
@@ -19,8 +19,12 @@
     "Arquivo selecionado entra no fluxo existente de preview/upload sem quebrar avatar",
     "Build/testes relevantes passam"
   ],
-  "evidence": [],
-  "checkpoint": "Ordem direta do OWNER recebida; fluxo de edição de perfil localizado em src/pages/user/UserEditPage.js.",
-  "next_action": "Inspecionar UserEditPage/UserService, aplicar correção mínima, validar e publicar evidência.",
-  "updated_at": "2026-09-27T09:57:00-03:00"
+  "evidence": [
+    "Cutinapp main commit e4f86d90178a8c0ca298fbbe0d56062fe4dbeb47: UserEditPage adds explicit ref-driven native cover file picker",
+    "Cutinapp main commit a3e0638fb3625156418e2c518096e373085a1066: cover picker receives interactive/accessibility styling",
+    "Deploy VPS workflow run 36320891874 completed successfully for head a3e0638fb3625156418e2c518096e373085a1066"
+  ],
+  "checkpoint": "Correção publicada em main e deploy da VPS concluído com sucesso. Capa/placeholder, label e botão explícito agora acionam o input real de arquivo por ref; o fluxo existente de validação, preview e upload foi preservado.",
+  "next_action": "Acompanhar Validate Cutinapp/Lighthouse do head a3e0638f; se verdes, encerrar como DONE. QA autenticado pode confirmar clique na capa e seleção de arquivo.",
+  "updated_at": "2026-09-27T10:01:00-03:00"
 }
