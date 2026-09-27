@@ -47,8 +47,8 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 
 - Agentes registrados: **9**
 - Tarefas abertas: **21**
-- Executando: **3**
-- Em revisão: **14**
+- Executando: **2**
+- Em revisão: **15**
 - Bloqueadas/decisão: **0**
 
 ### Agentes
@@ -60,15 +60,15 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 - **NP08** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 - **NP09** · REVIEW · task: TELEMETRY-SCHEMA-NORMALIZATION · last_seen: 2026-09-20T17:20:00-03:00 · next: Aguardar CI e revisão NP03/Tech Lead no PR #511; depois corrigir feedback ou abrir handoff para integração dos novos campos no FrontendTelemetryService.
 - **NP10** · BLOCKED · task: TAREFA-3-ADMIN-460 · last_seen: 2026-09-20T21:36:44-03:00 · next: Aguardar handoff/encerramento do claim NP09; então auditar main atual e validar 1-460, começando pelos gaps dos PRs #109/#114 e checks #108-#116.
-- **NP11** · RUNNING · task: TASK-20260927-MEDIALIBRARY01 · last_seen: 2026-09-27T15:54:00-03:00 · next: Implementar MediaAsset/MediaVariant/MediaRelation/MediaCollection, endpoints administrativos/públicos e UI da biblioteca; abrir PRs e rodar CI.
+- **NP11** · REVIEW · task: TASK-20260927-EVENTVIEWEVOLUTION01 · last_seen: 2026-09-27T18:48:00-03:00 · next: Aguardar QA visual NP03; NP10 corrigir deploy automático/SSH e permissão do checkout operacional.
 
 ### Próximas tarefas
 - **TASK-20260927-DMEM01** · CRITICAL · RUNNING · NP03 · cutinapp · Corrigir Direct da Cutinapp e notificar novas mensagens por email
-- **TASK-20260927-MEDIALIBRARY01** · HIGH · RUNNING · fila · geral · Peter Tecnet — Media Library central reutilizável + Admin Center
 - **TASK-20260926-EVENTIMAGEEDITOR01** · HIGH · RUNNING · NP11 · cutinapp · Editor de imagem de evento estilo Instagram com normalização automática 2:3
 - **TASK-20260926-NAVINSTAGRAM01** · HIGH · REVIEW · fila · geral · Cutinapp — reorganizar navegação desktop no padrão Instagram
 - **TASK-20260927-EVENTVIEWEVOLUTION01** · HIGH · REVIEW · fila · geral · Cutinapp — evolução contínua das views públicas, iniciando pela view de evento
 - **TASK-20260927-FEEDMEDIA01** · HIGH · REVIEW · fila · geral · Cutinapp — publicações com mídia no Feed em experiência estilo Instagram
+- **TASK-20260927-MEDIALIBRARY01** · HIGH · REVIEW · fila · geral · Peter Tecnet — Media Library central reutilizável + Admin Center
 - **TASK-20260927-PROFILECOVERUPLOAD01** · HIGH · REVIEW · fila · geral · Cutinapp — corrigir capa e navegação persistente do editor de perfil
 - **TASK-20260918-7C211A** · HIGH · REVIEW · NP02 · cutinapp · Evoluir Meus eventos da Cutinapp — pacote 1–211
 - **TASK-20260919-MOBILE250** · HIGH · REVIEW · NP05 · cutinapp · Simplificação e performance mobile Cutinapp — pacote 1–250
