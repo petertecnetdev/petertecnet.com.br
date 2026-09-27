@@ -8,10 +8,10 @@
   "status": "REVIEW",
   "owner_agent_id": "NP11",
   "requested_by": "OWNER",
-  "version": 3,
+  "version": 4,
   "delegation_count": 0,
   "lock_acquired_at": null,
-  "lock_expires_at": "2026-09-27T11:30:00-03:00",
+  "lock_expires_at": "2026-09-27T11:35:00-03:00",
   "scope": "Corrigir o clique/seleção da capa do perfil e garantir que o menu de seções do editor permaneça visível e navegável ao rolar ou saltar entre Foto e capa, Identidade, Contato, Localização, Sobre e Segurança.",
   "acceptance": [
     "Clique na capa/controle de edição abre o seletor nativo de arquivos",
@@ -25,9 +25,10 @@
   "evidence": [
     "Cutinapp main commit e4f86d90178a8c0ca298fbbe0d56062fe4dbeb47: UserEditPage adds explicit ref-driven native cover file picker",
     "Cutinapp main commit a3e0638fb3625156418e2c518096e373085a1066: cover picker receives interactive/accessibility styling",
-    "Deploy VPS workflow run 36320891874 completed successfully for head a3e0638fb3625156418e2c518096e373085a1066"
+    "Deploy VPS workflow run 36320891874 completed successfully for head a3e0638fb3625156418e2c518096e373085a1066",
+    "Cutinapp PR #660 · head c959991102c95fc17d2a62d7fabcaf0a8c500a5f"
   ],
-  "checkpoint": "OWNER ampliou a correção do editor de perfil: além da capa, o menu de seções deve permanecer fixo durante a navegação. Patch aplicado em branch fix/profile-editor-sticky-nav.",
-  "next_action": "Abrir PR, aguardar CI (incluindo lint de overlays/build/testes) e publicar evidência; depois integrar conforme política de revisão.",
-  "updated_at": "2026-09-27T10:00:00-03:00"
+  "checkpoint": "Menu do editor corrigido na branch fix/profile-editor-sticky-nav: offset passa a seguir navbar fixa/safe-area e o overlay layout system garante a camada sticky. PR #660 aberto; Validate Cutinapp #2785 e Lighthouse CI #697 em execução.",
+  "next_action": "Aguardar CI; se verde, solicitar/recolher revisão exigida e integrar em main.",
+  "updated_at": "2026-09-27T10:05:00-03:00"
 }
