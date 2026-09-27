@@ -11,5 +11,5 @@
   "dependencies": {
     "openai": "^7.23.0"
   },
-  "engines": {"node": ">=20"}
+  "engines": {"node": ">=22"}
 }
