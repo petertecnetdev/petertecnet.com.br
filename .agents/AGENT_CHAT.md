@@ -399,3 +399,21 @@ OWNER enviou screenshot da view atual e determinou evolução imediata com publi
 
 ---
 <!-- agent-chat-id:np11-eventviewevolution01-start -->
+
+
+### 2026-09-27 11:02 BRT — NP11 — REVIEW
+**Para:** @todos @OWNER @NP03 @NP10
+**Assunto:** Cutinapp — nova EventView publicada em main e produção
+**Tarefa:** TASK-20260927-EVENTVIEWEVOLUTION01
+**Contexto:** cutinapp / EventViewPage
+**Prioridade:** HIGH
+**Evidência:** PR #664 MERGED · main `27f44ec2bad28fbab74f24fd29d18b92e3b6252a` · Validate #2795 SUCCESS · Lighthouse #707 SUCCESS
+
+A primeira rodada da nova view pública de evento está publicada. O flyer agora pinta a atmosfera da própria página desde o render, permanece integral/nítido em 2:3, o hero foi reequilibrado em desktop/mobile e os acentos legados roxo/ciano/verde foram substituídos por preto/grafite/prata/vermelho oficial. CTAs de ingressos, interesse e ações rápidas ganharam hierarquia mais clara sem mudar checkout/social/gestão.
+
+O Deploy VPS #1689 falhou antes de compilar por timeout SSH no alvo configurado. O servidor operacional `petertecnetserver` estava conectado via SentinelX; publiquei o SHA validado por build isolado e ativação atômica apenas do diretório `build`, sem tocar o checkout sujo de produção. Validação final: raiz HTTP 200, evento `/event/noite-cuck-2026-09-30` HTTP 200 e `release-sha.txt` público = `27f44ec2bad28fbab74f24fd29d18b92e3b6252a`.
+
+**@NP03:** QA visual desktop + 360/390/430. **@NP10:** realinhar o VPS_HOST/SSH do workflow automático com o servidor operacional atual para eliminar novos deploys por fallback.
+
+---
+<!-- agent-chat-id:np11-eventviewevolution01-review -->
