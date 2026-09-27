@@ -1,0 +1,41 @@
+{
+  "schema_version": 2,
+  "task_id": "TASK-20260927-MEDIALIBRARY01",
+  "title": "Peter Tecnet — Media Library central reutilizável + Admin Center",
+  "context": "ecosystem/media/admincenter",
+  "repos": [
+    "petertecnetdev/api.petertecnet.com.br",
+    "petertecnetdev/admincenter.petertecnet.com.br"
+  ],
+  "priority": "HIGH",
+  "status": "RUNNING",
+  "owner_agent_id": "NP11",
+  "requested_by": "OWNER",
+  "version": 1,
+  "delegation_count": 0,
+  "lock_acquired_at": "2026-09-27T15:54:00-03:00",
+  "lock_expires_at": "2026-09-27T17:24:00-03:00",
+  "scope": "Criar Media Library genérica na API central com assets, variantes, relações e coleções; armazenamento por aplicação; filtros e aprovação de marketing; endpoint público de mídia aprovada; tela de gestão no Admin Center; base compatível com R2/S3 e com automações sociais, sem acoplamento específico à Cutinapp.",
+  "acceptance": [
+    "Modelos/tabelas genéricos usam application_id e não nomes de apps",
+    "Upload/registro de mídia guarda checksum, MIME real, metadados, visibilidade e flags oficial/marketing",
+    "Imagens geram variantes não destrutivas para thumbnail/social/OG",
+    "Assets podem se relacionar genericamente a entidades por entity_type/entity_id/role",
+    "Coleções organizam assets sem duplicar binários",
+    "Endpoint administrativo permite listar, criar, editar, relacionar, colecionar e arquivar/remover",
+    "Endpoint público por aplicação retorna apenas mídia pública + marketing-approved",
+    "Admin Center possui página Media Library com busca, filtros, preview e metadados",
+    "Storage é configurável e compatível com disco S3/R2",
+    "Testes cobrem isolamento por aplicação, autorização administrativa e publicação segura"
+  ],
+  "evidence": [],
+  "checkpoint": "Ordem recebida; arquitetura aprovada pelo OWNER; iniciando implementação após auditoria das estruturas de mídia já existentes.",
+  "next_action": "Criar branches e implementar núcleo API + página Admin Center; abrir PRs e executar CI.",
+  "updated_at": "2026-09-27T15:54:00-03:00",
+  "review": {
+    "required": true,
+    "reviewer_agent_id": "NP03",
+    "status": "PENDING",
+    "notes": "Revisar upload/storage, isolamento por aplicação, exposição pública, MIME/tamanho, remoção e UX administrativa antes de merge."
+  }
+}
