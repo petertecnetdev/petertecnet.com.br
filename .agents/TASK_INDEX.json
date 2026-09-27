@@ -1,17 +1,20 @@
 {
   "schema_version": 1,
   "counts": {
-    "RUNNING": 1,
-    "REVIEW": 10,
+    "RUNNING": 2,
+    "REVIEW": 14,
     "ASSIGNED": 1,
     "WAITING": 2,
-    "IMPLEMENTED": 1,
     "DONE": 1,
     "CANCELLED": 1
   },
   "open_task_ids": [
+    "TASK-20260927-DMEM01",
     "TASK-20260926-EVENTIMAGEEDITOR01",
     "TASK-20260926-NAVINSTAGRAM01",
+    "TASK-20260927-EVENTVIEWEVOLUTION01",
+    "TASK-20260927-FEEDMEDIA01",
+    "TASK-20260927-PROFILECOVERUPLOAD01",
     "TASK-20260918-7C211A",
     "TASK-20260919-MOBILE250",
     "TASK-20260919-NEARBY01",
@@ -19,14 +22,24 @@
     "TASK-20260921-PRODFOLLOW01",
     "TASK-20260922-EVENTEDITOR01",
     "TASK-20260923-EVENTPUBLICRECOVERY01",
+    "TASK-20260926-EVENTCARDS01",
     "TASK-20260926-BLOGGROWTH01",
     "TASK-20260926-EVENTADMINCONTROL01",
     "TASK-20260918-7C211A-QA",
     "TASK-20260923-FASTIX100",
-    "TASK-20260919-E71A9F",
-    "TASK-20260926-EVENTCARDS01"
+    "TASK-20260919-E71A9F"
   ],
   "tasks": [
+    {
+      "task_id": "TASK-20260927-DMEM01",
+      "title": "Corrigir Direct da Cutinapp e notificar novas mensagens por email",
+      "status": "RUNNING",
+      "priority": "CRITICAL",
+      "assigned_agent_id": "NP03",
+      "owner_agent_id": "NP03",
+      "application_context": "cutinapp",
+      "updated_at": "2026-09-27T10:55:00-03:00"
+    },
     {
       "task_id": "TASK-20260926-EVENTIMAGEEDITOR01",
       "title": "Editor de imagem de evento estilo Instagram com normalização automática 2:3",
@@ -46,6 +59,36 @@
       "owner_agent_id": "NP02",
       "application_context": null,
       "updated_at": "2026-09-26T12:18:00-03:00"
+    },
+    {
+      "task_id": "TASK-20260927-EVENTVIEWEVOLUTION01",
+      "title": "Cutinapp — evolução contínua das views públicas, iniciando pela view de evento",
+      "status": "REVIEW",
+      "priority": "HIGH",
+      "assigned_agent_id": null,
+      "owner_agent_id": "NP11",
+      "application_context": null,
+      "updated_at": "2026-09-27T11:02:00-03:00"
+    },
+    {
+      "task_id": "TASK-20260927-FEEDMEDIA01",
+      "title": "Cutinapp — publicações com mídia no Feed em experiência estilo Instagram",
+      "status": "REVIEW",
+      "priority": "HIGH",
+      "assigned_agent_id": null,
+      "owner_agent_id": "NP11",
+      "application_context": null,
+      "updated_at": "2026-09-27T10:36:00-03:00"
+    },
+    {
+      "task_id": "TASK-20260927-PROFILECOVERUPLOAD01",
+      "title": "Cutinapp — corrigir capa e navegação persistente do editor de perfil",
+      "status": "REVIEW",
+      "priority": "HIGH",
+      "assigned_agent_id": null,
+      "owner_agent_id": "NP11",
+      "application_context": null,
+      "updated_at": "2026-09-27T10:09:00-03:00"
     },
     {
       "task_id": "TASK-20260918-7C211A",
@@ -118,6 +161,16 @@
       "updated_at": "2026-09-23T15:16:00-03:00"
     },
     {
+      "task_id": "TASK-20260926-EVENTCARDS01",
+      "title": "Cutinapp — evolução visual contínua da descoberta, listagem e cards de eventos",
+      "status": "REVIEW",
+      "priority": "HIGH",
+      "assigned_agent_id": null,
+      "owner_agent_id": "NP11",
+      "application_context": null,
+      "updated_at": "2026-09-27T10:34:00-03:00"
+    },
+    {
       "task_id": "TASK-20260926-BLOGGROWTH01",
       "title": "Cutinapp — transformar blog em canal de aquisição e descoberta conectado ao ecossistema",
       "status": "REVIEW",
@@ -166,16 +219,6 @@
       "owner_agent_id": "NP02",
       "application_context": "cutinapp",
       "updated_at": "2026-09-19T11:33:00-03:00"
-    },
-    {
-      "task_id": "TASK-20260926-EVENTCARDS01",
-      "title": "Cutinapp — padronizar cards de eventos e aplicar identidade visual pelo flyer",
-      "status": "IMPLEMENTED",
-      "priority": "HIGH",
-      "assigned_agent_id": null,
-      "owner_agent_id": "NP11",
-      "application_context": null,
-      "updated_at": "2026-09-26T19:06:00-03:00"
     },
     {
       "task_id": "TASK-20260926-SEARCHFIX01",
