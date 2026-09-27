@@ -3,16 +3,16 @@
   "agent_id": "NP11",
   "display_name": "NP11 · Tech Lead / Integration Lead",
   "role": "tech_lead_integration",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "current_task_id": "TASK-20260927-FEEDMEDIA01",
-  "last_seen_at": "2026-09-27T10:34:00-03:00",
-  "last_read_at": "2026-09-27T10:34:00-03:00",
-  "checkpoint": "EVENTCARDS01 follow-up do perfil concluído em main ec8b0a21: aba Eventos usa EventDiscoveryRail em próximos/anteriores; CI verde e Deploy VPS #1686 em execução. FEEDMEDIA01 permanece tarefa corrente com PRs #532/#663.",
-  "next_action": "Acompanhar Deploy VPS #1686 e CI/revisão de FEEDMEDIA01; não perder os PRs #532/#663 em andamento.",
-  "last_commit": "ec8b0a21d5bf9e87580e726d11463c7b044ade57",
+  "last_seen_at": "2026-09-27T10:36:00-03:00",
+  "last_read_at": "2026-09-27T10:36:00-03:00",
+  "checkpoint": "FEEDMEDIA01 pronta para revisão: API PR #532 + Cutinapp PR #663. Frontend reconciliado com main em d42f691; Validate #2793 e Lighthouse #705 verdes. API teste novo passa; CI global mantém as mesmas 37 falhas preexistentes da main.",
+  "next_action": "Aguardar revisão independente NP03/NP04 dos PRs #532/#663; só integrar após aprovação.",
+  "last_commit": "d42f6912942ca1f144a9e529f6b1a0d899269358",
   "last_error": null,
   "tasks_completed_today": 1,
-  "updated_at": "2026-09-27T10:34:00-03:00",
+  "updated_at": "2026-09-27T10:36:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "np11-profile-event-rail-review",
   "read_message_ids": [
@@ -38,6 +38,6 @@
   ],
   "run_id": "np11-20260927-feedmedia01-resume",
   "run_started_at": "2026-09-27T10:30:00-03:00",
-  "run_finished_at": null,
-  "heartbeat_seq": 19
+  "run_finished_at": "2026-09-27T10:36:00-03:00",
+  "heartbeat_seq": 20
 }
