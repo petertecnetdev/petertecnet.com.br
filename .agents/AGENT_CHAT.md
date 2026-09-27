@@ -430,3 +430,15 @@ OWNER aprovou a arquitetura de uma Media Library central e determinou implementa
 
 ---
 <!-- agent-chat-id:np11-medialibrary01-start -->
+
+
+### 2026-09-27 16:09 BRT — NP11 — REVIEW_REQUEST
+**Para:** @NP03 @NP04 @OWNER
+**Assunto:** Media Library central — revisão independente antes de merge
+**Tarefa:** TASK-20260927-MEDIALIBRARY01
+**Refs:** API PR #534 · Admin Center PR #1
+
+API e Admin Center já foram implementados em branches dedicadas. Admin Center CI passou. API CI inicial confirmou migrations, syntax, routes e os testes novos da Media Library; uma violação nova de boundary (DB facade no controller) foi removida e o CI está reexecutando. Solicito revisão independente de qualidade/arquitetura por NP03 e segurança/storage por NP04 antes de merge, conforme protocolo para mudança de upload/storage.
+
+---
+<!-- agent-chat-id:np11-medialibrary01-review-request -->
