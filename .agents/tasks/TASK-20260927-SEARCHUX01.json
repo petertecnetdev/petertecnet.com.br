@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "task_id": "TASK-20260927-SEARCHUX01",
+  "title": "Cutinapp — evoluir UX/CSS da busca pública /search",
+  "context": "cutinapp",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "priority": "HIGH",
+  "status": "ASSIGNED",
+  "owner_agent_id": "NP02",
+  "created_by": "OWNER",
+  "created_at": "2026-09-27T14:38:00-03:00",
+  "updated_at": "2026-09-27T14:38:00-03:00",
+  "lock_acquired_at": null,
+  "lock_expires_at": null,
+  "delegation_count": 0,
+  "goal": "Evoluir a tela pública /search para tornar descoberta de eventos, produções, pessoas e itens mais rápida, legível e alinhada à identidade Cutinapp, reduzindo peso visual do hero e aumentando a escaneabilidade do caminho busca -> resultado -> evento/produção -> compra.",
+  "business_impact": "A busca é uma superfície de aquisição e descoberta. A melhoria deve reduzir fricção para encontrar eventos e entidades e aumentar cliques qualificados rumo às páginas públicas e ao checkout, sem priorizar cosmética sobre conversão.",
+  "acceptance_criteria": [
+    "Reduzir a sensação de bloco/hero excessivo no topo e dar prioridade visual imediata ao campo de busca e aos resultados.",
+    "Substituir o contorno vermelho permanente e dominante do campo por estado neutro no repouso e destaque vermelho oficial em focus/active, preservando contraste AA e foco visível por teclado.",
+    "Eliminar aparência azul/roxa decorativa incompatível com a identidade atual; usar preto/grafite, prata/branco e vermelho elétrico via tokens compartilhados, sem transparências decorativas novas.",
+    "Refinar espaçamento, tipografia, ícones e densidade dos filtros rápidos e tabs de entidades para leitura mais clara em desktop e mobile.",
+    "Filtros/tabs devem permitir navegação horizontal responsiva quando necessário sem gerar overflow global da página.",
+    "A seção 'Em alta agora' deve ter hierarquia de ranking clara, cards clicáveis e estados hover/focus consistentes.",
+    "O rail 'Para você' deve ficar visualmente mais limpo, com cards alinhados e sem scrollbar nativa chamativa; manter indicação de que há mais conteúdo horizontal.",
+    "Estados loading, vazio, erro e resultados devem preservar a mesma linguagem visual e não deslocar excessivamente o layout.",
+    "Não alterar sem necessidade a lógica/contrato da busca; preservar rotas, telemetria e acessibilidade existentes.",
+    "Validar em 360/390/430px e 1280/1366/1440/1920px, incluindo teclado, foco, overflow e contraste.",
+    "Rodar npm run lint:overlays, testes relevantes, build/performance budget e checks de UX antes de REVIEW.",
+    "Registrar evidência visual e técnica, PR/commit e checks; após deploy medir eventos de busca -> clique em resultado e, quando disponível, progressão até página de evento/checkout sem inventar baseline."
+  ],
+  "files_hint": [
+    "src/pages/search/GlobalSearchPage.css",
+    "src/pages/search/GlobalSearchPage.js",
+    "src/styles/design-system-primitives.css",
+    "src/styles/tokens.css"
+  ],
+  "checkpoint": "Solicitação direta do OWNER a partir da tela pública /search em 2026-09-27. Coordenação e claims consultados antes de criar a tarefa; não foi identificado claim específico de /search. A implementação foi colocada na fila de Frontend Platform para não interromper o P0/CRITICAL de Direct atualmente em execução por NP03.",
+  "next_action": "NP02 deve reler coordenação/claims, adquirir lock e implementar a evolução visual da /search em branch própria; solicitar QA independente antes de merge/deploy.",
+  "evidence": [
+    "Referência visual fornecida pelo OWNER: /search em desktop, 2026-09-27 14:38 BRT"
+  ],
+  "review": {
+    "required": true,
+    "reviewer_agent_id": "NP03",
+    "status": "PENDING",
+    "notes": "QA deve validar densidade, contraste, foco, responsividade, ausência de overflow e preservação do fluxo busca -> entidade pública."
+  }
+}
