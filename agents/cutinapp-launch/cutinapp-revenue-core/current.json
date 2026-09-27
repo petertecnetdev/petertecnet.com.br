@@ -14,50 +14,42 @@
     "health check",
     "producer activation"
   ],
-  "checked_at": "2026-09-26T23:02:00-03:00",
-  "main_sha_analyzed": "d737167336252a85b8e3a881dd03e1cbd305bf9c",
+  "checked_at": "2026-09-26T23:57:36-03:00",
+  "main_sha_analyzed": "6d681a572736cea93282d985bc488e3ee449ae68",
   "coordination": [
     "Read README, readiness, revenue-scorecard and this agent state before editing.",
     "Did not duplicate subscription billing, payment, ticket, issue #646 or issue #650 fronts.",
     "No subscription price, automatic billing, entitlement or ticket commission behavior was introduced.",
     "Production release integrity remains the P1 prerequisite for trustworthy activation/MRR measurement."
   ],
-  "problem": "The latest validated deploy attempt is now blocked earlier by loss of SSH reachability to the configured VPS endpoint. For SHA d737167336252a85b8e3a881dd03e1cbd305bf9c, Validate Cutinapp and Lighthouse CI succeeded, but Deploy VPS run 36286046869 failed while fetching frontend build environment because four SSH attempts timed out. Deploy application and health check therefore never ran. The improved release-serving diagnostic still executed independently and proved that public HTTPS remains on old SHA 5a247f22abc48277d9f09ebd3dbfe9dd3d9f5e03 while filesystem/local-nginx probes are unavailable because the same SSH endpoint cannot be reached.",
-  "impact": "No validated Cutinapp revision can reach production while the GitHub runner cannot reach the VPS SSH endpoint. Producer activation, visual, SEO and conversion changes on main cannot be attributed to production, so trial-to-paid and MRR effects remain unmeasurable.",
+  "problem": "The SSH deployment blocker persists on the newer main SHA 6d681a572736cea93282d985bc488e3ee449ae68 (chore(navbar): record compact navigation implementation). Deploy VPS run 36288651394 passed the stale-release guard but failed in Fetch frontend build environment after roughly 151 seconds. Build frontend, Deploy application and Health check were skipped. The independent Diagnose release serving identity job also failed, consistent with the configured VPS endpoint remaining unreachable from GitHub Actions. This confirms the outage is not isolated to the earlier d737167 attempt.",
+  "impact": "Validated frontend changes, including navbar and activation/conversion work, cannot be proven in production while GitHub Actions cannot reach the VPS. Production attribution for producer activation, trial conversion and MRR remains unsafe.",
   "implementation": {
-    "diagnostic_commit": "d737167336252a85b8e3a881dd03e1cbd305bf9c",
-    "diagnostic_change": "Release diagnosis now tolerates SSH command failure long enough to preserve the public HTTPS SHA and emits an explicit configured-VPS-SSH-unavailable classification.",
-    "deploy_run": 36286046869,
-    "validate_run": 36285950210,
-    "validate_conclusion": "success",
-    "lighthouse_conclusion": "success",
+    "observed_sha": "6d681a572736cea93282d985bc488e3ee449ae68",
+    "deploy_run": 36288651394,
     "freshness_guard": "success",
-    "fetch_frontend_build_environment": "failure_after_4_ssh_timeouts",
+    "fetch_frontend_build_environment": "failure",
+    "build_frontend": "skipped",
     "deploy_application": "skipped",
     "health_check": "skipped",
-    "diagnostic_job": 108527302977,
-    "diagnostic_job_conclusion": "failure_expected_classification",
-    "filesystem_sha": null,
-    "local_http_sha": null,
-    "public_https_sha": "5a247f22abc48277d9f09ebd3dbfe9dd3d9f5e03",
+    "diagnostic_job": 108534684933,
+    "diagnostic_job_conclusion": "failure",
     "next_diagnostic": "Restore GitHub Actions SSH reachability to the configured VPS host/port, then rerun an exact validated SHA through deploy and exact-SHA health verification. Do not weaken the gate or deploy manually around CI."
   },
   "validation": {
-    "expected_sha": "d737167336252a85b8e3a881dd03e1cbd305bf9c",
-    "validate_cutinapp": "success",
-    "lighthouse_ci": "success",
-    "deploy_run": 36286046869,
+    "expected_sha": "6d681a572736cea93282d985bc488e3ee449ae68",
+    "deploy_run": 36288651394,
     "deploy_conclusion": "failure",
-    "production_verification": "NOT_REACHED",
-    "observed_public_sha": "5a247f22abc48277d9f09ebd3dbfe9dd3d9f5e03"
+    "production_verification": "NOT_REACHED"
   },
   "evidence": [
-    "Validate Cutinapp run 36285950210 succeeded for d737167336252a85b8e3a881dd03e1cbd305bf9c.",
-    "Lighthouse CI succeeded for the same SHA.",
-    "Deploy VPS run 36286046869 reached the reusable deploy, then four SSH attempts to the configured VPS endpoint timed out during Fetch frontend build environment; build/deploy/health were skipped.",
-    "Diagnose release serving identity job 108527302977 preserved public HTTPS evidence despite SSH outage: public release SHA remained 5a247f22abc48277d9f09ebd3dbfe9dd3d9f5e03; filesystem and local nginx were unavailable because SSH was unreachable."
+    "Deploy VPS run 36288651394 targeted 6d681a572736cea93282d985bc488e3ee449ae68.",
+    "Reject stale validated release succeeded before deploy.",
+    "Fetch frontend build environment failed; Build frontend, Deploy application and Health check were skipped.",
+    "Diagnose release serving identity job 108534684933 failed after the deploy failure, so no new production SHA is claimed.",
+    "Navbar quality remains IMPLEMENTING; build-only evidence is insufficient and viewport/functional validation remains pending."
   ],
-  "risk": "Do not declare newer Cutinapp commits deployed while production still reports 5a247f22... and the configured VPS SSH endpoint is unreachable from GitHub Actions.",
-  "gate_status": "BLOCKED: CI is green through validation/Lighthouse, but GitHub Actions cannot currently reach the configured VPS SSH endpoint, so deployment and health verification cannot execute.",
+  "risk": "Do not declare newer Cutinapp commits deployed while the configured VPS endpoint remains unreachable from GitHub Actions and health verification is not reached.",
+  "gate_status": "BLOCKED: GitHub Actions still cannot complete the VPS pre-deploy environment fetch, so build/deploy/health do not execute.",
   "next_independent_blocker": "Restore SSH reachability from GitHub Actions to the configured VPS host/port; then rerun validated deploy and require expected SHA = filesystem = local nginx = public HTTPS before resuming activation/MRR work."
 }
