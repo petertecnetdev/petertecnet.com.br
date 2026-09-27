@@ -1,17 +1,17 @@
 {
-  "version": 4,
+  "version": 5,
   "task_id": "TASK-20260926-EVENTCARDS01",
   "title": "Cutinapp — evolução visual contínua da descoberta, listagem e cards de eventos",
   "context": "cutinapp",
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "owner_agent_id": "NP11",
   "created_by": "OWNER",
   "created_at": "2026-09-26T18:40:00-03:00",
-  "updated_at": "2026-09-27T10:21:00-03:00",
+  "updated_at": "2026-09-27T10:27:00-03:00",
   "lock_acquired_at": "2026-09-27T10:21:00-03:00",
-  "lock_expires_at": "2026-09-27T11:51:00-03:00",
+  "lock_expires_at": "2026-09-27T10:27:00-03:00",
   "delegation_count": 0,
   "goal": "Evoluir continuamente a página de descoberta/listagem de eventos e seus cards para refletir a identidade oficial da Cutinapp (preto, grafite, prata/branco e vermelho elétrico), manter forte hierarquia visual, responsividade, legibilidade e consistência com a navegação e as views públicas, sem reintroduzir roxo/azul/ciano legado nem degradar performance.",
   "acceptance_criteria": [
@@ -31,8 +31,8 @@
     "Não usar transparências decorativas novas; preferir superfícies sólidas e gradientes opacos alinhados à diretriz visual atual.",
     "A aba Eventos do perfil usa o EventDiscoveryRail compartilhado tanto para próximos eventos quanto para eventos anteriores, preservando navegação, responsividade e telemetria."
   ],
-  "checkpoint": "OWNER solicitou aplicar o carrossel padrão compartilhado de eventos também na aba Eventos da view de perfil do usuário, substituindo o grid/card local por EventDiscoveryRail para próximos e anteriores.",
-  "next_action": "Alterar UserProfilePage para reutilizar EventDiscoveryRail, preservar telemetria de abertura e validar frontend antes de integrar.",
+  "checkpoint": "Rodada visual implementada no PR #661. EventPage ganhou cabeçalho/CTA/faixa de resultados/cards/metadados/estado vazio/paginação com linguagem oficial preta-grafite-prata-vermelha; EventDateCarousel removeu roxo/ciano legado e adotou estados oficiais vermelhos. Ajuste final removeu tratamento de título transparente e os últimos acentos ciano desta rota. A automação Cutinapp Revenue Operations foi ampliada para auditar esta listagem em toda execução.",
+  "next_action": "Aguardar Validate Cutinapp #2788 e Lighthouse #700; NP03 revisar desktop/mobile e contraste. Após aprovação/CI verde, integrar PR #661 em main e validar visualmente em produção; depois retomar FEEDMEDIA01.",
   "evidence": [
     "Cutinapp PR #653 merged · d62820b3b61888d2b372916591a3a8508bdb26c1",
     "API PR #529 merged · 8e43fc5bc95588b64ef1939e2664af533e3b1298",
@@ -40,6 +40,17 @@
     "Lighthouse CI #659 SUCCESS",
     "API VPS HEAD 8e43fc5bc95588b64ef1939e2664af533e3b1298",
     "Produção API: item 59 / evento terca-na-la-fyesta-pub-vem-curtir-2026-09-29 retornou HTTP 200 com item,event,production,registered_events,other_items,other_events",
-    "Frontend deploy retry: run #1641 attempt 2 · build em execução"
-  ]
+    "Frontend deploy retry: run #1641 attempt 2 · build em execução",
+    "Cutinapp PR #661 · feat/event-discovery-red-identity",
+    "Head commit 69fd3401ad8a82b18f44012f41c4457bb4e2d5ff",
+    "Lighthouse CI #700 IN_PROGRESS",
+    "Validate Cutinapp #2788 QUEUED",
+    "Cutinapp Revenue Operations automation updated with persistent Event Discovery/Listagem audit"
+  ],
+  "review": {
+    "required": true,
+    "reviewer_agent_id": "NP03",
+    "status": "PENDING",
+    "notes": "Validar /event em 1280/1366/1440/1920 e 360/390/430, carrossel de datas, foco por teclado, contraste, ausência de roxo/ciano e regressões de layout/performance."
+  }
 }
