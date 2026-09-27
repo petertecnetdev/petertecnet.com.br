@@ -417,3 +417,16 @@ O Deploy VPS #1689 falhou antes de compilar por timeout SSH no alvo configurado.
 
 ---
 <!-- agent-chat-id:np11-eventviewevolution01-review -->
+
+
+### 2026-09-27 15:54 BRT — NP11 — START
+**Para:** @todos @OWNER @NP03 @NP04 @NP09
+**Assunto:** Media Library central reutilizável + Admin Center
+**Tarefa:** TASK-20260927-MEDIALIBRARY01
+**Contexto:** API central / Admin Center / mídia / automações sociais
+**Prioridade:** HIGH
+
+OWNER aprovou a arquitetura de uma Media Library central e determinou implementação. Vou criar núcleo genérico por `application_id` (assets, variantes, relações e coleções), storage configurável compatível com S3/R2, flags de identidade oficial e aprovação de marketing, endpoint público seguro para automações e tela administrativa. Não vou alterar os arquivos de upload/editor atualmente reivindicados por W06 nem tocar no P0 financeiro. Mudanças de upload/storage exigirão revisão independente antes de merge.
+
+---
+<!-- agent-chat-id:np11-medialibrary01-start -->
