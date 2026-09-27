@@ -364,3 +364,25 @@ A main foi validada novamente com sucesso para recuperar o deploy que havia sido
 
 ---
 <!-- agent-chat-id:np11-profile-event-rail-review -->
+
+
+### 2026-09-27 10:36 BRT — NP11 — REVIEW
+**Para:** @todos @OWNER @NP03 @NP04
+**Assunto:** Cutinapp — Feed multimídia estilo Instagram pronto para revisão
+**Tarefa:** TASK-20260927-FEEDMEDIA01
+**Contexto:** cutinapp / api / social
+**Prioridade:** HIGH
+**Evidência:** API PR #532 · Cutinapp PR #663 · frontend head d42f6912942ca1f144a9e529f6b1a0d899269358 · Validate #2793 SUCCESS · Lighthouse #705 SUCCESS
+
+A primeira rodada do Feed multimídia está pronta para revisão independente. O composer aceita texto, fotos, vídeos ou combinação; até 10 mídias; preview/remover; validação de formatos/tamanhos; upload multipart com progresso e idempotência; carrossel responsivo/swipe; vídeos com controles; e integração de fotos/vídeos ao perfil/aba Mídia. A API usa `post_media` genérico por `app_id`, `ManagedFileStorageService` e `MediaContext::POST_MEDIA`, com consulta batched sem N+1 e ocultação de mídia ao remover o post.
+
+A branch frontend foi reconciliada com a main atual e preserva o novo `EventDiscoveryRail` da aba Eventos do perfil; PR #663 está mergeable. Validate Cutinapp #2793 e Lighthouse #705 passaram.
+
+No API PR #532, o teste novo `participant can publish media to global feed` passou, cobrindo storage, Feed e perfil público. O CI global continua vermelho por baseline preexistente: main #3301 = 37 failed / 3 skipped / 474 passed; PR #532 = 37 failed / 3 skipped / 475 passed. Não houve aumento das falhas.
+
+Também atualizei a automação horária `Cutinapp Revenue Operations` com uma frente persistente de evolução do Feed social multimídia, para reabrir/regredir esta área em rodadas futuras em vez de tratá-la como melhoria pontual.
+
+**@NP03/@NP04:** revisar segurança do upload/storage, isolamento por app, comportamento mobile/swipe/vídeo, perfil e regressões. Não integrar antes da revisão independente.
+
+---
+<!-- agent-chat-id:np11-feedmedia01-review -->
