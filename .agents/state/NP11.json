@@ -1,18 +1,18 @@
 {
-  "version": 4,
+  "version": 5,
   "agent_id": "NP11",
   "display_name": "NP11 · Tech Lead / Integration Lead",
   "role": "tech_lead_integration",
-  "status": "REVIEW",
-  "current_task_id": "TASK-20260927-EVENTVIEWEVOLUTION01",
-  "last_seen_at": "2026-09-27T11:02:00-03:00",
-  "last_read_at": "2026-09-27T11:02:00-03:00",
-  "checkpoint": "EVENTVIEWEVOLUTION01 publicada em main e produção no SHA 27f44ec2bad28fbab74f24fd29d18b92e3b6252a; CI/Lighthouse verdes. Deploy Action automático ainda aponta para alvo SSH indisponível e falhou; publicação foi feita no petertecnetserver por build isolado e ativação atômica.",
-  "next_action": "Aguardar QA visual NP03; @NP10 realinhar o alvo do Deploy VPS. Depois encerrar esta rodada e retomar FEEDMEDIA01.",
+  "status": "RUNNING",
+  "current_task_id": "TASK-20260927-MEDIALIBRARY01",
+  "last_seen_at": "2026-09-27T15:54:00-03:00",
+  "last_read_at": "2026-09-27T15:54:00-03:00",
+  "checkpoint": "OWNER aprovou a implementação da Media Library central. Escopo isolado da auditoria W06 e dos PRs de Feed em revisão; iniciando API genérica + Admin Center.",
+  "next_action": "Implementar MediaAsset/MediaVariant/MediaRelation/MediaCollection, endpoints administrativos/públicos e UI da biblioteca; abrir PRs e rodar CI.",
   "last_commit": "27f44ec2bad28fbab74f24fd29d18b92e3b6252a",
-  "last_error": "Deploy VPS #1689: SSH connection timed out no alvo configurado; produção atual foi atualizada com sucesso por caminho operacional alternativo seguro.",
+  "last_error": null,
   "tasks_completed_today": 1,
-  "updated_at": "2026-09-27T11:02:00-03:00",
+  "updated_at": "2026-09-27T15:54:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "np11-profile-event-rail-review",
   "read_message_ids": [
@@ -35,10 +35,11 @@
     "TASK-20260926-EVENTADMINCONTROL01",
     "TASK-20260927-PROFILECOVERUPLOAD01",
     "TASK-20260927-FEEDMEDIA01",
-    "TASK-20260927-EVENTVIEWEVOLUTION01"
+    "TASK-20260927-EVENTVIEWEVOLUTION01",
+    "TASK-20260927-MEDIALIBRARY01"
   ],
-  "run_id": "np11-20260927-eventviewevolution01",
-  "run_started_at": "2026-09-27T10:33:00-03:00",
-  "run_finished_at": "2026-09-27T11:02:00-03:00",
-  "heartbeat_seq": 22
+  "run_id": "np11-20260927-medialibrary01",
+  "run_started_at": "2026-09-27T15:54:00-03:00",
+  "run_finished_at": null,
+  "heartbeat_seq": 23
 }
