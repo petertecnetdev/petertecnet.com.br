@@ -8,13 +8,13 @@
     "petertecnetdev/api.petertecnet.com.br"
   ],
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "WAITING",
   "owner_agent_id": "NP11",
   "requested_by": "OWNER",
-  "version": 1,
+  "version": 2,
   "delegation_count": 0,
   "lock_acquired_at": "2026-09-27T10:20:00-03:00",
-  "lock_expires_at": "2026-09-27T11:50:00-03:00",
+  "lock_expires_at": "2026-09-27T10:22:00-03:00",
   "scope": "Permitir publicações no Feed com fotos e vídeos, incluindo seleção múltipla, preview antes de publicar, upload seguro, apresentação em carrossel responsivo e integração da mídia ao perfil. Manter a tarefa como base de evolução contínua do composer/feed social.",
   "acceptance": [
     "Composer do Feed aceita texto, mídia ou ambos",
@@ -30,9 +30,9 @@
     "Evoluções futuras do composer/feed social podem ser registradas nesta tarefa ou em follow-ups vinculados"
   ],
   "evidence": [],
-  "checkpoint": "Tarefa criada e assumida por ordem direta do OWNER. Diagnóstico: FeedPage publica apenas texto; EventCommunityController persiste event_posts sem mídia; MediaContext já possui POST_MEDIA e o perfil já prevê post.media.",
-  "next_action": "Implementar tabela/serviço genérico post_media na API, aceitar multipart no createPost, enriquecer FeedController/publicCommunity e integrar uploader/carrossel no FeedPage e mídia do perfil.",
-  "updated_at": "2026-09-27T10:20:00-03:00",
+  "checkpoint": "Pausada temporariamente por nova ordem direta do OWNER sobre identidade visual da listagem de eventos. Diagnóstico do Feed permanece válido; nenhuma implementação foi perdida.",
+  "next_action": "Retomar após concluir a rodada visual da descoberta/listagem de eventos; então implementar mídia multipart na API e composer/carrossel no frontend.",
+  "updated_at": "2026-09-27T10:22:00-03:00",
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
