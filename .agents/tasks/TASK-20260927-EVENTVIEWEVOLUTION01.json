@@ -5,13 +5,13 @@
   "context": "cutinapp",
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "REVIEW",
+  "status": "RUNNING",
   "owner_agent_id": "NP11",
   "requested_by": "OWNER",
-  "version": 2,
+  "version": 3,
   "delegation_count": 0,
-  "lock_acquired_at": "2026-09-27T10:33:00-03:00",
-  "lock_expires_at": "2026-09-27T11:02:00-03:00",
+  "lock_acquired_at": "2026-09-27T18:14:00-03:00",
+  "lock_expires_at": "2026-09-27T19:44:00-03:00",
   "scope": "Evoluir continuamente as views públicas da Cutinapp, com identidade distinta por entidade. A rodada imediata é a EventViewPage: flyer preservado integralmente, atmosfera derivada do próprio flyer, hierarquia visual forte, CTA de ingressos, produção responsável, ações sociais, informações e descoberta relacionada, sem degradar mobile/performance. Create/edit devem permanecer visualmente coerentes com a view nas rodadas subsequentes.",
   "acceptance": [
     "A view de evento usa o flyer do próprio evento como atmosfera/background desfocado sem depender de enhancer tardio",
@@ -25,25 +25,24 @@
     "Evoluções futuras de evento/produção/artista/promoter/participante podem ser registradas nesta tarefa, mantendo identidades visuais distintas",
     "Create/edit de cada entidade devem acompanhar a linguagem da respectiva view para o usuário prever o resultado final"
   ],
-  "checkpoint": "Rodada imediata concluída e publicada. EventViewPage agora injeta o flyer como atmosfera de página já no render, sem depender do enhancer adiado; o hero usa preto/grafite/prata/vermelho oficial, flyer completo 2:3, hierarquia mais forte de ingressos/interesse/ações e breakpoints desktop/mobile. PR #664 foi mergeado em main no SHA 27f44ec2bad28fbab74f24fd29d18b92e3b6252a. Validate #2795 e Lighthouse #707 passaram. O Deploy VPS #1689 falhou antes do build por timeout SSH no alvo configurado; o host operacional atual petertecnetserver estava conectado via SentinelX. Para cumprir a publicação, gerei build isolado do SHA validado em /tmp, preservei os arquivos de ambiente sem expô-los, ativei somente o diretório build atomicamente e confirmei release-sha público exato e HTTP 200 na raiz e no evento.",
-  "next_action": "NP03 fazer QA visual pós-publicação em desktop e 360/390/430, incluindo flyer completo, atmosfera, contraste, ações e overflow. NP10 deve realinhar VPS_HOST/SSH do Deploy VPS com o servidor operacional atual; depois marcar a rodada DONE e seguir evoluções de produção/artista/promoter/participante e paridade create/edit.",
-  "updated_at": "2026-09-27T11:02:00-03:00",
+  "checkpoint": "OWNER enviou novo screenshot às 18:14 e rejeitou o resultado visual da primeira rodada. Diagnóstico confirmado: a rodada #664 está em produção, porém o hero continua grande, fragmentado e com vazio excessivo; há múltiplas camadas CSS antigas competindo entre si. O checkout da VPS também está operacionalmente defasado/sujo (HEAD local cd3132de, origin/main a73a3e, 34 unstaged + 5 untracked) e o fetch falha por permissão em .git/FETCH_HEAD. O build público atual está em e5b9436, portanto a correção visual deve partir da main remota e ser publicada por build isolado/atômico, sem tocar o checkout sujo.",
+  "next_action": "Criar camada final EventView v3 escopada, reduzir poster/hero no desktop, consolidar ações e espaçamento, garantir atmosfera do flyer e trust rail acima da dobra quando possível; validar build/overlays, integrar em main e publicar build isolado na VPS operacional.",
+  "updated_at": "2026-09-27T18:14:00-03:00",
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
     "status": "PENDING",
-    "notes": "Produção já está no SHA validado. Fazer QA visual independente; infraestrutura deve corrigir o alvo SSH do workflow automático."
+    "notes": "Rodada de produção por ordem direta do OWNER; CI/build antes de publicar e QA independente depois da publicação."
   },
   "evidence": [
     "Cutinapp PR #664 MERGED",
     "main SHA 27f44ec2bad28fbab74f24fd29d18b92e3b6252a",
     "Validate Cutinapp #2795 SUCCESS",
     "Lighthouse CI #707 SUCCESS",
-    "Deploy VPS #1689 FAILURE: SSH timeout before frontend build environment fetch",
-    "SentinelX petertecnetserver: isolated exact-SHA production build and atomic build activation",
-    "Production /build/release-sha.txt = 27f44ec2bad28fbab74f24fd29d18b92e3b6252a",
-    "Public https://cutinapp.petertecnet.com.br/ HTTP 200",
-    "Public /event/noite-cuck-2026-09-30 HTTP 200",
-    "Public release-sha probe = 27f44ec2bad28fbab74f24fd29d18b92e3b6252a"
+    "VPS working checkout: cd3132de, dirty (34 unstaged/5 untracked), behind origin/main",
+    "origin/main observado: a73a3e18053d8a397b8dc4420fba89e295ab3dcb",
+    "sentinel_git fetch: Permission denied em .git/FETCH_HEAD",
+    "build/release-sha.txt atual: e5b9436de271c8594afdff715978947a2d211059",
+    "Screenshot OWNER 2026-09-27 18:14 confirma hero ainda visualmente desbalanceado"
   ]
 }
