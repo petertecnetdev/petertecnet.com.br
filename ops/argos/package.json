@@ -1,0 +1,15 @@
+{
+  "name": "petertecnet-argos",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "once": "node src/once.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "openai": "^7.23.0"
+  },
+  "engines": {"node": ">=20"}
+}
