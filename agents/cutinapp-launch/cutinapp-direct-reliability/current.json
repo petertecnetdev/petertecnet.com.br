@@ -3,20 +3,30 @@
   "project": "cutinapp",
   "task": "Restore Direct message delivery and email reply notifications",
   "priority": "P0",
-  "status": "IMPLEMENTING",
+  "status": "BLOCKED",
   "claimed_at": "2026-09-27T13:45:00-03:00",
+  "updated_at": "2026-09-27T14:07:00-03:00",
   "areas": [
     "Direct / messaging",
     "realtime failure isolation",
     "email engagement notifications"
   ],
-  "problem": "Production Direct persists messages but returns HTTP 500 when the realtime broadcaster fails with Pusher 502. The frontend therefore reports 'Mensagem não enviada' even though the row was already committed, inviting retries/duplicate-looking messages. Because deliverMessage aborts at realtime broadcast before queueMessage, the existing email engagement path is also skipped.",
-  "evidence": [
-    "Production logs on 2026-09-27 at 10:54:42 record POST api/v1/apps/cutinapp/messaging/conversations/2/messages failing with Illuminate\\Broadcasting\\BroadcastException: Pusher error code 502.",
-    "MessagingService::send commits the message before deliverMessage; deliverMessage broadcasts before scheduling MessageEngagementService::queueMessage.",
-    "MessageEngagementService and the message-engagement email template already provide grouped email notification and a 'Responder agora' CTA back to /messages?conversation=<id>&engagement=<token>.",
-    "No existing cutinapp-launch agent was found CLAIMED/IMPLEMENTING for this Direct incident; active API and revenue agents are working on separate CI/subscription scopes."
+  "problem": "Production Direct persisted messages but returned HTTP 500 when realtime broadcasting failed with Pusher 502. This produced the false 'Mensagem não enviada' UI state and skipped the downstream email engagement scheduling.",
+  "implemented": [
+    "Production incident mitigation: Reverb is listening again on 127.0.0.1:8080, the Redis queue worker is running, and Laravel schedule:work is running.",
+    "After Reverb startup, the repeated production Pusher 502 warnings stopped in the inspected log window.",
+    "messaging:dispatch-engagement executes successfully; there were no pending engagement emails at the verification instant.",
+    "A source hardening patch was implemented and committed locally as e86e4d08f9d9b6e9e3cf49d5e08e9c3deb26f4b2. It isolates realtime, engagement dispatch and in-app notification transport failures from already-persisted messages and adds a regression test.",
+    "GitHub issue #533 records the production evidence, source fix, runtime drift and handoff."
   ],
-  "implementation": "Isolate realtime, engagement-dispatch and in-app notification transport failures from the durable message operation; preserve polling fallback; add regression coverage; then commit/push through GitHub and respect the validated API deploy gate.",
-  "production_gate": "PENDING_VALIDATED_DEPLOY"
+  "email_path": "The existing MessageEngagementService + message-engagement mail template sends grouped new-message email with sender/preview and CTA 'Responder agora' to /messages?conversation=<id>&engagement=<token>. MessagesPage already resolves that deep link into the correct conversation.",
+  "validation": [
+    "php -l passed for MessagingService.php and MessagingEmailNotificationTest.php in the clean worktree.",
+    "git diff --check passed.",
+    "Full PHPUnit could not run on the production dependency install because the test runner is not installed there; CI remains authoritative.",
+    "Production supervisor drift remains: /etc supervisor configs for Reverb, queue and scheduler have autostart=false; the versioned scheduler config has autostart=true."
+  ],
+  "blocker": "The local source commit could not be pushed from the VPS because that shell has no GitHub write credential. The GitHub branch hotfix/direct-pusher-email was created through the official connector, but still needs the source patch applied/pushed and validated by API CI. Production runtime mitigation is active but not durable across another Supervisor/server restart.",
+  "handoff": "api.petertecnet.com.br issue #533",
+  "production_gate": "MITIGATED_RUNTIME__SOURCE_FIX_PENDING_VALIDATED_PUSH_DEPLOY"
 }
