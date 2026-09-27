@@ -11,10 +11,10 @@
   "status": "WAITING",
   "owner_agent_id": "NP11",
   "requested_by": "OWNER",
-  "version": 2,
+  "version": 3,
   "delegation_count": 0,
   "lock_acquired_at": "2026-09-27T10:20:00-03:00",
-  "lock_expires_at": "2026-09-27T10:22:00-03:00",
+  "lock_expires_at": "2026-09-27T10:21:00-03:00",
   "scope": "Permitir publicações no Feed com fotos e vídeos, incluindo seleção múltipla, preview antes de publicar, upload seguro, apresentação em carrossel responsivo e integração da mídia ao perfil. Manter a tarefa como base de evolução contínua do composer/feed social.",
   "acceptance": [
     "Composer do Feed aceita texto, mídia ou ambos",
@@ -30,9 +30,9 @@
     "Evoluções futuras do composer/feed social podem ser registradas nesta tarefa ou em follow-ups vinculados"
   ],
   "evidence": [],
-  "checkpoint": "Pausada temporariamente por nova ordem direta do OWNER sobre identidade visual da listagem de eventos. Diagnóstico do Feed permanece válido; nenhuma implementação foi perdida.",
-  "next_action": "Retomar após concluir a rodada visual da descoberta/listagem de eventos; então implementar mídia multipart na API e composer/carrossel no frontend.",
-  "updated_at": "2026-09-27T10:22:00-03:00",
+  "checkpoint": "Pausada temporariamente por nova ordem direta do OWNER para padronizar os eventos da view de perfil com o EventDiscoveryRail. Diagnóstico e escopo de FEEDMEDIA01 preservados; nenhuma implementação de mídia deve ser descartada.",
+  "next_action": "Retomar implementação de mídia no Feed imediatamente após concluir a padronização do carrossel de eventos do perfil.",
+  "updated_at": "2026-09-27T10:21:00-03:00",
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
