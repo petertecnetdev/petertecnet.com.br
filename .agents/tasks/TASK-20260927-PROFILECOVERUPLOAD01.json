@@ -8,7 +8,7 @@
   "status": "REVIEW",
   "owner_agent_id": "NP11",
   "requested_by": "OWNER",
-  "version": 4,
+  "version": 5,
   "delegation_count": 0,
   "lock_acquired_at": null,
   "lock_expires_at": "2026-09-27T11:35:00-03:00",
@@ -26,9 +26,20 @@
     "Cutinapp main commit e4f86d90178a8c0ca298fbbe0d56062fe4dbeb47: UserEditPage adds explicit ref-driven native cover file picker",
     "Cutinapp main commit a3e0638fb3625156418e2c518096e373085a1066: cover picker receives interactive/accessibility styling",
     "Deploy VPS workflow run 36320891874 completed successfully for head a3e0638fb3625156418e2c518096e373085a1066",
-    "Cutinapp PR #660 · head c959991102c95fc17d2a62d7fabcaf0a8c500a5f"
+    "Cutinapp PR #660 · head c959991102c95fc17d2a62d7fabcaf0a8c500a5f",
+    "Cover picker commit e4f86d90178a8c0ca298fbbe0d56062fe4dbeb47",
+    "Cover picker style commit a3e0638fb3625156418e2c518096e373085a1066",
+    "Validate Cutinapp #2785 SUCCESS · lint:overlays/test/build verdes",
+    "Lighthouse CI #697 SUCCESS"
   ],
-  "checkpoint": "Menu do editor corrigido na branch fix/profile-editor-sticky-nav: offset passa a seguir navbar fixa/safe-area e o overlay layout system garante a camada sticky. PR #660 aberto; Validate Cutinapp #2785 e Lighthouse CI #697 em execução.",
-  "next_action": "Aguardar CI; se verde, solicitar/recolher revisão exigida e integrar em main.",
-  "updated_at": "2026-09-27T10:05:00-03:00"
+  "checkpoint": "Correções implementadas. Capa: commits e4f86d90178a8c0ca298fbbe0d56062fe4dbeb47 e a3e0638fb3625156418e2c518096e373085a1066 já estão em main. Menu sticky: PR #660 head c959991102c95fc17d2a62d7fabcaf0a8c500a5f. Validate Cutinapp #2785 SUCCESS (inclui npm run lint:overlays, testes e build) e Lighthouse CI #697 SUCCESS. Aguarda revisão NP03 antes do merge do PR #660.",
+  "next_action": "NP03 revisar PR #660; se aprovado, mergear em main e validar visualmente /user/edit ao saltar entre todas as seções.",
+  "updated_at": "2026-09-27T10:09:00-03:00",
+  "review": {
+    "required": true,
+    "reviewer_agent_id": "NP03",
+    "status": "PENDING",
+    "notes": "Validar em desktop e mobile que o menu Foto e capa/Identidade/Contato/Localização/Sobre/Segurança permanece abaixo da navbar durante scroll e saltos por seção, sem colisão de overlays.",
+    "ci": "GREEN"
+  }
 }
