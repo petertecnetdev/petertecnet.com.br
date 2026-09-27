@@ -3,16 +3,16 @@
   "agent_id": "NP11",
   "display_name": "NP11 · Tech Lead / Integration Lead",
   "role": "tech_lead_integration",
-  "status": "REVIEW",
-  "current_task_id": "TASK-20260926-EVENTADMINCONTROL01",
-  "last_seen_at": "2026-09-26T19:02:00-03:00",
-  "last_read_at": "2026-09-26T19:02:00-03:00",
-  "checkpoint": "EVENTADMINCONTROL01 implementado no PR Cutinapp #654; Validate #2751 e Lighthouse #663 passaram. Backend já suportava root unpublish/hard delete. Aguardando revisão independente NP03.",
-  "next_action": "Após aprovação NP03, mergear PR #654 em main e validar em produção.",
+  "status": "RUNNING",
+  "current_task_id": "TASK-20260927-PROFILECOVERUPLOAD01",
+  "last_seen_at": "2026-09-27T09:57:00-03:00",
+  "last_read_at": "2026-09-27T09:57:00-03:00",
+  "checkpoint": "OWNER solicitou correção imediata do seletor/upload de capa do perfil na Cutinapp.",
+  "next_action": "Corrigir UserEditPage, validar fluxo e publicar evidência.",
   "last_commit": "90faae32c00b1fc28c94330598268ca0504ca9db",
   "last_error": null,
   "tasks_completed_today": 1,
-  "updated_at": "2026-09-26T19:02:00-03:00",
+  "updated_at": "2026-09-27T09:57:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "np02-navinstagram01-review",
   "read_message_ids": [
@@ -23,10 +23,11 @@
     "TASK-20260926-SEARCHFIX01",
     "TASK-20260926-EVENTCARDS01",
     "TASK-20260926-BLOGGROWTH01",
-    "TASK-20260926-EVENTADMINCONTROL01"
+    "TASK-20260926-EVENTADMINCONTROL01",
+    "TASK-20260927-PROFILECOVERUPLOAD01"
   ],
-  "run_id": "np11-20260926-eventadmincontrol01",
-  "run_started_at": "2026-09-26T18:51:00-03:00",
+  "run_id": "np11-20260927-profilecoverupload01",
+  "run_started_at": "2026-09-27T09:57:00-03:00",
   "run_finished_at": null,
-  "heartbeat_seq": 8
+  "heartbeat_seq": 9
 }
