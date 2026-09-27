@@ -3,54 +3,52 @@
   "project": "cutinapp",
   "priority": "P1",
   "status": "BLOCKED",
-  "task": "Restore deterministic Cutinapp production release before further activation work",
+  "task": "Restore GitHub Actions to VPS connectivity before further activation/MRR delivery claims",
   "repositories": [
     "petertecnetdev/cutinapp.petertecnet.com.br",
     "petertecnetdev/petertecnet.com.br"
   ],
   "areas": [
     "production deploy",
+    "SEO acquisition delivery",
     "release integrity",
-    "health check",
-    "producer activation"
+    "producer activation",
+    "MRR measurement"
   ],
-  "checked_at": "2026-09-27T01:58:45-03:00",
-  "main_sha_analyzed": "a9ca74e014cfe0ebf2c9f7ea8fe614e9a8255782",
+  "checked_at": "2026-09-27T06:58:28-03:00",
+  "main_sha_analyzed": "ded35dbeab0b53f9bf8dcef85ccf66d4dfb1bb92",
   "coordination": [
     "Read README, readiness, revenue-scorecard and this agent state before editing.",
     "Did not duplicate subscription billing, payment, ticket, issue #646 or issue #650 fronts.",
     "No subscription price, automatic billing, entitlement or ticket commission behavior was introduced.",
     "Production release integrity remains the P1 prerequisite for trustworthy activation/MRR measurement."
   ],
-  "problem": "The SSH deployment blocker persists on main SHA a9ca74e014cfe0ebf2c9f7ea8fe614e9a8255782 (fix(nav): install mobile hamburger fail-safe at boot). Deploy VPS run 36294251031 passed the stale-release guard, but Fetch frontend build environment failed after roughly 150 seconds. Build frontend, Deploy application, edge recovery and Health check were skipped. Diagnose release serving identity also failed, consistent with the configured VPS endpoint remaining unreachable from GitHub Actions.",
-  "impact": "Validated frontend changes, including mobile navigation recovery and activation/conversion work, cannot be proven in production while GitHub Actions cannot reach the VPS. Production attribution for producer activation, trial conversion and MRR remains unsafe.",
+  "problem": "The VPS reachability blocker is independently reproduced by Refresh SEO Index run 36305226598 attempt 2 on current main SHA ded35dbeab0b53f9bf8dcef85ccf66d4dfb1bb92. VPS secret/config checks and local SSH configuration succeeded, but the first remote step, Upload prerender generator, failed after about 20 seconds; publication was skipped. This corroborates the earlier Deploy VPS failures and narrows the blocker to the remote SSH connection/path rather than frontend build logic.",
+  "impact": "Validated application changes cannot be proven in production and the dynamic SEO sitemap/prerender acquisition path cannot refresh. That blocks reliable delivery attribution for producer activation and prevents trustworthy trial-to-paid/MRR measurement from newly shipped work.",
   "implementation": {
-    "observed_sha": "a9ca74e014cfe0ebf2c9f7ea8fe614e9a8255782",
-    "deploy_run": 36294251031,
-    "freshness_guard": "success",
-    "fetch_frontend_build_environment": "failure",
-    "build_frontend": "skipped",
-    "deploy_application": "skipped",
-    "edge_recovery": "skipped",
-    "health_check": "skipped",
-    "diagnostic_job": 108550411308,
-    "diagnostic_job_conclusion": "failure",
-    "next_diagnostic": "Restore GitHub Actions SSH reachability to the configured VPS host/port, then rerun an exact validated SHA through deploy and exact-SHA health verification. Do not weaken the gate or deploy manually around CI."
+    "observed_sha": "ded35dbeab0b53f9bf8dcef85ccf66d4dfb1bb92",
+    "seo_refresh_run": 36305226598,
+    "seo_refresh_attempt": 2,
+    "vps_configuration_check": "success",
+    "configure_ssh": "success",
+    "upload_prerender_generator": "failure",
+    "publish_dynamic_sitemap": "skipped",
+    "workflow_connect_timeout_seconds": 20,
+    "next_diagnostic": "Restore inbound SSH reachability from GitHub-hosted Actions runners to the configured VPS host/port (routing/NAT/firewall/port-forward/public-IP path), then rerun the validated deploy and SEO refresh. Do not weaken gates or deploy manually around CI."
   },
   "validation": {
-    "expected_sha": "a9ca74e014cfe0ebf2c9f7ea8fe614e9a8255782",
-    "deploy_run": 36294251031,
-    "deploy_conclusion": "failure",
+    "expected_sha": "ded35dbeab0b53f9bf8dcef85ccf66d4dfb1bb92",
+    "seo_refresh_conclusion": "failure",
     "production_verification": "NOT_REACHED"
   },
   "evidence": [
-    "Deploy VPS run 36294251031 targeted a9ca74e014cfe0ebf2c9f7ea8fe614e9a8255782.",
-    "Reject stale validated release succeeded before deploy.",
-    "Fetch frontend build environment failed; Build frontend, Deploy application, edge recovery and Health check were skipped.",
-    "Diagnose release serving identity job 108550411308 failed after the deploy failure, so no new production SHA is claimed.",
-    "Revenue scorecard remains subscription-first/worldwide and all revenue funnel values remain uninstrumented; no metric was invented or changed."
+    "Current Cutinapp main is ded35dbeab0b53f9bf8dcef85ccf66d4dfb1bb92.",
+    "Refresh SEO Index run 36305226598 attempt 2 targeted that SHA and failed.",
+    "Check VPS configuration succeeded and Configure SSH succeeded.",
+    "Upload prerender generator, the first remote SSH operation, failed; dynamic sitemap/prerender publication was skipped.",
+    "Revenue scorecard remains subscription-first/worldwide; revenue funnel values remain uninstrumented and no metric was invented."
   ],
-  "risk": "Do not declare newer Cutinapp commits deployed while the configured VPS endpoint remains unreachable from GitHub Actions and health verification is not reached.",
-  "gate_status": "BLOCKED: GitHub Actions still cannot complete the VPS pre-deploy environment fetch, so build/deploy/health do not execute.",
-  "next_independent_blocker": "Restore SSH reachability from GitHub Actions to the configured VPS host/port; then rerun validated deploy and require expected SHA = filesystem = local nginx = public HTTPS before resuming activation/MRR work."
+  "risk": "Do not declare current Cutinapp commits deployed or SEO snapshots refreshed while GitHub-hosted runners cannot complete the first remote SSH operation.",
+  "gate_status": "BLOCKED: independent deploy and SEO workflows both fail at the first VPS SSH-dependent operation.",
+  "next_independent_blocker": "Restore GitHub Actions SSH reachability to the configured VPS host/port, then require expected SHA = filesystem = local nginx = public HTTPS and a successful SEO refresh before resuming production attribution for activation/MRR work."
 }
