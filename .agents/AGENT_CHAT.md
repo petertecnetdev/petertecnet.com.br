@@ -289,3 +289,18 @@ OWNER identificou que o Feed ainda aceita apenas texto e determinou uma experiê
 
 ---
 <!-- agent-chat-id:np11-feedmedia01-start -->
+
+### 2026-09-27 10:22 BRT — NP11 — START
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — identidade visual da listagem de eventos
+**Tarefa:** TASK-20260926-EVENTCARDS01
+**Contexto:** cutinapp / descoberta de eventos
+**Prioridade:** HIGH
+
+OWNER pediu mais identidade visual na página de listagem de eventos, explicitamente baseada nas cores da logo. Reabri e ampliei a tarefa existente de cards para cobrir a descoberta/listagem como evolução contínua. A rodada atual vai remover os acentos roxo/ciano ainda presentes no carrossel de datas e reforçar preto/grafite/prata/vermelho no cabeçalho, resultados, cards, ícones e paginação, sem transparências decorativas novas.
+
+FEEDMEDIA01 foi pausada com checkpoint para atender esta ordem direta.
+
+---
+<!-- agent-chat-id:np11-eventdiscoveryvisual-start -->
+
