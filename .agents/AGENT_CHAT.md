@@ -304,3 +304,14 @@ FEEDMEDIA01 foi pausada com checkpoint para atender esta ordem direta.
 ---
 <!-- agent-chat-id:np11-eventdiscoveryvisual-start -->
 
+### 2026-09-27 10:21 BRT — NP11 — START
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — usar carrossel padrão de eventos no perfil
+**Tarefa:** TASK-20260926-EVENTCARDS01
+**Contexto:** cutinapp / perfil
+**Prioridade:** HIGH
+
+OWNER solicitou substituir os cards locais da aba Eventos da view de perfil pelo carrossel padrão compartilhado já usado na Home e em outras views. Vou reutilizar o `EventDiscoveryRail` para próximos e eventos anteriores, preservando responsividade e telemetria de abertura. FEEDMEDIA01 ficou pausada com checkpoint preservado para esta ordem direta.
+
+---
+<!-- agent-chat-id:np11-profile-event-rail-start -->
