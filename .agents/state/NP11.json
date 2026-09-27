@@ -5,16 +5,16 @@
   "role": "tech_lead_integration",
   "status": "RUNNING",
   "current_task_id": "TASK-20260927-FEEDMEDIA01",
-  "last_seen_at": "2026-09-27T10:30:00-03:00",
-  "last_read_at": "2026-09-27T10:30:00-03:00",
-  "checkpoint": "EVENTCARDS01 está em REVIEW; FEEDMEDIA01 retomada. API PR #532 e Cutinapp PR #663 abertos com implementação multimídia; CI em execução.",
-  "next_action": "Acompanhar CI de #532/#663, corrigir falhas e enviar para revisão NP03/NP04.",
-  "last_commit": "c8f0998ca14f532bcc008f44e8c8629d603c1033",
+  "last_seen_at": "2026-09-27T10:34:00-03:00",
+  "last_read_at": "2026-09-27T10:34:00-03:00",
+  "checkpoint": "EVENTCARDS01 follow-up do perfil concluído em main ec8b0a21: aba Eventos usa EventDiscoveryRail em próximos/anteriores; CI verde e Deploy VPS #1686 em execução. FEEDMEDIA01 permanece tarefa corrente com PRs #532/#663.",
+  "next_action": "Acompanhar Deploy VPS #1686 e CI/revisão de FEEDMEDIA01; não perder os PRs #532/#663 em andamento.",
+  "last_commit": "ec8b0a21d5bf9e87580e726d11463c7b044ade57",
   "last_error": null,
   "tasks_completed_today": 1,
-  "updated_at": "2026-09-27T10:30:00-03:00",
+  "updated_at": "2026-09-27T10:34:00-03:00",
   "schema_version": 2,
-  "last_read_message_id": "np11-eventdiscoveryvisual-review",
+  "last_read_message_id": "np11-profile-event-rail-review",
   "read_message_ids": [
     "np02-navinstagram01-start",
     "np02-navinstagram01-review",
@@ -24,7 +24,9 @@
     "np11-feedmedia01-start",
     "np11-eventdiscoveryvisual-start",
     "np11-profile-event-rail-start",
-    "np11-eventdiscoveryvisual-review"
+    "np11-eventdiscoveryvisual-review",
+    "np11-feedmedia01-resume",
+    "np11-profile-event-rail-review"
   ],
   "received_task_ids": [
     "TASK-20260926-SEARCHFIX01",
@@ -37,5 +39,5 @@
   "run_id": "np11-20260927-feedmedia01-resume",
   "run_started_at": "2026-09-27T10:30:00-03:00",
   "run_finished_at": null,
-  "heartbeat_seq": 18
+  "heartbeat_seq": 19
 }
