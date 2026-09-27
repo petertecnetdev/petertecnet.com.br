@@ -4,49 +4,62 @@
   "priority": "P1",
   "status": "IMPLEMENTING",
   "task": "Restore deterministic Cutinapp production release before further activation work",
-  "repositories": ["petertecnetdev/cutinapp.petertecnet.com.br", "petertecnetdev/petertecnet.com.br"],
-  "areas": ["production deploy", "release integrity", "health check", "producer activation"],
-  "checked_at": "2026-09-25T16:58:34-03:00",
-  "main_sha_analyzed": "b1706301e87efb861758589bdbfa701f39168b6f",
+  "repositories": [
+    "petertecnetdev/cutinapp.petertecnet.com.br",
+    "petertecnetdev/petertecnet.com.br"
+  ],
+  "areas": [
+    "production deploy",
+    "release integrity",
+    "health check",
+    "producer activation"
+  ],
+  "checked_at": "2026-09-26T21:00:00-03:00",
+  "main_sha_analyzed": "8629c9193bee804616d10182552e84d26dd5dd49",
   "coordination": [
     "Read README, readiness, revenue-scorecard and this agent state before editing.",
-    "Did not duplicate subscription billing, payment or ticket fronts.",
+    "Did not duplicate subscription billing, payment, ticket, issue #646 or issue #650 fronts.",
     "No subscription price, automatic billing, entitlement or ticket commission behavior was introduced.",
-    "Production release integrity remains the P1 prerequisite for activation/conversion work."
+    "Production release integrity remains the P1 prerequisite for trustworthy activation/MRR measurement."
   ],
-  "problem": "Root cause narrowed to the shared reusable frontend deploy: the build step writes release-sha.txt with printf '%s\\\\n', producing a literal backslash-n suffix instead of a newline. The public health assertion requires exactly 40 hex characters, so it rejects the newly activated release and the deploy rolls back to the previous release.",
-  "impact": "Validated producer onboarding and activation changes are repeatedly rolled back even though build, Lighthouse and atomic activation succeed, preventing reliable production delivery and measurement of activation/MRR effects.",
+  "problem": "The historical release-sha newline defect is fixed, but validated Cutinapp releases still fail the public health gate. Deploy run 36280644821 for SHA 8629c9193bee804616d10182552e84d26dd5dd49 built and activated successfully, then failed Health check and the follow-up release-serving diagnosis. A fresh VPS probe after that run shows the live build and public HTTPS both serving old SHA 5a247f22abc48277d9f09ebd3dbfe9dd3d9f5e03. Local HTTPS on 127.0.0.1 is not configured because nginx serves this vhost on port 80; local HTTP with Host cutinapp.petertecnet.com.br returns the same old SHA. Cloudflared is active and its remotely supplied ingress routes *.petertecnet.com.br to http://localhost:80.",
+  "impact": "Validated producer activation, view, navbar and conversion changes continue to miss production, so trial-to-paid and MRR effects cannot be attributed reliably.",
   "implementation": {
-    "diagnostic_commit": "b1706301e87efb861758589bdbfa701f39168b6f",
-    "diagnostic_result": "Deploy run 36177103301 proved the newly activated filesystem marker contained the expected SHA plus a literal \\n suffix while local/public HTTP still observed the previous release during the failing health/rollback window.",
-    "root_cause_file": "petertecnetdev/petertecnet.com.br/.github/workflows/reusable-vps-deploy.yml",
-    "root_cause_line": "printf '%s\\\\n' \"$DEPLOY_SOURCE_SHA\" > \"$output/release-sha.txt\"",
-    "required_fix": "Write the marker with printf '%s\\n' so release-sha.txt contains only the 40-character SHA plus a real line terminator.",
-    "local_validation": "A one-line correction was prepared on the VPS checkout and the workflow parsed successfully as YAML, but the checkout has no GitHub push credential; therefore that local commit is not claimed as delivered and GitHub main remains unchanged."
+    "historical_marker_fix": "VERIFIED_IN_WORKFLOW: reusable-vps-deploy.yml now writes printf '%s\\n' and enforces a 41-byte release marker.",
+    "current_deploy_run": 36280644821,
+    "current_deploy_sha": "8629c9193bee804616d10182552e84d26dd5dd49",
+    "deploy_application_step": "success",
+    "health_check_step": "failure",
+    "diagnostic_job": 108511949266,
+    "diagnostic_job_conclusion": "failure",
+    "fresh_vps_live_sha": "5a247f22abc48277d9f09ebd3dbfe9dd3d9f5e03",
+    "fresh_local_http_sha": "5a247f22abc48277d9f09ebd3dbfe9dd3d9f5e03",
+    "fresh_public_https_sha": "5a247f22abc48277d9f09ebd3dbfe9dd3d9f5e03",
+    "nginx_root": "/var/www/cutinapp.petertecnet.com.br/build",
+    "cloudflared_state": "active",
+    "cloudflared_version": "2026.9.1",
+    "cloudflared_connector_id": "2c0dcede-14e0-4866-bc87-b2f174652224",
+    "cloudflared_ingress": "*.petertecnet.com.br -> http://localhost:80",
+    "next_diagnostic": "Determine what mutates/replaces the live build after Deploy application reports success, or capture the live release identity immediately before and after health failure. Do not weaken exact-SHA health validation."
   },
   "validation": {
-    "validate_run": 36176903295,
-    "validate_conclusion": "success",
-    "lighthouse_run": 36176903282,
-    "lighthouse_conclusion": "success",
-    "deploy_run": 36177103301,
-    "deploy_conclusion": "failure",
-    "diagnostic_job": 108210766536,
-    "expected_sha": "b1706301e87efb861758589bdbfa701f39168b6f",
-    "diagnostic_filesystem_observation": "b1706301e87efb861758589bdbfa701f39168b6f\\n (literal backslash-n suffix)",
-    "diagnostic_local_http_observation": "e3a257f35e5c57a4c256aebfde0fbbe26e689a44",
-    "diagnostic_public_https_observation": "e3a257f35e5c57a4c256aebfde0fbbe26e689a44",
-    "post_rollback_filesystem_observation": "e3a257f35e5c57a4c256aebfde0fbbe26e689a44",
-    "production_verification": "FAILED_AND_ROLLED_BACK"
+    "deploy_run": 36280644821,
+    "expected_sha": "8629c9193bee804616d10182552e84d26dd5dd49",
+    "freshness_guard": "success",
+    "frontend_build": "success",
+    "deploy_application": "success",
+    "health_check": "failure",
+    "release_serving_diagnosis": "failure",
+    "production_verification": "FAILED",
+    "observed_live_sha_after_failure": "5a247f22abc48277d9f09ebd3dbfe9dd3d9f5e03"
   },
   "evidence": [
-    "Validate Cutinapp #2657 completed successfully for b1706301... .",
-    "Lighthouse CI #569 completed successfully for the same SHA.",
-    "Deploy VPS #1549 failed only at Health check after Deploy application succeeded.",
-    "The diagnostic log printed the expected SHA and filesystem marker with a literal \\n suffix; reusable-vps-deploy.yml currently contains printf '%s\\\\n' for DEPLOY_SOURCE_SHA.",
-    "After rollback, filesystem, localhost nginx and public HTTPS all returned the previous e3a257f3... marker, confirming rollback rather than a persistent alternate nginx root."
+    "GitHub check runs for 8629c919... show Lighthouse success, stale-release guard success, deploy application success followed by Health check failure and Diagnose release serving identity failure.",
+    "Fresh SentinelX probe: /var/www/cutinapp.petertecnet.com.br/build/release-sha.txt = 5a247f22..., local nginx HTTP Host probe = 5a247f22..., public HTTPS = 5a247f22....",
+    "nginx config is valid and the Cutinapp vhost root is /var/www/cutinapp.petertecnet.com.br/build.",
+    "cloudflared is active; remote ingress configuration routes wildcard petertecnet subdomains to http://localhost:80."
   ],
-  "risk": "Do not weaken the exact-SHA health gate. Correct marker generation, then rerun the validated Cutinapp deployment and require filesystem/local/public identities to converge on the validated SHA before resuming activation/trial-to-paid work.",
-  "gate_status": "IMPLEMENTING: root cause identified; shared workflow correction still needs to land on petertecnet.com.br/main and pass a fresh gated deploy.",
-  "next_independent_blocker": "Land the one-line reusable-vps-deploy.yml marker fix on petertecnet.com.br/main, rerun Cutinapp Validate/Deploy for an exact validated SHA, and require release-sha.txt == validated SHA through public HTTPS."
+  "risk": "Do not weaken the exact-SHA health gate or declare new Cutinapp commits deployed while production still serves 5a247f22....",
+  "gate_status": "IMPLEMENTING: build/activation reports success but live filesystem returns to an older release before production verification completes.",
+  "next_independent_blocker": "Instrument the reusable deploy to capture release-sha.txt immediately after atomic activation and again at health failure, preserving the failed release long enough to prove whether another process/deploy replaces the live build."
 }
