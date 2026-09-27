@@ -69,8 +69,8 @@ function resolveSocialImage(image) {
 export function updatePageSeo({ title, description, path = '/', image, type = 'website', robots, schema, keywords } = {}) {
   const normalizedPath = normalizePath(path)
   const canonical = `${PUBLIC_ORIGIN}${normalizedPath === '/' ? '/' : normalizedPath}`
-  const pageTitle = title || 'Peter Tecnet | Software, aplicativos, IA e soluções digitais no Brasil'
-  const pageDescription = description || 'Empresa brasileira de tecnologia fundada em Brasília, com atuação em todo o Brasil. Software, aplicativos, sites, IA, automações, APIs e integrações.'
+  const pageTitle = title || 'Peter Tecnet | Software, aplicativos, IA e plataformas digitais globais'
+  const pageDescription = description || 'Empresa de tecnologia fundada em Brasília que cria plataformas digitais globais e desenvolve software, aplicativos, sites, IA, automações, APIs e integrações.'
   const pageImage = resolveSocialImage(image)
 
   document.title = pageTitle
