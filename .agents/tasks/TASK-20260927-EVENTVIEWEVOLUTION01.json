@@ -5,13 +5,13 @@
   "context": "cutinapp",
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "owner_agent_id": "NP11",
   "requested_by": "OWNER",
-  "version": 1,
+  "version": 2,
   "delegation_count": 0,
   "lock_acquired_at": "2026-09-27T10:33:00-03:00",
-  "lock_expires_at": "2026-09-27T12:03:00-03:00",
+  "lock_expires_at": "2026-09-27T11:02:00-03:00",
   "scope": "Evoluir continuamente as views públicas da Cutinapp, com identidade distinta por entidade. A rodada imediata é a EventViewPage: flyer preservado integralmente, atmosfera derivada do próprio flyer, hierarquia visual forte, CTA de ingressos, produção responsável, ações sociais, informações e descoberta relacionada, sem degradar mobile/performance. Create/edit devem permanecer visualmente coerentes com a view nas rodadas subsequentes.",
   "acceptance": [
     "A view de evento usa o flyer do próprio evento como atmosfera/background desfocado sem depender de enhancer tardio",
@@ -25,13 +25,25 @@
     "Evoluções futuras de evento/produção/artista/promoter/participante podem ser registradas nesta tarefa, mantendo identidades visuais distintas",
     "Create/edit de cada entidade devem acompanhar a linguagem da respectiva view para o usuário prever o resultado final"
   ],
-  "checkpoint": "Ordem direta do OWNER recebida com screenshot da EventViewPage atual. Diagnóstico inicial: o hero já possui flyer e resumo lado a lado, porém o background derivado do flyer depende de enhancer adiado e o premium hero ainda carrega acentos roxo/ciano/verde legados. Rodada atual corrigirá a ativação síncrona do background e consolidará o hero na identidade oficial.",
-  "next_action": "Implementar EventViewPage + camada visual do hero, validar diff/CI, publicar em main conforme ordem do OWNER e acompanhar deploy.",
-  "updated_at": "2026-09-27T10:33:00-03:00",
+  "checkpoint": "Rodada imediata concluída e publicada. EventViewPage agora injeta o flyer como atmosfera de página já no render, sem depender do enhancer adiado; o hero usa preto/grafite/prata/vermelho oficial, flyer completo 2:3, hierarquia mais forte de ingressos/interesse/ações e breakpoints desktop/mobile. PR #664 foi mergeado em main no SHA 27f44ec2bad28fbab74f24fd29d18b92e3b6252a. Validate #2795 e Lighthouse #707 passaram. O Deploy VPS #1689 falhou antes do build por timeout SSH no alvo configurado; o host operacional atual petertecnetserver estava conectado via SentinelX. Para cumprir a publicação, gerei build isolado do SHA validado em /tmp, preservei os arquivos de ambiente sem expô-los, ativei somente o diretório build atomicamente e confirmei release-sha público exato e HTTP 200 na raiz e no evento.",
+  "next_action": "NP03 fazer QA visual pós-publicação em desktop e 360/390/430, incluindo flyer completo, atmosfera, contraste, ações e overflow. NP10 deve realinhar VPS_HOST/SSH do Deploy VPS com o servidor operacional atual; depois marcar a rodada DONE e seguir evoluções de produção/artista/promoter/participante e paridade create/edit.",
+  "updated_at": "2026-09-27T11:02:00-03:00",
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
     "status": "PENDING",
-    "notes": "QA visual pós-publicação em desktop/mobile, contraste, flyer completo, ações, performance e ausência de overflow."
-  }
+    "notes": "Produção já está no SHA validado. Fazer QA visual independente; infraestrutura deve corrigir o alvo SSH do workflow automático."
+  },
+  "evidence": [
+    "Cutinapp PR #664 MERGED",
+    "main SHA 27f44ec2bad28fbab74f24fd29d18b92e3b6252a",
+    "Validate Cutinapp #2795 SUCCESS",
+    "Lighthouse CI #707 SUCCESS",
+    "Deploy VPS #1689 FAILURE: SSH timeout before frontend build environment fetch",
+    "SentinelX petertecnetserver: isolated exact-SHA production build and atomic build activation",
+    "Production /build/release-sha.txt = 27f44ec2bad28fbab74f24fd29d18b92e3b6252a",
+    "Public https://cutinapp.petertecnet.com.br/ HTTP 200",
+    "Public /event/noite-cuck-2026-09-30 HTTP 200",
+    "Public release-sha probe = 27f44ec2bad28fbab74f24fd29d18b92e3b6252a"
+  ]
 }
