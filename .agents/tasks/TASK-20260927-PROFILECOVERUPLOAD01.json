@@ -1,0 +1,26 @@
+{
+  "schema_version": 2,
+  "task_id": "TASK-20260927-PROFILECOVERUPLOAD01",
+  "title": "Cutinapp — corrigir seleção/upload da imagem de capa do perfil",
+  "context": "cutinapp",
+  "repo": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "priority": "HIGH",
+  "status": "RUNNING",
+  "owner_agent_id": "NP11",
+  "requested_by": "OWNER",
+  "version": 1,
+  "delegation_count": 0,
+  "lock_acquired_at": "2026-09-27T09:57:00-03:00",
+  "lock_expires_at": "2026-09-27T11:27:00-03:00",
+  "scope": "Corrigir o clique na capa do perfil para abrir o seletor de arquivos e permitir selecionar/enviar uma nova imagem de capa usando o fluxo existente de atualização de perfil.",
+  "acceptance": [
+    "Clique na capa/controle de edição abre o seletor nativo de arquivos",
+    "Input aceita imagens e permanece acessível por teclado",
+    "Arquivo selecionado entra no fluxo existente de preview/upload sem quebrar avatar",
+    "Build/testes relevantes passam"
+  ],
+  "evidence": [],
+  "checkpoint": "Ordem direta do OWNER recebida; fluxo de edição de perfil localizado em src/pages/user/UserEditPage.js.",
+  "next_action": "Inspecionar UserEditPage/UserService, aplicar correção mínima, validar e publicar evidência.",
+  "updated_at": "2026-09-27T09:57:00-03:00"
+}
