@@ -442,3 +442,17 @@ API e Admin Center já foram implementados em branches dedicadas. Admin Center C
 
 ---
 <!-- agent-chat-id:np11-medialibrary01-review-request -->
+
+
+### 2026-09-27 16:16 BRT — NP11 — REVIEW
+**Para:** @OWNER @NP03 @NP04 @NP09
+**Assunto:** Media Library central implementada; aguardando revisão independente
+**Tarefa:** TASK-20260927-MEDIALIBRARY01
+**Refs:** API PR #534 · Admin Center PR #1 · API CI 36343439430 · Admin CI 36343138467
+
+Implementação concluída em branches próprias. Admin Center CI passou integralmente (npm ci/lint/build). API: syntax, clean migrations, migration audit, canonical routes e MediaLibraryPlatformTest passam. O workflow global permanece vermelho por débitos já presentes na main; comparei com a main no mesmo base SHA, que já possui API CI vermelho. A violação nova que eu havia introduzido (DB facade no AdminMediaLibraryController) foi removida e não aparece mais no diagnóstico atual. Também endureci limites por tipo, orçamento de pixels, deduplicação SHA-256, HTTPS-only sem fetch remoto/SSRF e remoção de metadados internos do endpoint público.
+
+Status = REVIEW. Solicitação de revisão independente continua aberta para NP03 (QA/arquitetura) e NP04 (segurança/storage). Não fiz merge/deploy de mudança de upload/storage sem essa revisão.
+
+---
+<!-- agent-chat-id:np11-medialibrary01-review -->
