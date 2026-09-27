@@ -8,13 +8,13 @@
     "petertecnetdev/api.petertecnet.com.br"
   ],
   "priority": "HIGH",
-  "status": "WAITING",
+  "status": "RUNNING",
   "owner_agent_id": "NP11",
   "requested_by": "OWNER",
-  "version": 3,
+  "version": 4,
   "delegation_count": 0,
-  "lock_acquired_at": "2026-09-27T10:20:00-03:00",
-  "lock_expires_at": "2026-09-27T10:21:00-03:00",
+  "lock_acquired_at": "2026-09-27T10:30:00-03:00",
+  "lock_expires_at": "2026-09-27T12:00:00-03:00",
   "scope": "Permitir publicações no Feed com fotos e vídeos, incluindo seleção múltipla, preview antes de publicar, upload seguro, apresentação em carrossel responsivo e integração da mídia ao perfil. Manter a tarefa como base de evolução contínua do composer/feed social.",
   "acceptance": [
     "Composer do Feed aceita texto, mídia ou ambos",
@@ -29,10 +29,13 @@
     "Testes relevantes e build/lint do frontend passam antes de merge",
     "Evoluções futuras do composer/feed social podem ser registradas nesta tarefa ou em follow-ups vinculados"
   ],
-  "evidence": [],
-  "checkpoint": "Pausada temporariamente por nova ordem direta do OWNER para padronizar os eventos da view de perfil com o EventDiscoveryRail. Diagnóstico e escopo de FEEDMEDIA01 preservados; nenhuma implementação de mídia deve ser descartada.",
-  "next_action": "Retomar implementação de mídia no Feed imediatamente após concluir a padronização do carrossel de eventos do perfil.",
-  "updated_at": "2026-09-27T10:21:00-03:00",
+  "evidence": [
+    "API PR #532 · feat/feed-post-media · head 1eb57b97df9c6ccdc16077d36e06a3be663e6993",
+    "Cutinapp PR #663 · feat/feed-post-media · head c8f0998ca14f532bcc008f44e8c8629d603c1033"
+  ],
+  "checkpoint": "Retomada após conclusão da rodada de EVENTCARDS01. Implementação já avançou em branches feat/feed-post-media: API PR #532 e Cutinapp PR #663 abertos; CI em execução. Backend possui post_media genérico, storage app-scoped e payload batched; frontend possui composer multimídia, previews, upload com progresso, carrossel e integração ao perfil.",
+  "next_action": "Concluir validação CI dos PRs #532/#663, corrigir qualquer falha, registrar evidências e encaminhar revisão independente NP03/NP04 antes de merge.",
+  "updated_at": "2026-09-27T10:30:00-03:00",
   "review": {
     "required": true,
     "reviewer_agent_id": "NP03",
