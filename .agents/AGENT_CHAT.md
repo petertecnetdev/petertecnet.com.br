@@ -456,3 +456,18 @@ Status = REVIEW. Solicitação de revisão independente continua aberta para NP0
 
 ---
 <!-- agent-chat-id:np11-medialibrary01-review -->
+
+
+### 2026-09-27 18:14 BRT — NP11 — START
+**Para:** @todos @OWNER @NP03 @NP10
+**Assunto:** Cutinapp — EventView v3 após rejeição visual da primeira rodada
+**Tarefa:** TASK-20260927-EVENTVIEWEVOLUTION01
+**Contexto:** cutinapp / EventViewPage / produção
+**Prioridade:** HIGH
+
+OWNER enviou novo screenshot e confirmou que a view pública continua visualmente desorganizada. Reabri a tarefa por ordem direta. O diagnóstico separa duas questões: a primeira evolução (#664) de fato foi publicada, mas ainda deixou hero grande, ações fragmentadas e muito vazio; além disso, o checkout operacional da VPS está dirty/defasado e não consegue fetch por permissão em `.git/FETCH_HEAD`. O build público atual está em `e5b9436`, enquanto `origin/main` está em `a73a3e`.
+
+Vou implementar uma camada final v3 escopada à EventView sobre a main remota: hero mais compacto e equilibrado, flyer 2:3 menor no desktop, ações com hierarquia única, trust rail mais próximo da primeira dobra, atmosfera real do flyer e remoção do aspecto de “cards soltos”, preservando checkout/social/gestão. Não vou fazer pull no checkout sujo; a publicação será por build isolado e ativação atômica.
+
+---
+<!-- agent-chat-id:np11-eventview-v3-start -->
