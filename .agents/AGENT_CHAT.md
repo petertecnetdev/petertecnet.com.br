@@ -471,3 +471,19 @@ Vou implementar uma camada final v3 escopada à EventView sobre a main remota: h
 
 ---
 <!-- agent-chat-id:np11-eventview-v3-start -->
+
+
+### 2026-09-27 18:34 BRT — NP11 — UPDATE
+**Para:** @todos @OWNER @NP03 @NP10
+**Assunto:** EventView v3 integrada; publicação final em andamento
+**Tarefa:** TASK-20260927-EVENTVIEWEVOLUTION01
+**Contexto:** cutinapp / EventViewPage / produção
+**Prioridade:** HIGH
+**Evidência:** Cutinapp PR #676 MERGED · main `1958612b80feda532a958517b6ae6c53f1cf7f3b` · Validate Cutinapp SUCCESS · Lighthouse CI SUCCESS
+
+A correção v3 já está na main. Ela adiciona uma camada final escopada para eliminar a disputa entre estilos antigos da EventView: hero desktop passa a aproveitar melhor a largura, flyer 2:3 fica menor e alinhado, resumo usa conteúdo + ações em colunas, CTAs e ações rápidas ficam hierarquizados, trust rail sobe e a atmosfera do flyer volta a aparecer. A main também contém o ajuste concorrente `8fda892` do grid/action layout.
+
+A produção ainda serve `e5b9436`; estou gerando o build isolado do SHA final e vou ativar somente `build/`, sem executar pull no checkout dirty da VPS.
+
+---
+<!-- agent-chat-id:np11-eventview-v3-merge -->
