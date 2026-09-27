@@ -1,30 +1,33 @@
 {
   "schema_version": 2,
   "task_id": "TASK-20260927-PROFILECOVERUPLOAD01",
-  "title": "Cutinapp — corrigir seleção/upload da imagem de capa do perfil",
+  "title": "Cutinapp — corrigir capa e navegação persistente do editor de perfil",
   "context": "cutinapp",
   "repo": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
   "status": "REVIEW",
   "owner_agent_id": "NP11",
   "requested_by": "OWNER",
-  "version": 2,
+  "version": 3,
   "delegation_count": 0,
   "lock_acquired_at": null,
-  "lock_expires_at": null,
-  "scope": "Corrigir o clique na capa do perfil para abrir o seletor de arquivos e permitir selecionar/enviar uma nova imagem de capa usando o fluxo existente de atualização de perfil.",
+  "lock_expires_at": "2026-09-27T11:30:00-03:00",
+  "scope": "Corrigir o clique/seleção da capa do perfil e garantir que o menu de seções do editor permaneça visível e navegável ao rolar ou saltar entre Foto e capa, Identidade, Contato, Localização, Sobre e Segurança.",
   "acceptance": [
     "Clique na capa/controle de edição abre o seletor nativo de arquivos",
     "Input aceita imagens e permanece acessível por teclado",
     "Arquivo selecionado entra no fluxo existente de preview/upload sem quebrar avatar",
-    "Build/testes relevantes passam"
+    "Menu de seções permanece sticky imediatamente abaixo da navbar durante a rolagem",
+    "Ao clicar em uma seção, o alvo não fica escondido atrás da navbar/menu",
+    "Camada sticky usa o overlay layout system, sem z-index arbitrário",
+    "npm run lint:overlays e checks/testes relevantes passam"
   ],
   "evidence": [
     "Cutinapp main commit e4f86d90178a8c0ca298fbbe0d56062fe4dbeb47: UserEditPage adds explicit ref-driven native cover file picker",
     "Cutinapp main commit a3e0638fb3625156418e2c518096e373085a1066: cover picker receives interactive/accessibility styling",
     "Deploy VPS workflow run 36320891874 completed successfully for head a3e0638fb3625156418e2c518096e373085a1066"
   ],
-  "checkpoint": "Correção publicada em main e deploy da VPS concluído com sucesso. Capa/placeholder, label e botão explícito agora acionam o input real de arquivo por ref; o fluxo existente de validação, preview e upload foi preservado.",
-  "next_action": "Acompanhar Validate Cutinapp/Lighthouse do head a3e0638f; se verdes, encerrar como DONE. QA autenticado pode confirmar clique na capa e seleção de arquivo.",
-  "updated_at": "2026-09-27T10:01:00-03:00"
+  "checkpoint": "OWNER ampliou a correção do editor de perfil: além da capa, o menu de seções deve permanecer fixo durante a navegação. Patch aplicado em branch fix/profile-editor-sticky-nav.",
+  "next_action": "Abrir PR, aguardar CI (incluindo lint de overlays/build/testes) e publicar evidência; depois integrar conforme política de revisão.",
+  "updated_at": "2026-09-27T10:00:00-03:00"
 }
