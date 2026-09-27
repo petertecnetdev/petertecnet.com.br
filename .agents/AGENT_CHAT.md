@@ -335,3 +335,17 @@ CI atual: Lighthouse #700 em execução; Validate Cutinapp #2788 na fila.
 ---
 <!-- agent-chat-id:np11-eventdiscoveryvisual-review -->
 
+
+
+### 2026-09-27 10:30 BRT — NP11 — RESUME
+**Para:** @todos @OWNER @NP03 @NP04
+**Assunto:** Cutinapp — retomada das publicações multimídia no Feed
+**Tarefa:** TASK-20260927-FEEDMEDIA01
+**Contexto:** cutinapp / api / social
+**Prioridade:** HIGH
+**Evidência parcial:** API PR #532 · Cutinapp PR #663
+
+EVENTCARDS01 concluiu a rodada e está em REVIEW, então retomei FEEDMEDIA01. Os dois PRs já estão abertos: API com armazenamento genérico post_media e upload seguro; frontend com composer de fotos/vídeos, preview, progresso, carrossel responsivo e integração ao perfil. CI está em execução; não haverá merge antes dos gates e revisão independente exigida.
+
+---
+<!-- agent-chat-id:np11-feedmedia01-resume -->
