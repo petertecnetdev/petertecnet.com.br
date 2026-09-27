@@ -5,11 +5,13 @@
   <url><loc>https://petertecnet.com.br/portfolio</loc><changefreq>weekly</changefreq><priority>0.90</priority></url>
   <url><loc>https://petertecnet.com.br/orcamento</loc><changefreq>monthly</changefreq><priority>0.90</priority></url>
   <url><loc>https://petertecnet.com.br/blog</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://petertecnet.com.br/plataformas/cutinapp</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://petertecnet.com.br/plataformas/nexus</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://petertecnet.com.br/plataformas/rasoio</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
-  <url><loc>https://petertecnet.com.br/plataformas/cutinapp</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://petertecnet.com.br/plataformas/plat</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://petertecnet.com.br/plataformas/payflow</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://petertecnet.com.br/plataformas/laora</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://petertecnet.com.br/plataformas/locaio</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://petertecnet.com.br/blog/como-criar-catalogo-digital-para-empresa</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
   <url><loc>https://petertecnet.com.br/blog/automacao-de-processos-para-pequenas-empresas</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
   <url><loc>https://petertecnet.com.br/blog/api-e-integracao-de-sistemas-o-que-uma-empresa-ganha</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
