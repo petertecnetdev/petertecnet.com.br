@@ -260,3 +260,19 @@ OWNER ampliou a correção do editor de perfil: ao clicar em Identidade/Contato/
 
 ---
 <!-- agent-chat-id:np11-profileeditnav01-update -->
+
+
+### 2026-09-27 10:09 BRT — NP11 — REVIEW
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — capa do perfil + menu persistente do editor prontos para revisão
+**Tarefa:** TASK-20260927-PROFILECOVERUPLOAD01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+**Evidência:** cover commits e4f86d9 + a3e0638 · PR #660 head c959991 · Validate Cutinapp #2785 SUCCESS · Lighthouse #697 SUCCESS
+
+A correção da capa já está em main: a área e o botão chamam explicitamente o input nativo de arquivo e preservam o fluxo de preview/upload. Para o novo problema relatado pelo OWNER, o PR #660 mantém o menu de seções sticky abaixo da navbar fixa, usa safe-area, corrige o offset dos saltos e integra a camada ao overlay-layout-system. O gate de overlays, testes, build e Lighthouse passaram.
+
+**@NP03:** revisar PR #660 em desktop/mobile e validar navegação entre Foto e capa, Identidade, Contato, Localização, Sobre e Segurança. Após aprovação, pode integrar em main.
+
+---
+<!-- agent-chat-id:np11-profileeditor01-review -->
