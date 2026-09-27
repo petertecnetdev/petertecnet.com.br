@@ -46,8 +46,8 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 ## Snapshot operacional automático
 
 - Agentes registrados: **9**
-- Tarefas abertas: **19**
-- Executando: **2**
+- Tarefas abertas: **21**
+- Executando: **3**
 - Em revisão: **14**
 - Bloqueadas/decisão: **0**
 
@@ -60,10 +60,11 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 - **NP08** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 - **NP09** · REVIEW · task: TELEMETRY-SCHEMA-NORMALIZATION · last_seen: 2026-09-20T17:20:00-03:00 · next: Aguardar CI e revisão NP03/Tech Lead no PR #511; depois corrigir feedback ou abrir handoff para integração dos novos campos no FrontendTelemetryService.
 - **NP10** · BLOCKED · task: TAREFA-3-ADMIN-460 · last_seen: 2026-09-20T21:36:44-03:00 · next: Aguardar handoff/encerramento do claim NP09; então auditar main atual e validar 1-460, começando pelos gaps dos PRs #109/#114 e checks #108-#116.
-- **NP11** · REVIEW · task: TASK-20260927-EVENTVIEWEVOLUTION01 · last_seen: 2026-09-27T11:02:00-03:00 · next: Aguardar QA visual NP03; @NP10 realinhar o alvo do Deploy VPS. Depois encerrar esta rodada e retomar FEEDMEDIA01.
+- **NP11** · RUNNING · task: TASK-20260927-MEDIALIBRARY01 · last_seen: 2026-09-27T15:54:00-03:00 · next: Implementar MediaAsset/MediaVariant/MediaRelation/MediaCollection, endpoints administrativos/públicos e UI da biblioteca; abrir PRs e rodar CI.
 
 ### Próximas tarefas
 - **TASK-20260927-DMEM01** · CRITICAL · RUNNING · NP03 · cutinapp · Corrigir Direct da Cutinapp e notificar novas mensagens por email
+- **TASK-20260927-MEDIALIBRARY01** · HIGH · RUNNING · fila · geral · Peter Tecnet — Media Library central reutilizável + Admin Center
 - **TASK-20260926-EVENTIMAGEEDITOR01** · HIGH · RUNNING · NP11 · cutinapp · Editor de imagem de evento estilo Instagram com normalização automática 2:3
 - **TASK-20260926-NAVINSTAGRAM01** · HIGH · REVIEW · fila · geral · Cutinapp — reorganizar navegação desktop no padrão Instagram
 - **TASK-20260927-EVENTVIEWEVOLUTION01** · HIGH · REVIEW · fila · geral · Cutinapp — evolução contínua das views públicas, iniciando pela view de evento
@@ -80,6 +81,6 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 - **TASK-20260926-BLOGGROWTH01** · HIGH · REVIEW · fila · geral · Cutinapp — transformar blog em canal de aquisição e descoberta conectado ao ecossistema
 - **TASK-20260926-EVENTADMINCONTROL01** · HIGH · REVIEW · fila · geral · Cutinapp — controles administrativos de ciclo de vida do evento na view pública
 - **TASK-20260918-7C211A-QA** · HIGH · ASSIGNED · NP03 · cutinapp · QA — Meus eventos Cutinapp pacote 1–211
+- **TASK-20260927-SEARCHUX01** · HIGH · ASSIGNED · fila · geral · Cutinapp — evoluir UX/CSS da busca pública /search
 - **TASK-20260923-FASTIX100** · HIGH · WAITING · fila · geral · Cutinapp — maturidade competitiva Fastix 1–100
-- **TASK-20260919-E71A9F** · HIGH · WAITING · NP02 · cutinapp · Imagem automática de evento por IA com fallback de iniciais
 <!-- AUTO-STATE:END -->
