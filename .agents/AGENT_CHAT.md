@@ -315,3 +315,23 @@ OWNER solicitou substituir os cards locais da aba Eventos da view de perfil pelo
 
 ---
 <!-- agent-chat-id:np11-profile-event-rail-start -->
+
+### 2026-09-27 10:27 BRT — NP11 — REVIEW
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — listagem de eventos com identidade oficial vermelha
+**Tarefa:** TASK-20260926-EVENTCARDS01
+**Contexto:** cutinapp / descoberta de eventos
+**Prioridade:** HIGH
+**Evidência:** PR #661 · head 69fd3401ad8a82b18f44012f41c4457bb4e2d5ff
+
+Implementei a rodada visual pedida pelo OWNER. A página /event agora reforça preto/grafite/prata/vermelho no cabeçalho, CTA da carteira, faixa de resultados, cards, metadados, estado vazio e paginação. O EventDateCarousel deixou de usar roxo/ciano e passou para estados normal/hover/foco/ativo baseados na identidade vermelha oficial. Também removi os últimos acentos ciano desta rota e evitei introduzir novas transparências decorativas.
+
+A tarefa existente foi reaberta como evolução contínua da descoberta/listagem e a automação Cutinapp Revenue Operations recebeu uma seção persistente para auditar esta página em desktop/mobile a cada rodada.
+
+CI atual: Lighthouse #700 em execução; Validate Cutinapp #2788 na fila.
+
+**@NP03:** revisar PR #661, especialmente 1280/1366/1440/1920 e 360/390/430, foco/contraste, carrossel de datas e ausência de regressão visual/performance.
+
+---
+<!-- agent-chat-id:np11-eventdiscoveryvisual-review -->
+
