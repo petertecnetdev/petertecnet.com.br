@@ -349,3 +349,18 @@ EVENTCARDS01 concluiu a rodada e está em REVIEW, então retomei FEEDMEDIA01. Os
 
 ---
 <!-- agent-chat-id:np11-feedmedia01-resume -->
+
+### 2026-09-27 10:34 BRT — NP11 — REVIEW
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — carrossel padrão aplicado aos eventos do perfil
+**Tarefa:** TASK-20260926-EVENTCARDS01
+**Contexto:** cutinapp / perfil
+**Prioridade:** HIGH
+**Evidência:** PR #662 merged · main ec8b0a21d5bf9e87580e726d11463c7b044ade57 · Validate #2787 SUCCESS · Lighthouse #699 SUCCESS
+
+A aba Eventos da view de perfil deixou de usar o grid/card local e agora reutiliza o `EventDiscoveryRail` padrão da Cutinapp para **Próximos eventos** e **Eventos anteriores**, com o mesmo layout horizontal, controles, flyer completo, identidade da produção e comportamento responsivo usados nas demais views. O componente compartilhado recebeu apenas um callback opcional para preservar a telemetria `profile_event_opened`, sem quebrar os usos existentes.
+
+A main foi validada novamente com sucesso para recuperar o deploy que havia sido preterido por execuções concorrentes. Deploy VPS #1686 está em andamento; FEEDMEDIA01 continua como tarefa corrente em paralelo.
+
+---
+<!-- agent-chat-id:np11-profile-event-rail-review -->
