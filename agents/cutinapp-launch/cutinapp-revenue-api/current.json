@@ -4,26 +4,26 @@
   "project": "petertecnetdev/api.petertecnet.com.br",
   "priority": "P0",
   "status": "IMPLEMENTING",
-  "updated_at": "2026-09-26T13:10:36-03:00",
+  "updated_at": "2026-09-26T22:09:07-03:00",
   "areas": [
-    "API delivery gate",
-    "Laravel runtime permissions",
-    "non-interactive deploy",
+    "API CI gate",
+    "validated production delivery",
     "subscription release gate"
   ],
-  "problem": "API main remains at 5413b273cccdc153cae1d7b09a038dbbcd74fada. Dependency Security run 36244881463 passed on 2026-09-26, but the validated Laravel release path remains blocked. Source inspection now pinpoints the privileged calls: petertecnet.com.br/.github/workflows/reusable-vps-deploy.yml invokes plain `sudo -u www-data --` for optimize:clear, migrate --force, config preflight/cache guard, config:cache, view:cache, queue:restart and reverb:restart. Unlike best-effort cleanup, these calls do not use non-interactive `sudo -n`. The prior deploy log already proved the deploy account cannot satisfy interactive sudo. The same runtime tree also contains files the deploy user cannot chmod.",
-  "solution": "Do not weaken CI, config guards, migrations or health checks and do not replace the www-data execution context blindly. The server ownership/privilege contract must first be normalized: production runtime paths needed by Laravel must be writable by the intended runtime/deploy group, and the deploy identity must have an explicitly scoped non-interactive mechanism for only the required Laravel runtime commands (or the workflow must use a pre-provisioned root-owned helper with equivalent least privilege). Preserve all storage data and private identity files. After provisioning, change the workflow to fail fast/non-interactively rather than ever prompting for sudo, then rerun the exact validated SHA through backup -> deploy -> health. Generic Plan/Trial/Subscription/Entitlement work remains gated until that path is green.",
+  "problem": "API main is now 9bf5a48df83b32b331da8773b51f4b34348aac9a. Deploy VPS run 36280625909 was triggered for that exact SHA from workflow_run but every job (reconcile source, verified encrypted backup, deploy) was skipped. deploy-vps.yml only permits those jobs for workflow_dispatch or when the triggering API CI conclusion is success on main. Because the recorded head branch is main and this was a workflow_run event, the skip proves the triggering API CI did not conclude success. No backup, deploy, migration or health evidence exists for this SHA.",
+  "solution": "Keep subscription schema/features gated. Diagnose and repair the API CI failure for the current main SHA without weakening architecture, migration, route, security or functional tests. Once API CI is success, require the exact validated SHA to pass reconcile -> encrypted backup -> reusable deploy -> migrations -> health. Only then begin generic application-scoped Plan/Trial/Subscription/Entitlement work. Do not hardcode commercial price, currency, Brazil/local geography, automatic recurring charge or ticket commission.",
   "commits": {
-    "api_main_observed": "5413b273cccdc153cae1d7b09a038dbbcd74fada"
+    "api_main_observed": "9bf5a48df83b32b331da8773b51f4b34348aac9a",
+    "api_main_message": "feat(events): audit and correct flyer dates safely (#531)"
   },
   "evidence": [
-    "Dependency Security run 36244881463 completed SUCCESS for API main SHA 5413b273cccdc153cae1d7b09a038dbbcd74fada on 2026-09-26.",
-    "Shared workflow petertecnet.com.br/.github/workflows/reusable-vps-deploy.yml currently runs `sudo -u www-data -- php artisan optimize:clear`, `migrate --force`, `config:cache`, `view:cache`, `queue:restart` and `reverb:restart`, plus two PHP config guard/preflight commands under the same plain sudo execution model.",
-    "The workflow's disposable cleanup paths already use `sudo -n` or best-effort behavior, showing the blocking Laravel commands are a distinct privileged execution path.",
-    "Deploy Producer Onboarding run 36151052497 previously reached the exact validated SHA, composer and migrations, but recorded Operation not permitted under storage and then interactive-sudo failure before health.",
-    "Deploy VPS run 36152455682 for the same SHA completed as skipped; production delivery is not claimed.",
-    "No subscription price, recurring charge, ticket commission, destructive migration or CSS/API visual coupling was introduced."
+    "API main commit 9bf5a48df83b32b331da8773b51f4b34348aac9a is verified and was committed on 2026-09-26.",
+    "Deploy VPS run 36280625909 targets head_sha 9bf5a48df83b32b331da8773b51f4b34348aac9a, event workflow_run, head_branch main, conclusion skipped.",
+    "All three deploy jobs in run 36280625909 were skipped with zero executed steps: reconcile-source, verified encrypted database backup, and deploy.",
+    "Current deploy-vps.yml gates reconcile-source on github.event.workflow_run.conclusion == success and head_branch == main; backup and deploy depend on that job.",
+    "Current API CI still executes Composer validation/install, PHP syntax, Laravel route bootstrap, clean SQLite migrations, migration-history audit, canonical route checks, architecture tests, full tests, and architecture enforcement.",
+    "No existing class Subscription was found in the API default branch during this run; no subscription price, recurring charge, ticket commission, destructive migration or CSS coupling was introduced."
   ],
-  "production_gate": "BLOCKED — source-level cause is now pinned to plain sudo -u www-data Laravel commands plus inconsistent runtime ownership. Server provisioning/least-privilege repair is required before a safe workflow change can be validated.",
-  "next_blocker": "Provision a least-privilege, non-interactive Laravel deploy execution contract on the VPS and normalize storage/bootstrap/cache ownership without deleting data; then make reusable-vps-deploy fail fast with non-interactive execution, rerun backup -> deploy -> health for the exact validated API SHA, and only after green delivery begin generic application-scoped Plan/Trial/Subscription/Entitlement implementation."
+  "production_gate": "BLOCKED — current API CI for main is not successful, so the production workflow correctly skipped reconcile, backup and deploy for the current SHA.",
+  "next_blocker": "Obtain the failing API CI job/step diagnostics for SHA 9bf5a48df83b32b331da8773b51f4b34348aac9a, fix the underlying test/architecture/migration/route failure on main without weakening gates, then validate exact-SHA backup -> deploy -> migrations -> health before implementing the generic subscription core."
 }
