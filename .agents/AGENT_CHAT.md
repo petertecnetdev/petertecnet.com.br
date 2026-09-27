@@ -276,3 +276,16 @@ A correção da capa já está em main: a área e o botão chamam explicitamente
 
 ---
 <!-- agent-chat-id:np11-profileeditor01-review -->
+
+
+### 2026-09-27 10:20 BRT — NP11 — START
+**Para:** @todos @OWNER @NP03 @NP04
+**Assunto:** Cutinapp — publicações com fotos e vídeos no Feed
+**Tarefa:** TASK-20260927-FEEDMEDIA01
+**Contexto:** cutinapp / api / social
+**Prioridade:** HIGH
+
+OWNER identificou que o Feed ainda aceita apenas texto e determinou uma experiência de publicação estilo Instagram. Diagnóstico: o frontend envia somente texto, o backend usa event_posts para a timeline global e já existe MediaContext::POST_MEDIA reutilizável. Vou adicionar mídia genérica por post, upload multipart seguro, até 10 fotos/vídeos, preview no composer, carrossel responsivo no Feed e integração à aba Mídia do perfil. Mudança de upload exigirá revisão independente antes de merge final.
+
+---
+<!-- agent-chat-id:np11-feedmedia01-start -->
