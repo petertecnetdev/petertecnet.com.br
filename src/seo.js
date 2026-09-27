@@ -1,6 +1,8 @@
 const PUBLIC_ORIGIN = 'https://petertecnet.com.br'
 const DEFAULT_IMAGE = `${PUBLIC_ORIGIN}/thumbnail.jpg`
 const SEO_SCHEMA_ID = 'peter-page-structured-data'
+const HOME_TITLE = 'Peter Tecnet | Software, aplicativos, IA e plataformas digitais globais'
+const HOME_DESCRIPTION = 'Empresa de tecnologia fundada em Brasília que cria plataformas digitais globais e desenvolve software, aplicativos, sites, IA, automações, APIs e integrações.'
 
 function upsertMeta(selector, attributes) {
   let element = document.head.querySelector(selector)
@@ -66,11 +68,35 @@ function resolveSocialImage(image) {
   }
 }
 
+function normalizeHomepageSchema(schema) {
+  const graph = Array.isArray(schema) ? schema : schema ? [schema] : []
+  return graph.map(entry => {
+    if (!entry || typeof entry !== 'object') return entry
+    if (entry['@type'] === 'Organization') {
+      return {
+        ...entry,
+        description: HOME_DESCRIPTION,
+        areaServed: 'Worldwide',
+      }
+    }
+    if (entry['@type'] === 'WebPage') {
+      return {
+        ...entry,
+        name: 'Peter Tecnet — plataformas digitais globais e soluções em tecnologia',
+        description: 'Conheça a Peter Tecnet, suas plataformas digitais globais, produtos e serviços de tecnologia.',
+      }
+    }
+    return entry
+  })
+}
+
 export function updatePageSeo({ title, description, path = '/', image, type = 'website', robots, schema, keywords } = {}) {
   const normalizedPath = normalizePath(path)
   const canonical = `${PUBLIC_ORIGIN}${normalizedPath === '/' ? '/' : normalizedPath}`
-  const pageTitle = title || 'Peter Tecnet | Software, aplicativos, IA e plataformas digitais globais'
-  const pageDescription = description || 'Empresa de tecnologia fundada em Brasília que cria plataformas digitais globais e desenvolve software, aplicativos, sites, IA, automações, APIs e integrações.'
+  const isHomepage = normalizedPath === '/'
+  const pageTitle = isHomepage ? HOME_TITLE : (title || HOME_TITLE)
+  const pageDescription = isHomepage ? HOME_DESCRIPTION : (description || HOME_DESCRIPTION)
+  const pageSchema = isHomepage ? normalizeHomepageSchema(schema) : schema
   const pageImage = resolveSocialImage(image)
 
   document.title = pageTitle
@@ -95,7 +121,7 @@ export function updatePageSeo({ title, description, path = '/', image, type = 'w
   upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: pageTitle })
   upsertMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: pageDescription })
   upsertMeta('meta[name="twitter:image"]', { name: 'twitter:image', content: pageImage })
-  upsertStructuredData(schema)
+  upsertStructuredData(pageSchema)
 }
 
 export function applySeoPolicy() {
