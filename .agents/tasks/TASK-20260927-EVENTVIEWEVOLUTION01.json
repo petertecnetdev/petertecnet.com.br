@@ -1,0 +1,37 @@
+{
+  "schema_version": 2,
+  "task_id": "TASK-20260927-EVENTVIEWEVOLUTION01",
+  "title": "Cutinapp — evolução contínua das views públicas, iniciando pela view de evento",
+  "context": "cutinapp",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "priority": "HIGH",
+  "status": "RUNNING",
+  "owner_agent_id": "NP11",
+  "requested_by": "OWNER",
+  "version": 1,
+  "delegation_count": 0,
+  "lock_acquired_at": "2026-09-27T10:33:00-03:00",
+  "lock_expires_at": "2026-09-27T12:03:00-03:00",
+  "scope": "Evoluir continuamente as views públicas da Cutinapp, com identidade distinta por entidade. A rodada imediata é a EventViewPage: flyer preservado integralmente, atmosfera derivada do próprio flyer, hierarquia visual forte, CTA de ingressos, produção responsável, ações sociais, informações e descoberta relacionada, sem degradar mobile/performance. Create/edit devem permanecer visualmente coerentes com a view nas rodadas subsequentes.",
+  "acceptance": [
+    "A view de evento usa o flyer do próprio evento como atmosfera/background desfocado sem depender de enhancer tardio",
+    "O flyer principal permanece nítido, completo e sem corte em proporção 2:3",
+    "A primeira dobra desktop reduz vazio visual e equilibra informações, flyer e ações",
+    "Paleta da view prioriza preto/grafite/prata/vermelho oficial da Cutinapp, removendo acentos roxo/ciano/verde decorativos do hero",
+    "CTA de ingressos e ações rápidas têm hierarquia clara e touch targets adequados",
+    "Produção responsável, data, local e estado temporal permanecem legíveis e navegáveis",
+    "A página continua exibindo conteúdo rico abaixo do hero: ingressos/itens, informações, line-up, comunidade e outros eventos",
+    "Layout funciona em 360/390/430 e desktop amplo sem overflow horizontal",
+    "Evoluções futuras de evento/produção/artista/promoter/participante podem ser registradas nesta tarefa, mantendo identidades visuais distintas",
+    "Create/edit de cada entidade devem acompanhar a linguagem da respectiva view para o usuário prever o resultado final"
+  ],
+  "checkpoint": "Ordem direta do OWNER recebida com screenshot da EventViewPage atual. Diagnóstico inicial: o hero já possui flyer e resumo lado a lado, porém o background derivado do flyer depende de enhancer adiado e o premium hero ainda carrega acentos roxo/ciano/verde legados. Rodada atual corrigirá a ativação síncrona do background e consolidará o hero na identidade oficial.",
+  "next_action": "Implementar EventViewPage + camada visual do hero, validar diff/CI, publicar em main conforme ordem do OWNER e acompanhar deploy.",
+  "updated_at": "2026-09-27T10:33:00-03:00",
+  "review": {
+    "required": true,
+    "reviewer_agent_id": "NP03",
+    "status": "PENDING",
+    "notes": "QA visual pós-publicação em desktop/mobile, contraste, flyer completo, ações, performance e ausência de overflow."
+  }
+}
