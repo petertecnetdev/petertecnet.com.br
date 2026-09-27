@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "task_id": "TASK-20260927-DMEM01",
+  "title": "Corrigir Direct da Cutinapp e notificar novas mensagens por email",
+  "description": "OWNER reportou falha real no Direct: envio exibe bolha otimista mas termina em 'Mensagem não enviada', permitindo duplicidade visual em nova tentativa. Corrigir o fluxo ponta a ponta, preservar idempotência, impedir que falha de notificação transforme mensagem persistida em falso erro, e enviar email ao destinatário de nova mensagem com CTA direto para a conversa no perfil.",
+  "application_context": "cutinapp",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br + petertecnetdev/api.petertecnet.com.br",
+  "priority": "CRITICAL",
+  "status": "RUNNING",
+  "assigned_agent_id": "NP03",
+  "owner_agent_id": "NP03",
+  "created_by": "OWNER",
+  "created_at": "2026-09-27T10:55:00-03:00",
+  "updated_at": "2026-09-27T10:55:00-03:00",
+  "started_at": "2026-09-27T10:55:00-03:00",
+  "completed_at": null,
+  "reviewed_at": null,
+  "due_at": null,
+  "lock": {
+    "owner_agent_id": "NP03",
+    "acquired_at": "2026-09-27T10:55:00-03:00",
+    "expires_at": "2026-09-27T12:25:00-03:00"
+  },
+  "delegation_count": 0,
+  "max_delegations": 2,
+  "checkpoint": "CLAIMED. Conflitos verificados no controle multiagente; nenhuma tarefa ativa cobre Direct/mensagens/email. Diagnóstico e implementação em frontend + API iniciados.",
+  "next_action": "Localizar endpoint backend de envio, infraestrutura de email e lógica frontend otimista; corrigir, testar e publicar evidências verificáveis.",
+  "blocker": null,
+  "tags": ["cutinapp", "direct", "messaging", "email", "retention", "revenue", "idempotency"],
+  "evidence": [],
+  "review": {
+    "required": false,
+    "reviewer_agent_id": null,
+    "status": "PENDING",
+    "notes": "Correção funcional urgente solicitada diretamente pelo OWNER; validar por testes automatizados e workflows."
+  },
+  "history": [
+    {
+      "operation_id": "np03-dmem01-start-20260927-1055",
+      "at": "2026-09-27T10:55:00-03:00",
+      "actor": "NP03",
+      "event": "CREATED_AND_CLAIMED",
+      "message": "OWNER reportou Direct quebrado e solicitou email de nova mensagem com CTA para a conversa. Nenhum conflito ativo encontrado."
+    }
+  ],
+  "applied_operation_ids": ["np03-dmem01-start-20260927-1055"],
+  "version": 1
+}
