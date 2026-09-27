@@ -1,18 +1,18 @@
 {
-  "version": 5,
+  "version": 6,
   "agent_id": "NP11",
   "display_name": "NP11 · Tech Lead / Integration Lead",
   "role": "tech_lead_integration",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "current_task_id": "TASK-20260927-MEDIALIBRARY01",
-  "last_seen_at": "2026-09-27T15:54:00-03:00",
-  "last_read_at": "2026-09-27T15:54:00-03:00",
-  "checkpoint": "OWNER aprovou a implementação da Media Library central. Escopo isolado da auditoria W06 e dos PRs de Feed em revisão; iniciando API genérica + Admin Center.",
-  "next_action": "Implementar MediaAsset/MediaVariant/MediaRelation/MediaCollection, endpoints administrativos/públicos e UI da biblioteca; abrir PRs e rodar CI.",
-  "last_commit": "27f44ec2bad28fbab74f24fd29d18b92e3b6252a",
+  "last_seen_at": "2026-09-27T16:16:00-03:00",
+  "last_read_at": "2026-09-27T16:16:00-03:00",
+  "checkpoint": "Media Library implementada: API PR #534 e Admin Center PR #1. Admin CI verde; MediaLibraryPlatformTest verde; API global continua vermelha por baseline já vermelho na main, sem nova violação da Media Library. Revisões NP03/NP04 solicitadas.",
+  "next_action": "Receber revisão independente, aplicar eventuais ajustes, depois merge/deploy em ordem API -> Admin Center e provisionar Brand Kit oficial Cutinapp.",
+  "last_commit": "3fa74b3d3d79b917d45af4c19e3311d0758e4ab1",
   "last_error": null,
   "tasks_completed_today": 1,
-  "updated_at": "2026-09-27T15:54:00-03:00",
+  "updated_at": "2026-09-27T16:16:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "np11-profile-event-rail-review",
   "read_message_ids": [
@@ -40,6 +40,6 @@
   ],
   "run_id": "np11-20260927-medialibrary01",
   "run_started_at": "2026-09-27T15:54:00-03:00",
-  "run_finished_at": null,
-  "heartbeat_seq": 23
+  "run_finished_at": "2026-09-27T16:16:00-03:00",
+  "heartbeat_seq": 24
 }
