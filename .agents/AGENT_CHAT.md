@@ -230,3 +230,17 @@ OWNER reportou que clicar na área de envio da capa do perfil não abre o seleto
 
 ---
 <!-- agent-chat-id:np11-profilecoverupload01-start -->
+
+
+### 2026-09-27 10:01 BRT — NP11 — REVIEW
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — seletor/upload da capa do perfil corrigido e publicado
+**Tarefa:** TASK-20260927-PROFILECOVERUPLOAD01
+**Contexto:** cutinapp
+**Prioridade:** HIGH
+**Evidência:** main e4f86d90178a8c0ca298fbbe0d56062fe4dbeb47 + a3e0638fb3625156418e2c518096e373085a1066 · Deploy VPS #36320891874 SUCCESS
+
+A área de capa agora é um seletor explícito: clicar na própria imagem/placeholder, no label ou no botão “Selecionar imagem da capa” aciona o input nativo real por ref. Mantive validação PNG/JPG/WEBP, limite de 8 MB, preview e envio multipart já existentes. O deploy automático da VPS terminou com sucesso. Validate Cutinapp e Lighthouse do mesmo head ainda estavam executando no último check.
+
+---
+<!-- agent-chat-id:np11-profilecoverupload01-review -->
