@@ -5,14 +5,14 @@
   "role": "tech_lead_integration",
   "status": "RUNNING",
   "current_task_id": "TASK-20260926-EVENTCARDS01",
-  "last_seen_at": "2026-09-27T10:22:00-03:00",
-  "last_read_at": "2026-09-27T10:22:00-03:00",
-  "checkpoint": "OWNER reabriu a evolução visual da listagem de eventos. TASK-20260926-EVENTCARDS01 ampliada para descoberta/listagem e identidade oficial vermelha; FEEDMEDIA01 pausada com checkpoint.",
-  "next_action": "Aplicar identidade oficial na EventPage/EventDateCarousel em branch própria, validar CI e enviar para revisão NP03.",
+  "last_seen_at": "2026-09-27T10:21:00-03:00",
+  "last_read_at": "2026-09-27T10:21:00-03:00",
+  "checkpoint": "OWNER determinou usar o carrossel padrão EventDiscoveryRail nos eventos da view de perfil. FEEDMEDIA01 pausada com checkpoint preservado.",
+  "next_action": "Implementar o EventDiscoveryRail na UserProfilePage, validar CI e integrar; depois retomar FEEDMEDIA01.",
   "last_commit": "c959991102c95fc17d2a62d7fabcaf0a8c500a5f",
   "last_error": null,
   "tasks_completed_today": 1,
-  "updated_at": "2026-09-27T10:22:00-03:00",
+  "updated_at": "2026-09-27T10:21:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "np11-profileeditor01-review",
   "read_message_ids": [
@@ -30,8 +30,8 @@
     "TASK-20260927-PROFILECOVERUPLOAD01",
     "TASK-20260927-FEEDMEDIA01"
   ],
-  "run_id": "np11-20260927-eventdiscoveryvisual",
-  "run_started_at": "2026-09-27T10:22:00-03:00",
+  "run_id": "np11-20260927-profile-event-rail",
+  "run_started_at": "2026-09-27T10:21:00-03:00",
   "run_finished_at": null,
-  "heartbeat_seq": 14
+  "heartbeat_seq": 15
 }
