@@ -276,3 +276,76 @@ A correção da capa já está em main: a área e o botão chamam explicitamente
 
 ---
 <!-- agent-chat-id:np11-profileeditor01-review -->
+
+
+### 2026-09-27 10:20 BRT — NP11 — START
+**Para:** @todos @OWNER @NP03 @NP04
+**Assunto:** Cutinapp — publicações com fotos e vídeos no Feed
+**Tarefa:** TASK-20260927-FEEDMEDIA01
+**Contexto:** cutinapp / api / social
+**Prioridade:** HIGH
+
+OWNER identificou que o Feed ainda aceita apenas texto e determinou uma experiência de publicação estilo Instagram. Diagnóstico: o frontend envia somente texto, o backend usa event_posts para a timeline global e já existe MediaContext::POST_MEDIA reutilizável. Vou adicionar mídia genérica por post, upload multipart seguro, até 10 fotos/vídeos, preview no composer, carrossel responsivo no Feed e integração à aba Mídia do perfil. Mudança de upload exigirá revisão independente antes de merge final.
+
+---
+<!-- agent-chat-id:np11-feedmedia01-start -->
+
+### 2026-09-27 10:22 BRT — NP11 — START
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — identidade visual da listagem de eventos
+**Tarefa:** TASK-20260926-EVENTCARDS01
+**Contexto:** cutinapp / descoberta de eventos
+**Prioridade:** HIGH
+
+OWNER pediu mais identidade visual na página de listagem de eventos, explicitamente baseada nas cores da logo. Reabri e ampliei a tarefa existente de cards para cobrir a descoberta/listagem como evolução contínua. A rodada atual vai remover os acentos roxo/ciano ainda presentes no carrossel de datas e reforçar preto/grafite/prata/vermelho no cabeçalho, resultados, cards, ícones e paginação, sem transparências decorativas novas.
+
+FEEDMEDIA01 foi pausada com checkpoint para atender esta ordem direta.
+
+---
+<!-- agent-chat-id:np11-eventdiscoveryvisual-start -->
+
+### 2026-09-27 10:21 BRT — NP11 — START
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — usar carrossel padrão de eventos no perfil
+**Tarefa:** TASK-20260926-EVENTCARDS01
+**Contexto:** cutinapp / perfil
+**Prioridade:** HIGH
+
+OWNER solicitou substituir os cards locais da aba Eventos da view de perfil pelo carrossel padrão compartilhado já usado na Home e em outras views. Vou reutilizar o `EventDiscoveryRail` para próximos e eventos anteriores, preservando responsividade e telemetria de abertura. FEEDMEDIA01 ficou pausada com checkpoint preservado para esta ordem direta.
+
+---
+<!-- agent-chat-id:np11-profile-event-rail-start -->
+
+### 2026-09-27 10:27 BRT — NP11 — REVIEW
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — listagem de eventos com identidade oficial vermelha
+**Tarefa:** TASK-20260926-EVENTCARDS01
+**Contexto:** cutinapp / descoberta de eventos
+**Prioridade:** HIGH
+**Evidência:** PR #661 · head 69fd3401ad8a82b18f44012f41c4457bb4e2d5ff
+
+Implementei a rodada visual pedida pelo OWNER. A página /event agora reforça preto/grafite/prata/vermelho no cabeçalho, CTA da carteira, faixa de resultados, cards, metadados, estado vazio e paginação. O EventDateCarousel deixou de usar roxo/ciano e passou para estados normal/hover/foco/ativo baseados na identidade vermelha oficial. Também removi os últimos acentos ciano desta rota e evitei introduzir novas transparências decorativas.
+
+A tarefa existente foi reaberta como evolução contínua da descoberta/listagem e a automação Cutinapp Revenue Operations recebeu uma seção persistente para auditar esta página em desktop/mobile a cada rodada.
+
+CI atual: Lighthouse #700 em execução; Validate Cutinapp #2788 na fila.
+
+**@NP03:** revisar PR #661, especialmente 1280/1366/1440/1920 e 360/390/430, foco/contraste, carrossel de datas e ausência de regressão visual/performance.
+
+---
+<!-- agent-chat-id:np11-eventdiscoveryvisual-review -->
+
+
+
+### 2026-09-27 10:30 BRT — NP11 — RESUME
+**Para:** @todos @OWNER @NP03 @NP04
+**Assunto:** Cutinapp — retomada das publicações multimídia no Feed
+**Tarefa:** TASK-20260927-FEEDMEDIA01
+**Contexto:** cutinapp / api / social
+**Prioridade:** HIGH
+**Evidência parcial:** API PR #532 · Cutinapp PR #663
+
+EVENTCARDS01 concluiu a rodada e está em REVIEW, então retomei FEEDMEDIA01. Os dois PRs já estão abertos: API com armazenamento genérico post_media e upload seguro; frontend com composer de fotos/vídeos, preview, progresso, carrossel responsivo e integração ao perfil. CI está em execução; não haverá merge antes dos gates e revisão independente exigida.
+
+---
+<!-- agent-chat-id:np11-feedmedia01-resume -->
