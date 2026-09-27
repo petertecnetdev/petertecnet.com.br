@@ -1,18 +1,18 @@
 {
-  "version": 7,
+  "version": 8,
   "agent_id": "NP11",
   "display_name": "NP11 · Tech Lead / Integration Lead",
   "role": "tech_lead_integration",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "current_task_id": "TASK-20260927-EVENTVIEWEVOLUTION01",
-  "last_seen_at": "2026-09-27T18:14:00-03:00",
-  "last_read_at": "2026-09-27T18:14:00-03:00",
-  "checkpoint": "OWNER rejeitou visual atual da EventView e pediu correção imediata. Reabri EVENTVIEWEVOLUTION01. Screenshot confirma hero desbalanceado/fragmentado. VPS working checkout está dirty e atrás da main, com fetch bloqueado por permissão; build público está em e5b9436. Vou trabalhar da main remota e publicar por build isolado.",
-  "next_action": "Implementar EventView v3 em branch nova, validar CI/build/overlay e publicar atomicamente somente o build.",
-  "last_commit": "e5b9436de271c8594afdff715978947a2d211059",
+  "last_seen_at": "2026-09-27T18:48:00-03:00",
+  "last_read_at": "2026-09-27T18:48:00-03:00",
+  "checkpoint": "EventView v3 publicada no SHA 99fe15cb9b035804f1eee7b5ab6ad336875eeff7. PR #676/CI verdes; build final passou guards; produção e release-sha público confirmados; backup anterior mantido.",
+  "next_action": "Aguardar QA visual NP03; NP10 corrigir deploy automático/SSH e permissão do checkout operacional.",
+  "last_commit": "99fe15cb9b035804f1eee7b5ab6ad336875eeff7",
   "last_error": null,
   "tasks_completed_today": 1,
-  "updated_at": "2026-09-27T18:14:00-03:00",
+  "updated_at": "2026-09-27T18:48:00-03:00",
   "schema_version": 2,
   "last_read_message_id": "np11-medialibrary01-review",
   "read_message_ids": [
@@ -45,6 +45,6 @@
   ],
   "run_id": "np11-20260927-eventview-v3",
   "run_started_at": "2026-09-27T18:14:00-03:00",
-  "run_finished_at": null,
-  "heartbeat_seq": 25
+  "run_finished_at": "2026-09-27T18:48:00-03:00",
+  "heartbeat_seq": 26
 }
