@@ -30,7 +30,8 @@ jobs:
 
           repo = Path('.')
           official = '/logopetertecnet.png'
-          old = '/petertecnet-brand.svg'
+          old_filename = 'petertecnet-brand.svg'
+          official_filename = 'logopetertecnet.png'
 
           tracked = subprocess.check_output(['git', 'ls-files', '-z']).split(b'\0')
           changed = []
@@ -46,8 +47,7 @@ jobs:
               except (UnicodeDecodeError, OSError):
                   continue
 
-              updated = text.replace(old, official)
-              updated = updated.replace('https://petertecnet.com.br/petertecnet-brand.svg', 'https://petertecnet.com.br/logopetertecnet.png')
+              updated = text.replace(old_filename, official_filename)
 
               if path.as_posix() == 'index.html':
                   updated = re.sub(
@@ -101,7 +101,7 @@ jobs:
           PY
 
           echo "Checking for stale canonical logo references..."
-          if git grep -n '/petertecnet-brand.svg' -- ':!public/ecosystem/processing-indicator.js'; then
+          if git grep -n 'petertecnet-brand.svg' -- ':!public/ecosystem/processing-indicator.js'; then
             echo 'Found stale Peter Tecnet logo references outside the compatibility upgrader.' >&2
             exit 1
           fi
