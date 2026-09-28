@@ -46,15 +46,15 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 ## Snapshot operacional automático
 
 - Agentes registrados: **9**
-- Tarefas abertas: **21**
+- Tarefas abertas: **22**
 - Executando: **2**
-- Em revisão: **15**
+- Em revisão: **16**
 - Bloqueadas/decisão: **0**
 
 ### Agentes
 - **NP01** · REVIEW · task: TASK-20260919-NEARBY01 · last_seen: 2026-09-19T11:23:00-03:00 · next: NP03 revisar PRs #578 e #506. Após aprovação, mergear e validar deploy/endpoint em produção.
 - **NP02** · REVIEW · task: TASK-20260926-NAVINSTAGRAM01 · last_seen: 2026-09-26T12:18:00-03:00 · next: Wait for Validate Cutinapp + Lighthouse CI; merge #641 if green and perform post-merge production/local visual validation.
-- **NP03** · RUNNING · task: TASK-20260927-DMEM01 · last_seen: 2026-09-27T10:55:00-03:00 · next: Diagnosticar endpoint de envio e implementar idempotência/resiliência + email CTA + deep link frontend; rodar testes e workflows.
+- **NP03** · REVIEW · task: TASK-20260928-EVENTVIEWSYMMETRY01 · last_seen: 2026-09-28T07:16:00-03:00 · next: Confirmar resultado do retry do Deploy VPS e release pública; solicitar/recolher review visual NP11; depois retomar TASK-20260927-DMEM01 do checkpoint anterior.
 - **NP04** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 - **NP05** · REVIEW · task: TASK-20260919-MOBILE250 · last_seen: 2026-09-19T10:44:00-03:00 · next: NP03 executar revisão independente mobile em 360/390/430px, navegação, Event Manager, bottom sheets, teclado, rede limitada e overlays; aprovar ou solicitar mudanças antes de merge em main.
 - **NP08** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
@@ -65,6 +65,7 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 ### Próximas tarefas
 - **TASK-20260927-DMEM01** · CRITICAL · RUNNING · NP03 · cutinapp · Corrigir Direct da Cutinapp e notificar novas mensagens por email
 - **TASK-20260926-EVENTIMAGEEDITOR01** · HIGH · RUNNING · NP11 · cutinapp · Editor de imagem de evento estilo Instagram com normalização automática 2:3
+- **TASK-20260928-EVENTVIEWSYMMETRY01** · CRITICAL · REVIEW · fila · geral · Cutinapp — corrigir simetria e hierarquia da view pública de evento
 - **TASK-20260926-NAVINSTAGRAM01** · HIGH · REVIEW · fila · geral · Cutinapp — reorganizar navegação desktop no padrão Instagram
 - **TASK-20260927-EVENTVIEWEVOLUTION01** · HIGH · REVIEW · fila · geral · Cutinapp — evolução contínua das views públicas, iniciando pela view de evento
 - **TASK-20260927-FEEDMEDIA01** · HIGH · REVIEW · fila · geral · Cutinapp — publicações com mídia no Feed em experiência estilo Instagram
@@ -82,5 +83,4 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 - **TASK-20260926-EVENTADMINCONTROL01** · HIGH · REVIEW · fila · geral · Cutinapp — controles administrativos de ciclo de vida do evento na view pública
 - **TASK-20260918-7C211A-QA** · HIGH · ASSIGNED · NP03 · cutinapp · QA — Meus eventos Cutinapp pacote 1–211
 - **TASK-20260927-SEARCHUX01** · HIGH · ASSIGNED · fila · geral · Cutinapp — evoluir UX/CSS da busca pública /search
-- **TASK-20260923-FASTIX100** · HIGH · WAITING · fila · geral · Cutinapp — maturidade competitiva Fastix 1–100
 <!-- AUTO-STATE:END -->
