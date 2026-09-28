@@ -1,0 +1,35 @@
+{
+  "schema_version": 2,
+  "task_id": "TASK-20260928-EVENTVIEWSYMMETRY01",
+  "title": "Cutinapp — corrigir simetria e hierarquia da view pública de evento",
+  "context": "cutinapp",
+  "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "priority": "CRITICAL",
+  "status": "RUNNING",
+  "owner_agent_id": "NP03",
+  "requested_by": "OWNER",
+  "version": 1,
+  "delegation_count": 0,
+  "lock_acquired_at": "2026-09-28T06:55:00-03:00",
+  "lock_expires_at": "2026-09-28T08:25:00-03:00",
+  "scope": "Hotfix visual da EventViewPage a partir do screenshot do OWNER: corrigir assimetria do hero desktop, textos quebrando/saindo de botões, ações desalinhadas e hierarquia fraca; preservar flyer 2:3, identidade preto/grafite/vermelho, mobile e comportamento de compra/social.",
+  "acceptance": [
+    "Hero desktop mantém resumo e flyer alinhados em uma composição central e proporcional",
+    "Nenhum texto de CTA ou ação rápida sai do botão ou quebra de forma descontrolada",
+    "Ações primárias ficam visualmente claras e com largura suficiente",
+    "Ações rápidas usam grade simétrica e responsiva",
+    "Flyer permanece inteiro em 2:3 sem corte",
+    "Mobile/tablet continuam sem overflow horizontal",
+    "Alteração é publicada em main e validada pelos checks disponíveis"
+  ],
+  "checkpoint": "OWNER enviou screenshot da página /event/noite-do-swing-2026-10-02 mostrando o hero assimétrico e botões comprimidos. Diagnóstico: event-view-experience-v3.css força uma coluna lateral de ações de 225–270px dentro do summary card; isso comprime CTA e quick actions e entra em conflito com o layout display:contents de event-view-shotgun-layout.css.",
+  "next_action": "Aplicar camada final scoped de simetria no EventView, publicar em main e acompanhar CI.",
+  "updated_at": "2026-09-28T06:55:00-03:00",
+  "review": {
+    "required": true,
+    "reviewer_agent_id": "NP11",
+    "status": "PENDING",
+    "notes": "Hotfix solicitado diretamente pelo OWNER durante QA independente NP03."
+  },
+  "evidence": []
+}
