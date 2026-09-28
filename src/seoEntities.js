@@ -2,7 +2,7 @@ export const organizationSeo = {
   name: 'Peter Tecnet',
   legalName: 'Pedro Ivo Boa Sorte Vargas',
   url: 'https://petertecnet.com.br/',
-  logo: 'https://petertecnet.com.br/petertecnet-brand.svg',
+  logo: 'https://petertecnet.com.br/logopetertecnet.png',
   taxID: '42.595.409/0001-48',
   email: 'contato@petertecnet.com.br',
   instagram: 'https://www.instagram.com/petertecnet/',
