@@ -1,0 +1,127 @@
+name: Normalize Peter Tecnet logo asset
+
+on:
+  push:
+    branches:
+      - fix/petertecnet-logo-png-global
+
+permissions:
+  contents: write
+
+jobs:
+  normalize-logo:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Normalize Peter Tecnet logo references
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import json
+          import re
+          import subprocess
+
+          repo = Path('.')
+          official = '/logopetertecnet.png'
+          old = '/petertecnet-brand.svg'
+
+          tracked = subprocess.check_output(['git', 'ls-files', '-z']).split(b'\0')
+          changed = []
+
+          for raw in tracked:
+              if not raw:
+                  continue
+              path = repo / raw.decode('utf-8')
+              if not path.is_file():
+                  continue
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except (UnicodeDecodeError, OSError):
+                  continue
+
+              updated = text.replace(old, official)
+              updated = updated.replace('https://petertecnet.com.br/petertecnet-brand.svg', 'https://petertecnet.com.br/logopetertecnet.png')
+
+              if path.as_posix() == 'index.html':
+                  updated = re.sub(
+                      r'(<link\s+rel="(?:icon|shortcut icon)"\s+type=")image/svg\+xml("\s+href="/logopetertecnet\.png[^\"]*"\s*/>)',
+                      r'\1image/png\2',
+                      updated,
+                  )
+
+              if path.as_posix() == 'public/ecosystem/processing-indicator.js':
+                  updated = re.sub(
+                      r"const LEGACY_LOGO_PATHS = new Set\(\[.*?\]\)\n  const OFFICIAL_LOGO_PATH = '/logopetertecnet\.png'",
+                      "const LEGACY_LOGO_PATHS = new Set([\n    '/petertecnet-brand.svg',\n    '/petertecnetlogo.png',\n    '/petertecnet-logo-circular.jpg',\n  ])\n  const OFFICIAL_LOGO_PATH = '/logopetertecnet.png'",
+                      updated,
+                      flags=re.S,
+                  )
+
+              if updated != text:
+                  path.write_text(updated, encoding='utf-8')
+                  changed.append(path.as_posix())
+
+          manifest_path = repo / 'public/manifest.json'
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          manifest_changed = False
+          png_path = repo / 'public/logopetertecnet.png'
+          png_size = None
+          if png_path.exists():
+              with png_path.open('rb') as handle:
+                  header = handle.read(24)
+              if header[:8] == b'\x89PNG\r\n\x1a\n' and header[12:16] == b'IHDR':
+                  width = int.from_bytes(header[16:20], 'big')
+                  height = int.from_bytes(header[20:24], 'big')
+                  png_size = f'{width}x{height}'
+
+          for icon in manifest.get('icons', []):
+              if str(icon.get('src', '')).split('?', 1)[0] == official:
+                  if icon.get('type') != 'image/png':
+                      icon['type'] = 'image/png'
+                      manifest_changed = True
+                  if png_size and icon.get('sizes') != png_size:
+                      icon['sizes'] = png_size
+                      manifest_changed = True
+
+          if manifest_changed:
+              manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+              if 'public/manifest.json' not in changed:
+                  changed.append('public/manifest.json')
+
+          print('Normalized files:')
+          for item in changed:
+              print(f' - {item}')
+          PY
+
+          echo "Checking for stale canonical logo references..."
+          if git grep -n '/petertecnet-brand.svg' -- ':!public/ecosystem/processing-indicator.js'; then
+            echo 'Found stale Peter Tecnet logo references outside the compatibility upgrader.' >&2
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Commit normalized logo references
+        shell: bash
+        run: |
+          rm -f .github/workflows/normalize-peter-logo.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No changes to commit.'
+            exit 0
+          fi
+          git commit -m 'fix(brand): use logopetertecnet.png globally'
+          git push origin HEAD:${{ github.ref_name }}
