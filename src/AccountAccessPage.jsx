@@ -101,7 +101,7 @@ function AccountShell({ eyebrow, title, description, children }) {
     <main className="account-access-page">
       <section className="account-access-card">
         <header className="account-access-brand">
-          <img src="/petertecnet-brand.svg" alt="Peter Tecnet" />
+          <img src="/logopetertecnet.png" alt="Peter Tecnet" />
           <div>
             <strong>Peter Tecnet</strong>
             <span>Conta do ecossistema</span>

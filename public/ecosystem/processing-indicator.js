@@ -1,11 +1,11 @@
 (() => {
   const TAG = 'pt-processing-indicator'
   const LEGACY_LOGO_PATHS = new Set([
-    '/logopetertecnet.png',
+    '/petertecnet-brand.svg',
     '/petertecnetlogo.png',
     '/petertecnet-logo-circular.jpg',
   ])
-  const OFFICIAL_LOGO_PATH = '/petertecnet-brand.svg'
+  const OFFICIAL_LOGO_PATH = '/logopetertecnet.png'
   const OFFICIAL_LOGO = `${OFFICIAL_LOGO_PATH}?v=20260921-brand-2`
   if (customElements.get(TAG)) return
 
