@@ -5,10 +5,10 @@
   "context": "cutinapp",
   "repository": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "CRITICAL",
-  "status": "RUNNING",
+  "status": "REVIEW",
   "owner_agent_id": "NP03",
   "requested_by": "OWNER",
-  "version": 1,
+  "version": 2,
   "delegation_count": 0,
   "lock_acquired_at": "2026-09-28T06:55:00-03:00",
   "lock_expires_at": "2026-09-28T08:25:00-03:00",
@@ -22,14 +22,21 @@
     "Mobile/tablet continuam sem overflow horizontal",
     "Alteração é publicada em main e validada pelos checks disponíveis"
   ],
-  "checkpoint": "OWNER enviou screenshot da página /event/noite-do-swing-2026-10-02 mostrando o hero assimétrico e botões comprimidos. Diagnóstico: event-view-experience-v3.css força uma coluna lateral de ações de 225–270px dentro do summary card; isso comprime CTA e quick actions e entra em conflito com o layout display:contents de event-view-shotgun-layout.css.",
-  "next_action": "Aplicar camada final scoped de simetria no EventView, publicar em main e acompanhar CI.",
-  "updated_at": "2026-09-28T06:55:00-03:00",
+  "checkpoint": "Hotfix concluído e publicado na main. Causa raiz: event-view-experience-v3.css colocava as ações em uma coluna lateral de apenas 225–270px, comprimindo CTA e quick actions. Criada camada final src/styles/event-view-symmetry.css e ativada em src/styles/app.css. Main HEAD 1c555df573b999f417c3eac27a51daa492a80d9e. Validate Cutinapp e Lighthouse CI concluíram com sucesso. Deploy automático para VPS falhou na primeira tentativa porque o endpoint SSH expirou; diagnóstico mostrou produção ainda em 99fe15cb9b035804f1eee7b5ab6ad336875eeff7. Retry dos jobs falhos foi iniciado e está em execução.",
+  "next_action": "NP11 revisar a mudança visual. Confirmar o retry do Deploy VPS; quando o SSH responder, validar release pública 1c555df573b999f417c3eac27a51daa492a80d9e e fazer QA visual da página /event/noite-do-swing-2026-10-02.",
+  "updated_at": "2026-09-28T07:16:00-03:00",
   "review": {
     "required": true,
     "reviewer_agent_id": "NP11",
     "status": "PENDING",
-    "notes": "Hotfix solicitado diretamente pelo OWNER durante QA independente NP03."
+    "notes": "Código e CI prontos; confirmação de produção depende da conectividade SSH da VPS."
   },
-  "evidence": []
+  "evidence": [
+    "cutinapp commit 7a0ff0c58e64f29bb5140a250ad94b76e738bf6e cria event-view-symmetry.css",
+    "cutinapp main HEAD 1c555df573b999f417c3eac27a51daa492a80d9e ativa a camada final",
+    "Validate Cutinapp run 36407795361: success (lint, tests, build e perf budget)",
+    "Lighthouse CI run 36407795266: success",
+    "Deploy VPS run 36408021574: primeira tentativa bloqueada por timeout SSH; retry iniciado",
+    "Diagnóstico de release: public HTTPS ainda em 99fe15cb9b035804f1eee7b5ab6ad336875eeff7 antes do retry"
+  ]
 }
