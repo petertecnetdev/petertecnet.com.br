@@ -52,6 +52,7 @@ function classify(anchor) {
   if (!href || href === '#') return null
   if (href.startsWith('mailto:')) return { type: 'contact', id: 'email' }
   if (href.includes('wa.me') || normalize(anchor.textContent).includes('whatsapp')) return { type: 'contact', id: 'whatsapp' }
+  if (href.includes('instagram.com')) return { type: 'contact', id: 'instagram' }
   if (href.startsWith('/orcamento')) return { type: 'conversion', id: 'quote' }
   if (href.startsWith('/servicos/')) return { type: 'service', id: decodeURIComponent(href.split('/')[2]?.split('?')[0] || '') }
   if (href.startsWith('/plataformas/')) return { type: 'application', id: decodeURIComponent(href.split('/')[2]?.split('?')[0] || '') }
