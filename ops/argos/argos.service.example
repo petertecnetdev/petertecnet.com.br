@@ -1,0 +1,21 @@
+[Unit]
+Description=ARGOS Peter Tecnet infrastructure observer
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/petertecnet/.local/share/argos/ops/argos
+EnvironmentFile=/home/petertecnet/.config/argos/argos.env
+ExecStart=/opt/node22/bin/node src/server.mjs
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+RestrictSUIDSGID=true
+UMask=0077
+MemoryMax=256M
+TasksMax=64
+
+[Install]
+WantedBy=default.target
