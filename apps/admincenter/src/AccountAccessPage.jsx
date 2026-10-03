@@ -222,7 +222,7 @@ function ActivationPage() {
         description="Seu e-mail foi validado e sua nova senha já está valendo."
       >
         <div className="account-access-success">
-          <div className="account-access-success-icon">✓</div>
+          <div className="account-access-success-icon" aria-hidden="true">✓</div>
           <p>
             O acesso ao <strong>{activatedApplication.name}</strong> está pronto.
           </p>
