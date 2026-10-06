@@ -39,7 +39,7 @@ const APP_SLUG = 'peter-tecnet'
 const CRM_APP_SLUG = 'payflow'
 const CNPJ = '42.595.409/0001-48'
 const PETER_BRAND_LOGO_PATH = '/logopetertecnet.png'
-const PETER_BRAND_LOGO = `${PETER_BRAND_LOGO_PATH}?v=20260921-brand-2`
+const PETER_BRAND_LOGO = `${PETER_BRAND_LOGO_PATH}?v=20261006-official-brand-r1`
 
 const defaultContact = {
   email: 'contato@petertecnet.com.br',
