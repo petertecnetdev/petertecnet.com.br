@@ -6,7 +6,7 @@
     '/petertecnet-logo-circular.jpg',
   ])
   const OFFICIAL_LOGO_PATH = '/logopetertecnet.png'
-  const OFFICIAL_LOGO = `${OFFICIAL_LOGO_PATH}?v=20260921-brand-2`
+  const OFFICIAL_LOGO = `${OFFICIAL_LOGO_PATH}?v=20261005-official-brand`
   if (customElements.get(TAG)) return
 
   const DEFAULT_MESSAGES = [
