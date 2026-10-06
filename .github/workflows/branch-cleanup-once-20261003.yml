@@ -10,10 +10,10 @@ permissions:
   contents: write
 
 jobs:
-  delete-verified-merged-branches:
+  delete-verified-merged-historical:
     runs-on: ubuntu-latest
     steps:
-      - name: Delete verified merged branches
+      - name: Delete verified merged historical branches
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -21,68 +21,45 @@ jobs:
         run: |
           set -u
           declare -A expected=(
-            ["hotfix/official-brand-logos-20261006"]="f417d665a94d4deb0afc74d44efeec140b1027a2"
-            ["fix/official-brand-assets-20261005"]="27d202db5ce37dcd4b86a7ad14a3388d2bccd42f"
-            ["hotfix/20261005-petertecnet-navbar-logo"]="1035b15e373805bd6e3a2e5be4f4ed646e878ba7"
-            ["fix/petertecnet-logo-png-global"]="ff18c6e8f5666ff3eba4fccc29563f95dc2454e7"
-            ["fix/remove-ecosystem-navbar-launcher"]="ec28466d1af18f3877f1cb1f1c2d565c5d4d0038"
-            ["agent/pa07/admincenter-support-stale-response"]="0a1abe91df01385a3796ac99deac576e56019f2c"
-            ["agent/np02/deploy-health-marker-fallback"]="aef8cdae80f387946991bd024b674492511af559"
-            ["agent/np02/deploy-health-cache-bust"]="0336b0337ed085f14ac4db3e1cfe0ffa5b69070b"
-            ["agent/pa07/admin-api-signal-composition"]="d14f083819f50d09060237453ce45bfb1b92b405"
-            ["agent/admincenter/css-debt-globe-duplication"]="d34c3bf99a446f3a7a03ffa11ce9e6c84fd76bc1"
-            ["agent/np05/admin-search-abort-dedupe"]="687c401f425c1abf21baa1841450c5d1dedf87fc"
-            ["agent/userpetertec/admincenter-runtime-performance"]="feccb58b9993746e6301284d55b2fa15fcb498f9"
-            ["agent/np04/admincenter-ticket-mobile-data"]="26a292fc279cccc82b3461a46d5023a471cba623"
-            ["agent/np09/admincenter-dialog-icon-a11y"]="7215b35a7dccc7c9cc6aebdb61d27c8dce367210"
-            ["automation/admin-structure-global-style-entry"]="3821b8a2df2a6b57cee668d7c54de725d027e609"
-            ["automation/admin-impersonation-stale-guard-2"]="5ce74c1230079dc7a87791e7634149130fc24a57"
-            ["automation/admin-structure-breadcrumb-deeplinks"]="4955307d30badfd24db51ca7149a5c77f4cb739a"
-            ["automation/admin-ux-datatable-a11y"]="6f2e88ff4302828b4d0577ee0c2c550d99adaefb"
-            ["agent/np10/admincenter-cross-page-state"]="619b64eca15faa82e5860b5bfc25e100a96afedd"
-            ["fix/admin-sidebar-visual-20260919"]="cddbc4478aca105ee78a49e05dd9d3298136551e"
-            ["feat/landing-performance-seo-60"]="9b6b4c7a4ad8f0596b97d4bf4993fea55b3e8ae8"
-            ["revenue/commercial-seo-content-20260918"]="b49d558db84a6bb679f42caa1a4347c9e662c085"
-            ["feat/admin-payout-reconciliation-20260918"]="e08274c50a42d5ece0a82976d8d05c7593361fd0"
-            ["automation/frontend-env-probe-r11"]="ba22ea7c9fdf80b056da47857df1d666c481e5c2"
-            ["fix/locaio-central-frontend-deploy"]="a97e44fdef33bd4a9b767024227948cf62c6d989"
-            ["ops/redeploy-locaio-impersonation"]="482e5bc702232d059ef08e5d4cd07f00e045d4c4"
-            ["feature/ecosystem-impersonation-v2"]="12458d2b71b0f20281959231ee7ebd67273063b1"
-            ["seo/finish-ecosystem-seo"]="add3b753a76ba9afb7018f38df738d2803d88ea5"
-            ["seo/ecosystem-entities"]="37130f9f3477a0f6d97d380fcc456b14ce2a1de4"
-            ["feat/admin-password-reset"]="e1c391e72151304999e5fad367119a186fae3486"
-            ["perf/ecosystem-hardening-20260908"]="4d8d8ed008deea7e4d2eef84a5cef74d159bf2d3"
-            ["feat/admin-applications-insights"]="a98d24f2fd84367582ec289fe89c190154e95944"
-            ["fix/admin-user-communication-shell-20260907"]="875f8312a1912f9c5352b8511cfac37a5b64293e"
-            ["feat/admin-user-360-20260907"]="5c35d7673cda6eb9a4622e60f779357297e614fd"
-            ["fix/admin-user-communication-visible-20260907"]="bc5e8c3c8256e441dd24e3fcd608bc96fcda6f24"
-            ["feature/main-admincenter-monorepo-20260907"]="40226ae0bc327e87d239216377880f9e825493d4"
-            ["fix/admin-navigation-scroll-stability"]="a24217e012af83e653e2f3025b090a6f94c2d7cc"
-            ["fix/admin-user-tabs-email-reset-production"]="d39e493b98b4bae43bcf1275ed7724a1e72cbcfc"
-            ["feat/admin-reset-email-verification-deferrals"]="6fe2999cedeb735d450fbc14206e35ad2914adb3"
-            ["feature/admin-user-details-communications-20260906"]="388a2c36eda890aeb7758e76dd5547ad8c563d6c"
-            ["feat/admincenter-cutinapp-resource-center"]="ec07676600476a8eb665107d9148c06723a801e5"
-            ["feat/admincenter-more-app-resources"]="006754b7690516cdb7b1cabb0c3a3f1126d7fccd"
-            ["feat/profitability-preserve-lead-attribution"]="d991024ccc86e22954259fc9b07805fc90c78702"
-            ["automation/activate-marketing-hub-20260906"]="c8a47f256a33bfc6beef6ed524f480d27f7405b0"
-            ["automation/quote-draft-profitability-20260906"]="3022c656a4aa5dda995f1654cfb5a84e0fdb65a7"
-            ["feat/admin-overview-intelligence-20260905"]="65fdd70485c852ce7b16a6865de158ed11052524"
-            ["feat/admin-event-duplicate-button"]="9dd5c352219f24081c9cce5f981572284aab6a01"
-            ["fix/frontend-atomic-deploy-20260905"]="b6d9c8ee427cae4a717b9dcaabddd079c727e0b4"
-            ["feat/admin-support-center-20260905"]="bf6ed9bf8aa4db0a24603da275dd84599f6a2f5d"
-            ["feat/public-support-center-20260905"]="1158837e38ae09a77c329ffbf24e148701caf83b"
+            ["feat/admin-productivity-suite-2026-09-03-final"]="bb5536a1db62453c7ec484630349f3a0d835c934"
+            ["feat/admin-assisted-establishment-item-ux"]="4a046250fa170a7c326ce5d9605fcfd1a4250e28"
+            ["improve/admin-2030-ui-2026-09-03"]="84b2dc34011aff499741c26d3df67b8e5170efc1"
+            ["improve/admin-desktop-2026-09-03-v2"]="a2d78ca597759f576bbdee218817df6ad91f04ea"
+            ["improve/admin-mobile-hamburger-2026-09-03"]="344654d2b9238830fcad29f9bbdf4e073f353286"
+            ["improve/admin-center-mobile-2026-09-03"]="fa28d478bb2608c8d47436f2bbd700f05180854f"
+            ["feat/landing-conversion-engine-2026"]="83850765728dbe721dc4c62ae7fb22c6aebb5bc3"
+            ["feature/admin-command-center-v2"]="e40403e90c1952912ad526f8156c18c722d244d2"
+            ["feature/laora-admin-center"]="6a47ccb2729e67e188267f913528192cb7e18c31"
+            ["feature/advanced-financial-admin"]="da15e032b4b963daf11eebf347e06559d045f309"
+            ["feature/peter-account-sso"]="cb624743a36d21376e92fe58b1ac76d2e54f0575"
+            ["feature/positioning-solutions-nexus-services"]="e2e3a11f94c8476ef8fa2a2132da231fe1e951d2"
+            ["feature/admin-activity-chart-20260831"]="ee6913b2b12736fe2bf732238419967d856b2dbc"
           )
           failures=0
+          deleted=0
+          absent=0
+          changed=0
           for branch in "${!expected[@]}"; do
-            current="$(gh api "repos/$REPO/git/ref/heads/$branch" --jq '.object.sha' 2>/dev/null || true)"
-            if [ -z "$current" ]; then echo "Already absent: $branch"; continue; fi
+            if current="$(gh api "repos/$REPO/git/ref/heads/$branch" --jq '.object.sha' 2>/dev/null)"; then
+              :
+            else
+              echo "Already absent: $branch"
+              absent=$((absent+1))
+              continue
+            fi
             if [ "$current" != "${expected[$branch]}" ]; then
-              echo "HEAD CHANGED; refusing deletion: $branch"; failures=$((failures+1)); continue
+              echo "HEAD CHANGED; refusing deletion: $branch"
+              changed=$((changed+1))
+              failures=$((failures+1))
+              continue
             fi
             if gh api --method DELETE "repos/$REPO/git/refs/heads/$branch" >/dev/null; then
               echo "Deleted $branch"
+              deleted=$((deleted+1))
             else
-              echo "FAILED to delete $branch"; failures=$((failures+1))
+              echo "FAILED to delete $branch"
+              failures=$((failures+1))
             fi
           done
+          echo "SUMMARY deleted=$deleted absent=$absent changed=$changed failures=$failures"
           if [ "$failures" -ne 0 ]; then exit 1; fi
