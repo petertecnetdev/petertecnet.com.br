@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'petertecnet-landing-pwa-v7-official-brand';
+const CACHE_VERSION = 'petertecnet-landing-pwa-v8-official-brand-r2';
 const CACHE_PREFIX = 'petertecnet-landing-pwa-';
 const ADMIN_CACHE_PREFIX = 'petertecnet-admin-pwa-';
 const STATIC_ASSETS = [
