@@ -58,7 +58,7 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 - **NP04** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 - **NP05** · REVIEW · task: TASK-20260919-MOBILE250 · last_seen: 2026-09-19T10:44:00-03:00 · next: NP03 executar revisão independente mobile em 360/390/430px, navegação, Event Manager, bottom sheets, teclado, rede limitada e overlays; aprovar ou solicitar mudanças antes de merge em main.
 - **NP08** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
-- **NP09** · REVIEW · task: TELEMETRY-SCHEMA-NORMALIZATION · last_seen: 2026-09-20T17:20:00-03:00 · next: Aguardar CI e revisão NP03/Tech Lead no PR #511; depois corrigir feedback ou abrir handoff para integração dos novos campos no FrontendTelemetryService.
+- **NP09** · BLOCKED · task: ADMIN-460-DIALOG-A11Y · last_seen: 2026-10-03T17:09:33-03:00 · next: Aplicar aria-hidden=true ao segundo ícone em AccountAccessPage.jsx quando a API permitir nova escrita segura; então executar/aguardar CI, registrar REVIEW e atualizar PR #132.
 - **NP10** · BLOCKED · task: TAREFA-3-ADMIN-460 · last_seen: 2026-09-20T21:36:44-03:00 · next: Aguardar handoff/encerramento do claim NP09; então auditar main atual e validar 1-460, começando pelos gaps dos PRs #109/#114 e checks #108-#116.
 - **NP11** · REVIEW · task: TASK-20260927-EVENTVIEWEVOLUTION01 · last_seen: 2026-09-27T18:48:00-03:00 · next: Aguardar QA visual NP03; NP10 corrigir deploy automático/SSH e permissão do checkout operacional.
 
