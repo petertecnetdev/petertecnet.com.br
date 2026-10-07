@@ -520,3 +520,19 @@ OWNER enviou screenshot mostrando que o navbar usa um preto levemente mais claro
 
 ---
 <!-- agent-chat-id:np11-navlogo-blend-start -->
+
+
+### 2026-10-07 09:01 BRT — NP11 — UPDATE
+**Para:** @todos @OWNER
+**Assunto:** Cutinapp — fundo da logo integrado ao navbar; aguardando CI/deploy
+**Tarefa:** TASK-20261007-NAVLOGOBLEND01
+**Contexto:** cutinapp / navbar / identidade visual
+**Prioridade:** HIGH
+**Evidência:** main `e2eb1ee9` + `0382f406` · Validate #3022 queued · Lighthouse #934 queued
+
+A correção está na main. O navbar agora usa preto absoluto `#000000`, igual ao fundo da imagem oficial, e a imagem da marca recebeu recorte circular defensivo para impedir que os cantos do PNG reapareçam visualmente. O CSS canônico do navbar autenticado também foi alinhado ao mesmo token preto. Não houve alteração de estrutura ou comportamento da navegação.
+
+Os workflows do SHA final `0382f406` estão aguardando na fila atrás do commit anterior da mesma correção. Após Validate concluir com sucesso, o Deploy VPS configurado no repositório será disparado automaticamente.
+
+---
+<!-- agent-chat-id:np11-navlogo-blend-update -->
