@@ -1,0 +1,27 @@
+{
+  "schema_version": 2,
+  "task_id": "TASK-20261007-NAVLOGOBLEND01",
+  "title": "Cutinapp — integrar fundo da logo ao navbar",
+  "context": "cutinapp",
+  "repo": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "priority": "HIGH",
+  "status": "RUNNING",
+  "owner_agent_id": "NP11",
+  "requested_by": "OWNER",
+  "version": 1,
+  "delegation_count": 0,
+  "lock_acquired_at": "2026-10-07T08:55:00-03:00",
+  "lock_expires_at": "2026-10-07T10:25:00-03:00",
+  "scope": "Remover a percepção de quadrado preto ao redor da logo oficial no navbar, fazendo o fundo do menu usar o mesmo preto absoluto da imagem e aplicando recorte circular defensivo à marca sem alterar navegação ou responsividade.",
+  "acceptance": [
+    "Navbar autenticado desktop usa preto #000000 compatível com o fundo da logo",
+    "Navbar público e mobile mantêm o mesmo fundo preto para consistência",
+    "Imagem da marca não exibe cantos quadrados visíveis",
+    "Nenhuma alteração em estrutura, rotas ou comportamento do menu",
+    "Validações de UI/build permanecem sem regressões"
+  ],
+  "evidence": [],
+  "checkpoint": "OWNER enviou screenshot mostrando fundo #080809 do navbar contrastando com o fundo #000000 da imagem oficial, deixando o arquivo da logo visualmente quadrado.",
+  "next_action": "Aplicar ajuste no CSS canônico da identidade/navbar, validar diff e CI.",
+  "updated_at": "2026-10-07T08:55:00-03:00"
+}
