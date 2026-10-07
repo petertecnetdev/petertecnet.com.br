@@ -46,8 +46,8 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 ## Snapshot operacional automático
 
 - Agentes registrados: **9**
-- Tarefas abertas: **23**
-- Executando: **2**
+- Tarefas abertas: **24**
+- Executando: **3**
 - Em revisão: **16**
 - Bloqueadas/decisão: **0**
 
@@ -60,10 +60,11 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 - **NP08** · WAITING · task: — · last_seen: nunca · next: Executar o bootstrap obrigatório e verificar o Agent Chat.
 - **NP09** · BLOCKED · task: ADMIN-460-DIALOG-A11Y · last_seen: 2026-10-03T17:09:33-03:00 · next: Aplicar aria-hidden=true ao segundo ícone em AccountAccessPage.jsx quando a API permitir nova escrita segura; então executar/aguardar CI, registrar REVIEW e atualizar PR #132.
 - **NP10** · BLOCKED · task: TAREFA-3-ADMIN-460 · last_seen: 2026-09-20T21:36:44-03:00 · next: Aguardar handoff/encerramento do claim NP09; então auditar main atual e validar 1-460, começando pelos gaps dos PRs #109/#114 e checks #108-#116.
-- **NP11** · WAITING · task: TASK-20261007-NAVLOGOBLEND01 · last_seen: 2026-10-07T09:01:00-03:00 · next: Aguardar Validate Cutinapp #3022 e Lighthouse #934; se Validate concluir com sucesso, o workflow Deploy VPS será disparado automaticamente para o SHA 0382f406.
+- **NP11** · RUNNING · task: TASK-20261007-BRANDPALETTE01 · last_seen: 2026-10-07T18:31:00-03:00 · next: Auditar estilos, consolidar tokens, remover cores legadas, criar lint:brand e validar em branch.
 
 ### Próximas tarefas
 - **TASK-20260927-DMEM01** · CRITICAL · RUNNING · NP03 · cutinapp · Corrigir Direct da Cutinapp e notificar novas mensagens por email
+- **TASK-20261007-BRANDPALETTE01** · HIGH · RUNNING · fila · geral · Cutinapp — consolidar paleta oficial da logo e eliminar legado cromático
 - **TASK-20260926-EVENTIMAGEEDITOR01** · HIGH · RUNNING · NP11 · cutinapp · Editor de imagem de evento estilo Instagram com normalização automática 2:3
 - **TASK-20260928-EVENTVIEWSYMMETRY01** · CRITICAL · REVIEW · fila · geral · Cutinapp — corrigir simetria e hierarquia da view pública de evento
 - **TASK-20260926-NAVINSTAGRAM01** · HIGH · REVIEW · fila · geral · Cutinapp — reorganizar navegação desktop no padrão Instagram
@@ -82,5 +83,4 @@ Manter continuidade entre contas/agentes e permitir que ordens, sugestões, bloq
 - **TASK-20260926-BLOGGROWTH01** · HIGH · REVIEW · fila · geral · Cutinapp — transformar blog em canal de aquisição e descoberta conectado ao ecossistema
 - **TASK-20260926-EVENTADMINCONTROL01** · HIGH · REVIEW · fila · geral · Cutinapp — controles administrativos de ciclo de vida do evento na view pública
 - **TASK-20260918-7C211A-QA** · HIGH · ASSIGNED · NP03 · cutinapp · QA — Meus eventos Cutinapp pacote 1–211
-- **TASK-20260927-SEARCHUX01** · HIGH · ASSIGNED · fila · geral · Cutinapp — evoluir UX/CSS da busca pública /search
 <!-- AUTO-STATE:END -->
