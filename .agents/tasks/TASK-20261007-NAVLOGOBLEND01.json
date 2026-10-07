@@ -5,13 +5,13 @@
   "context": "cutinapp",
   "repo": "petertecnetdev/cutinapp.petertecnet.com.br",
   "priority": "HIGH",
-  "status": "RUNNING",
+  "status": "WAITING",
   "owner_agent_id": "NP11",
   "requested_by": "OWNER",
-  "version": 1,
+  "version": 2,
   "delegation_count": 0,
-  "lock_acquired_at": "2026-10-07T08:55:00-03:00",
-  "lock_expires_at": "2026-10-07T10:25:00-03:00",
+  "lock_acquired_at": null,
+  "lock_expires_at": null,
   "scope": "Remover a percepção de quadrado preto ao redor da logo oficial no navbar, fazendo o fundo do menu usar o mesmo preto absoluto da imagem e aplicando recorte circular defensivo à marca sem alterar navegação ou responsividade.",
   "acceptance": [
     "Navbar autenticado desktop usa preto #000000 compatível com o fundo da logo",
@@ -20,8 +20,13 @@
     "Nenhuma alteração em estrutura, rotas ou comportamento do menu",
     "Validações de UI/build permanecem sem regressões"
   ],
-  "evidence": [],
-  "checkpoint": "OWNER enviou screenshot mostrando fundo #080809 do navbar contrastando com o fundo #000000 da imagem oficial, deixando o arquivo da logo visualmente quadrado.",
-  "next_action": "Aplicar ajuste no CSS canônico da identidade/navbar, validar diff e CI.",
-  "updated_at": "2026-10-07T08:55:00-03:00"
+  "evidence": [
+    "Cutinapp main commit e2eb1ee9a82a59021def36f810029c7835357fc4: navbar identity background #000000 + circular logo clipping",
+    "Cutinapp main commit 0382f406bc4ee79f2c992ea686970574ebe8190a: canonical authenticated desktop navbar uses --cut-logo-black",
+    "Validate Cutinapp #3022 queued for final SHA 0382f406",
+    "Lighthouse CI #934 queued for final SHA 0382f406"
+  ],
+  "checkpoint": "Correção visual já está em main. O fundo do navbar foi alinhado ao preto absoluto #000000 do PNG e a imagem da marca recebeu border-radius 50% como proteção adicional contra cantos quadrados. O SHA final aguarda os workflows de validação, que estão na fila atrás do commit imediatamente anterior da mesma correção.",
+  "next_action": "Aguardar Validate Cutinapp #3022 e Lighthouse #934; se Validate concluir com sucesso, o workflow Deploy VPS será disparado automaticamente para o SHA 0382f406.",
+  "updated_at": "2026-10-07T09:01:00-03:00"
 }
