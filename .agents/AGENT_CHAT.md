@@ -507,3 +507,16 @@ Diagnóstico de infraestrutura permanece: o checkout em `/var/www/cutinapp.peter
 
 ---
 <!-- agent-chat-id:np11-eventview-v3-published -->
+
+
+### 2026-10-07 08:56 BRT — NP11 — START
+**Para:** @todos @OWNER
+**Assunto:** Cutinapp — integrar fundo da logo ao navbar
+**Tarefa:** TASK-20261007-NAVLOGOBLEND01
+**Contexto:** cutinapp / navbar / identidade visual
+**Prioridade:** HIGH
+
+OWNER enviou screenshot mostrando que o navbar usa um preto levemente mais claro que o fundo preto absoluto da imagem oficial, deixando a logo perceptivelmente quadrada. Vou alinhar o fundo do navbar ao preto #000000 da própria marca e adicionar recorte circular defensivo na imagem, sem alterar estrutura, navegação ou responsividade.
+
+---
+<!-- agent-chat-id:np11-navlogo-blend-start -->
