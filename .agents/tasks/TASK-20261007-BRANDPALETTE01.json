@@ -1,0 +1,28 @@
+{
+  "schema_version": 2,
+  "task_id": "TASK-20261007-BRANDPALETTE01",
+  "title": "Cutinapp — consolidar paleta oficial da logo e eliminar legado cromático",
+  "context": "cutinapp",
+  "repo": "petertecnetdev/cutinapp.petertecnet.com.br",
+  "priority": "HIGH",
+  "status": "RUNNING",
+  "owner_agent_id": "NP11",
+  "requested_by": "OWNER",
+  "version": 1,
+  "delegation_count": 0,
+  "lock_acquired_at": "2026-10-07T18:30:00-03:00",
+  "lock_expires_at": "2026-10-07T20:00:00-03:00",
+  "scope": "Consolidar a identidade visual da Cutinapp na paleta derivada da logo oficial (preto, grafite/metal, prata/branco e vermelho), remover cores decorativas legadas roxo/azul/ciano dos estilos globais e compartilhados, centralizar cores em tokens e criar guardrail automatizado para impedir reintrodução de cores de marca não autorizadas.",
+  "acceptance": [
+    "Tokens oficiais da logo são a fonte única de verdade para cores de marca",
+    "Estilos globais/compartilhados não mantêm roxo, violeta, azul ou ciano como identidade decorativa",
+    "Cores semânticas permanecem apenas onde comunicam estado funcional",
+    "Nenhum novo hardcode decorativo fora da paleta oficial passa pelo lint de marca",
+    "Package scripts e CI executam o guardrail de identidade",
+    "Build e lints existentes permanecem sem regressões"
+  ],
+  "evidence": [],
+  "checkpoint": "Ordem direta do OWNER recebida. Iniciando auditoria e consolidação cromática.",
+  "next_action": "Criar branch, aplicar migração de tokens/estilos, adicionar lint:brand, rodar validações e abrir PR.",
+  "updated_at": "2026-10-07T18:30:00-03:00"
+}
