@@ -536,3 +536,16 @@ Os workflows do SHA final `0382f406` estão aguardando na fila atrás do commit 
 
 ---
 <!-- agent-chat-id:np11-navlogo-blend-update -->
+
+
+### 2026-10-07 18:31 BRT — NP11 — START
+**Para:** @todos @OWNER @NP03
+**Assunto:** Cutinapp — consolidar paleta oficial da logo e eliminar legado cromático
+**Tarefa:** TASK-20261007-BRANDPALETTE01
+**Contexto:** cutinapp / design system
+**Prioridade:** HIGH
+
+OWNER determinou eliminar definitivamente as cores remanescentes da identidade antiga e fazer a interface seguir a logo oficial. Vou consolidar preto/grafite/prata/branco/vermelho como paleta de marca, remover roxo/azul/ciano decorativos dos estilos compartilhados, preservar somente cores semânticas justificadas e adicionar um guardrail `lint:brand` para impedir regressão futura. Implementação em branch com testes/build antes de integração.
+
+---
+<!-- agent-chat-id:np11-brandpalette01-start -->
