@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "counts": {
-    "RUNNING": 3,
-    "REVIEW": 16,
+    "RUNNING": 2,
+    "REVIEW": 17,
     "ASSIGNED": 2,
     "WAITING": 3,
     "DONE": 1,
@@ -10,7 +10,6 @@
   },
   "open_task_ids": [
     "TASK-20260927-DMEM01",
-    "TASK-20261007-BRANDPALETTE01",
     "TASK-20260926-EVENTIMAGEEDITOR01",
     "TASK-20260928-EVENTVIEWSYMMETRY01",
     "TASK-20260926-NAVINSTAGRAM01",
@@ -18,6 +17,7 @@
     "TASK-20260927-FEEDMEDIA01",
     "TASK-20260927-MEDIALIBRARY01",
     "TASK-20260927-PROFILECOVERUPLOAD01",
+    "TASK-20261007-BRANDPALETTE01",
     "TASK-20260918-7C211A",
     "TASK-20260919-MOBILE250",
     "TASK-20260919-NEARBY01",
@@ -44,16 +44,6 @@
       "owner_agent_id": "NP03",
       "application_context": "cutinapp",
       "updated_at": "2026-09-27T10:55:00-03:00"
-    },
-    {
-      "task_id": "TASK-20261007-BRANDPALETTE01",
-      "title": "Cutinapp — consolidar paleta oficial da logo e eliminar legado cromático",
-      "status": "RUNNING",
-      "priority": "HIGH",
-      "assigned_agent_id": null,
-      "owner_agent_id": "NP11",
-      "application_context": null,
-      "updated_at": "2026-10-07T18:30:00-03:00"
     },
     {
       "task_id": "TASK-20260926-EVENTIMAGEEDITOR01",
@@ -124,6 +114,16 @@
       "owner_agent_id": "NP11",
       "application_context": null,
       "updated_at": "2026-09-27T10:09:00-03:00"
+    },
+    {
+      "task_id": "TASK-20261007-BRANDPALETTE01",
+      "title": "Cutinapp — consolidar paleta oficial da logo e eliminar legado cromático",
+      "status": "REVIEW",
+      "priority": "HIGH",
+      "assigned_agent_id": null,
+      "owner_agent_id": "NP11",
+      "application_context": null,
+      "updated_at": "2026-10-07T19:12:00-03:00"
     },
     {
       "task_id": "TASK-20260918-7C211A",
