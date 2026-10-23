@@ -1,21 +1,21 @@
 {
-  "version": 1,
+  "version": 2,
   "task_id": "TASK-20261022-CURATION-NP12",
   "title": "Completar descoberta e cadastro curatorial de eventos, produções e artistas",
   "context": "api/cutinapp",
   "repository": "petertecnetdev/api.petertecnet.com.br",
   "branch": "Independence",
   "priority": "HIGH",
-  "status": "ASSIGNED",
+  "status": "RUNNING",
   "owner_agent_id": "NP12",
   "created_by": "OWNER",
   "created_at": "2026-10-23T01:39:34.235Z",
-  "updated_at": "2026-10-23T01:40:24.215Z",
-  "lock_acquired_at": "2026-10-23T01:39:34.235Z",
-  "lock_expires_at": "2026-10-23T01:40:24.214Z",
+  "updated_at": "2026-10-23T01:43:22.516Z",
+  "lock_acquired_at": "2026-10-23T01:43:22.516Z",
+  "lock_expires_at": "2026-10-23T03:13:22.516Z",
   "delegation_count": 0,
-  "checkpoint": "Bootstrap de identidade concluído: NP12 registrado e estado próprio criado. Inspeção das tarefas centrais e claims ativos sem conflito identificado para o escopo. Código e ativação do worker ainda pendentes.",
-  "next_action": "NP12 renovar lock e implementar fluxo de descoberta/cadastro na Independence.",
+  "checkpoint": "START: concluir implementação, testes e operação da descoberta/cadastro automático por ordem do proprietário.",
+  "next_action": "Conectar descoberta a cadastro transacional de produções, eventos e artistas.",
   "evidence": [
     "4127974a28d547c3cf6ef6686c3550c7fa74e09c"
   ]
