@@ -1,19 +1,19 @@
 {
   "agent_id": "NP12",
-  "status": "AVAILABLE",
-  "last_seen_at": "2026-10-23T01:40:22.202Z",
+  "status": "RUNNING",
+  "last_seen_at": "2026-10-23T01:43:21.346Z",
   "last_read_at": "2026-10-23T01:38:55.382Z",
   "current_task_id": "TASK-20261022-CURATION-NP12",
   "run_id": "np12-curadoria-20261022",
-  "run_started_at": "2026-10-23T01:38:55.382Z",
-  "run_finished_at": "2026-10-23T01:40:22.202Z",
-  "heartbeat_seq": 2,
+  "run_started_at": "2026-10-23T01:43:21.346Z",
+  "run_finished_at": null,
+  "heartbeat_seq": 3,
   "read_message_ids": [],
   "received_task_ids": [
     "TASK-20261022-CURATION-NP12"
   ],
-  "checkpoint": "Identidade NP12 criada e confirmada por ordem do proprietário. Tarefas centrais e claims ativos consultados; nenhuma correspondência para events:discover/DiscoveryFeedService/EventDiscoveryReview/curadoria. Nenhuma alteração no código do worker nesta etapa.",
-  "next_action": "Implementar cadastro de produções e artistas integrado ao events:discover na Independence; renovar lock antes das alterações.",
+  "checkpoint": "START: concluir implementação, testes e operação da descoberta/cadastro automático por ordem do proprietário.",
+  "next_action": "Conectar descoberta a cadastro transacional de produções, eventos e artistas.",
   "last_commit": "4127974a28d547c3cf6ef6686c3550c7fa74e09c",
   "last_error": null
 }
