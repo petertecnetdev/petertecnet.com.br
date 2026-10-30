@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import MarketingExperience from './MarketingExperience.jsx'
 import './MarketingExperience.css'
 import './PublicDiscoveryExperience.css'
+import MarkdownInline from './MarkdownInline.jsx'
 import { blogArticles, findBlogArticle, formatArticleDate, applicationSeo } from './marketingContent.js'
 import { formatCurrency, getItemImage, resolveAssetUrl } from './landingApi.js'
 import { updatePageSeo } from './seo.js'
@@ -61,10 +62,10 @@ function TrackLink({ href, children, event = 'cta_click', entityType, entityId, 
 
 function StaticArticleBody({ article }) {
   return <>
-    <p className="mkt-article-intro">{article.intro}</p>
+    <p className="mkt-article-intro"><MarkdownInline text={article.intro} /></p>
     {article.sections.map(section => <section id={headingId(section.heading)} key={section.heading}>
-      <h2>{section.heading}</h2>
-      {(section.paragraphs || []).map(paragraph => <p key={paragraph}>{paragraph}</p>)}
+      <h2><MarkdownInline text={section.heading} /></h2>
+      {(section.paragraphs || []).map(paragraph => <p key={paragraph}><MarkdownInline text={paragraph} /></p>)}
     </section>)}
   </>
 }
@@ -89,10 +90,10 @@ function ApiArticleBody({ content }) {
   }, [content])
 
   return <>{blocks.map((block, index) => block.type === 'h2'
-    ? <h2 id={headingId(block.text)} key={`${block.type}-${index}`}>{block.text}</h2>
+    ? <h2 id={headingId(block.text)} key={`${block.type}-${index}`}><MarkdownInline text={block.text} /></h2>
     : block.type === 'ul'
-      ? <ul key={`${block.type}-${index}`}>{block.items.map(item => <li key={item}>{item}</li>)}</ul>
-      : <p key={`${block.type}-${index}`}>{block.text}</p>)}</>
+      ? <ul key={`${block.type}-${index}`}>{block.items.map(item => <li key={item}><MarkdownInline text={item} /></li>)}</ul>
+      : <p key={`${block.type}-${index}`}><MarkdownInline text={block.text} /></p>)}</>
 }
 
 function normalizeStatic(article) {

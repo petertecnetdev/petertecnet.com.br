@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './MarketingExperience.css'
 import './PublicDiscoveryExperience.css'
+import MarkdownInline from './MarkdownInline.jsx'
 import { applicationSeo, findBlogArticle } from './marketingContent.js'
 import { fetchContentEntry, trackDiscoveryEvent } from './discoveryApi.js'
 import { updatePageSeo } from './seo.js'
@@ -130,15 +131,15 @@ function State({ children }) {
 function StaticBody({ article }) {
   const sections = safeArray(article?.sections)
   return <>
-    {safeText(article?.intro) && <p className="mkt-article-intro">{article.intro}</p>}
+    {safeText(article?.intro) && <p className="mkt-article-intro"><MarkdownInline text={article.intro} /></p>}
     {sections.map((section, index) => {
       const heading = safeText(section?.heading)
       if (!heading) return null
       return <section id={headingId(heading)} key={`${heading}-${index}`}>
-        <h2>{heading}</h2>
+        <h2><MarkdownInline text={heading} /></h2>
         {safeArray(section?.paragraphs).map((paragraph, paragraphIndex) => {
           const text = safeText(paragraph)
-          return text ? <p key={`${heading}-${paragraphIndex}`}>{text}</p> : null
+          return text ? <p key={`${heading}-${paragraphIndex}`}><MarkdownInline text={text} /></p> : null
         })}
       </section>
     })}
@@ -194,9 +195,9 @@ function ApiBody({ content, fallbackArticle }) {
   if (!blocks.length) return <p>Este conteúdo está publicado, mas ainda não possui corpo editorial disponível.</p>
 
   return <>{blocks.map((block, index) => {
-    if (block.type === 'h2') return <h2 id={headingId(block.text)} key={`heading-${index}`}>{block.text}</h2>
-    if (block.type === 'ul') return <ul key={`list-${index}`}>{block.items.map((item, itemIndex) => <li key={`${item}-${itemIndex}`}>{item}</li>)}</ul>
-    return <p key={`paragraph-${index}`}>{block.text}</p>
+    if (block.type === 'h2') return <h2 id={headingId(block.text)} key={`heading-${index}`}><MarkdownInline text={block.text} /></h2>
+    if (block.type === 'ul') return <ul key={`list-${index}`}>{block.items.map((item, itemIndex) => <li key={`${item}-${itemIndex}`}><MarkdownInline text={item} /></li>)}</ul>
+    return <p key={`paragraph-${index}`}><MarkdownInline text={block.text} /></p>
   })}</>
 }
 
