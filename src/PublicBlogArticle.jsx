@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './MarketingExperience.css'
 import './PublicDiscoveryExperience.css'
+import PublicSiteHeader from './PublicSiteHeader.jsx'
 import MarkdownInline from './MarkdownInline.jsx'
 import { applicationSeo, findBlogArticle } from './marketingContent.js'
 import { fetchContentEntry, trackDiscoveryEvent } from './discoveryApi.js'
@@ -100,19 +101,7 @@ function normalizeRemote(payload, fallback) {
 
 function Shell({ children }) {
   return <div className="mkt-shell discovery-shell">
-    <header className="mkt-header">
-      <a className="mkt-brand" href="/" aria-label="Peter Tecnet — início">
-        <span className="mkt-brand-mark"><img src="/logopetertecnet.png" alt="" /></span>
-        <span><strong>Peter Tecnet</strong><small>Soluções em tecnologia</small></span>
-      </a>
-      <nav className="mkt-nav discovery-nav" aria-label="Navegação principal">
-        <a href="/">Início</a>
-        <a href="/#plataformas">Plataformas</a>
-        <a href="/#catalogo">Catálogo</a>
-        <a href="/blog" aria-current="page">Conteúdos</a>
-        <a href="/#contato">Contato</a>
-      </nav>
-    </header>
+    <PublicSiteHeader active="blog" />
     {children}
     <footer className="mkt-footer">
       <div className="mkt-container discovery-footer">

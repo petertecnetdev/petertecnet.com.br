@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import MarketingExperience from './MarketingExperience.jsx'
 import './MarketingExperience.css'
 import './PublicDiscoveryExperience.css'
+import PublicSiteHeader from './PublicSiteHeader.jsx'
 import MarkdownInline from './MarkdownInline.jsx'
 import { blogArticles, findBlogArticle, formatArticleDate, applicationSeo } from './marketingContent.js'
 import { formatCurrency, getItemImage, resolveAssetUrl } from './landingApi.js'
@@ -34,15 +35,7 @@ const publicImage = value => {
 
 function Shell({ children }) {
   return <div className="mkt-shell discovery-shell">
-    <header className="mkt-header">
-      <a className="mkt-brand" href="/" aria-label="Peter Tecnet — início">
-        <span className="mkt-brand-mark"><img src="/logopetertecnet.png" alt="" /></span>
-        <span><strong>Peter Tecnet</strong><small>Technology ecosystem</small></span>
-      </a>
-      <nav className="mkt-nav discovery-nav" aria-label="Navegação principal">
-        <a href="/#plataformas">Plataformas</a><a href="/#catalogo">Catálogo</a><a href="/blog">Conteúdo</a><a href="/#contato">Contato</a>
-      </nav>
-    </header>
+    <PublicSiteHeader active={window.location.pathname.startsWith('/blog') ? 'blog' : ''} />
     {children}
     <footer className="mkt-footer"><div className="mkt-container discovery-footer"><strong>Peter Tecnet</strong><span>Tecnologia para vender, organizar, integrar e crescer.</span><a href="/">Voltar ao início ↗</a></div></footer>
   </div>

@@ -619,3 +619,8 @@ body { margin: 0; }
 @media (min-width: 861px) {
   .mkt-nav > a { white-space: nowrap; }
 }
+
+
+/* Estado visual do botão de navegação acessível. */
+.mkt-menu.is-open i:first-child { transform: translateY(3.5px) rotate(45deg); }
+.mkt-menu.is-open i:last-child { transform: translateY(-3.5px) rotate(-45deg); }

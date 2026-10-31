@@ -23,6 +23,8 @@ jobs:
         run: npm run lint
       - name: Validate article Markdown links and CTA safety
         run: npm run test:markdown-links
+      - name: Validate public responsive navigation and keyboard behavior
+        run: npm run test:public-navigation
       - name: Validate ecosystem SDK
         run: npm run test:ecosystem
       - name: Validate landing PWA contract

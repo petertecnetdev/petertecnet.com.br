@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import './MarketingExperience.css'
+import PublicSiteHeader from './PublicSiteHeader.jsx'
 import {
   fetchApplications,
   fetchPeterCatalog,
@@ -111,24 +112,8 @@ function useMarketingData({ withCatalog = false } = {}) {
 }
 
 function MarketingHeader() {
-  const [open, setOpen] = useState(false)
-  const close = () => setOpen(false)
-  return <header className="mkt-header">
-    <a className="mkt-brand" href="/" onClick={close} aria-label="Peter Tecnet — início">
-      <span className="mkt-brand-mark"><img src="/logopetertecnet.png" alt="" /></span>
-      <span><strong>Peter Tecnet</strong><small>Technology ecosystem</small></span>
-    </a>
-    <button className="mkt-menu" type="button" aria-label="Abrir menu" aria-expanded={open} onClick={() => setOpen(value => !value)}><i /><i /></button>
-    <nav className={open ? 'mkt-nav is-open' : 'mkt-nav'} aria-label="Navegação principal">
-      <a href="/#plataformas" onClick={close}>Plataformas</a>
-      <a href="/#catalogo" onClick={close}>Catálogo</a>
-      <a href="/blog" onClick={close}>Conteúdo</a>
-      <a href="/#empresa" onClick={close}>Para empresas</a>
-      <a className="mkt-nav-cta" href="/#contato" onClick={close}>Encontrar uma solução <span>↗</span></a>
-    </nav>
-  </header>
+  return <PublicSiteHeader />
 }
-
 function MarketingFooter({ contact = defaultContact }) {
   return <footer className="mkt-footer">
     <div className="mkt-container mkt-footer-grid">
