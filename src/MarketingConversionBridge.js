@@ -44,8 +44,8 @@ function positionFor(element) {
   if (element.closest('.hub-hero,.mkt-hero')) return 'hero'
   if (element.closest('.hub-catalog,.mkt-catalog')) return 'catalog'
   if (element.closest('.hub-blog,.mkt-blog-preview,.article-enhanced')) return 'content'
-  if (element.closest('.hub-inline-quocodeURIComponent(href.split('/')[2]?.split('?')[0] || '') }
-  return null
+  if (element.closest('.hub-inline-quote,.hub-conversion,.mkt-conversion')) return 'conversion'
+  return 'body'
 }
 
 function installTracking() {
