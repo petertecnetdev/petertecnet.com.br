@@ -73,7 +73,7 @@ export default function PlatformDetailPage({ slug }) {
     })
   }, [platform, slug])
 
-  if (!platform || platform.category === 'LifestyleApplication') return <NotFound slug={slug} />
+  if (!platform) return <NotFound slug={slug} />
 
   const faqs = platform.faq?.length
     ? platform.faq
