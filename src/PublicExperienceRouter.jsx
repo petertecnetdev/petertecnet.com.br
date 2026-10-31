@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import PublicDiscoveryExperience from './PublicDiscoveryExperience.jsx'
+import PlatformDetailPage from './PlatformDetailPage.jsx'
 import SmartImage from './components/SmartImage.jsx'
 import { formatCurrency, getItemImage } from './landingApi.js'
 import { updatePageSeo } from './seo.js'
@@ -225,9 +226,11 @@ export default function PublicExperienceRouter() {
   const path = window.location.pathname.replace(/\/+$/, '') || '/'
   const discover = path.match(/^\/descobrir\/([^/]+)(?:\/([^/]+))?$/)
   const article = path.match(/^\/blog\/([^/]+)$/)
+  const platform = path.match(/^\/plataformas\/([^/]+)$/)
   if (path === '/buscar') return <SearchPage />
   if (discover) return <DiscoveryLandingPage term={decodeURIComponent(discover[1])} city={discover[2] ? decodeURIComponent(discover[2]) : null} />
   if (article) return <EnhancedArticlePage slug={decodeURIComponent(article[1])} />
+  if (platform) return <PlatformDetailPage slug={decodeURIComponent(platform[1])} />
   if (path === '/') return <AdaptiveHome />
   return <PublicDiscoveryExperience />
 }
