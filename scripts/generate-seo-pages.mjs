@@ -108,11 +108,74 @@ const shell = inner => `<div class="seo-shell"><nav class="seo-nav"><a class="se
 function platformBody(entity, slug, application = {}) {
   const intents = entity.intents || []
   const benefits = entity.benefits || []
+  const faqs = entity.faq || [
+    [`O que é a ${entity.name}?`, entity.description],
+    [`Para quem a ${entity.name} é indicada?`, entity.headline || entity.description],
+    ['Como conhecer a plataforma?', 'Acesse o domínio oficial da solução ou entre em contato com a equipe Peter Tecnet para entender como ela atende à sua operação.'],
+  ]
   const relatedArticles = [...blogArticles, ...commercialSeoArticles].filter(article => article.relatedPlatform === slug)
+  const domain = entity.domain || application.url
+  const initial = String(entity.name || 'P').trim().charAt(0).toUpperCase()
   const trustAction = slug === 'cutinapp' ? '<a class="seo-button" href="/cutinapp/confianca">Transparência e confiança</a>' : ''
-  return shell(`<main><div class="seo-breadcrumb"><a href="/">Peter Tecnet</a> / <a href="/plataformas">Plataformas</a> / ${escapeHtml(entity.name)}</div><section class="seo-hero"><p class="seo-eyebrow">${escapeHtml(entity.eyebrow)}</p><h1>${escapeHtml(entity.headline)}</h1><p class="seo-lead">${escapeHtml(entity.description)}</p><div class="seo-tags">${intents.map(intent => `<span>${escapeHtml(intent)}</span>`).join('')}</div><div class="seo-actions"><a class="seo-button primary" href="${escapeHtml(entity.domain || application.url || '#')}">Abrir ${escapeHtml(entity.name)} ↗</a>${trustAction}<a class="seo-button" href="/orcamento">Falar com a Peter Tecnet ↗</a></div></section><section class="seo-section"><h2>O que ${escapeHtml(entity.name)} resolve</h2><div class="seo-grid">${benefits.map((benefit, index) => `<article class="seo-card"><p class="seo-eyebrow">0${index + 1}</p><p>${escapeHtml(benefit)}</p></article>`).join('')}</div></section>${entity.faq ? `<section class="seo-section"><h2>Perguntas frequentes</h2><div class="seo-grid">${entity.faq.map(([q,a]) => `<article class="seo-card"><h3>${escapeHtml(q)}</h3><p>${escapeHtml(a)}</p></article>`).join('')}</div></section>` : ''}${relatedArticles.length ? `<section class="seo-section"><h2>Conteúdos relacionados</h2><div class="seo-grid">${relatedArticles.map(article => `<article class="seo-card"><h3><a href="/blog/${escapeHtml(article.slug)}">${escapeHtml(article.title)}</a></h3><p>${escapeHtml(article.description)}</p></article>`).join('')}</div></section>` : ''}${entity.disclaimer ? `<p class="seo-note">${escapeHtml(entity.disclaimer)}</p>` : ''}</main>`)
+  return shell(`<main class="seo-platform">
+    <style>
+      .seo-platform{--pt-cyan:#19d8f2;--pt-deep:#03131d;color:#effbff}
+      .seo-platform-hero{position:relative;overflow:hidden;padding:44px 34px 48px;border:1px solid #164253;border-radius:26px;background:radial-gradient(ellipse at 82% 22%,rgba(25,216,242,.18),transparent 34%),linear-gradient(135deg,#03131d,#052c3b 58%,#03121b)}
+      .seo-platform-crumb{margin-bottom:42px;color:#8caeb8;font-size:13px}
+      .seo-platform-crumb a{color:#9ddce7}
+      .seo-platform-hero-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(220px,.7fr);gap:42px;align-items:center}
+      .seo-platform-kicker{color:var(--pt-cyan);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+      .seo-platform-hero h1{max-width:760px;margin:14px 0 20px;font-size:clamp(2.5rem,6vw,5rem);line-height:1.02;letter-spacing:-.055em}
+      .seo-platform-lead{max-width:720px;color:#b5cbd2;font-size:1.12rem;line-height:1.8}
+      .seo-platform-mark{display:grid;min-height:270px;place-items:center;border:1px solid rgba(25,216,242,.28);border-radius:24px;background:radial-gradient(circle at 50% 42%,rgba(25,216,242,.22),rgba(1,17,26,.9) 70%);color:#f4fbff;font-size:clamp(100px,15vw,160px);font-weight:900;letter-spacing:-.1em;box-shadow:0 25px 70px rgba(0,0,0,.25)}
+      .seo-platform-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+      .seo-platform .seo-button.primary{background:var(--pt-cyan);border-color:var(--pt-cyan);color:#02151d}
+      .seo-platform-section{padding:42px 0}
+      .seo-platform-section>h2{font-size:clamp(1.8rem,4vw,3rem);letter-spacing:-.045em}
+      .seo-platform-section>p{max-width:760px;color:#a9c1c9;line-height:1.8}
+      .seo-platform-benefits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+      .seo-platform-benefit{padding:24px;border:1px solid #1c4050;border-radius:17px;background:linear-gradient(145deg,rgba(8,35,47,.95),rgba(4,17,26,.95))}
+      .seo-platform-benefit small{color:var(--pt-cyan);font-weight:800;letter-spacing:.12em}
+      .seo-platform-benefit p{margin:12px 0 0;color:#c6d8de;line-height:1.75}
+      .seo-platform-tags{display:flex;flex-wrap:wrap;gap:10px}
+      .seo-platform-tags span{padding:10px 14px;border:1px solid #245062;border-radius:999px;background:#071d28;color:#c8e8ee;font-size:.9rem}
+      .seo-platform-faq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+      .seo-platform-faq article{padding:22px;border:1px solid #1c4050;border-radius:16px;background:#071923}
+      .seo-platform-faq h3{margin:0 0 12px;font-size:1.05rem}
+      .seo-platform-faq p{margin:0;color:#a9c1c9;line-height:1.75}
+      .seo-platform-cta{padding:34px;border:1px solid #155064;border-radius:22px;background:linear-gradient(120deg,#062c39,#04141e)}
+      .seo-platform-cta h2{max-width:760px;font-size:clamp(1.8rem,4vw,2.8rem);letter-spacing:-.04em}
+      @media(max-width:760px){.seo-platform-hero{padding:28px 20px}.seo-platform-hero-grid{grid-template-columns:1fr;gap:24px}.seo-platform-mark{min-height:190px;font-size:110px}.seo-platform-benefits,.seo-platform-faq{grid-template-columns:1fr}.seo-platform-crumb{margin-bottom:28px}}
+    </style>
+    <nav class="seo-platform-crumb" aria-label="Você está aqui"><a href="/">Início</a> / <a href="/plataformas">Plataformas</a> / <strong>${escapeHtml(entity.name)}</strong></nav>
+    <section class="seo-platform-hero">
+      <div class="seo-platform-hero-grid">
+        <div>
+          <p class="seo-platform-kicker">${escapeHtml(entity.eyebrow || 'Plataforma digital Peter Tecnet')}</p>
+          <h1>${escapeHtml(entity.name)}</h1>
+          <p class="seo-platform-lead"><strong>${escapeHtml(entity.headline || entity.description)}</strong></p>
+          <p class="seo-platform-lead">${escapeHtml(entity.description)}</p>
+          <div class="seo-platform-actions">${domain ? `<a class="seo-button primary" href="${escapeHtml(domain)}" target="_blank" rel="noopener noreferrer">Acessar ${escapeHtml(entity.name)} ↗</a>` : ''}${trustAction}<a class="seo-button" href="mailto:${escapeHtml(organizationSeo.email)}?subject=${encodeURIComponent(`Quero conhecer a ${entity.name}`)}">Falar com a Peter Tecnet</a></div>
+        </div>
+        <div class="seo-platform-mark" role="img" aria-label="Identidade visual de ${escapeHtml(entity.name)}">${escapeHtml(initial)}</div>
+      </div>
+    </section>
+    <section class="seo-platform-section">
+      <p class="seo-platform-kicker">RECURSOS E BENEFÍCIOS</p>
+      <h2>O que a ${escapeHtml(entity.name)} oferece</h2>
+      <p>Conheça os principais recursos e a finalidade desta solução dentro do ecossistema Peter Tecnet.</p>
+      <div class="seo-platform-benefits">${benefits.map((benefit, index) => `<article class="seo-platform-benefit"><small>RECURSO ${String(index + 1).padStart(2, '0')}</small><p>${escapeHtml(benefit)}</p></article>`).join('')}</div>
+    </section>
+    ${intents.length ? `<section class="seo-platform-section"><p class="seo-platform-kicker">APLICAÇÕES</p><h2>Necessidades que a plataforma atende</h2><div class="seo-platform-tags">${intents.map(intent => `<span>${escapeHtml(intent)}</span>`).join('')}</div></section>` : ''}
+    <section class="seo-platform-section">
+      <p class="seo-platform-kicker">PERGUNTAS FREQUENTES</p>
+      <h2>Entenda melhor a ${escapeHtml(entity.name)}</h2>
+      <div class="seo-platform-faq">${faqs.map(([question, answer]) => `<article><h3>${escapeHtml(question)}</h3><p>${escapeHtml(answer)}</p></article>`).join('')}</div>
+    </section>
+    ${relatedArticles.length ? `<section class="seo-platform-section"><p class="seo-platform-kicker">CONTEÚDO RELACIONADO</p><h2>Aprofunde o assunto</h2><div class="seo-grid">${relatedArticles.map(article => `<article class="seo-card"><h3><a href="/blog/${escapeHtml(article.slug)}">${escapeHtml(article.title)}</a></h3><p>${escapeHtml(article.description)}</p></article>`).join('')}</div></section>` : ''}
+    <section class="seo-platform-cta"><p class="seo-platform-kicker">PRÓXIMO PASSO</p><h2>Quer saber se a ${escapeHtml(entity.name)} atende à sua necessidade?</h2><p class="seo-platform-lead">Acesse a plataforma ou converse com a equipe Peter Tecnet para conhecer melhor a solução.</p><div class="seo-platform-actions">${domain ? `<a class="seo-button primary" href="${escapeHtml(domain)}" target="_blank" rel="noopener noreferrer">Conhecer a plataforma ↗</a>` : ''}<a class="seo-button" href="mailto:${escapeHtml(organizationSeo.email)}?subject=${encodeURIComponent(`Informações sobre ${entity.name}`)}">Entrar em contato</a><a class="seo-button" href="/plataformas">Ver outras plataformas</a></div></section>
+  </main>`)
 }
-
 function cutinappTrustBody() {
   return shell(`<main class="seo-article"><div class="seo-breadcrumb"><a href="/">Peter Tecnet</a> / <a href="/plataformas/cutinapp">Cutinapp</a> / Confiança</div><p class="seo-eyebrow">Transparência · Cutinapp</p><h1>Cutinapp: empresa responsável, CNPJ e como verificar a plataforma</h1><p class="seo-lead">Esta página reúne dados objetivos para compradores, produtores e parceiros verificarem quem desenvolve a Cutinapp, quais são seus canais oficiais e como conferir informações cadastrais em fonte pública oficial.</p><section><h2>Quem desenvolve e opera a Cutinapp</h2><p>A Cutinapp é uma plataforma própria do ecossistema Peter Tecnet para descoberta de eventos, venda de ingressos e itens, participantes, promoters, QR Code e check-in.</p><p><strong>Nome comercial:</strong> Peter Tecnet.<br><strong>Razão social:</strong> Pedro Ivo Boa Sorte Vargas.<br><strong>CNPJ:</strong> 42.595.409/0001-48.<br><strong>Domínios oficiais:</strong> petertecnet.com.br e cutinapp.petertecnet.com.br.</p></section><section><h2>Como verificar a situação cadastral</h2><p>A situação de um CNPJ deve ser conferida em fonte oficial, porque bases privadas podem ficar desatualizadas. Em 24 de setembro de 2026, comprovante oficial apresentado pela empresa indicou situação cadastral <strong>ATIVA</strong>. Para uma consulta posterior, verifique novamente no serviço oficial da Receita Federal/REDESIM.</p><div class="seo-actions"><a class="seo-button primary" href="https://www.gov.br/empresas-e-negocios/pt-br/redesim" rel="noopener noreferrer">Consultar REDESIM ↗</a></div></section><section><h2>A Cutinapp é white label?</h2><p>Não é apresentada pela Peter Tecnet como plataforma white label de terceiros. A Cutinapp é um produto próprio. Ela pode integrar serviços externos — por exemplo, infraestrutura e meios de pagamento — sem deixar de ser software do ecossistema Peter Tecnet.</p></section><section><h2>Pagamentos e segurança da operação</h2><p>Compras devem ser iniciadas e acompanhadas pelos fluxos oficiais da Cutinapp. Provedores externos integrados podem participar do processamento financeiro; o método, o valor e as condições aplicáveis devem ser apresentados no checkout. A Peter Tecnet não recomenda pagamentos enviados por canais informais fora da plataforma.</p></section><section><h2>Políticas, suporte e verificação do evento</h2><p>Antes de concluir uma compra, confirme o evento, o produtor, o valor, as condições do ingresso e as políticas apresentadas pela plataforma. Em caso de dúvida, utilize os canais oficiais publicados nos domínios da Peter Tecnet e da Cutinapp.</p><div class="seo-actions"><a class="seo-button primary" href="https://cutinapp.petertecnet.com.br/">Acessar Cutinapp ↗</a><a class="seo-button" href="mailto:${organizationSeo.email}">Contato oficial</a></div></section><section><h2>Perguntas frequentes</h2><div class="seo-grid"><article class="seo-card"><h3>Qual é o CNPJ da Cutinapp?</h3><p>A Cutinapp integra o ecossistema Peter Tecnet, identificado pelo CNPJ 42.595.409/0001-48.</p></article><article class="seo-card"><h3>Onde verificar se o CNPJ está ativo?</h3><p>Use a Receita Federal/REDESIM como referência para a situação cadastral atual.</p></article><article class="seo-card"><h3>Quem é responsável pela Cutinapp?</h3><p>A plataforma é desenvolvida e operada pela Peter Tecnet, nome comercial ligado à razão social Pedro Ivo Boa Sorte Vargas.</p></article><article class="seo-card"><h3>Como saber se estou no site oficial?</h3><p>Verifique se o endereço pertence a petertecnet.com.br ou cutinapp.petertecnet.com.br e evite links de pagamento enviados fora dos fluxos oficiais.</p></article></div></section></main>`)
 }
