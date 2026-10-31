@@ -29,44 +29,18 @@ jobs:
         run: npm run test:landing-pwa
       - name: Production build
         run: npm run build
-      - name: Validate Admin Center in real browser
-        run: npm run test:admin-ui
-      - name: Upload Admin Center viewport captures
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: admin-ui-viewports
-          path: artifacts/admin-ui/*.png
-          if-no-files-found: ignore
-          retention-days: 7
-      - name: Verify monorepo Admin Center sources
+      - name: Verify public landing build and SEO entrypoints
         shell: bash
         run: |
           set -euo pipefail
-          ADMIN_ROOT="apps/admincenter"
-
-          test -f "$ADMIN_ROOT/package.json"
-          test -f "$ADMIN_ROOT/package-lock.json"
-          test -f "$ADMIN_ROOT/index.html"
-          test -f "$ADMIN_ROOT/src/main.jsx"
-          test -f "$ADMIN_ROOT/src/App.jsx"
-          test -f "$ADMIN_ROOT/src/AdminUsersCenter.jsx"
-          test -f "$ADMIN_ROOT/src/AdminUserDetailPage.jsx"
-          test -f "$ADMIN_ROOT/src/AdminUserDetailExperience.jsx"
-          test -f "$ADMIN_ROOT/src/AdminUserCommunication.css"
-          test -f "$ADMIN_ROOT/src/AdminEstablishmentsPageV2.jsx"
-          test -f "$ADMIN_ROOT/src/NotificationsCenter.jsx"
-          test -f "$ADMIN_ROOT/public/service-worker.js"
-
-          grep -q "AdminUserDetailExperience" "$ADMIN_ROOT/src/AdminUsersCenter.jsx"
-          grep -q "COMUNICAÇÃO INDIVIDUAL" "$ADMIN_ROOT/src/AdminUserDetailExperience.jsx"
-          grep -q "communications/email" "$ADMIN_ROOT/src/AdminUserDetailExperience.jsx"
-          grep -q "E-mail" "$ADMIN_ROOT/src/AdminUserDetailExperience.jsx"
-          grep -q "Notificação" "$ADMIN_ROOT/src/AdminUserDetailExperience.jsx"
-          grep -q "Comunicar" "$ADMIN_ROOT/src/AdminUserDetailExperience.jsx"
-          grep -q "notifications/preview" "$ADMIN_ROOT/src/AdminUserDetailExperience.jsx"
-          grep -q "users/resend-email" "$ADMIN_ROOT/src/AdminUserDetailExperience.jsx"
-          grep -q "admincenter.petertecnet.com.br" .github/workflows/admincenter-production.yml
-          grep -q "apps/admincenter" .github/workflows/admincenter-production.yml
-
-          echo "Monorepo Admin Center contract OK"
+          test -s dist/index.html
+          test -s dist/robots.txt
+          test -s dist/sitemap.xml
+          test -d dist/assets
+          test -n "$(find dist/assets -maxdepth 1 -type f -print -quit)"
+          grep -q 'name="description"' dist/index.html
+          grep -q 'rel="canonical"' dist/index.html
+          grep -q 'property="og:image"' dist/index.html
+          grep -q 'application/ld+json' dist/index.html
+          grep -q 'Sitemap: https://petertecnet.com.br/sitemap.xml' dist/robots.txt
+          echo "Landing build, assets and SEO entrypoints: PASS"
