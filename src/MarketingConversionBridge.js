@@ -1,4 +1,5 @@
 import { fetchContentEntry, trackDiscoveryEvent } from './discoveryApi.js'
+import { classifyMarketingConversion } from './utils/marketingConversion.js'
 import { marketingServices } from './marketingHubContent.js'
 import {
   captureMarketingAttribution,
@@ -43,20 +44,7 @@ function positionFor(element) {
   if (element.closest('.hub-hero,.mkt-hero')) return 'hero'
   if (element.closest('.hub-catalog,.mkt-catalog')) return 'catalog'
   if (element.closest('.hub-blog,.mkt-blog-preview,.article-enhanced')) return 'content'
-  if (element.closest('.hub-inline-quote,.hub-conversion,.mkt-conversion')) return 'conversion'
-  return 'body'
-}
-
-function classify(anchor) {
-  const href = anchor.getAttribute('href') || ''
-  if (!href || href === '#') return null
-  if (href.startsWith('mailto:')) return { type: 'contact', id: 'email' }
-  if (href.includes('wa.me') || normalize(anchor.textContent).includes('whatsapp')) return { type: 'contact', id: 'whatsapp' }
-  if (href.startsWith('/orcamento')) return { type: 'conversion', id: 'quote' }
-  if (href.startsWith('/servicos/')) return { type: 'service', id: decodeURIComponent(href.split('/')[2]?.split('?')[0] || '') }
-  if (href.startsWith('/plataformas/')) return { type: 'application', id: decodeURIComponent(href.split('/')[2]?.split('?')[0] || '') }
-  if (href.startsWith('/solucoes/')) return { type: 'item', id: decodeURIComponent(href.split('/')[2]?.split('?')[0] || '') }
-  if (href.startsWith('/blog/')) return { type: 'content', id: decodeURIComponent(href.split('/')[2]?.split('?')[0] || '') }
+  if (element.closest('.hub-inline-quocodeURIComponent(href.split('/')[2]?.split('?')[0] || '') }
   return null
 }
 
@@ -74,7 +62,7 @@ function installTracking() {
   document.addEventListener('click', event => {
     const anchor = event.target.closest?.('a[href]')
     if (!anchor) return
-    const classification = classify(anchor)
+    const classification = classifyMarketingConversion(anchor)
     if (!classification) return
 
     let destination = anchor.getAttribute('href')

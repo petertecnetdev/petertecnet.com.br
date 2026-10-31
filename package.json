@@ -15,7 +15,8 @@
     "test:marketing-runtime": "node scripts/validate-marketing-runtime.mjs",
     "test:performance": "vite build && node scripts/validate-performance-budget.mjs",
     "test:markdown-links": "node scripts/validate-markdown-links.mjs",
-    "test:public-navigation": "node scripts/validate-public-navigation.mjs"
+    "test:public-navigation": "node scripts/validate-public-navigation.mjs",
+    "test:marketing-conversions": "node scripts/validate-marketing-conversions.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",
