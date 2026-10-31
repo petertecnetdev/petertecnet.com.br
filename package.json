@@ -13,7 +13,8 @@
     "test:admin-ui": "node scripts/validate-admin-ticket-sales.mjs && node scripts/validate-admin-ticket-sales-browser.mjs",
     "preview": "vite preview",
     "test:marketing-runtime": "node scripts/validate-marketing-runtime.mjs",
-    "test:performance": "vite build && node scripts/validate-performance-budget.mjs"
+    "test:performance": "vite build && node scripts/validate-performance-budget.mjs",
+    "test:markdown-links": "node scripts/validate-markdown-links.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",
