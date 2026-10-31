@@ -42,4 +42,12 @@ for (const path of ['../src/PublicBlogArticle.jsx', '../src/PublicDiscoveryExper
   assert.match(component, /<li[^>]*><MarkdownInline text=\{/)
   assert.match(component, /<h2[^>]*><MarkdownInline text=\{/)
 }
-console.log('Links Markdown, CTA, HTTPS, protocolos e contrato dos dois renderizadores: PASS')
+
+const liveRouter = readFileSync(new URL('../src/PublicExperienceRouter.jsx', import.meta.url), 'utf8')
+assert.match(liveRouter, /import MarkdownInline from '\.\/MarkdownInline\.jsx'/)
+assert.match(liveRouter, /if \(article\) return <EnhancedArticlePage slug=\{decodeURIComponent\(article\[1\]\)\} \/>/)
+assert.match(liveRouter, /<h2[^>]*><MarkdownInline text=\{block\.replace/)
+assert.match(liveRouter, /<li key=\{line\}><MarkdownInline text=\{line\} \/><\/li>/)
+assert.match(liveRouter, /<p key=\{index\}><MarkdownInline text=\{block\.replace/)
+
+console.log('Links Markdown, CTA, HTTPS, protocolos e contrato dos três renderizadores ativos: PASS')

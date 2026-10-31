@@ -4,6 +4,7 @@ import PublicDiscoveryExperience from './PublicDiscoveryExperience.jsx'
 import SmartImage from './components/SmartImage.jsx'
 import { formatCurrency, getItemImage } from './landingApi.js'
 import { updatePageSeo } from './seo.js'
+import MarkdownInline from './MarkdownInline.jsx'
 import {
   fetchContentEntry,
   fetchDiscoveryLanding,
@@ -201,9 +202,9 @@ function EnhancedArticlePage({ slug }) {
   return <main className="article-enhanced">
     <header className="article-enhanced-hero"><a href="/blog">← Conteúdo</a><p>{article.category || 'PETER TECNET DISCOVERY'}</p><h1>{article.title}</h1><div>{article.excerpt}</div><small>{article.cluster ? `Cluster: ${article.cluster}` : 'Peter Tecnet'}</small></header>
     <article className="article-enhanced-body">{paragraphs.map((block, index) => {
-      if (/^#{2,3}\s/.test(block)) return <h2 id={`sec-${index}`} key={index}>{block.replace(/^#{2,3}\s+/, '')}</h2>
-      if (/^[-*]\s/m.test(block)) return <ul key={index}>{block.split('\n').map(line => line.replace(/^[-*]\s+/, '').trim()).filter(Boolean).map(line => <li key={line}>{line}</li>)}</ul>
-      return <p key={index}>{block.replace(/^#\s+/, '')}</p>
+      if (/^#{2,3}\s/.test(block)) return <h2 id={`sec-${index}`} key={index}><MarkdownInline text={block.replace(/^#{2,3}\s+/, '')} /></h2>
+      if (/^[-*]\s/m.test(block)) return <ul key={index}>{block.split('\n').map(line => line.replace(/^[-*]\s+/, '').trim()).filter(Boolean).map(line => <li key={line}><MarkdownInline text={line} /></li>)}</ul>
+      return <p key={index}><MarkdownInline text={block.replace(/^#\s+/, '')} /></p>
     })}</article>
     {(article.related_items || []).length > 0 && <section className="article-related-section"><div className="article-section-heading"><p>DO CONTEÚDO PARA A AÇÃO</p><h2>Produtos e serviços relacionados</h2><span>As recomendações vêm do mesmo contexto semântico do artigo.</span></div><div className="article-related-grid">{article.related_items.map(item => <RelatedProduct item={item} key={item.id} />)}</div></section>}
     {(article.related_content || []).length > 0 && <section className="article-related-section"><div className="article-section-heading"><p>CLUSTER EDITORIAL</p><h2>Continue aprofundando o tema</h2></div><div className="article-content-links">{article.related_content.map(row => <a href={`/blog/${row.slug}`} key={row.id}><small>{row.category}</small><strong>{row.title}</strong><span>{row.excerpt}</span></a>)}</div></section>}
