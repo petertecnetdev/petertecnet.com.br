@@ -12,9 +12,11 @@ assert.equal(parseMarkdownInline('[Contato](mailto:contato@example.com)')[0].hre
 assert.equal(parseMarkdownInline('[Seção](#integracoes)')[0].href, '#integracoes')
 assert.equal(parseMarkdownInline('[Serviços](/servicos/apis?origem=blog&utm_source=artigo)')[0].href, '/servicos/apis?origem=blog&utm_source=artigo')
 assert.deepEqual(parseMarkdownInline('[Um](/orcamento) e [Dois](https://example.com/)').filter(part => part.type === 'link').map(part => part.href), ['/orcamento', 'https://example.com/'])
+assert.equal(safeMarkdownHref('HTTPS://EXAMPLE.COM/path'), 'https://example.com/path')
 assert.equal(parseMarkdownInline('[Externo](https://example.com/a)')[0].external, true)
 
 for (const href of [
+  'http://example.com', 'HTTP://example.com',
   'javascript:alert(1)', 'JaVaScRiPt:alert(1)', 'data:text/html,<script>', 'vbscript:msgbox(1)',
   '//evil.example/redirect', 'https://user:password@example.com/', 'https://example.com\\@evil.example',
   'https://example.com/\nattack', 'https://example.com/\tattack', 'file:///etc/passwd',
@@ -40,4 +42,4 @@ for (const path of ['../src/PublicBlogArticle.jsx', '../src/PublicDiscoveryExper
   assert.match(component, /<li[^>]*><MarkdownInline text=\{/)
   assert.match(component, /<h2[^>]*><MarkdownInline text=\{/)
 }
-console.log('Links Markdown, CTA, protocolos e contrato dos dois renderizadores: PASS')
+console.log('Links Markdown, CTA, HTTPS, protocolos e contrato dos dois renderizadores: PASS')
